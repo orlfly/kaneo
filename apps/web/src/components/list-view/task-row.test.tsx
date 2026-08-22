@@ -27,14 +27,14 @@ vi.mock("@/hooks/mutations/task/use-delete-task", () => ({
   useDeleteTask: () => ({ mutateAsync: vi.fn() }),
 }));
 
-vi.mock("@/hooks/queries/workspace/use-active-workspace", () => ({
+vi.mock("@/hooks/queries/team/use-active-team", () => ({
   default: () => ({ data: { id: "workspace-1" } }),
 }));
 
 vi.mock(
-  "@/hooks/queries/workspace-users/use-get-active-workspace-users",
+  "@/hooks/queries/team-member/use-get-active-team-members",
   () => ({
-    useGetActiveWorkspaceUsers: () => ({ data: { members: [] } }),
+    useGetActiveTeamMembers: () => ({ data: [] }),
   }),
 );
 

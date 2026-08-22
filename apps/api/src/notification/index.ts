@@ -168,7 +168,7 @@ subscribeToEvent<{
 }>("task.created", async (data) => {
   if (data.userId && data.userId !== data.currentUserId) {
     const [project] = await db
-      .select({ workspaceId: projectTable.workspaceId })
+      .select({ teamId: projectTable.teamId })
       .from(projectTable)
       .where(eq(projectTable.id, data.projectId))
       .limit(1);
@@ -179,7 +179,7 @@ subscribeToEvent<{
       eventData: {
         taskTitle: data.title,
         projectId: data.projectId,
-        workspaceId: project?.workspaceId ?? null,
+        teamId: project?.teamId ?? null,
       },
       resourceId: data.taskId,
       resourceType: "task",
@@ -188,20 +188,20 @@ subscribeToEvent<{
 });
 
 subscribeToEvent<{
-  workspaceId: string;
-  workspaceName: string;
+  teamId: string;
+  teamName: string;
   ownerEmail: string;
   ownerId?: string;
-}>("workspace.created", async (data) => {
+}>("team.created", async (data) => {
   if (data.ownerId) {
     await createNotification({
       userId: data.ownerId,
-      type: "workspace_created",
+      type: "team_created",
       eventData: {
-        workspaceName: data.workspaceName,
+        teamName: data.teamName,
       },
-      resourceId: data.workspaceId,
-      resourceType: "workspace",
+      resourceId: data.teamId,
+      resourceType: "team",
     });
   }
 });
@@ -223,7 +223,7 @@ subscribeToEvent<{
 
     const [project] = task
       ? await db
-          .select({ workspaceId: projectTable.workspaceId })
+          .select({ teamId: projectTable.teamId })
           .from(projectTable)
           .where(eq(projectTable.id, task.projectId))
           .limit(1)
@@ -237,7 +237,7 @@ subscribeToEvent<{
         oldStatus: data.oldStatus,
         newStatus: data.newStatus,
         projectId: task?.projectId ?? null,
-        workspaceId: project?.workspaceId ?? null,
+        teamId: project?.teamId ?? null,
       },
       resourceId: data.taskId,
       resourceType: "task",
@@ -262,7 +262,7 @@ subscribeToEvent<{
 
     const [project] = task
       ? await db
-          .select({ workspaceId: projectTable.workspaceId })
+          .select({ teamId: projectTable.teamId })
           .from(projectTable)
           .where(eq(projectTable.id, task.projectId))
           .limit(1)
@@ -274,7 +274,7 @@ subscribeToEvent<{
       eventData: {
         taskTitle: data.title,
         projectId: task?.projectId ?? null,
-        workspaceId: project?.workspaceId ?? null,
+        teamId: project?.teamId ?? null,
       },
       resourceId: data.taskId,
       resourceType: "task",
@@ -298,7 +298,7 @@ subscribeToEvent<{
 
     const [project] = task
       ? await db
-          .select({ workspaceId: projectTable.workspaceId })
+          .select({ teamId: projectTable.teamId })
           .from(projectTable)
           .where(eq(projectTable.id, task.projectId))
           .limit(1)
@@ -310,7 +310,7 @@ subscribeToEvent<{
       eventData: {
         taskTitle: data.taskTitle ?? null,
         projectId: task?.projectId ?? null,
-        workspaceId: project?.workspaceId ?? null,
+        teamId: project?.teamId ?? null,
       },
       resourceId: data.taskId,
       resourceType: "task",

@@ -5,12 +5,9 @@ import { activitySchema, projectSchema, taskSchema } from "../schemas";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import globalSearch from "./controllers/global-search";
 
-const workspaceSchema = v.object({
+const teamSchema = v.object({
   id: v.string(),
   name: v.string(),
-  slug: v.string(),
-  logo: v.nullable(v.string()),
-  metadata: v.nullable(v.string()),
   description: v.nullable(v.string()),
   createdAt: v.date(),
 });
@@ -18,7 +15,7 @@ const workspaceSchema = v.object({
 const searchResultSchema = v.object({
   tasks: v.optional(v.array(taskSchema)),
   projects: v.optional(v.array(projectSchema)),
-  workspaces: v.optional(v.array(workspaceSchema)),
+  teams: v.optional(v.array(teamSchema)),
   comments: v.optional(v.array(activitySchema)),
   activities: v.optional(v.array(activitySchema)),
 });
@@ -33,7 +30,7 @@ const search = new Hono<{
     operationId: "globalSearch",
     tags: ["Search"],
     description:
-      "Search across tasks, projects, workspaces, comments, and activities",
+      "Search across tasks, projects, teams, comments, and activities",
     responses: {
       200: {
         description: "Search results",
@@ -55,13 +52,13 @@ const search = new Hono<{
           "all",
           "tasks",
           "projects",
-          "workspaces",
+          "teams",
           "comments",
           "activities",
         ]),
         "all",
       ),
-      workspaceId: v.optional(v.string()),
+      teamId: v.optional(v.string()),
       projectId: v.optional(v.string()),
       limit: v.optional(
         v.pipe(
@@ -79,7 +76,7 @@ const search = new Hono<{
   ),
   workspaceAccess.fromQuery(),
   async (c) => {
-    const { q, type, workspaceId, projectId, limit, userEmail } =
+    const { q, type, teamId, projectId, limit, userEmail } =
       c.req.valid("query");
     const userId = c.get("userId");
 
@@ -88,7 +85,7 @@ const search = new Hono<{
       userId,
       userEmail,
       type,
-      workspaceId,
+      teamId,
       projectId,
       limit,
     });

@@ -4,8 +4,8 @@ import db from "../../database";
 import { projectTable } from "../../database/schema";
 import getProject from "./get-project";
 
-async function deleteProject(id: string, workspaceId: string) {
-  const existingProject = await getProject(id, workspaceId);
+async function deleteProject(id: string, teamId: string) {
+  const existingProject = await getProject(id, teamId);
 
   const [deletedProject] = await db
     .delete(projectTable)

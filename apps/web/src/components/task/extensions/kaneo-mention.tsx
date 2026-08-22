@@ -1,6 +1,6 @@
 import { mergeAttributes, Node } from "@tiptap/core";
 
-// Inline atom node for an @mention of a workspace member. Stores the member id
+// Inline atom node for an @mention of a team member. Stores the member id
 // (used by the backend to fire a notification) and a display label, and
 // round-trips through Markdown as `<kaneo-mention id label></kaneo-mention>`,
 // mirroring the KaneoIssueLink extension.

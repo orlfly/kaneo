@@ -18,7 +18,7 @@ import { workspaceAccess } from "../utils/workspace-access-middleware";
 const discordIntegration = new Hono<{
   Variables: {
     userId: string;
-    workspaceId: string;
+    teamId: string;
     apiKey?: {
       id: string;
       userId: string;

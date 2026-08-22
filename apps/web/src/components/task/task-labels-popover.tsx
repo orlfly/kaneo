@@ -12,7 +12,7 @@ import useAttachLabelToTask from "@/hooks/mutations/label/use-attach-label-to-ta
 import useCreateLabel from "@/hooks/mutations/label/use-create-label";
 import useDetachLabelFromTask from "@/hooks/mutations/label/use-detach-label-from-task";
 import useGetLabelsByTask from "@/hooks/queries/label/use-get-labels-by-task";
-import useGetLabelsByWorkspace from "@/hooks/queries/label/use-get-labels-by-workspace";
+import useGetLabelsByTeam from "@/hooks/queries/label/use-get-labels-by-team";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { cn } from "@/lib/cn";
 import { getTaskLabelOptions } from "@/lib/get-task-label-options";
@@ -44,7 +44,7 @@ type LabelColor =
 
 type TaskLabelsPopoverProps = {
   task: Task;
-  workspaceId: string;
+  teamId: string;
   children: React.ReactNode;
   triggerNativeButton?: boolean;
 };
@@ -53,7 +53,7 @@ type PopoverStep = "select" | "color";
 
 export default function TaskLabelsPopover({
   task,
-  workspaceId,
+  teamId,
   children,
   triggerNativeButton = true,
 }: TaskLabelsPopoverProps) {
@@ -75,32 +75,32 @@ export default function TaskLabelsPopover({
   const canEdit = canUpdateLabels();
 
   const { data: taskLabels = [] } = useGetLabelsByTask(task.id);
-  const { data: workspaceLabels = [] } = useGetLabelsByWorkspace(workspaceId);
+  const { data: teamLabels = [] } = useGetLabelsByTeam(teamId);
 
   const taskLabelNames = useMemo(
     () => taskLabels.map((label) => label.name),
     [taskLabels],
   );
 
-  const workspaceLevelLabels = useMemo(
-    () => workspaceLabels.filter((label) => label.taskId === null),
-    [workspaceLabels],
+  const teamLevelLabels = useMemo(
+    () => teamLabels.filter((label) => label.taskId === null),
+    [teamLabels],
   );
 
   const filteredLabels = useMemo(() => {
-    const selectableLabels = getTaskLabelOptions(workspaceLabels, task.id);
+    const selectableLabels = getTaskLabelOptions(teamLabels, task.id);
     return selectableLabels.filter((label) =>
       label.name.toLowerCase().includes(searchValue.toLowerCase()),
     );
-  }, [workspaceLabels, searchValue, task.id]);
+  }, [teamLabels, searchValue, task.id]);
 
   const isCreatingNewLabel = useMemo(
     () =>
       searchValue &&
-      !workspaceLevelLabels.some(
+      !teamLevelLabels.some(
         (label) => label.name.toLowerCase() === searchValue.toLowerCase(),
       ),
-    [workspaceLevelLabels, searchValue],
+    [teamLevelLabels, searchValue],
   );
 
   useEffect(() => {
@@ -123,24 +123,22 @@ export default function TaskLabelsPopover({
 
   const handleToggleLabel = async (labelId: string) => {
     try {
-      const workspaceLabel = workspaceLabels.find((l) => l.id === labelId);
-      if (!workspaceLabel) return;
+      const teamLabel = teamLabels.find((l) => l.id === labelId);
+      if (!teamLabel) return;
 
-      const isCurrentlyAssigned = taskLabelNames.includes(workspaceLabel.name);
+      const isCurrentlyAssigned = taskLabelNames.includes(teamLabel.name);
 
       if (isCurrentlyAssigned) {
         // Remove label from task - find by name since IDs are different
-        const taskLabel = taskLabels.find(
-          (l) => l.name === workspaceLabel.name,
-        );
+        const taskLabel = taskLabels.find((l) => l.name === teamLabel.name);
         if (taskLabel?.id) {
           await detachLabel({ labelId: taskLabel.id });
           toast.success(t("tasks:popover.labels.removeSuccess"));
         }
       } else {
-        if (workspaceLabel.taskId !== null) return;
+        if (teamLabel.taskId !== null) return;
         await attachLabel({
-          labelId: workspaceLabel.id,
+          labelId: teamLabel.id,
           taskId: task.id,
         });
         toast.success(t("tasks:popover.labels.addSuccess"));
@@ -170,11 +168,11 @@ export default function TaskLabelsPopover({
     if (!newLabelName.trim()) return;
 
     try {
-      // First create the label in the workspace
+      // First create the label in the team
       const createdLabel = await createLabel({
         name: newLabelName.trim(),
         color: color,
-        workspaceId,
+        teamId,
       });
 
       await attachLabel({

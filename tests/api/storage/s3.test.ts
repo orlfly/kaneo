@@ -107,7 +107,7 @@ describe("S3 helpers", () => {
     vi.spyOn(Date, "now").mockReturnValue(1_717_171_717_000);
 
     const key = buildObjectKey({
-      workspaceId: "Workspace 1",
+      teamId: "Workspace 1",
       projectId: "Project 2",
       taskId: "Task 3",
       surface: "comment",
@@ -117,7 +117,7 @@ describe("S3 helpers", () => {
 
     expect(
       buildObjectKeyPrefix({
-        workspaceId: "Workspace 1",
+        teamId: "Workspace 1",
         projectId: "Project 2",
         taskId: "Task 3",
         surface: "comment",
@@ -135,7 +135,7 @@ describe("S3 helpers", () => {
 
     expect(
       assertTaskImageKeyMatchesContext(key, {
-        workspaceId: "Workspace 1",
+        teamId: "Workspace 1",
         projectId: "Project 2",
         taskId: "Task 3",
         surface: "comment",
@@ -151,7 +151,7 @@ describe("S3 helpers", () => {
     delete process.env.S3_KEY_PREFIX;
 
     const ctx = {
-      workspaceId: "ws1",
+      teamId: "ws1",
       projectId: "p1",
       taskId: "t1",
       surface: "description" as const,
@@ -196,7 +196,7 @@ describe("S3 helpers", () => {
     process.env.S3_KEY_PREFIX = "staging";
 
     const ctx = {
-      workspaceId: "ws1",
+      teamId: "ws1",
       projectId: "p1",
       taskId: "t1",
       surface: "description" as const,
@@ -236,7 +236,7 @@ describe("S3 helpers", () => {
     delete process.env.S3_KEY_PREFIX;
 
     const upload = await createTaskImageUploadUrl({
-      workspaceId: "workspace-1",
+      teamId: "workspace-1",
       projectId: "project-1",
       taskId: "task-1",
       surface: "description",
@@ -353,7 +353,7 @@ describe("S3 credential provider chain (IAM role)", () => {
     process.env.AWS_SECRET_ACCESS_KEY = ambientSecretAccessKey;
 
     const upload = await createTaskImageUploadUrl({
-      workspaceId: "workspace-1",
+      teamId: "workspace-1",
       projectId: "project-1",
       taskId: "task-1",
       surface: "description",

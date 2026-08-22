@@ -1,12 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import i18n from "i18next";
-import deleteNotificationWorkspaceRule from "@/fetchers/notification-preferences/delete-notification-workspace-rule";
+import deleteNotificationTeamRule from "@/fetchers/notification-preferences/delete-notification-team-rule";
 import updateNotificationPreferences, {
   type UpdateNotificationPreferencesRequest,
 } from "@/fetchers/notification-preferences/update-notification-preferences";
-import upsertNotificationWorkspaceRule, {
-  type UpsertNotificationWorkspaceRuleRequest,
-} from "@/fetchers/notification-preferences/upsert-notification-workspace-rule";
+import upsertNotificationTeamRule, {
+  type UpsertNotificationTeamRuleRequest,
+} from "@/fetchers/notification-preferences/upsert-notification-team-rule";
 import { toast } from "@/lib/toast";
 
 export function useUpdateNotificationPreferences() {
@@ -31,17 +31,17 @@ export function useUpdateNotificationPreferences() {
   });
 }
 
-export function useUpsertNotificationWorkspaceRule() {
+export function useUpsertNotificationTeamRule() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({
-      workspaceId,
+      teamId,
       json,
     }: {
-      workspaceId: string;
-      json: UpsertNotificationWorkspaceRuleRequest;
-    }) => upsertNotificationWorkspaceRule(workspaceId, json),
+      teamId: string;
+      json: UpsertNotificationTeamRuleRequest;
+    }) => upsertNotificationTeamRule(teamId, json),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: ["notification-preferences"],
@@ -58,12 +58,11 @@ export function useUpsertNotificationWorkspaceRule() {
   });
 }
 
-export function useDeleteNotificationWorkspaceRule() {
+export function useDeleteNotificationTeamRule() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (workspaceId: string) =>
-      deleteNotificationWorkspaceRule(workspaceId),
+    mutationFn: (teamId: string) => deleteNotificationTeamRule(teamId),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: ["notification-preferences"],

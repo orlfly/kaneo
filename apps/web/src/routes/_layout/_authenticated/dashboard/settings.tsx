@@ -1,18 +1,20 @@
 import {
   createFileRoute,
+  Link,
   Outlet,
   useLocation,
   useNavigate,
 } from "@tanstack/react-router";
-import { ChevronLeft, PanelLeftIcon } from "lucide-react";
+import { ChevronLeft, PanelLeftIcon, ShieldIcon } from "lucide-react";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import PageTitle from "@/components/page-title";
+import useAuth from "@/components/providers/auth-provider/hooks/use-auth";
 import { SettingsSidebarProvider } from "@/components/SettingsSidebar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
-import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
+import useActiveTeam from "@/hooks/queries/team/use-active-team";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Route = createFileRoute(
@@ -27,21 +29,24 @@ function SettingsLayout() {
   const location = useLocation();
   const isMobile = useIsMobile();
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
-  const { data: workspace } = useActiveWorkspace();
+  const { user } = useAuth();
+  const { data: team } = useActiveTeam();
   const { data: projects } = useGetProjects({
-    workspaceId: workspace?.id ?? "",
+    teamId: team?.id ?? "",
   });
+
+  const isAdmin = (user as { role?: string | null } | null)?.role === "admin";
 
   const getActiveTab = () => {
     const pathname = location.pathname;
     if (pathname.includes("/dashboard/settings/account")) {
       return "account";
     }
-    if (pathname.includes("/dashboard/settings/workspace")) {
-      return "workspace";
-    }
     if (pathname.includes("/dashboard/settings/projects")) {
       return "project";
+    }
+    if (pathname.includes("/dashboard/settings/admin")) {
+      return "admin";
     }
     return "account";
   };
@@ -90,20 +95,20 @@ function SettingsLayout() {
               <Button
                 variant="ghost"
                 size="sm"
-                disabled={!workspace?.id}
+                disabled={!team?.id}
                 className="hidden md:inline-flex"
                 onClick={() => {
-                  if (!workspace?.id) return;
+                  if (!team?.id) return;
 
                   navigate({
-                    to: "/dashboard/workspace/$workspaceId",
-                    params: { workspaceId: workspace.id },
+                    to: "/dashboard/team/$teamId",
+                    params: { teamId: team.id },
                   });
                 }}
               >
                 <ChevronLeft />
 
-                {t("navigation:page.backToWorkspace")}
+                {t("navigation:page.backToTeam")}
               </Button>
             </div>
 
@@ -128,17 +133,6 @@ function SettingsLayout() {
                   {t("settings:account")}
                 </TabsTrigger>
                 <TabsTrigger
-                  value="workspace"
-                  className="[&[data-state=active]]:rounded-md [&[data-state=active]]:border [&[data-state=active]]:border-border [&[data-state=active]]:bg-card"
-                  onClick={() =>
-                    navigate({
-                      to: "/dashboard/settings/workspace/general",
-                    })
-                  }
-                >
-                  {t("navigation:page.settingsWorkspaceTab")}
-                </TabsTrigger>
-                <TabsTrigger
                   disabled={projects?.length === 0}
                   value="project"
                   className="[&[data-state=active]]:rounded-md [&[data-state=active]]:border [&[data-state=active]]:border-border [&[data-state=active]]:bg-card"
@@ -150,13 +144,62 @@ function SettingsLayout() {
                 >
                   {t("navigation:sidebar.projects")}
                 </TabsTrigger>
+                {isAdmin ? (
+                  <TabsTrigger
+                    value="admin"
+                    className="[&[data-state=active]]:rounded-md [&[data-state=active]]:border [&[data-state=active]]:border-border [&[data-state=active]]:bg-card"
+                    onClick={() =>
+                      navigate({
+                        to: "/dashboard/settings/admin/users",
+                      })
+                    }
+                  >
+                    <ShieldIcon className="size-4" />
+                    {t("admin:tab")}
+                  </TabsTrigger>
+                ) : null}
               </TabsList>
             </Tabs>
+
+            {activeTab === "admin" && isAdmin ? (
+              <div className="flex gap-2 pt-2">
+                <Link
+                  to="/dashboard/settings/admin/users"
+                  className="rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent"
+                  activeProps={{
+                    className:
+                      "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
+                  }}
+                >
+                  {t("admin:users.tab")}
+                </Link>
+                <Link
+                  to="/dashboard/settings/admin/teams"
+                  className="rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent"
+                  activeProps={{
+                    className:
+                      "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
+                  }}
+                >
+                  {t("admin:teams.tab")}
+                </Link>
+                <Link
+                  to="/dashboard/settings/admin/ai"
+                  className="rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent"
+                  activeProps={{
+                    className:
+                      "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
+                  }}
+                >
+                  {t("admin:ai.tab", { defaultValue: "AI" })}
+                </Link>
+              </div>
+            ) : null}
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto">
             <SettingsSidebarProvider
-              workspaceId={workspace?.id}
+              teamId={team?.id}
               menuOpen={settingsMenuOpen}
               setMenuOpen={setSettingsMenuOpen}
             >

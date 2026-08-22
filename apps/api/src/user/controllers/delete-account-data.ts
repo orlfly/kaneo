@@ -1,60 +1,58 @@
 import { APIError } from "better-auth/api";
 import { and, eq, inArray } from "drizzle-orm";
-import {
-  findBillableWorkspaces,
-  formatBillableWorkspacesMessage,
-} from "../../billing/controllers/find-billable-workspaces";
-import { syncWorkspaceSeats } from "../../billing/controllers/sync-seats";
 import db from "../../database";
-import { workspaceTable, workspaceUserTable } from "../../database/schema";
 import {
-  formatBlockedWorkspacesMessage,
+  teamMemberTable,
+  teamTable,
+} from "../../database/schema";
+import {
+  formatBlockedTeamsMessage,
   hasOwnerRole,
   planAccountDeletion,
-  type WorkspaceMembershipSummary,
+  type TeamMembershipSummary,
 } from "../account-deletion";
 
 async function collectMemberships(
   userId: string,
-): Promise<WorkspaceMembershipSummary[]> {
+): Promise<TeamMembershipSummary[]> {
   const memberships = await db
     .select({
-      workspaceId: workspaceUserTable.workspaceId,
-      role: workspaceUserTable.role,
+      teamId: teamMemberTable.teamId,
+      role: teamMemberTable.role,
     })
-    .from(workspaceUserTable)
-    .where(eq(workspaceUserTable.userId, userId));
+    .from(teamMemberTable)
+    .where(eq(teamMemberTable.userId, userId));
 
   if (memberships.length === 0) {
     return [];
   }
 
-  const workspaceIds = memberships.map((membership) => membership.workspaceId);
+  const teamIds = memberships.map((membership) => membership.teamId);
 
   const members = await db
     .select({
-      workspaceId: workspaceUserTable.workspaceId,
-      workspaceName: workspaceTable.name,
-      role: workspaceUserTable.role,
+      teamId: teamMemberTable.teamId,
+      teamName: teamTable.name,
+      role: teamMemberTable.role,
     })
-    .from(workspaceUserTable)
+    .from(teamMemberTable)
     .innerJoin(
-      workspaceTable,
-      eq(workspaceUserTable.workspaceId, workspaceTable.id),
+      teamTable,
+      eq(teamMemberTable.teamId, teamTable.id),
     )
-    .where(inArray(workspaceUserTable.workspaceId, workspaceIds));
+    .where(inArray(teamMemberTable.teamId, teamIds));
 
   return memberships.map((membership) => {
-    const workspaceMembers = members.filter(
-      (member) => member.workspaceId === membership.workspaceId,
+    const teamMembers = members.filter(
+      (member) => member.teamId === membership.teamId,
     );
 
     return {
-      workspaceId: membership.workspaceId,
-      workspaceName: workspaceMembers[0]?.workspaceName ?? "workspace",
+      teamId: membership.teamId,
+      teamName: teamMembers[0]?.teamName ?? "team",
       isOwner: hasOwnerRole(membership.role),
-      memberCount: workspaceMembers.length,
-      ownerCount: workspaceMembers.filter((member) => hasOwnerRole(member.role))
+      memberCount: teamMembers.length,
+      ownerCount: teamMembers.filter((member) => hasOwnerRole(member.role))
         .length,
     };
   });
@@ -63,46 +61,27 @@ async function collectMemberships(
 export async function deleteAccountData(userId: string) {
   const plan = planAccountDeletion(await collectMemberships(userId));
 
-  if (plan.blockedWorkspaceNames.length > 0) {
+  if (plan.blockedTeamNames.length > 0) {
     throw new APIError("CONFLICT", {
-      message: formatBlockedWorkspacesMessage(plan.blockedWorkspaceNames),
+      message: formatBlockedTeamsMessage(plan.blockedTeamNames),
     });
   }
 
-  const billable = await findBillableWorkspaces(plan.workspaceIdsToDelete);
-  if (billable.length > 0) {
-    throw new APIError("CONFLICT", {
-      message: formatBillableWorkspacesMessage(
-        billable.map((workspace) => workspace.name),
-      ),
-    });
+  if (plan.teamIdsToDelete.length > 0) {
+    await db
+      .delete(teamTable)
+      .where(inArray(teamTable.id, plan.teamIdsToDelete));
   }
 
-  if (plan.workspaceIdsToDelete.length > 0) {
+  if (plan.teamIdsToLeave.length > 0) {
     await db
-      .delete(workspaceTable)
-      .where(inArray(workspaceTable.id, plan.workspaceIdsToDelete));
-  }
-
-  if (plan.workspaceIdsToLeave.length > 0) {
-    await db
-      .delete(workspaceUserTable)
+      .delete(teamMemberTable)
       .where(
         and(
-          eq(workspaceUserTable.userId, userId),
-          inArray(workspaceUserTable.workspaceId, plan.workspaceIdsToLeave),
+          eq(teamMemberTable.userId, userId),
+          inArray(teamMemberTable.teamId, plan.teamIdsToLeave),
         ),
       );
-
-    for (const workspaceId of plan.workspaceIdsToLeave) {
-      await syncWorkspaceSeats(workspaceId).catch((error) => {
-        console.error(
-          "Seat sync after account deletion failed:",
-          workspaceId,
-          error,
-        );
-      });
-    }
   }
 
   return plan;

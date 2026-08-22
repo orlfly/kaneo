@@ -27,21 +27,17 @@ import { getPriorityIcon } from "@/lib/priority";
 import type { SortConfig } from "@/lib/sort-tasks";
 import type { ProjectWithTasks } from "@/types/project";
 
-type WorkspaceLabel = {
+type TeamLabel = {
   id: string;
   name: string;
   color: string;
 };
 
-type ActiveUsers = {
-  members?: Array<{
-    userId: string;
-    user?: {
-      image?: string | null;
-      name?: string | null;
-    } | null;
-  }>;
-};
+type ActiveUsers = Array<{
+  id: string;
+  name?: string | null;
+  image?: string | null;
+}>;
 
 type BoardToolbarProps = {
   project?: ProjectWithTasks | null;
@@ -54,7 +50,7 @@ type BoardToolbarProps = {
   clearFilters: () => void;
   hasActiveFilters: boolean;
   users?: ActiveUsers;
-  workspaceLabels: WorkspaceLabel[];
+  teamLabels: TeamLabel[];
   viewMode: "board" | "list";
   setViewMode: (mode: "board" | "list") => void;
   sort: SortConfig;
@@ -138,7 +134,7 @@ export default function BoardToolbar({
   clearFilters,
   hasActiveFilters,
   users,
-  workspaceLabels,
+  teamLabels,
   viewMode,
   setViewMode,
   sort,
@@ -163,26 +159,26 @@ export default function BoardToolbar({
     getPriorityLabel(priority);
 
   const getAssigneeDisplayName = (userId: string) => {
-    const member = users?.members?.find((m) => m.userId === userId);
-    return member?.user?.name || t("common:people.unknown");
+    const member = users?.find((m) => m.id === userId);
+    return member?.name || t("common:people.unknown");
   };
   const getAssigneeAvatar = (userId: string) => {
-    const member = users?.members?.find((m) => m.userId === userId);
+    const member = users?.find((m) => m.id === userId);
     return (
       <Avatar className="h-4 w-4">
         <AvatarImage
-          src={member?.user?.image ?? ""}
-          alt={member?.user?.name || ""}
+          src={member?.image ?? ""}
+          alt={member?.name || ""}
         />
         <AvatarFallback className="border border-border/30 text-[9px] font-medium">
-          {getInitials(member?.user?.name)}
+          {getInitials(member?.name)}
         </AvatarFallback>
       </Avatar>
     );
   };
 
-  const uniqueLabels = workspaceLabels.reduce(
-    (acc: WorkspaceLabel[], label: WorkspaceLabel) => {
+  const uniqueLabels = teamLabels.reduce(
+    (acc: TeamLabel[], label: TeamLabel) => {
       const existing = acc.find(
         (l) => l.name === label.name && l.color === label.color,
       );
@@ -193,7 +189,7 @@ export default function BoardToolbar({
   );
 
   const isLabelGroupSelected = (label: { name: string; color: string }) => {
-    return workspaceLabels
+    return teamLabels
       .filter((l) => l.name === label.name && l.color === label.color)
       .some((l) => filters.labels?.includes(l.id));
   };
@@ -231,7 +227,7 @@ export default function BoardToolbar({
   };
 
   const toggleLabelGroup = (label: { name: string; color: string }) => {
-    const matching = workspaceLabels.filter(
+    const matching = teamLabels.filter(
       (l) => l.name === label.name && l.color === label.color,
     );
     const anySelected = matching.some((l) => filters.labels?.includes(l.id));
@@ -380,33 +376,33 @@ export default function BoardToolbar({
                         <CheckSlot checked={selectedAssigneeIds.length === 0} />
                         {t("tasks:boardFilters.allAssignees")}
                       </button>
-                      {users?.members?.map((member) => (
+                      {users?.map((member) => (
                         <button
-                          key={member.userId}
+                          key={member.id}
                           className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-left text-xs ${
-                            selectedAssigneeIds.includes(member.userId)
+                            selectedAssigneeIds.includes(member.id)
                               ? "bg-accent text-accent-foreground"
                               : "text-foreground/90 hover:bg-accent/60 hover:text-foreground"
                           }`}
-                          onClick={() => toggleAssigneeFilter(member.userId)}
+                          onClick={() => toggleAssigneeFilter(member.id)}
                           type="button"
                         >
                           <CheckSlot
                             checked={selectedAssigneeIds.includes(
-                              member.userId,
+                              member.id,
                             )}
                           />
                           <span className="inline-flex items-center gap-2">
                             <Avatar className="h-5 w-5">
                               <AvatarImage
-                                src={member.user?.image ?? ""}
-                                alt={member.user?.name || ""}
+                                src={member.image ?? ""}
+                                alt={member.name || ""}
                               />
                               <AvatarFallback className="border border-border/30 text-[10px] font-medium">
-                                {getInitials(member.user?.name)}
+                                {getInitials(member.name)}
                               </AvatarFallback>
                             </Avatar>
-                            <span>{member.user?.name}</span>
+                            <span>{member.name}</span>
                           </span>
                         </button>
                       ))}

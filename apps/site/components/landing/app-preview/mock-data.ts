@@ -10,18 +10,18 @@ export type TaskWithExtras = Task & {
 };
 
 // ------------------------------------------------------------------
-// Mock workspace
+// Mock team
 // ------------------------------------------------------------------
-export const MOCK_WORKSPACE = {
-  id: "ws-preview",
+export const MOCK_TEAM = {
+  id: "team-preview",
   name: "Dunder Mifflin",
   slug: "dunder",
 };
 
 // ------------------------------------------------------------------
-// Mock workspace labels
+// Mock team labels
 // ------------------------------------------------------------------
-export const MOCK_WORKSPACE_LABELS = [
+export const MOCK_TEAM_LABELS = [
   { id: "lbl-1", name: "urgent", color: "#ef4444" },
   { id: "lbl-2", name: "sales", color: "#6366f1" },
   { id: "lbl-3", name: "hr", color: "#10b981" },
@@ -57,7 +57,7 @@ const d = (offset: number): string => {
 // Project 1: Scranton Branch
 // ------------------------------------------------------------------
 const SCR_ID = "p-1";
-const WS_ID = "ws-preview";
+const TEAM_ID = "team-preview";
 
 const scrTasks: TaskWithExtras[] = [
   {
@@ -73,7 +73,7 @@ const scrTasks: TaskWithExtras[] = [
     dueDate: d(2),
     userId: "u-1",
     projectId: SCR_ID,
-    workspaceId: WS_ID,
+    teamId: TEAM_ID,
     createdAt: CREATED_AT,
     updatedAt: UPDATED_AT,
     assigneeName: "Michael Scott",
@@ -93,7 +93,7 @@ const scrTasks: TaskWithExtras[] = [
     dueDate: d(5),
     userId: "u-3",
     projectId: SCR_ID,
-    workspaceId: WS_ID,
+    teamId: TEAM_ID,
     createdAt: CREATED_AT,
     updatedAt: UPDATED_AT,
     assigneeName: "Jim Halpert",
@@ -113,7 +113,7 @@ const scrTasks: TaskWithExtras[] = [
     dueDate: d(-1),
     userId: "u-4",
     projectId: SCR_ID,
-    workspaceId: WS_ID,
+    teamId: TEAM_ID,
     createdAt: CREATED_AT,
     updatedAt: UPDATED_AT,
     assigneeName: "Pam Beesly",
@@ -133,7 +133,7 @@ const scrTasks: TaskWithExtras[] = [
     dueDate: d(14),
     userId: "u-2",
     projectId: SCR_ID,
-    workspaceId: WS_ID,
+    teamId: TEAM_ID,
     createdAt: CREATED_AT,
     updatedAt: UPDATED_AT,
     assigneeName: "Dwight Schrute",
@@ -153,7 +153,7 @@ const scrTasks: TaskWithExtras[] = [
     dueDate: d(3),
     userId: "u-3",
     projectId: SCR_ID,
-    workspaceId: WS_ID,
+    teamId: TEAM_ID,
     createdAt: CREATED_AT,
     updatedAt: UPDATED_AT,
     assigneeName: "Jim Halpert",
@@ -173,7 +173,7 @@ const scrTasks: TaskWithExtras[] = [
     dueDate: null,
     userId: "u-4",
     projectId: SCR_ID,
-    workspaceId: WS_ID,
+    teamId: TEAM_ID,
     createdAt: CREATED_AT,
     updatedAt: UPDATED_AT,
     assigneeName: "Pam Beesly",
@@ -193,7 +193,7 @@ const scrTasks: TaskWithExtras[] = [
     dueDate: null,
     userId: "u-2",
     projectId: SCR_ID,
-    workspaceId: WS_ID,
+    teamId: TEAM_ID,
     createdAt: CREATED_AT,
     updatedAt: UPDATED_AT,
     assigneeName: "Dwight Schrute",
@@ -208,7 +208,7 @@ export const WEB_PROJECT: ProjectWithTasks = {
   slug: "SCR",
   description: "Day-to-day operations of the Scranton office.",
   icon: null,
-  workspaceId: WS_ID,
+  teamId: TEAM_ID,
   isPublic: false,
   createdAt: CREATED_AT,
   updatedAt: UPDATED_AT,
@@ -267,7 +267,7 @@ const tlmTasks: TaskWithExtras[] = [
     dueDate: d(7),
     userId: "u-1",
     projectId: TLM_ID,
-    workspaceId: WS_ID,
+    teamId: TEAM_ID,
     createdAt: CREATED_AT,
     updatedAt: UPDATED_AT,
     assigneeName: "Michael Scott",
@@ -287,7 +287,7 @@ const tlmTasks: TaskWithExtras[] = [
     dueDate: d(10),
     userId: "u-4",
     projectId: TLM_ID,
-    workspaceId: WS_ID,
+    teamId: TEAM_ID,
     createdAt: CREATED_AT,
     updatedAt: UPDATED_AT,
     assigneeName: "Pam Beesly",
@@ -307,7 +307,7 @@ const tlmTasks: TaskWithExtras[] = [
     dueDate: d(1),
     userId: "u-3",
     projectId: TLM_ID,
-    workspaceId: WS_ID,
+    teamId: TEAM_ID,
     createdAt: CREATED_AT,
     updatedAt: UPDATED_AT,
     assigneeName: "Jim Halpert",
@@ -330,7 +330,7 @@ const tlmTasks: TaskWithExtras[] = [
     dueDate: d(21),
     userId: null,
     projectId: TLM_ID,
-    workspaceId: WS_ID,
+    teamId: TEAM_ID,
     createdAt: CREATED_AT,
     updatedAt: UPDATED_AT,
     labels: [],
@@ -348,7 +348,7 @@ const tlmTasks: TaskWithExtras[] = [
     dueDate: null,
     userId: "u-3",
     projectId: TLM_ID,
-    workspaceId: WS_ID,
+    teamId: TEAM_ID,
     createdAt: CREATED_AT,
     updatedAt: UPDATED_AT,
     assigneeName: "Jim Halpert",
@@ -363,7 +363,7 @@ export const MOB_PROJECT: ProjectWithTasks = {
   slug: "TLM",
   description: "Michael Scott's magnum opus. In production since 1996.",
   icon: null,
-  workspaceId: WS_ID,
+  teamId: TEAM_ID,
   isPublic: false,
   createdAt: CREATED_AT,
   updatedAt: UPDATED_AT,

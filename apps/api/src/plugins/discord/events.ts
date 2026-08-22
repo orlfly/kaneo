@@ -5,7 +5,7 @@ import {
   projectTable,
   taskTable,
   userTable,
-  workspaceTable,
+  teamTable,
 } from "../../database/schema";
 import type {
   PluginContext,
@@ -77,11 +77,11 @@ async function getDiscordEventData(
       columnName: columnTable.name,
       projectName: projectTable.name,
       projectId: projectTable.id,
-      workspaceId: workspaceTable.id,
+      teamId: teamTable.id,
     })
     .from(taskTable)
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-    .innerJoin(workspaceTable, eq(projectTable.workspaceId, workspaceTable.id))
+    .innerJoin(teamTable, eq(projectTable.teamId, teamTable.id))
     .leftJoin(
       columnTable,
       and(
@@ -107,7 +107,7 @@ async function getDiscordEventData(
   }
 
   const clientUrl = process.env.KANEO_CLIENT_URL || "http://localhost:5173";
-  const taskUrl = `${clientUrl}/dashboard/workspace/${taskRow.workspaceId}/project/${taskRow.projectId}/task/${taskId}`;
+  const taskUrl = `${clientUrl}/dashboard/team/${taskRow.teamId}/project/${taskRow.projectId}/task/${taskId}`;
 
   return {
     taskTitle: taskRow.title,

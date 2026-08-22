@@ -10,9 +10,9 @@ export default function useDetachLabelFromTask() {
     onSuccess: (detachedLabel) => {
       if (!detachedLabel.taskId) return;
 
-      if (detachedLabel.workspaceId) {
+      if (detachedLabel.teamId) {
         queryClient.setQueryData(
-          ["labels", detachedLabel.workspaceId],
+          ["labels", detachedLabel.teamId],
           (existingLabels: Array<typeof detachedLabel> | undefined) =>
             existingLabels?.filter((label) => label.id !== detachedLabel.id) ??
             [],
@@ -36,9 +36,9 @@ export default function useDetachLabelFromTask() {
         queryKey: ["labels", detachedLabel.taskId],
       });
 
-      if (detachedLabel.workspaceId) {
+      if (detachedLabel.teamId) {
         void queryClient.invalidateQueries({
-          queryKey: ["labels", detachedLabel.workspaceId],
+          queryKey: ["labels", detachedLabel.teamId],
         });
       }
     },

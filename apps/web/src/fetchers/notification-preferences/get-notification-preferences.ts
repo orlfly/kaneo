@@ -1,9 +1,9 @@
 import { getApiUrl } from "@/fetchers/get-api-url";
 
-export type NotificationPreferenceWorkspaceRule = {
+export type NotificationPreferenceTeamRule = {
   id: string;
-  workspaceId: string;
-  workspaceName: string;
+  teamId: string;
+  teamName: string;
   isActive: boolean;
   emailEnabled: boolean;
   ntfyEnabled: boolean;
@@ -39,7 +39,7 @@ export type NotificationPreferences = {
   taskStatusChangeEnabled: boolean;
   dueDateReminderEnabled: boolean;
   dueDateReminderLeadTimeMinutes: number;
-  workspaces: NotificationPreferenceWorkspaceRule[];
+  teams: NotificationPreferenceTeamRule[];
   createdAt: string | null;
   updatedAt: string | null;
 };

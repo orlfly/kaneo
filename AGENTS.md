@@ -11,7 +11,7 @@ This is an operating guide, not a README. These rules are good defaults; explici
 - Protect performance, especially on task-heavy boards and realtime views.
 - Keep self-hosting straightforward and single-instance deployments first-class. Do not make Redis or another managed service mandatory without an explicit product decision.
 - Support both bundled same-origin deployments and separately hosted API and web deployments.
-- Protect user data, workspace boundaries, and authorization checks.
+- Protect user data, team boundaries, and authorization checks.
 - Read the relevant implementation before changing it. Follow an established local pattern when it fits, but do not preserve accidental complexity merely because it exists.
 - Stay focused. Do not mix requested work with speculative features, broad refactors, or unrelated cleanup.
 
@@ -29,8 +29,8 @@ This is an operating guide, not a README. These rules are good defaults; explici
 ## Boundaries that must hold
 
 - The API is the authority for authentication and authorization. Hiding an action in the UI is not an authorization check.
-- Workspace-scoped operations must use the existing `@kaneo/permissions` vocabulary and API middleware.
-- Do not expose secrets, credentials, internal fields, or private workspace data through responses, logs, events, WebSockets, or MCP tools.
+- Team-scoped operations must use the existing `@kaneo/permissions` vocabulary and API middleware.
+- Do not expose secrets, credentials, internal fields, or private team data through responses, logs, events, WebSockets, or MCP tools.
 - Public API behavior must retain accurate Valibot validation and OpenAPI metadata.
 - Mutations that affect realtime state must consider event publication, WebSocket delivery, and client cache invalidation.
 - Database changes must work for existing installations, not only empty development databases.
@@ -55,7 +55,7 @@ Not every change touches every surface. Make the decision deliberately rather th
 
 - Keep API handlers thin and domain behavior in controllers or focused utilities.
 - Validate API inputs with Valibot unless an existing integration requires another library. Use `HTTPException` for expected HTTP failures.
-- Use `requireWorkspacePermission` rather than duplicating role checks.
+- Use `requireTeamRole` (via the `teamAccess` middleware) rather than duplicating role checks.
 - Use `publishEvent()` when a mutation drives activity, notifications, integrations, or realtime updates.
 - Keep web requests in `apps/web/src/fetchers/` and server state in TanStack Query hooks.
 - Use the client from `@kaneo/libs`; do not create a parallel untyped request layer.
@@ -90,9 +90,9 @@ Run repository-wide checks when a change crosses packages broadly, before a requ
 ## Glossary
 
 - **instance**: one deployed Kaneo installation.
-- **workspace**: the top-level collaboration and authorization boundary.
-- **project**: a task container inside a workspace.
-- **role**: a workspace-scoped set of permission statements.
+- **team**: the top-level collaboration and authorization boundary.
+- **project**: a task container inside a team.
+- **role**: a team-scoped set of permission statements.
 - **activity**: durable, user-visible history.
 - **event**: an internal notification used by activity, integrations, notifications, or realtime updates.
 

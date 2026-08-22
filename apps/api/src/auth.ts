@@ -1,15 +1,4 @@
 import { apiKey } from "@better-auth/api-key";
-import {
-  sendMagicLinkEmail,
-  sendOtpEmail,
-  sendWorkspaceInvitationEmail,
-} from "@kaneo/email";
-import {
-  ac,
-  DEFAULT_ROLE_NAMES,
-  defaultRolePayloads,
-  owner,
-} from "@kaneo/permissions";
 import bcrypt from "bcryptjs";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -20,36 +9,17 @@ import {
 } from "better-auth/api";
 import {
   admin as adminPlugin,
-  anonymous,
   bearer,
   deviceAuthorization,
-  emailOTP,
-  genericOAuth,
   lastLoginMethod,
-  magicLink,
   openAPI,
-  organization,
+  username,
 } from "better-auth/plugins";
-import type { AccessControl } from "better-auth/plugins/access";
-import type { UserWithAnonymous } from "better-auth/plugins/anonymous";
 import { config } from "dotenv-mono";
 import { count, eq, sql } from "drizzle-orm";
-import {
-  findBillableWorkspaces,
-  formatBillableWorkspacesMessage,
-} from "./billing/controllers/find-billable-workspaces";
-import { syncWorkspaceSeats } from "./billing/controllers/sync-seats";
 import db, { schema } from "./database";
-import { publishEvent } from "./events";
 import deleteAccountData from "./user/controllers/delete-account-data";
-import { checkRegistrationAllowed } from "./utils/check-registration-allowed";
-import { checkWorkspaceName } from "./utils/check-workspace-name";
-import { mapCustomOAuthProfileToUser } from "./utils/custom-oauth-profile";
-import { generateDemoName } from "./utils/generate-demo-name";
 import { getDefaultCookieAttributes } from "./utils/get-default-cookie-attributes";
-import { getInvitationEmailSubject } from "./utils/get-invitation-email-subject";
-import { getWorkspaceInvitationEmailCopy } from "./utils/get-workspace-invitation-email-copy";
-import { getGithubSsoOAuthCredentials } from "./utils/github-sso-env";
 import { isCloud } from "./utils/is-cloud";
 import { isDisposableEmail } from "./utils/is-disposable-email";
 import { isLocalSignInPath } from "./utils/is-local-sign-in-path";
@@ -57,26 +27,10 @@ import { verifyTurnstile } from "./utils/verify-turnstile";
 
 config();
 
-const githubSso = getGithubSsoOAuthCredentials();
-
-const isRegistrationDisabled = process.env.DISABLE_REGISTRATION === "true";
+const isRegistrationDisabled = process.env.DISABLE_REGISTRATION !== "false";
 const isPasswordRegistrationDisabled =
   process.env.DISABLE_PASSWORD_REGISTRATION === "true";
 const isLoginFormDisabled = process.env.DISABLE_LOGIN_FORM === "true";
-const isEmailOtpSignInDisabled =
-  process.env.DISABLE_EMAIL_OTP_SIGN_IN === "true";
-
-function normalizeInvitationId(value: unknown): string | undefined {
-  if (typeof value !== "string") return undefined;
-  const normalized = value.trim();
-  if (!/^[a-z0-9_-]{1,128}$/i.test(normalized)) return undefined;
-  return normalized;
-}
-
-function isOAuthCallbackPath(path: unknown): boolean {
-  if (typeof path !== "string") return false;
-  return path.startsWith("/callback/") || path.startsWith("/oauth2/callback/");
-}
 
 const apiUrl = process.env.KANEO_API_URL || "http://localhost:1337";
 const clientUrl = process.env.KANEO_CLIENT_URL || "http://localhost:5173";
@@ -104,46 +58,6 @@ if (process.env.AUTH_SECRET && process.env.AUTH_SECRET.length < 32) {
     "AUTH_SECRET is less than 32 characters, please generate a new one.",
   );
   process.exit(1);
-}
-
-async function getUserLocale(email: string) {
-  const [user] = await db
-    .select({ locale: schema.userTable.locale })
-    .from(schema.userTable)
-    .where(eq(schema.userTable.email, email))
-    .limit(1);
-
-  return user?.locale ?? null;
-}
-
-function getLocaleKey(locale?: string | null) {
-  const normalized = locale?.toLowerCase();
-  if (normalized?.startsWith("de")) return "de";
-  if (normalized?.startsWith("vi")) return "vi";
-  return "en";
-}
-
-function getAuthEmailCopy(locale?: string | null) {
-  const localeKey = getLocaleKey(locale);
-
-  if (localeKey === "de") {
-    return {
-      magicLinkSubject: "Anmeldelink fuer Kaneo",
-      otpSubject: "Bestaetigungscode fuer Kaneo",
-    };
-  }
-
-  if (localeKey === "vi") {
-    return {
-      magicLinkSubject: "Liên kết đăng nhập Kaneo",
-      otpSubject: "Mã xác minh Kaneo",
-    };
-  }
-
-  return {
-    magicLinkSubject: "Login for Kaneo",
-    otpSubject: "Authentication code for Kaneo",
-  };
 }
 
 function getDeviceAuthClientIds(): Set<string> {
@@ -196,10 +110,6 @@ export const auth = betterAuth({
       account: schema.accountTable,
       session: schema.sessionTable,
       verification: schema.verificationTable,
-      workspace: schema.workspaceTable,
-      workspace_member: schema.workspaceUserTable,
-      invitation: schema.invitationTable,
-      workspace_role: schema.workspaceRoleTable,
       team: schema.teamTable,
       teamMember: schema.teamMemberTable,
       apikey: schema.apikeyTable,
@@ -247,257 +157,9 @@ export const auth = betterAuth({
       },
     },
   },
-  socialProviders: {
-    github: {
-      clientId: githubSso.clientId,
-      clientSecret: githubSso.clientSecret,
-      scope: ["user:email"],
-    },
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-    },
-    discord: {
-      clientId: process.env.DISCORD_CLIENT_ID || "",
-      clientSecret: process.env.DISCORD_CLIENT_SECRET || "",
-    },
-  },
   plugins: [
-    ...(process.env.DISABLE_GUEST_ACCESS !== "true"
-      ? [
-          anonymous({
-            generateName: async () => generateDemoName(),
-            emailDomainName: "kaneo.app",
-          }),
-        ]
-      : []),
     lastLoginMethod(),
-    magicLink({
-      sendMagicLink: async ({ email, url }) => {
-        try {
-          const locale = await getUserLocale(email);
-          const copy = getAuthEmailCopy(locale);
-          await sendMagicLinkEmail(email, copy.magicLinkSubject, {
-            magicLink: url,
-            locale,
-          });
-        } catch (error) {
-          console.error(error);
-        }
-      },
-    }),
-    ...(isEmailOtpSignInDisabled
-      ? []
-      : [
-          emailOTP({
-            async sendVerificationOTP({ email, otp, type }) {
-              if (type === "sign-in") {
-                const locale = await getUserLocale(email);
-                const copy = getAuthEmailCopy(locale);
-                await sendOtpEmail(email, copy.otpSubject, {
-                  otp,
-                  locale,
-                });
-              }
-            },
-          }),
-        ]),
-    organization({
-      // `ac` is created with a narrow `statement` shape (project/task/label/
-      // workspace + the default org statements), which makes its inferred
-      // `newRole` generic incompatible with better-auth's looser
-      // `AccessControl` type. Widen via an explicit cast so the plugin
-      // accepts our custom statement.
-      ac: ac as unknown as AccessControl,
-      // Only `owner` stays static so its permissions can never be edited away
-      // from the workspace creator. `viewer`, `member`, and `admin` are
-      // seeded into `workspace_role` per workspace and resolved via
-      // dynamic access control, so admins can fully override (replace) their
-      // permissions per workspace. See `seedDefaultWorkspaceRoles` + the
-      // afterCreateOrganization hook.
-      roles: { owner },
-      dynamicAccessControl: {
-        enabled: true,
-        maximumRolesPerOrganization: 25,
-      },
-      teams: {
-        enabled: true,
-        maximumTeams: 10,
-        allowRemovingAllTeams: false,
-      },
-      schema: {
-        organization: {
-          modelName: "workspace",
-          additionalFields: {
-            // in metadata
-            description: {
-              type: "string",
-              input: true,
-              required: false,
-            },
-          },
-        },
-        member: {
-          modelName: "workspace_member",
-          fields: {
-            organizationId: "workspaceId",
-            createdAt: "joinedAt",
-          },
-        },
-        invitation: {
-          modelName: "invitation",
-          fields: {
-            organizationId: "workspaceId",
-          },
-        },
-        organizationRole: {
-          modelName: "workspace_role",
-          fields: {
-            organizationId: "workspaceId",
-          },
-        },
-        team: {
-          modelName: "team",
-          fields: {
-            organizationId: "workspaceId",
-          },
-        },
-      },
-      allowUserToCreateOrganization: true,
-      // Better Auth defaults this to `true`, which blocks any user whose email
-      // is not verified from accepting/rejecting an invitation. Kaneo does not
-      // verify emails on signup (and guest/anonymous users are unverified by
-      // design), so leaving the default on breaks invitation acceptance for
-      // everyone. The invitation link id is the actual secret here, so gate on
-      // that rather than on email verification.
-      requireEmailVerificationOnInvitation: false,
-      organizationHooks: {
-        beforeCreateOrganization: async ({ organization }) => {
-          const check = checkWorkspaceName(organization.name ?? "");
-          if (!check.ok) {
-            throw new APIError("BAD_REQUEST", { message: check.reason });
-          }
-        },
-        afterCreateOrganization: async ({ organization, user }) => {
-          // Seed the editable default roles for this workspace. Each
-          // role's permissions are derived from the compiled-in defaults
-          // in `@kaneo/permissions`; admins can later replace them in the
-          // Roles UI. We skip names that somehow already exist (this hook
-          // is best-effort idempotent; the boot-time backfill is the
-          // belt-and-braces path).
-          try {
-            const existing = await db
-              .select({ role: schema.workspaceRoleTable.role })
-              .from(schema.workspaceRoleTable)
-              .where(
-                eq(schema.workspaceRoleTable.workspaceId, organization.id),
-              );
-            const taken = new Set(existing.map((r) => r.role));
-            const now = new Date();
-            const rows = DEFAULT_ROLE_NAMES.filter(
-              (name) => !taken.has(name),
-            ).map((name) => ({
-              workspaceId: organization.id,
-              role: name,
-              permission: JSON.stringify(defaultRolePayloads[name]),
-              createdAt: now,
-              updatedAt: now,
-            }));
-            if (rows.length > 0) {
-              await db.insert(schema.workspaceRoleTable).values(rows);
-            }
-          } catch (error) {
-            console.error(
-              "Failed to seed default workspace roles for workspace",
-              organization.id,
-              error,
-            );
-          }
-
-          publishEvent("workspace.created", {
-            workspaceId: organization.id,
-            workspaceName: organization.name,
-            ownerEmail: user.name,
-            ownerId: user.id,
-          });
-        },
-        beforeDeleteOrganization: async ({ organization }) => {
-          const billable = await findBillableWorkspaces([organization.id]);
-          if (billable.length > 0) {
-            throw new APIError("CONFLICT", {
-              message: formatBillableWorkspacesMessage(
-                billable.map((workspace) => workspace.name),
-              ),
-            });
-          }
-        },
-        afterAddMember: async ({ member }) => {
-          if (member?.organizationId) {
-            void syncWorkspaceSeats(member.organizationId).catch((error) => {
-              console.error("Seat sync after member add failed:", error);
-            });
-          }
-        },
-        afterRemoveMember: async ({ member }) => {
-          if (member?.organizationId) {
-            void syncWorkspaceSeats(member.organizationId).catch((error) => {
-              console.error("Seat sync after member remove failed:", error);
-            });
-          }
-        },
-      },
-      async sendInvitationEmail(data) {
-        const inviteLink = `${process.env.KANEO_CLIENT_URL}/invitation/accept/${data.id}`;
-        const locale = await getUserLocale(data.email);
-        const copy = getWorkspaceInvitationEmailCopy(locale);
-
-        const result = await sendWorkspaceInvitationEmail(
-          data.email,
-          getInvitationEmailSubject(
-            locale,
-            data.inviter.user.name,
-            data.organization.name,
-          ),
-          {
-            inviterEmail: data.inviter.user.email,
-            inviterName: data.inviter.user.name,
-            workspaceName: data.organization.name,
-            invitationLink: inviteLink,
-            to: data.email,
-            copy,
-          },
-        );
-
-        if (
-          result?.success === false &&
-          result.reason === "SMTP_NOT_CONFIGURED"
-        ) {
-          console.warn(
-            "Invitation created but email not sent due to SMTP not being configured",
-          );
-          return;
-        }
-      },
-    }),
-    genericOAuth({
-      config: [
-        {
-          providerId: "custom",
-          clientId: process.env.CUSTOM_OAUTH_CLIENT_ID || "",
-          clientSecret: process.env.CUSTOM_OAUTH_CLIENT_SECRET,
-          authorizationUrl: process.env.CUSTOM_OAUTH_AUTHORIZATION_URL || "",
-          tokenUrl: process.env.CUSTOM_OAUTH_TOKEN_URL || "",
-          userInfoUrl: process.env.CUSTOM_OAUTH_USER_INFO_URL || "",
-          scopes: process.env.CUSTOM_OAUTH_SCOPES?.split(",")
-            .map((s) => s.trim())
-            .filter(Boolean) || ["profile", "email"],
-          responseType: process.env.CUSTOM_OAUTH_RESPONSE_TYPE || "code",
-          discoveryUrl: process.env.CUSTOM_OAUTH_DISCOVERY_URL || "",
-          pkce: process.env.CUSTOM_AUTH_PKCE !== "false",
-          mapProfileToUser: mapCustomOAuthProfileToUser,
-        },
-      ],
-    }),
+    username(),
     bearer(),
     apiKey({
       enableSessionForAPIKeys: true,
@@ -534,23 +196,13 @@ export const auth = betterAuth({
     max: 100,
     customRules: {
       "/sign-up/email": { window: 60, max: 3 },
-      "/organization/invite-member": { window: 60, max: 5 },
+      "/team/members": { window: 60, max: 5 },
     },
   },
   databaseHooks: {
     user: {
       create: {
-        before: async (user, ctx) => {
-          // The anonymous() plugin creates ephemeral users for guest
-          // access; registration limits don't apply to them (guest
-          // availability is governed by DISABLE_GUEST_ACCESS instead).
-          // `isAnonymous` is `input: false` in the plugin schema, so a
-          // regular signup request cannot spoof it.
-          const userWithAnonymous = user as Partial<UserWithAnonymous>;
-          if (userWithAnonymous.isAnonymous) {
-            return;
-          }
-
+        before: async () => {
           // Allow the very first signup through even when registration
           // is disabled: that's the instance-admin bootstrap flow.
           // Otherwise a fresh instance with DISABLE_REGISTRATION=true
@@ -564,33 +216,17 @@ export const auth = betterAuth({
             return;
           }
 
-          const invitationId = normalizeInvitationId(
-            ctx?.body?.invitationId ||
-              ctx?.query?.invitationId ||
-              ctx?.headers?.get("x-invitation-id"),
-          );
-          const result = await checkRegistrationAllowed(
-            user.email,
-            invitationId,
-            { allowInvitationByEmail: isOAuthCallbackPath(ctx?.path) },
-          );
-          if (!result.allowed) {
+          // Registration is disabled by default (users are added by an admin).
+          // Only the very first signup (instance-admin bootstrap) is allowed
+          // through when DISABLE_REGISTRATION is not explicitly set to false.
+          if (isRegistrationDisabled) {
             throw new APIError("FORBIDDEN", {
-              message: result.reason,
+              message:
+                "Registration is currently disabled. Please ask an administrator to create your account.",
             });
           }
         },
         after: async (user) => {
-          // The anonymous() plugin creates ephemeral users for guest
-          // access; never promote one to instance admin even if no
-          // real admin exists yet. `isAnonymous` is contributed by the
-          // anonymous plugin's `additionalFields` and isn't part of the
-          // base User type, so we narrow through `UserWithAnonymous`.
-          const userWithAnonymous = user as Partial<UserWithAnonymous>;
-          if (userWithAnonymous.isAnonymous) {
-            return;
-          }
-
           // Promote the first user to instance admin atomically.
           //
           // A previous version of this code checked the user count in
@@ -640,11 +276,9 @@ export const auth = betterAuth({
         });
       }
 
-      // Block invite-member calls on cloud from anonymous users or to
-      // disposable-email addresses. The 2026-05-28 incident saw ~14k phishing
-      // invites sent from throwaway disposable-email signups; gating here
-      // shuts that path off without affecting self-hosted instances.
-      if (ctx.path === "/organization/invite-member" && isCloud()) {
+      // Block team-member add calls on cloud from anonymous users or to
+      // disposable-email addresses.
+      if (ctx.path === "/team/members" && isCloud()) {
         // `before` hooks don't auto-populate ctx.context.session; load it
         // explicitly. `disableRefresh` keeps this gate cheap: we only need
         // the user record, not a session refresh side-effect.
@@ -656,7 +290,7 @@ export const auth = betterAuth({
           | undefined;
         if (sessionUser?.isAnonymous) {
           throw new APIError("FORBIDDEN", {
-            message: "Guest accounts may not send workspace invitations.",
+            message: "Guest accounts may not add team members.",
           });
         }
         const inviteeEmail = (ctx.body?.email as string | undefined) ?? "";
@@ -721,41 +355,30 @@ export const auth = betterAuth({
         return;
       }
 
-      const email =
-        ctx.body?.email ||
-        ctx.query?.email ||
-        ctx.headers?.get("x-invitation-email");
-      const invitationId = normalizeInvitationId(
-        ctx.body?.invitationId ||
-          ctx.query?.invitationId ||
-          ctx.headers?.get("x-invitation-id"),
-      );
-
-      if (ctx.path === "/sign-up/email") {
-        const result = await checkRegistrationAllowed(email, invitationId);
-        if (!result.allowed) {
-          throw new APIError("FORBIDDEN", {
-            message: result.reason,
-          });
-        }
-      }
+      // Registration is disabled by default; only the instance-admin bootstrap
+      // signup (first user) is allowed through. All other signups are blocked.
+      throw new APIError("FORBIDDEN", {
+        message:
+          "Registration is currently disabled. Please ask an administrator to create your account.",
+      });
     }),
     after: createAuthMiddleware(async (ctx) => {
       if (ctx.path.startsWith("/sign-up") || ctx.path.startsWith("/sign-in")) {
         const newSession = ctx.context.newSession;
         if (newSession) {
-          const workspaceMember = await db
-            .select({ workspaceId: schema.workspaceUserTable.workspaceId })
-            .from(schema.workspaceUserTable)
-            .where(eq(schema.workspaceUserTable.userId, newSession.user.id))
+          const teamMembership = await db
+            .select({ teamId: schema.teamMemberTable.teamId })
+            .from(schema.teamMemberTable)
+            .where(eq(schema.teamMemberTable.userId, newSession.user.id))
+            .orderBy(schema.teamMemberTable.joinedAt)
             .limit(1);
 
-          const activeWorkspaceId = workspaceMember[0]?.workspaceId || null;
+          const activeTeamId = teamMembership[0]?.teamId || null;
 
-          if (activeWorkspaceId) {
+          if (activeTeamId) {
             await db
               .update(schema.sessionTable)
-              .set({ activeOrganizationId: activeWorkspaceId })
+              .set({ activeTeamId })
               .where(eq(schema.sessionTable.id, newSession.session.id));
           }
         }

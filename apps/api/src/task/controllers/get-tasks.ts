@@ -260,7 +260,7 @@ async function getTasks(projectId: string, options: GetTasksOptions = {}) {
       icon: project.icon,
       description: project.description,
       isPublic: project.isPublic,
-      workspaceId: project.workspaceId,
+      teamId: project.teamId,
       columns,
       archivedTasks,
       plannedTasks,

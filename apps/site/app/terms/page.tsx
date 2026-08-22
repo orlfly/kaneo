@@ -61,8 +61,8 @@ export default function TermsPage() {
               <p>
                 You must provide accurate information and keep your account
                 credentials secure. You are responsible for activity under your
-                account and for content your workspace members create. You must
-                be at least 16 years old to use the service.
+                account and for content your team members create. You must be at
+                least 16 years old to use the service.
               </p>
             </Section>
 

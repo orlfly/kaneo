@@ -11,7 +11,8 @@
 			"remove": "제거",
 			"reset": "재설정",
 			"filter": "필터",
-			"clearAllFilters": "모든 필터 지우기"
+			"clearAllFilters": "모든 필터 지우기",
+			"adding": "Adding…"
 		},
 		"a11y": {
 			"toggleSidebar": "사이드바 토글"
@@ -35,18 +36,6 @@
 			"label": "이동 경로",
 			"more": "더 보기"
 		},
-		"language": {
-			"english": "영어",
-			"german": "독일어",
-			"greek": "그리스어",
-			"macedonian": "마케도니아어",
-			"french": "프랑스어",
-			"spanish": "스페인어",
-			"dutch": "네덜란드어",
-			"korean": "한국어",
-			"chinese": "중국어",
-			"italian": "이탈리아어"
-		},
 		"people": {
 			"someone": "누군가",
 			"unknown": "알 수 없음"
@@ -65,7 +54,6 @@
 			"createProject": {
 				"title": "새 프로젝트 만들기",
 				"breadcrumbNew": "새 프로젝트 만들기",
-				"workspaceFallback": "워크스페이스",
 				"description": "이름, 키, 아이콘을 지정하여 워크스페이스에 새 프로젝트를 만듭니다.",
 				"pickIcon": "아이콘 선택",
 				"searchIcons": "아이콘 검색...",
@@ -74,17 +62,12 @@
 				"keyHint": "티켓 ID에 사용됩니다 (예: {{example}}-123)",
 				"createButton": "프로젝트 만들기",
 				"successToast": "프로젝트가 생성되었습니다",
-				"errorToast": "프로젝트 생성에 실패했습니다"
-			},
-			"createWorkspace": {
-				"breadcrumbKaneo": "KANEO",
-				"title": "새 워크스페이스 만들기",
-				"description": "워크스페이스 이름을 지정하여 새 워크스페이스를 만듭니다.",
-				"namePlaceholder": "워크스페이스 이름",
-				"descriptionPlaceholder": "설명 추가...",
-				"createButton": "워크스페이스 만들기",
-				"successToast": "워크스페이스가 생성되었습니다",
-				"errorToast": "워크스페이스 생성에 실패했습니다"
+				"errorToast": "프로젝트 생성에 실패했습니다",
+				"manageTeams": "Go to team management",
+				"noTeams": "You don't have any teams yet. Create or join a team before creating a project.",
+				"teamLabel": "Team",
+				"teamPlaceholder": "Select a team",
+				"teamFallback": "워크스페이스"
 			},
 			"createTask": {
 				"breadcrumbTask": "작업",
@@ -99,7 +82,6 @@
 				"successUpdated": "작업이 업데이트되었습니다",
 				"createError": "작업 생성에 실패했습니다",
 				"priority": "우선순위",
-				"statusFallback": "진행 중",
 				"startDate": "시작일",
 				"dueDate": "마감일",
 				"clearStartDate": "시작일 지우기",
@@ -128,7 +110,19 @@
 					"rose": "로즈",
 					"crimson": "크림슨"
 				}
+			},
+			"createTeam": {
+				"breadcrumbKaneo": "KANEO",
+				"createButton": "Create Team",
+				"description": "Create a new team by providing a name for your team.",
+				"errorToast": "Failed to create team",
+				"namePlaceholder": "Team name",
+				"successToast": "Team created successfully",
+				"title": "Create a new team"
 			}
+		},
+		"states": {
+			"loading": "Loading…"
 		}
 	},
 	"auth": {
@@ -136,43 +130,17 @@
 			"pageTitle": "로그인",
 			"title": "다시 오신 것을 환영합니다",
 			"subtitle": "워크스페이스에 접근하려면 자격 증명을 입력하세요",
-			"invitationSubtitle": "초대를 수락하려면 로그인하세요",
-			"invitationAlert": "로그인 후 워크스페이스 초대를 수락할 수 있습니다.",
-			"signingIn": "로그인 중...",
-			"continueWithGoogle": "Google로 계속하기",
-			"continueWithGithub": "GitHub로 계속하기",
-			"continueWithDiscord": "Discord로 계속하기",
-			"continueWithOidc": "OIDC로 계속하기",
-			"lastUsed": "마지막 사용",
-			"registrationDisabled": "공개 회원가입이 비활성화되어 있습니다. 계정을 만들려면 초대를 사용하세요.",
-			"passwordRegistrationDisabled": "비밀번호 회원가입이 비활성화되어 있습니다. 계정을 만들려면 구성된 소셜 또는 OIDC 로그인 방법을 사용하세요.",
-			"toggleMessage": "계정이 없으신가요?",
-			"toggleLink": "계정 만들기",
-			"guestSuccess": "게스트로 로그인했습니다",
-			"guestError": "게스트로 로그인에 실패했습니다",
-			"oidcError": "OIDC 로그인에 실패했습니다",
-			"googleError": "Google 로그인에 실패했습니다",
-			"githubError": "GitHub 로그인에 실패했습니다",
-			"discordError": "Discord 로그인에 실패했습니다",
-			"errors": {
-				"account_not_linked": "이 자격 증명을 기존 계정에 연결할 수 없습니다. 이메일로 로그인하여 계정을 확인한 후 SSO를 다시 시도하세요. 이메일 로그인을 사용할 수 없는 경우 관리자에게 문의하세요.",
-				"oauth_code_verification_failed": "OAuth 인증에 실패했습니다. 다시 시도하세요.",
-				"registration_is_currently_disabled_you_need_a_valid_invitation_to_create_an_account_": "회원가입이 현재 비활성화되어 있습니다. 계정을 만들려면 유효한 초대가 필요합니다."
-			},
+			"registrationDisabled": "Public registration is disabled. Ask an administrator to create your account.",
 			"instanceStatusError": "서버에 연결할 수 없습니다. 잠시 후 다시 시도하세요."
-		},
-		"providers": {
-			"google": "Google",
-			"discord": "Discord"
 		},
 		"forms": {
 			"or": "또는",
-			"email": "이메일",
 			"password": "비밀번호",
-			"emailPlaceholder": "me@example.com",
 			"passwordPlaceholder": "••••••••",
 			"showPassword": "비밀번호 표시",
-			"hidePassword": "비밀번호 숨기기"
+			"hidePassword": "비밀번호 숨기기",
+			"username": "Username",
+			"usernamePlaceholder": "Enter your username"
 		},
 		"checkEmail": {
 			"pageTitle": "이메일을 확인하세요",
@@ -181,114 +149,11 @@
 			"emailFallback": "이메일 주소",
 			"backToLogin": "로그인으로 돌아가기"
 		},
-		"signUp": {
-			"pageTitle": "계정 만들기",
-			"title": "계정 만들기",
-			"subtitleInvitation": "초대를 수락하려면 계정을 만드세요",
-			"subtitleRegistrationDisabled": "회원가입에는 초대가 필요합니다",
-			"subtitlePasswordDisabled": "계정을 만들려면 소셜 또는 OIDC 로그인을 사용하세요",
-			"subtitleDefault": "워크스페이스를 시작하세요",
-			"invitationAlert": "계정을 만든 후 워크스페이스 초대를 수락할 수 있습니다.",
-			"registrationDisabledAlert": "현재 회원가입이 비활성화되어 있습니다. 초대를 받으셨다면, 초대를 받은 이메일 주소를 입력하여 계정을 만드세요.",
-			"passwordDisabledAlert": "비밀번호 기반 계정 생성이 비활성화되어 있습니다. 로그인 페이지에서 구성된 소셜 또는 OIDC 로그인 방법을 사용하세요.",
-			"signingIn": "로그인 중...",
-			"continueAsGuest": "게스트로 계속하기",
-			"toggleMessage": "이미 계정이 있으신가요?",
-			"toggleLink": "로그인",
-			"instanceStatusError": "서버에 연결할 수 없습니다. 잠시 후 다시 시도하세요.",
-			"instanceAdminTitle": "Kaneo 인스턴스 설정",
-			"instanceAdminSubtitle": "이 계정은 전체 권한을 가진 인스턴스 관리자가 됩니다."
-		},
-		"verifyOtp": {
-			"pageTitle": "인증 코드 확인",
-			"title": "인증 코드 입력",
-			"subtitle": "이메일로 전송된 6자리 코드를 사용하여 계속하세요",
-			"codeSentTo": "{{email}}(으)로 코드가 전송되었습니다",
-			"verificationCodeLabel": "인증 코드",
-			"verifying": "인증 중...",
-			"verifyAndSignIn": "인증 후 로그인",
-			"changeEmail": "이메일 변경",
-			"resend": "재전송",
-			"validation": {
-				"codeLength": "코드는 6자리여야 합니다"
-			},
-			"toast": {
-				"invalidCode": "잘못된 인증 코드입니다",
-				"signedInSuccess": "로그인되었습니다!",
-				"verifyFailed": "코드 인증에 실패했습니다",
-				"resendFailed": "코드 재전송에 실패했습니다",
-				"resendSuccess": "새 인증 코드가 전송되었습니다!"
-			}
-		},
-		"otpSignIn": {
-			"sendFailed": "인증 코드 전송에 실패했습니다",
-			"codeSent": "인증 코드가 전송되었습니다! 이메일을 확인하세요.",
-			"sending": "전송 중...",
-			"sendVerificationCode": "인증 코드 전송"
-		},
 		"signInForm": {
 			"failedSignIn": "로그인에 실패했습니다",
 			"signedInSuccess": "로그인되었습니다",
 			"signingIn": "로그인 중...",
 			"signIn": "로그인"
-		},
-		"signUpForm": {
-			"fullName": "이름",
-			"namePlaceholder": "홍길동",
-			"failedSignUp": "회원가입에 실패했습니다",
-			"accountCreated": "계정이 생성되었습니다",
-			"passwordTooShort": "비밀번호가 너무 짧습니다",
-			"creatingAccount": "계정 생성 중...",
-			"createAccount": "계정 만들기"
-		},
-		"invitation": {
-			"pageTitleAccept": "초대 수락",
-			"pageTitleError": "초대 오류",
-			"pageTitleInvalid": "잘못된 초대",
-			"loadingTitle": "초대 로딩 중...",
-			"errorTitle": "초대 오류",
-			"invalidTitle": "잘못된 초대",
-			"invitationExpired": "초대 만료됨",
-			"errorLoadDescription": "초대 정보를 불러오지 못했습니다. 초대가 잘못되었거나 만료되었을 수 있습니다.",
-			"goToSignIn": "로그인으로 이동",
-			"workspaceLabel": "워크스페이스: {{workspaceName}}",
-			"joinWorkspace": "{{workspaceName}} 참여",
-			"inviteBodySignedIn": "<inviter>{{inviterName}}</inviter>님이 워크스페이스에 초대했습니다.",
-			"inviteBodySignedOut": "<inviter>{{inviterName}}</inviter>님이 Kaneo 워크스페이스에 초대했습니다.",
-			"createAccountOrSignIn": "초대를 수락하려면 계정을 만들거나, 이미 계정이 있다면 로그인하세요.",
-			"createAccount": "계정 만들기",
-			"accepting": "수락 중...",
-			"acceptInvitation": "초대 수락",
-			"goToDashboard": "대시보드로 이동",
-			"signedInAs": "<email>{{email}}</email>(으)로 로그인됨",
-			"youveBeenInvited": "초대를 받았습니다!",
-			"invitationFor": "초대 대상: <email>{{email}}</email>",
-			"signIn": "로그인",
-			"toast": {
-				"acceptFailed": "초대 수락에 실패했습니다",
-				"acceptSuccess": "초대가 수락되었습니다! 팀에 오신 것을 환영합니다."
-			}
-		},
-		"onboarding": {
-			"pageTitle": "Kaneo에 오신 것을 환영합니다",
-			"workspacePageTitle": "워크스페이스 만들기",
-			"createWorkspaceTitle": "워크스페이스 만들기",
-			"createWorkspaceSubtitle": "프로젝트를 관리하기 위해 워크스페이스를 설정하세요",
-			"workspaceName": "워크스페이스 이름",
-			"workspaceNamePlaceholder": "예: Acme Inc, 우리 팀",
-			"descriptionOptional": "설명 (선택)",
-			"descriptionPlaceholder": "팀에서 어떤 일을 하시나요?",
-			"creating": "생성 중...",
-			"createWorkspace": "워크스페이스 만들기",
-			"workspaceCreatedTitle": "워크스페이스가 생성되었습니다",
-			"redirectingToWorkspace": "<name>{{name}}</name>(으)로 이동 중...",
-			"toast": {
-				"workspaceCreated": "워크스페이스가 생성되었습니다",
-				"createFailed": "워크스페이스 생성에 실패했습니다"
-			},
-			"validation": {
-				"workspaceNameRequired": "워크스페이스 이름은 필수입니다"
-			}
 		},
 		"profileSetup": {
 			"pageTitle": "프로필 완성",
@@ -348,7 +213,7 @@
 			"deleteAccount": {
 				"confirm": "Delete account",
 				"confirmLabel": "Confirm your email address",
-				"description": "Workspaces only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
+				"description": "Teams only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
 				"error": "Failed to delete account",
 				"modalDescription": "This cannot be undone. Type {{email}} to confirm.",
 				"modalTitle": "Delete your account?",
@@ -400,13 +265,6 @@
 			"webhookSecretHintConfigured": "서명 시크릿이 이미 구성되어 있습니다 ({{masked}}). 교체하려면 새 시크릿을 입력하세요.",
 			"webhookSecretHintOptional": "선택 사항. 시크릿이 설정된 경우 Kaneo가 요청 본문에 서명합니다.",
 			"connectWebhook": "웹훅 연결",
-			"workspaceRulesTitle": "워크스페이스 전송 규칙",
-			"workspaceRulesDescription": "전역 채널을 재사용한 후 어떤 워크스페이스와 프로젝트가 계정 알림을 보낼 수 있는지 결정합니다.",
-			"workspaceCardHint": "이 워크스페이스가 계정 알림에 사용할 수 있는 채널을 선택합니다.",
-			"workspaceCardLabelEmail": "이메일",
-			"workspaceCardLabelNtfy": "ntfy",
-			"workspaceCardLabelGotify": "Gotify",
-			"workspaceCardLabelWebhook": "사용자 정의 웹훅",
 			"emailChannelHintEnabled": "일치하는 워크스페이스 알림을 이메일로 전송합니다.",
 			"emailChannelHintDisabled": "먼저 이메일을 전역으로 구성하고 활성화하세요.",
 			"ntfyChannelHintEnabled": "일치하는 워크스페이스 알림을 ntfy로 전송합니다.",
@@ -421,32 +279,14 @@
 			"allProjectsDescription": "이 워크스페이스의 모든 프로젝트에서 알림을 전송합니다.",
 			"selectedProjects": "선택한 프로젝트",
 			"selectedProjectsDescription": "선택한 프로젝트에서만 알림을 전송합니다.",
-			"noProjectsInWorkspace": "이 워크스페이스에 사용 가능한 프로젝트가 아직 없습니다.",
 			"createRule": "규칙 만들기",
 			"removeRule": "규칙 제거",
-			"toastEmailSaved": "이메일 알림 설정이 저장되었습니다",
-			"toastEmailSaveFailed": "이메일 설정 저장에 실패했습니다",
-			"toastNtfySaved": "ntfy 설정이 저장되었습니다",
-			"toastNtfySaveFailed": "ntfy 설정 저장에 실패했습니다",
-			"toastNtfyDisconnected": "ntfy 연결이 해제되었습니다",
-			"toastNtfyDisconnectFailed": "ntfy 연결 해제에 실패했습니다",
-			"toastGotifySaved": "Gotify 설정이 저장되었습니다",
-			"toastGotifySaveFailed": "Gotify 설정 저장에 실패했습니다",
-			"toastGotifyDisconnected": "Gotify 연결이 해제되었습니다",
-			"toastGotifyDisconnectFailed": "Gotify 연결 해제에 실패했습니다",
-			"toastWebhookSaved": "웹훅 설정이 저장되었습니다",
-			"toastWebhookSaveFailed": "웹훅 설정 저장에 실패했습니다",
-			"toastWebhookDisconnected": "웹훅 연결이 해제되었습니다",
-			"toastWebhookDisconnectFailed": "웹훅 연결 해제에 실패했습니다",
-			"toastRuleSaved": "{{workspaceName}}의 알림 규칙이 저장되었습니다",
 			"toastRuleSaveFailed": "워크스페이스 알림 규칙 저장에 실패했습니다",
-			"toastRuleRemoved": "{{workspaceName}}의 알림 규칙이 제거되었습니다",
 			"toastRuleRemoveFailed": "워크스페이스 알림 규칙 제거에 실패했습니다",
 			"toastPreferencesSaved": "알림 환경설정이 저장되었습니다",
 			"toastPreferencesSaveFailed": "알림 환경설정 저장에 실패했습니다",
 			"toastRuleSavedGeneric": "워크스페이스 알림 규칙이 저장되었습니다",
 			"toastRuleRemovedGeneric": "워크스페이스 알림 규칙이 제거되었습니다",
-			"workspaceEnabledLabel": "{{workspaceName}} 알림 활성화",
 			"eventPreferencesTitle": "알림 받을 항목",
 			"eventPreferencesDescription": "어떤 작업 이벤트가 인앱 알림을 생성하고 연결된 채널로 전달될 수 있는지 선택합니다.",
 			"eventTaskAssignments": "작업 할당",
@@ -459,7 +299,16 @@
 			"reminderLeadTimeUnitHours": "시간",
 			"reminderLeadTimeUnitDays": "일",
 			"reminderLeadTimeInvalid": "1에서 {{max}} 사이의 정수를 입력하세요.",
-			"saveEventPreferences": "알림 유형 저장"
+			"saveEventPreferences": "알림 유형 저장",
+			"noProjectsInTeam": "No projects available for this team yet.",
+			"teamCardHint": "Choose which channels this team can use for account notifications.",
+			"teamCardLabelEmail": "Email",
+			"teamCardLabelGotify": "Gotify",
+			"teamCardLabelNtfy": "ntfy",
+			"teamCardLabelWebhook": "Custom webhook",
+			"teamEnabledLabel": "Enable notifications for {{teamName}}",
+			"teamRulesDescription": "Reuse your global channels, then decide which teams and projects are allowed to send account notifications.",
+			"teamRulesTitle": "Team delivery rules"
 		},
 		"preferencesPage": {
 			"title": "환경설정",
@@ -486,7 +335,6 @@
 			"selectViewMode": "보기 모드 선택",
 			"board": "보드",
 			"list": "목록",
-			"gantt": "간트",
 			"sidebarDefault": "사이드바 기본값",
 			"sidebarDefaultDescription": "시작 시 사이드바를 펼친 상태로 유지",
 			"displayOptions": "표시 옵션",
@@ -566,49 +414,6 @@
 					"nameShort": "이름은 3자 이상이어야 합니다",
 					"expirationRequired": "만료는 필수입니다"
 				}
-			}
-		},
-		"workspaceGeneral": {
-			"pageTitle": "일반 설정",
-			"title": "일반 설정",
-			"subtitle": "워크스페이스 이름과 설명을 관리합니다.",
-			"workspaceInfoTitle": "워크스페이스 정보",
-			"workspaceInfoSubtitle": "워크스페이스 세부 정보 및 환경설정을 구성합니다.",
-			"nameLabel": "워크스페이스 이름",
-			"nameHint": "워크스페이스의 이름",
-			"namePlaceholder": "워크스페이스 이름 입력",
-			"descriptionLabel": "설명",
-			"descriptionHint": "워크스페이스에 대한 간단한 설명",
-			"descriptionPlaceholder": "워크스페이스 설명 입력",
-			"dangerZone": "위험 영역",
-			"dangerZoneSubtitle": "되돌릴 수 없으며 파괴적인 작업입니다.",
-			"deleteWorkspace": "워크스페이스 삭제",
-			"deleteWorkspaceDescription": "워크스페이스를 영구 삭제하도록 예약합니다",
-			"deleteModalTitle": "워크스페이스를 삭제하시겠습니까?",
-			"deleteModalDescription": "이 작업은 워크스페이스 \"{{name}}\"과(와) 모든 데이터를 영구적으로 삭제합니다. 이 작업은 취소할 수 없습니다.",
-			"deleteModalConfirm": "워크스페이스 삭제",
-			"toastUpdated": "워크스페이스가 업데이트되었습니다",
-			"toastUpdateError": "워크스페이스 업데이트에 실패했습니다",
-			"toastDeleted": "워크스페이스가 삭제되었습니다",
-			"toastDeleteError": "워크스페이스 삭제에 실패했습니다",
-			"validation": {
-				"nameRequired": "워크스페이스 이름은 필수입니다",
-				"nameShort": "워크스페이스 이름은 2자 이상이어야 합니다"
-			},
-			"transferOwnership": {
-				"toastSuccess": "소유권이 이전되었습니다",
-				"toastError": "소유권 이전에 실패했습니다",
-				"title": "소유권 이전",
-				"subtitle": "이 워크스페이스를 다른 멤버에게 이전합니다. 이후 관리자로 변경되며 소유자 전용 권한을 잃게 됩니다.",
-				"pickerLabel": "새 소유자",
-				"noEligibleMembers": "소유권을 이전하려면 먼저 다른 멤버를 한 명 이상 초대하세요.",
-				"pickerHint": "선택한 멤버가 이 워크스페이스의 단독 소유자가 됩니다.",
-				"pickerPlaceholder": "멤버 선택",
-				"button": "이전",
-				"dialogTitle": "소유권을 이전하시겠습니까?",
-				"dialogDescription": "{{name}}님이 {{workspace}}의 단독 소유자가 됩니다. 관리자 권한은 유지되지만 워크스페이스 삭제나 재이전 같은 소유자 전용 기능은 잃게 됩니다.",
-				"transferring": "이전 중...",
-				"confirm": "소유권 이전"
 			}
 		},
 		"projectGeneral": {
@@ -889,7 +694,6 @@
 			},
 			"connect": "Slack 연결",
 			"saveChanges": "변경사항 저장",
-			"update": "Slack 업데이트",
 			"disconnect": "연결 해제"
 		},
 		"discordIntegration": {
@@ -927,7 +731,6 @@
 			},
 			"connect": "Discord 연결",
 			"saveChanges": "변경사항 저장",
-			"update": "Discord 업데이트",
 			"disconnect": "연결 해제"
 		},
 		"genericWebhookIntegration": {
@@ -1085,144 +888,7 @@
 			"draft": "초안",
 			"open": "열림"
 		},
-		"workspaceRoles": {
-			"pageTitle": "역할",
-			"title": "역할",
-			"subtitle": "{{workspaceName}}에서 멤버가 수행할 수 있는 작업을 정의합니다.",
-			"thisWorkspace": "이 워크스페이스",
-			"noAccess": "워크스페이스 역할을 관리하려면 관리자 또는 소유자 권한이 필요합니다.",
-			"sectionTitle": "워크스페이스 역할",
-			"sectionSubtitle": "기본 역할을 편집하거나 맞춤 역할을 추가하세요. 편집해도 멤버에게 할당된 역할 이름은 유지됩니다.",
-			"newRole": "새 역할",
-			"loading": "로딩 중...",
-			"loadError": "역할을 불러오지 못했습니다.",
-			"emptyTitle": "아직 역할이 없습니다",
-			"emptyDescription": "이 워크스페이스에 기본 역할이 생성되면 여기에 표시됩니다.",
-			"defaultBadge": "기본",
-			"permissionCount_one": "권한 {{count}}개",
-			"permissionCount_other": "권한 {{count}}개",
-			"nameLabel": "이름",
-			"nameHint": "소문자로 입력하세요. 나중에 변경할 수 없습니다.",
-			"namePlaceholder": "예: reviewer",
-			"discard": "취소",
-			"createRole": "역할 만들기",
-			"deleteRole": "역할 삭제",
-			"defaultRoleHelp": "기본 역할: 이름이 예약되어 있으며 행을 삭제할 수 없습니다.",
-			"unsavedChanges": "저장되지 않은 변경사항이 있습니다",
-			"allChangesSaved": "모든 변경사항이 저장되었습니다",
-			"saveChanges": "변경사항 저장",
-			"defaultRoleDescriptions": {
-				"viewer": "작업을 보고 댓글을 달 수 있습니다.",
-				"member": "작업과 프로젝트를 만들고 관리할 수 있습니다.",
-				"admin": "워크스페이스에 대한 전체 권한을 가집니다."
-			},
-			"resources": {
-				"project": "프로젝트",
-				"task": "작업",
-				"label": "라벨",
-				"workspace": "워크스페이스"
-			},
-			"permissions": {
-				"project": {
-					"create": {
-						"label": "만들기",
-						"description": "새 프로젝트를 만들 수 있습니다"
-					},
-					"read": {
-						"label": "읽기",
-						"description": "프로젝트를 볼 수 있습니다"
-					},
-					"update": {
-						"label": "수정",
-						"description": "프로젝트 설정을 편집할 수 있습니다"
-					},
-					"delete": {
-						"label": "삭제",
-						"description": "프로젝트를 삭제할 수 있습니다"
-					},
-					"share": {
-						"label": "공유",
-						"description": "프로젝트를 공유할 수 있습니다"
-					}
-				},
-				"task": {
-					"create": {
-						"label": "만들기",
-						"description": "작업을 만들 수 있습니다"
-					},
-					"read": {
-						"label": "읽기",
-						"description": "작업을 볼 수 있습니다"
-					},
-					"update": {
-						"label": "수정",
-						"description": "작업을 편집할 수 있습니다"
-					},
-					"delete": {
-						"label": "삭제",
-						"description": "작업을 삭제할 수 있습니다"
-					},
-					"assign": {
-						"label": "할당",
-						"description": "멤버에게 작업을 할당할 수 있습니다"
-					}
-				},
-				"label": {
-					"create": {
-						"label": "만들기",
-						"description": "라벨을 만들 수 있습니다"
-					},
-					"read": {
-						"label": "읽기",
-						"description": "라벨을 볼 수 있습니다"
-					},
-					"update": {
-						"label": "수정",
-						"description": "라벨을 편집할 수 있습니다"
-					},
-					"delete": {
-						"label": "삭제",
-						"description": "라벨을 삭제할 수 있습니다"
-					}
-				},
-				"workspace": {
-					"read": {
-						"label": "읽기",
-						"description": "워크스페이스 설정을 볼 수 있습니다"
-					},
-					"update": {
-						"label": "수정",
-						"description": "워크스페이스 설정을 업데이트할 수 있습니다"
-					},
-					"delete": {
-						"label": "삭제",
-						"description": "워크스페이스를 삭제할 수 있습니다"
-					},
-					"manage_settings": {
-						"label": "설정 관리",
-						"description": "워크스페이스 설정을 관리할 수 있습니다"
-					}
-				}
-			},
-			"validation": {
-				"nameRequired": "역할 이름은 필수입니다",
-				"nameExists": "같은 이름의 역할이 이미 있습니다",
-				"permissionRequired": "최소 한 개의 권한을 선택해야 합니다"
-			},
-			"toast": {
-				"created": "역할이 생성되었습니다",
-				"createError": "역할 생성에 실패했습니다",
-				"updated": "역할이 업데이트되었습니다",
-				"updateError": "역할 업데이트에 실패했습니다",
-				"deleted": "역할이 삭제되었습니다",
-				"deleteError": "역할 삭제에 실패했습니다"
-			},
-			"deleteDialog": {
-				"title": "역할 삭제",
-				"description": "역할 \"{{role}}\"이(가) 영구적으로 삭제됩니다. 이 역할이 할당된 멤버는 해당 권한을 잃게 됩니다."
-			}
-		},
-		"workspaceLabels": {
+		"teamLabels": {
 			"pageTitle": "라벨 설정",
 			"title": "라벨",
 			"subtitle": "워크스페이스 수준 라벨을 만들고, 편집하고, 삭제합니다.",
@@ -1257,7 +923,6 @@
 			"members": "멤버",
 			"createTask": "작업 만들기",
 			"createProject": "프로젝트 만들기",
-			"createWorkspace": "워크스페이스 만들기",
 			"lightTheme": "라이트 테마",
 			"darkTheme": "다크 테마",
 			"systemTheme": "시스템 테마",
@@ -1268,14 +933,14 @@
 				"navigate": "이동",
 				"open": "열기",
 				"close": "닫기"
-			}
+			},
+			"createTeam": "Create team"
 		},
 		"notifications": "알림",
 		"sidebar": {
 			"overview": "개요",
 			"projects": "프로젝트",
 			"members": "멤버",
-			"invitations": "초대",
 			"more": "더 보기",
 			"backToBoard": "보드로 돌아가기"
 		},
@@ -1296,10 +961,10 @@
 			"groups": {
 				"task": "작업",
 				"project": "프로젝트",
-				"workspace": "워크스페이스",
 				"comment": "댓글",
 				"activity": "활동",
-				"fallback": "결과"
+				"fallback": "결과",
+				"team": "Teams"
 			}
 		},
 		"settingsLayout": {
@@ -1314,17 +979,10 @@
 			"signingOut": "로그아웃 중...",
 			"logOut": "로그아웃"
 		},
-		"workspaceSwitcher": {
-			"workspaces": "워크스페이스",
-			"switching": "전환 중...",
-			"addWorkspace": "워크스페이스 추가",
-			"selectWorkspace": "워크스페이스 선택"
-		},
 		"page": {
 			"projectsTitle": "프로젝트",
 			"settingsTitle": "설정",
-			"backToWorkspace": "워크스페이스로 돌아가기",
-			"settingsWorkspaceTab": "워크스페이스"
+			"backToTeam": "워크스페이스로 돌아가기"
 		},
 		"projectSettings": {
 			"projectLabel": "프로젝트"
@@ -1349,21 +1007,25 @@
 				"closeModal": "모달/팝오버 닫기",
 				"createTask": "작업 만들기",
 				"createProject": "프로젝트 만들기",
-				"createWorkspace": "워크스페이스 만들기",
 				"boardView": "보드 보기로 전환",
 				"listView": "목록 보기로 전환",
 				"backlogView": "백로그 보기로 전환",
 				"nextTask": "다음 작업",
 				"prevTask": "이전 작업",
 				"openTask": "선택한 작업 열기",
-				"quickSelectNumber": "번호로 옵션 선택"
+				"quickSelectNumber": "번호로 옵션 선택",
+				"createTeam": "Create team"
 			}
+		},
+		"teamSwitcher": {
+			"addTeam": "Add team",
+			"selectTeam": "Select a team",
+			"switching": "Switching...",
+			"teams": "Teams"
 		}
 	},
 	"notifications": {
 		"title": "알림",
-		"newCount_one": "새 알림 {{count}}개",
-		"newCount_other": "새 알림 {{count}}개",
 		"emptyTitle": "아직 알림이 없습니다",
 		"emptySubtitle": "여기서 업데이트와 활동을 확인할 수 있습니다.",
 		"clearAll": "모든 알림 지우기",
@@ -1376,10 +1038,6 @@
 			"task_created": {
 				"title": "새 작업 생성됨",
 				"content": "작업 \"{{taskTitle}}\"이(가) 생성되었습니다"
-			},
-			"workspace_created": {
-				"title": "워크스페이스 생성됨",
-				"content": "워크스페이스 \"{{workspaceName}}\"이(가) 생성되었습니다"
 			},
 			"task_status_changed": {
 				"title": "작업 상태 변경됨",
@@ -1662,9 +1320,6 @@
 						"onlyYoutube": "YouTube 링크만 임베드할 수 있습니다."
 					},
 					"onlyYoutubeInline": "YouTube URL만 임베드할 수 있습니다. 대신 링크 모드를 사용하세요."
-				},
-				"mermaid": {
-					"renderFailed": "Mermaid 다이어그램을 렌더링할 수 없습니다"
 				}
 			}
 		},
@@ -1942,37 +1597,34 @@
 			}
 		}
 	},
-	"invitations": {
-		"email": {
-			"subject": "{{inviterName}}님이 Kaneo의 {{workspaceName}}에 초대했습니다",
-			"preview": "Kaneo의 {{workspaceName}}에 초대되었습니다",
-			"title": "{{workspaceName}}에 참여하세요",
-			"subtitle": "{{inviterName}}님({{inviterEmail}})이 Kaneo에서 함께 협업하도록 초대했습니다.",
-			"cta": "초대 수락",
-			"sameEmail": "이 메시지를 받은 이메일과 동일한 이메일로 수락할 수 있습니다.",
-			"ignore": "예상하지 못한 초대라면 이 이메일을 무시하셔도 됩니다.",
-			"footer": "Kaneo 워크스페이스 초대"
+	"team": {
+		"roles": {
+			"owner": "소유자",
+			"admin": "관리자",
+			"member": "멤버",
+			"viewer": "뷰어"
 		},
-		"pageTitle": "초대",
-		"pendingInvitations": "대기 중인 초대",
-		"acceptSubtitle": "워크스페이스에 참여하려면 초대를 수락하세요",
-		"noPendingTitle": "대기 중인 초대가 없습니다",
-		"noPendingDescription": "현재 대기 중인 워크스페이스 초대가 없습니다.",
-		"continueToSetup": "설정으로 계속",
-		"skipForNow": "지금은 건너뛰기",
-		"table": {
-			"workspace": "워크스페이스",
-			"invitedBy": "초대한 사람",
-			"expires": "만료"
+		"members": {
+			"pageTitle": "멤버",
+			"you": "나"
 		},
-		"toast": {
-			"acceptError": "초대 수락에 실패했습니다",
-			"acceptSuccess": "초대가 수락되었습니다! 팀에 오신 것을 환영합니다.",
-			"rejectError": "초대 거절에 실패했습니다",
-			"rejectSuccess": "초대를 거절했습니다"
-		}
-	},
-	"workspace": {
+		"membersTable": {
+			"emptyTitle": "아직 팀 멤버가 없습니다",
+			"emptyDescription": "Ask an admin to add members to this team.",
+			"columns": {
+				"name": "이름",
+				"role": "역할",
+				"joined": "참여"
+			},
+			"ariaRemoveMember": "멤버 제거",
+			"removeDialogTitle": "팀 멤버를 제거하시겠습니까?",
+			"removeDialogDescription": "{{name}}님을 워크스페이스에서 제거하시겠습니까? 이 작업은 취소할 수 없습니다.",
+			"removeMember": "멤버 제거",
+			"removeSuccess": "팀 멤버가 제거되었습니다",
+			"removeError": "팀 멤버 제거에 실패했습니다",
+			"roleUpdateSuccess": "역할이 업데이트되었습니다",
+			"roleUpdateError": "역할 업데이트에 실패했습니다"
+		},
 		"projects": {
 			"pageTitle": "프로젝트",
 			"createProject": "프로젝트 만들기",
@@ -1989,7 +1641,6 @@
 				"inProgress": "진행 중"
 			},
 			"noDueDate": "마감일 없음",
-			"reorderHandle": "프로젝트 순서 변경",
 			"reorderError": "프로젝트 순서를 변경하지 못했습니다",
 			"emptyDescriptionReadOnly": "이 워크스페이스에 아직 프로젝트가 없습니다. 관리자에게 프로젝트 생성을 요청하세요."
 		},
@@ -2016,73 +1667,13 @@
 			"pageTitle": "워크스페이스 만들기",
 			"heading": "새 워크스페이스 만들기",
 			"subtitle": "워크스페이스는 팀이 프로젝트, 사이클 및 이슈를 작업할 수 있는 공유 환경입니다.",
-			"nameLabel": "워크스페이스 이름",
 			"namePlaceholder": "워크스페이스 이름 입력",
-			"descriptionLabel": "설명 (선택)",
-			"descriptionPlaceholder": "워크스페이스 설명 추가",
 			"required": "필수",
 			"creating": "생성 중...",
 			"submit": "워크스페이스 만들기",
 			"success": "워크스페이스가 생성되었습니다",
-			"error": "워크스페이스 생성에 실패했습니다"
-		}
-	},
-	"team": {
-		"roles": {
-			"owner": "소유자",
-			"admin": "관리자",
-			"member": "멤버",
-			"viewer": "뷰어"
-		},
-		"members": {
-			"pageTitle": "멤버",
-			"inviteMember": "멤버 초대",
-			"you": "나"
-		},
-		"invitations": {
-			"linkLabel": "초대 링크",
-			"copyLink": "링크 복사",
-			"linkCopied": "초대 링크가 복사되었습니다",
-			"copyFailed": "자동으로 복사하지 못했습니다. 링크를 선택한 후 Ctrl+C를 누르세요.",
-			"pendingBadge": "대기 중",
-			"expires": "{{date}} 만료"
-		},
-		"inviteModal": {
-			"title": "팀 멤버 초대",
-			"emailLabel": "이메일",
-			"emailPlaceholder": "colleague@company.com",
-			"sendInvitation": "초대 전송",
-			"success": "초대가 전송되었습니다",
-			"error": "팀 멤버 초대에 실패했습니다",
-			"createdTitle": "초대가 생성되었습니다",
-			"shareLinkDescription": "{{email}}님이 워크스페이스에 참여할 수 있도록 이 링크를 공유하세요.",
-			"done": "완료"
-		},
-		"membersTable": {
-			"emptyTitle": "아직 팀 멤버가 없습니다",
-			"emptyDescription": "시작하려면 첫 팀 멤버를 초대하세요.",
-			"columns": {
-				"name": "이름",
-				"role": "역할",
-				"joined": "참여",
-				"actions": "작업"
-			},
-			"memberRolePending": "{{role}} (대기 중)",
-			"ariaCancelInvitation": "초대 취소",
-			"ariaRemoveMember": "멤버 제거",
-			"removeDialogTitle": "팀 멤버를 제거하시겠습니까?",
-			"removeDialogDescription": "{{name}}님을 워크스페이스에서 제거하시겠습니까? 이 작업은 취소할 수 없습니다.",
-			"cancelDialogTitle": "초대를 취소하시겠습니까?",
-			"cancelDialogDescription": "{{email}}에 대한 초대를 취소하시겠습니까? 이 작업은 취소할 수 없습니다.",
-			"removeMember": "멤버 제거",
-			"cancelInvitation": "초대 취소",
-			"removeSuccess": "팀 멤버가 제거되었습니다",
-			"removeError": "팀 멤버 제거에 실패했습니다",
-			"cancelInviteSuccess": "초대가 취소되었습니다",
-			"cancelInviteError": "초대 취소에 실패했습니다",
-			"ariaInvitationActions": "초대 작업",
-			"roleUpdateSuccess": "역할이 업데이트되었습니다",
-			"roleUpdateError": "역할 업데이트에 실패했습니다"
+			"error": "워크스페이스 생성에 실패했습니다",
+			"nameLabel": "Team Name"
 		}
 	},
 	"publicProject": {
@@ -2099,7 +1690,6 @@
 		"taskDetail": {
 			"labels": "라벨",
 			"externalLinks": "외부 링크",
-			"pullRequestFallback": "풀 리퀘스트",
 			"issueFallback": "이슈",
 			"prStatusMerged": "병합됨",
 			"prStatusDraft": "초안",
@@ -2121,5 +1711,169 @@
 		"branding": {
 			"poweredBy": "제공"
 		}
+	},
+	"admin": {
+		"actions": {
+			"delete": "Delete user",
+			"demote": "Demote to user",
+			"disable": "Disable account",
+			"enable": "Enable account",
+			"error": "Action failed",
+			"promote": "Promote to admin",
+			"resetPassword": "Reset password",
+			"successRole": "Role updated",
+			"successStatus": "Account status updated",
+			"manageTeams": "Manage teams"
+		},
+		"columns": {
+			"created": "Created",
+			"role": "Role",
+			"status": "Status",
+			"user": "User"
+		},
+		"create": {
+			"description": "Create a new account. The user can sign in with the username and password.",
+			"email": "Email (optional)",
+			"emailPlaceholder": "e.g. jane@example.com",
+			"error": "Failed to create user",
+			"name": "Name",
+			"namePlaceholder": "e.g. Jane Doe",
+			"password": "Password",
+			"passwordPlaceholder": "At least 8 characters",
+			"role": "Role",
+			"submit": "Create user",
+			"success": "User created",
+			"title": "Create user",
+			"username": "Username",
+			"usernamePlaceholder": "e.g. jane",
+			"validation": {
+				"nameRequired": "Name is required",
+				"passwordShort": "Password must be at least 8 characters",
+				"usernameInvalid": "Only lowercase letters, numbers and underscores (1-30 characters)",
+				"usernameRequired": "Username is required"
+			},
+			"team": "Team (optional)",
+			"teamNone": "No team",
+			"teamPlaceholder": "Choose a team…"
+		},
+		"deleteDialog": {
+			"confirm": "Delete",
+			"description": "Delete {{name}} ({{username}})? This cannot be undone.",
+			"success": "User deleted",
+			"title": "Delete user"
+		},
+		"page": {
+			"createUser": "Create user",
+			"currentUserBadge": "you",
+			"description": "Create and manage user accounts.",
+			"emptyDescription": "Create the first user account to get started.",
+			"emptyTitle": "No users",
+			"title": "User Management"
+		},
+		"resetPassword": {
+			"description": "Set a new password for {{username}}.",
+			"password": "New password",
+			"submit": "Reset password",
+			"success": "Password updated",
+			"title": "Reset password"
+		},
+		"role": {
+			"admin": "Admin",
+			"user": "User"
+		},
+		"status": {
+			"active": "Active",
+			"disabled": "Disabled"
+		},
+		"tab": "System",
+		"teams": {
+			"columns": {
+				"actions": "Actions",
+				"members": "Members",
+				"name": "Name",
+				"role": "Your role"
+			},
+			"create": "Create team",
+			"createDialogDescription": "Teams group users who collaborate on shared projects.",
+			"createDialogTitle": "Create a team",
+			"delete": "Delete team",
+			"deleteDialogDescription": "The team, its projects, and its memberships will be permanently deleted.",
+			"deleteDialogTitle": "Delete this team?",
+			"description": "Create and manage teams. Users join teams via invitation.",
+			"empty": "No teams yet. Create the first one to get started.",
+			"enter": "Enter team",
+			"hint": "As a system administrator, create the teams your users will join.",
+			"nameLabel": "Team name",
+			"namePlaceholder": "e.g. Acme",
+			"pageTitle": "Team management",
+			"tab": "Teams",
+			"title": "Teams",
+			"toast": {
+				"created": "Team \"{{name}}\" created",
+				"createError": "Failed to create team",
+				"deleted": "Team deleted",
+				"deleteError": "Failed to delete team",
+				"renamed": "Team renamed",
+				"renameError": "Failed to rename team"
+			},
+			"labels": "Labels",
+			"rename": "Rename",
+			"renameDialogDescription": "Change the name of this team.",
+			"renameDialogTitle": "Rename team",
+			"userTeamsAdd": "Add to team",
+			"userTeamsAddButton": "Add",
+			"userTeamsChoose": "Choose a team…",
+			"userTeamsCurrent": "Current teams",
+			"userTeamsDescription": "Manage which teams this user belongs to.",
+			"userTeamsEmpty": "This user is not a member of any team.",
+			"userTeamsNoAvailable": "This user is already in every team.",
+			"userTeamsRemove": "Remove from team",
+			"userTeamsTitle": "Teams of {{name}}",
+			"manageMembers": "Manage members",
+			"membersAdd": "Add user to team",
+			"membersAddButton": "Add",
+			"membersChooseUser": "Choose a user…",
+			"membersCurrent": "Current members",
+			"membersDescription": "Manage which users belong to this team.",
+			"membersEmpty": "This team has no members yet.",
+			"membersNoAvailable": "All users are already in this team.",
+			"membersRemove": "Remove from team",
+			"membersTitle": "Members of {{name}}"
+		},
+		"users": {
+			"tab": "Users"
+		},
+		"ai": {
+			"apiKeyHelp": "Stored encrypted. Sent as Bearer token. Never returned in responses.",
+			"apiKeyLabel": "API key",
+			"baseUrlHelp": "OpenAI-compatible endpoint. The client appends /v1/chat/completions.",
+			"baseUrlLabel": "API base URL",
+			"enableDescription": "When disabled, the Chat tab shows a placeholder and the API returns 503.",
+			"enableLabel": "Enable AI assistant",
+			"modelHelp": "Any model name accepted by your API. Default: gpt-4o.",
+			"modelLabel": "Model",
+			"pageDescription": "Configure the AI assistant used by project chat. Kaneo uses an OpenAI-compatible API.",
+			"pageTitle": "AI Assistant",
+			"save": "Save",
+			"saving": "Saving…",
+			"tab": "AI",
+			"toast": {
+				"error": "Failed to save settings",
+				"saved": "AI settings saved"
+			}
+		}
+	},
+	"chat": {
+		"errorFailed": "Failed to send message",
+		"errorTimeout": "Request timed out. Please try again.",
+		"notEnabledDescription": "The pi-agent AI assistant has not been configured for this instance. Please contact an administrator to enable it.",
+		"notEnabledTitle": "AI assistant not enabled",
+		"pageTitle": "Chat",
+		"placeholder": "Send a message to pi-agent…",
+		"send": "Send",
+		"streaming": "pi-agent is typing…",
+		"welcomeDescription": "Ask me to create tasks, check project status, or analyze progress. I'm your AI project management assistant.",
+		"welcomeTitle": "Chat with pi-agent",
+		"you": "You"
 	}
 }

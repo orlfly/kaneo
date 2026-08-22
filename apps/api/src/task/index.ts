@@ -3,13 +3,12 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { describeRoute, resolver, validator } from "hono-openapi";
 import * as v from "valibot";
-import { requireEntitlement } from "../billing/require-entitlement-middleware";
 import db from "../database";
 import {
   assetTable,
   projectTable,
   taskTable,
-  workspaceTable,
+  teamTable,
 } from "../database/schema";
 import { taskSchema } from "../schemas";
 import {
@@ -201,7 +200,6 @@ const task = new Hono<{
     ),
     workspaceAccess.fromProject("projectId"),
     requireWorkspacePermission({ task: ["create"] }),
-    requireEntitlement,
     async (c) => {
       const { projectId } = c.req.param();
       const {
@@ -298,7 +296,6 @@ const task = new Hono<{
     ),
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
-    requireEntitlement,
     async (c) => {
       const { id } = c.req.valid("param");
       const { destinationProjectId, destinationStatus } = c.req.valid("json");
@@ -347,7 +344,6 @@ const task = new Hono<{
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
     requireTaskAssigneePermission,
-    requireEntitlement,
     async (c) => {
       const { id } = c.req.valid("param");
       const {
@@ -451,7 +447,6 @@ const task = new Hono<{
     ),
     workspaceAccess.fromProject("projectId"),
     requireWorkspacePermission({ task: ["create"] }),
-    requireEntitlement,
     async (c) => {
       const { projectId } = c.req.valid("param");
       const { tasks } = c.req.valid("json");
@@ -508,7 +503,6 @@ const task = new Hono<{
     validator("json", v.object({ status: v.string() })),
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
-    requireEntitlement,
     async (c) => {
       const { id } = c.req.valid("param");
       const { status } = c.req.valid("json");
@@ -538,7 +532,6 @@ const task = new Hono<{
     validator("json", v.object({ priority: v.picklist(VALID_PRIORITIES) })),
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
-    requireEntitlement,
     async (c) => {
       const { id } = c.req.valid("param");
       const { priority } = c.req.valid("json");
@@ -568,7 +561,6 @@ const task = new Hono<{
     validator("json", v.object({ userId: v.nullable(v.string()) })),
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["assign"] }),
-    requireEntitlement,
     async (c) => {
       const { id } = c.req.valid("param");
       const { userId } = c.req.valid("json");
@@ -598,7 +590,6 @@ const task = new Hono<{
     validator("json", v.object({ dueDate: v.optional(v.string()) })),
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
-    requireEntitlement,
     async (c) => {
       const { id } = c.req.valid("param");
       const { dueDate = null } = c.req.valid("json");
@@ -633,7 +624,6 @@ const task = new Hono<{
     validator("json", v.object({ title: v.string() })),
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
-    requireEntitlement,
     async (c) => {
       const { id } = c.req.valid("param");
       const { title } = c.req.valid("json");
@@ -673,7 +663,6 @@ const task = new Hono<{
     ),
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
-    requireEntitlement,
     async (c) => {
       const { id } = c.req.valid("param");
       const { filename, contentType, size, surface } = c.req.valid("json");
@@ -693,14 +682,11 @@ const task = new Hono<{
         .select({
           taskId: taskTable.id,
           projectId: taskTable.projectId,
-          workspaceId: workspaceTable.id,
+          teamId: teamTable.id,
         })
         .from(taskTable)
         .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-        .innerJoin(
-          workspaceTable,
-          eq(projectTable.workspaceId, workspaceTable.id),
-        )
+        .innerJoin(teamTable, eq(projectTable.teamId, teamTable.id))
         .where(eq(taskTable.id, id))
         .limit(1);
 
@@ -710,7 +696,7 @@ const task = new Hono<{
 
       try {
         const upload = await createTaskImageUploadUrl({
-          workspaceId: taskContext.workspaceId,
+          teamId: taskContext.teamId,
           projectId: taskContext.projectId,
           taskId: taskContext.taskId,
           surface,
@@ -758,7 +744,6 @@ const task = new Hono<{
     ),
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
-    requireEntitlement,
     async (c) => {
       const { id } = c.req.valid("param");
       const { key, filename, contentType, size, surface } = c.req.valid("json");
@@ -779,14 +764,11 @@ const task = new Hono<{
         .select({
           taskId: taskTable.id,
           projectId: taskTable.projectId,
-          workspaceId: workspaceTable.id,
+          teamId: teamTable.id,
         })
         .from(taskTable)
         .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-        .innerJoin(
-          workspaceTable,
-          eq(projectTable.workspaceId, workspaceTable.id),
-        )
+        .innerJoin(teamTable, eq(projectTable.teamId, teamTable.id))
         .where(eq(taskTable.id, id))
         .limit(1);
 
@@ -797,7 +779,7 @@ const task = new Hono<{
       const normalizedKey = key.trim();
       if (
         !assertTaskImageKeyMatchesContext(normalizedKey, {
-          workspaceId: taskContext.workspaceId,
+          teamId: taskContext.teamId,
           projectId: taskContext.projectId,
           taskId: taskContext.taskId,
           surface,
@@ -818,7 +800,7 @@ const task = new Hono<{
         ? await db
             .update(assetTable)
             .set({
-              workspaceId: taskContext.workspaceId,
+              teamId: taskContext.teamId,
               projectId: taskContext.projectId,
               taskId: taskContext.taskId,
               filename,
@@ -835,7 +817,7 @@ const task = new Hono<{
         : await db
             .insert(assetTable)
             .values({
-              workspaceId: taskContext.workspaceId,
+              teamId: taskContext.teamId,
               projectId: taskContext.projectId,
               taskId: taskContext.taskId,
               objectKey: normalizedKey,
@@ -884,7 +866,6 @@ const task = new Hono<{
     validator("json", v.object({ description: v.string() })),
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
-    requireEntitlement,
     async (c) => {
       const { id } = c.req.valid("param");
       const { description } = c.req.valid("json");

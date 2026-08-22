@@ -9,7 +9,7 @@ import { Eye, GitBranch, Plug, Settings } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import SettingsSidebar from "@/components/SettingsSidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -37,7 +37,7 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
   const { t } = useTranslation();
-  const { workspace, role } = useWorkspacePermission();
+  const { workspace: team, role } = useWorkspacePermission();
   const location = useLocation();
   const navigate = useNavigate();
   const menuItems = [
@@ -63,10 +63,10 @@ function RouteComponent() {
     },
   ];
   const { data: projects } = useGetProjects({
-    workspaceId: workspace?.id || "",
+    teamId: team?.id || "",
   });
 
-  const workspaceInitials = getInitials(workspace?.name, "WS");
+  const teamInitials = getInitials(team?.name, "TM");
 
   const selectedProjectMatch = location.pathname.match(
     /^\/dashboard\/settings\/projects\/([^/]+)\//,
@@ -103,17 +103,13 @@ function RouteComponent() {
         <div className="p-2">
           <div className="mb-1 flex items-center gap-3 rounded-md px-2 py-2">
             <Avatar className="h-8 w-8">
-              <AvatarImage
-                src={workspace?.logo ?? ""}
-                alt={workspace?.name || ""}
-              />
               <AvatarFallback className="border border-sidebar-border/70 bg-sidebar-accent/70 text-xs font-medium text-sidebar-accent-foreground">
-                {workspaceInitials}
+                {teamInitials}
               </AvatarFallback>
             </Avatar>
             <div className="flex min-w-0 flex-col md:min-w-fit">
               <p className="truncate text-sm md:overflow-visible md:text-clip md:whitespace-normal">
-                {workspace?.name}
+                {team?.name}
               </p>
               <p className="truncate text-xs text-sidebar-foreground/60 capitalize md:overflow-visible md:text-clip md:whitespace-normal">
                 {t(`team:roles.${role}`, { defaultValue: role })}

@@ -6,10 +6,11 @@ type SearchParams = {
     | "all"
     | "tasks"
     | "projects"
-    | "workspaces"
+    
     | "comments"
+    | "teams"
     | "activities";
-  workspaceId?: string;
+  teamId?: string;
   projectId?: string;
   limit?: number;
 };

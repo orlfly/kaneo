@@ -3,11 +3,11 @@ import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { projectTable } from "../../database/schema";
 
-async function getProject(id: string, workspaceId: string) {
+async function getProject(id: string, teamId: string) {
   const project = await db.query.projectTable.findFirst({
     where: and(
       eq(projectTable.id, id),
-      eq(projectTable.workspaceId, workspaceId),
+      eq(projectTable.teamId, teamId),
     ),
     with: {
       tasks: true,

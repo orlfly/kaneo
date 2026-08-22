@@ -11,7 +11,8 @@
 			"remove": "Убрать",
 			"reset": "Сбросить",
 			"filter": "Фильтр",
-			"clearAllFilters": "Сбросить все фильтры"
+			"clearAllFilters": "Сбросить все фильтры",
+			"adding": "Adding…"
 		},
 		"a11y": {
 			"toggleSidebar": "Переключить боковую панель"
@@ -35,18 +36,6 @@
 			"label": "Навигационная цепочка",
 			"more": "Ещё"
 		},
-		"language": {
-			"english": "Английский",
-			"german": "Немецкий",
-			"greek": "Греческий",
-			"macedonian": "Македонский",
-			"french": "Французский",
-			"spanish": "Испанский",
-			"dutch": "Нидерландский",
-			"korean": "Корейский",
-			"chinese": "Китайский",
-			"italian": "Итальянский"
-		},
 		"people": {
 			"someone": "Кто-то",
 			"unknown": "Неизвестно"
@@ -65,7 +54,6 @@
 			"createProject": {
 				"title": "Создать новый проект",
 				"breadcrumbNew": "Создать новый проект",
-				"workspaceFallback": "РАБОЧАЯ ОБЛАСТЬ",
 				"description": "Создайте новый проект в вашей рабочей области, указав название, ключ и выбрав иконку.",
 				"pickIcon": "Выбрать иконку",
 				"searchIcons": "Поиск иконок...",
@@ -74,17 +62,12 @@
 				"keyHint": "Используется для идентификаторов задач (например, {{example}}-123)",
 				"createButton": "Создать проект",
 				"successToast": "Проект успешно создан",
-				"errorToast": "Не удалось создать проект"
-			},
-			"createWorkspace": {
-				"breadcrumbKaneo": "KANEO",
-				"title": "Создать новую рабочую область",
-				"description": "Создайте новую рабочую область, указав её название.",
-				"namePlaceholder": "Название рабочей области",
-				"descriptionPlaceholder": "Добавить описание...",
-				"createButton": "Создать рабочую область",
-				"successToast": "Рабочая область успешно создана",
-				"errorToast": "Не удалось создать рабочую область"
+				"errorToast": "Не удалось создать проект",
+				"manageTeams": "Go to team management",
+				"noTeams": "You don't have any teams yet. Create or join a team before creating a project.",
+				"teamLabel": "Team",
+				"teamPlaceholder": "Select a team",
+				"teamFallback": "РАБОЧАЯ ОБЛАСТЬ"
 			},
 			"createTask": {
 				"breadcrumbTask": "ЗАДАЧА",
@@ -99,7 +82,6 @@
 				"successUpdated": "Задача успешно обновлена",
 				"createError": "Не удалось создать задачу",
 				"priority": "Приоритет",
-				"statusFallback": "В работе",
 				"startDate": "Дата начала",
 				"dueDate": "Срок выполнения",
 				"clearStartDate": "Очистить дату начала",
@@ -128,7 +110,19 @@
 					"rose": "Роза",
 					"crimson": "Малиновый"
 				}
+			},
+			"createTeam": {
+				"breadcrumbKaneo": "KANEO",
+				"createButton": "Create Team",
+				"description": "Create a new team by providing a name for your team.",
+				"errorToast": "Failed to create team",
+				"namePlaceholder": "Team name",
+				"successToast": "Team created successfully",
+				"title": "Create a new team"
 			}
+		},
+		"states": {
+			"loading": "Loading…"
 		}
 	},
 	"auth": {
@@ -136,43 +130,17 @@
 			"pageTitle": "Вход",
 			"title": "С возвращением",
 			"subtitle": "Введите свои учётные данные для доступа к рабочей области",
-			"invitationSubtitle": "Войдите, чтобы принять приглашение",
-			"invitationAlert": "После входа вы сможете принять приглашение в рабочую область.",
-			"signingIn": "Вход...",
-			"continueWithGoogle": "Продолжить с Google",
-			"continueWithGithub": "Продолжить с GitHub",
-			"continueWithDiscord": "Продолжить с Discord",
-			"continueWithOidc": "Продолжить с OIDC",
-			"lastUsed": "Использовался последним",
-			"registrationDisabled": "Публичная регистрация отключена. Используйте приглашение для создания аккаунта.",
-			"passwordRegistrationDisabled": "Регистрация по паролю отключена. Используйте настроенный метод входа через социальные сети или OIDC для создания аккаунта.",
-			"toggleMessage": "Нет аккаунта?",
-			"toggleLink": "Создать аккаунт",
-			"guestSuccess": "Вход выполнен как гость",
-			"guestError": "Не удалось войти как гость",
-			"oidcError": "Не удалось войти через OIDC",
-			"googleError": "Не удалось войти через Google",
-			"githubError": "Не удалось войти через GitHub",
-			"discordError": "Не удалось войти через Discord",
-			"errors": {
-				"account_not_linked": "Не удалось привязать эту учётную запись к существующему аккаунту. Войдите по электронной почте, чтобы подтвердить аккаунт, затем повторите вход через SSO. Если вход по почте недоступен, обратитесь к администратору.",
-				"oauth_code_verification_failed": "Не удалось выполнить проверку OAuth. Попробуйте ещё раз.",
-				"registration_is_currently_disabled_you_need_a_valid_invitation_to_create_an_account_": "Регистрация в данный момент отключена. Для создания аккаунта требуется действительное приглашение."
-			},
+			"registrationDisabled": "Public registration is disabled. Ask an administrator to create your account.",
 			"instanceStatusError": "Не удалось связаться с сервером. Повторите попытку чуть позже."
-		},
-		"providers": {
-			"google": "Google",
-			"discord": "Discord"
 		},
 		"forms": {
 			"or": "или",
-			"email": "Электронная почта",
 			"password": "Пароль",
-			"emailPlaceholder": "me@example.com",
 			"passwordPlaceholder": "••••••••",
 			"showPassword": "Показать пароль",
-			"hidePassword": "Скрыть пароль"
+			"hidePassword": "Скрыть пароль",
+			"username": "Username",
+			"usernamePlaceholder": "Enter your username"
 		},
 		"checkEmail": {
 			"pageTitle": "Проверьте почту",
@@ -181,114 +149,11 @@
 			"emailFallback": "ваш адрес электронной почты",
 			"backToLogin": "Вернуться к входу"
 		},
-		"signUp": {
-			"pageTitle": "Создание аккаунта",
-			"title": "Создать аккаунт",
-			"subtitleInvitation": "Создайте аккаунт, чтобы принять приглашение",
-			"subtitleRegistrationDisabled": "Для регистрации требуется приглашение",
-			"subtitlePasswordDisabled": "Используйте вход через социальные сети или OIDC для создания аккаунта",
-			"subtitleDefault": "Начните работу с рабочей областью",
-			"invitationAlert": "После создания аккаунта вы сможете принять приглашение в рабочую область.",
-			"registrationDisabledAlert": "Регистрация в данный момент отключена. Если вы получили приглашение, введите адрес электронной почты, на который оно было отправлено.",
-			"passwordDisabledAlert": "Создание аккаунта по паролю отключено. Используйте настроенный метод входа через социальные сети или OIDC на странице входа.",
-			"signingIn": "Вход...",
-			"continueAsGuest": "Продолжить как гость",
-			"toggleMessage": "Уже есть аккаунт?",
-			"toggleLink": "Войти",
-			"instanceStatusError": "Не удалось связаться с сервером. Повторите попытку чуть позже.",
-			"instanceAdminTitle": "Настройте свой экземпляр Kaneo",
-			"instanceAdminSubtitle": "Этот аккаунт станет администратором экземпляра с полным доступом."
-		},
-		"verifyOtp": {
-			"pageTitle": "Проверка кода",
-			"title": "Введите код подтверждения",
-			"subtitle": "Используйте 6-значный код, отправленный на вашу почту",
-			"codeSentTo": "Код отправлен на {{email}}",
-			"verificationCodeLabel": "Код подтверждения",
-			"verifying": "Проверка...",
-			"verifyAndSignIn": "Подтвердить и войти",
-			"changeEmail": "Изменить адрес",
-			"resend": "Отправить повторно",
-			"validation": {
-				"codeLength": "Код должен содержать 6 цифр"
-			},
-			"toast": {
-				"invalidCode": "Неверный код подтверждения",
-				"signedInSuccess": "Вход выполнен успешно!",
-				"verifyFailed": "Не удалось проверить код",
-				"resendFailed": "Не удалось отправить код повторно",
-				"resendSuccess": "Новый код подтверждения отправлен!"
-			}
-		},
-		"otpSignIn": {
-			"sendFailed": "Не удалось отправить код подтверждения",
-			"codeSent": "Код подтверждения отправлен! Проверьте почту.",
-			"sending": "Отправка...",
-			"sendVerificationCode": "Отправить код подтверждения"
-		},
 		"signInForm": {
 			"failedSignIn": "Не удалось войти",
 			"signedInSuccess": "Вход выполнен успешно",
 			"signingIn": "Вход...",
 			"signIn": "Войти"
-		},
-		"signUpForm": {
-			"fullName": "Полное имя",
-			"namePlaceholder": "Иван Иванов",
-			"failedSignUp": "Не удалось зарегистрироваться",
-			"accountCreated": "Аккаунт успешно создан",
-			"passwordTooShort": "Пароль слишком короткий",
-			"creatingAccount": "Создание аккаунта...",
-			"createAccount": "Создать аккаунт"
-		},
-		"invitation": {
-			"pageTitleAccept": "Принять приглашение",
-			"pageTitleError": "Ошибка приглашения",
-			"pageTitleInvalid": "Недействительное приглашение",
-			"loadingTitle": "Загрузка приглашения...",
-			"errorTitle": "Ошибка приглашения",
-			"invalidTitle": "Недействительное приглашение",
-			"invitationExpired": "Приглашение истекло",
-			"errorLoadDescription": "Не удалось загрузить данные приглашения. Приглашение может быть недействительным или просроченным.",
-			"goToSignIn": "Перейти к входу",
-			"workspaceLabel": "Рабочая область: {{workspaceName}}",
-			"joinWorkspace": "Присоединиться к {{workspaceName}}",
-			"inviteBodySignedIn": "<inviter>{{inviterName}}</inviter> приглашает вас присоединиться к рабочей области.",
-			"inviteBodySignedOut": "<inviter>{{inviterName}}</inviter> приглашает вас присоединиться к рабочей области в Kaneo.",
-			"createAccountOrSignIn": "Создайте аккаунт, чтобы принять это приглашение, или войдите, если он у вас уже есть.",
-			"createAccount": "Создать аккаунт",
-			"accepting": "Принятие...",
-			"acceptInvitation": "Принять приглашение",
-			"goToDashboard": "Перейти к панели управления",
-			"signedInAs": "Вы вошли как <email>{{email}}</email>",
-			"youveBeenInvited": "Вас пригласили!",
-			"invitationFor": "Приглашение для: <email>{{email}}</email>",
-			"signIn": "Войти",
-			"toast": {
-				"acceptFailed": "Не удалось принять приглашение",
-				"acceptSuccess": "Приглашение принято! Добро пожаловать в команду."
-			}
-		},
-		"onboarding": {
-			"pageTitle": "Добро пожаловать в Kaneo",
-			"workspacePageTitle": "Создание рабочей области",
-			"createWorkspaceTitle": "Создать рабочую область",
-			"createWorkspaceSubtitle": "Настройте рабочую область, чтобы начать управление проектами",
-			"workspaceName": "Название рабочей области",
-			"workspaceNamePlaceholder": "например, Acme Inc, Моя команда",
-			"descriptionOptional": "Описание (необязательно)",
-			"descriptionPlaceholder": "Чем занимается ваша команда?",
-			"creating": "Создание...",
-			"createWorkspace": "Создать рабочую область",
-			"workspaceCreatedTitle": "Рабочая область создана",
-			"redirectingToWorkspace": "Переход к <name>{{name}}</name>...",
-			"toast": {
-				"workspaceCreated": "Рабочая область успешно создана",
-				"createFailed": "Не удалось создать рабочую область"
-			},
-			"validation": {
-				"workspaceNameRequired": "Название рабочей области обязательно"
-			}
 		},
 		"profileSetup": {
 			"pageTitle": "Заполнение профиля",
@@ -348,7 +213,7 @@
 			"deleteAccount": {
 				"confirm": "Delete account",
 				"confirmLabel": "Confirm your email address",
-				"description": "Workspaces only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
+				"description": "Teams only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
 				"error": "Failed to delete account",
 				"modalDescription": "This cannot be undone. Type {{email}} to confirm.",
 				"modalTitle": "Delete your account?",
@@ -400,13 +265,6 @@
 			"webhookSecretHintConfigured": "Секрет подписи уже настроен ({{masked}}). Введите новый для замены.",
 			"webhookSecretHintOptional": "Необязательно. Kaneo подписывает тело запроса, если секрет задан.",
 			"connectWebhook": "Подключить вебхук",
-			"workspaceRulesTitle": "Правила доставки для рабочих областей",
-			"workspaceRulesDescription": "Используйте глобальные каналы и определяйте, какие рабочие области и проекты могут отправлять уведомления.",
-			"workspaceCardHint": "Выберите, какие каналы может использовать эта рабочая область для уведомлений.",
-			"workspaceCardLabelEmail": "Почта",
-			"workspaceCardLabelNtfy": "ntfy",
-			"workspaceCardLabelGotify": "Gotify",
-			"workspaceCardLabelWebhook": "Пользовательский вебхук",
 			"emailChannelHintEnabled": "Отправлять подходящие уведомления рабочей области по электронной почте.",
 			"emailChannelHintDisabled": "Сначала настройте и включите электронную почту глобально.",
 			"ntfyChannelHintEnabled": "Отправлять подходящие уведомления рабочей области в ntfy.",
@@ -421,32 +279,14 @@
 			"allProjectsDescription": "Доставлять уведомления от всех проектов в этой рабочей области.",
 			"selectedProjects": "Выбранные проекты",
 			"selectedProjectsDescription": "Доставлять уведомления только от выбранных проектов.",
-			"noProjectsInWorkspace": "В этой рабочей области пока нет проектов.",
 			"createRule": "Создать правило",
 			"removeRule": "Удалить правило",
-			"toastEmailSaved": "Настройки email-уведомлений сохранены",
-			"toastEmailSaveFailed": "Не удалось сохранить настройки email",
-			"toastNtfySaved": "Настройки ntfy сохранены",
-			"toastNtfySaveFailed": "Не удалось сохранить настройки ntfy",
-			"toastNtfyDisconnected": "ntfy отключён",
-			"toastNtfyDisconnectFailed": "Не удалось отключить ntfy",
-			"toastGotifySaved": "Настройки Gotify сохранены",
-			"toastGotifySaveFailed": "Не удалось сохранить настройки Gotify",
-			"toastGotifyDisconnected": "Gotify отключён",
-			"toastGotifyDisconnectFailed": "Не удалось отключить Gotify",
-			"toastWebhookSaved": "Настройки вебхука сохранены",
-			"toastWebhookSaveFailed": "Не удалось сохранить настройки вебхука",
-			"toastWebhookDisconnected": "Вебхук отключён",
-			"toastWebhookDisconnectFailed": "Не удалось отключить вебхук",
-			"toastRuleSaved": "Правило уведомлений для {{workspaceName}} сохранено",
 			"toastRuleSaveFailed": "Не удалось сохранить правило уведомлений для рабочей области",
-			"toastRuleRemoved": "Правило уведомлений для {{workspaceName}} удалено",
 			"toastRuleRemoveFailed": "Не удалось удалить правило уведомлений для рабочей области",
 			"toastPreferencesSaved": "Настройки уведомлений сохранены",
 			"toastPreferencesSaveFailed": "Не удалось сохранить настройки уведомлений",
 			"toastRuleSavedGeneric": "Правило уведомлений для рабочей области сохранено",
 			"toastRuleRemovedGeneric": "Правило уведомлений для рабочей области удалено",
-			"workspaceEnabledLabel": "Включить уведомления для {{workspaceName}}",
 			"eventPreferencesTitle": "Уведомлять меня о",
 			"eventPreferencesDescription": "Выберите, какие события задач создают уведомления в приложении и могут доставляться в подключённые каналы.",
 			"eventTaskAssignments": "Назначения задач",
@@ -459,7 +299,16 @@
 			"reminderLeadTimeUnitHours": "Часы",
 			"reminderLeadTimeUnitDays": "Дни",
 			"reminderLeadTimeInvalid": "Введите целое число от 1 до {{max}}.",
-			"saveEventPreferences": "Сохранить типы уведомлений"
+			"saveEventPreferences": "Сохранить типы уведомлений",
+			"noProjectsInTeam": "No projects available for this team yet.",
+			"teamCardHint": "Choose which channels this team can use for account notifications.",
+			"teamCardLabelEmail": "Email",
+			"teamCardLabelGotify": "Gotify",
+			"teamCardLabelNtfy": "ntfy",
+			"teamCardLabelWebhook": "Custom webhook",
+			"teamEnabledLabel": "Enable notifications for {{teamName}}",
+			"teamRulesDescription": "Reuse your global channels, then decide which teams and projects are allowed to send account notifications.",
+			"teamRulesTitle": "Team delivery rules"
 		},
 		"preferencesPage": {
 			"title": "Настройки",
@@ -486,7 +335,6 @@
 			"selectViewMode": "Выберите режим просмотра",
 			"board": "Доска",
 			"list": "Список",
-			"gantt": "Гант",
 			"sidebarDefault": "Боковая панель по умолчанию",
 			"sidebarDefaultDescription": "Оставлять боковую панель раскрытой при запуске",
 			"displayOptions": "Параметры отображения",
@@ -566,49 +414,6 @@
 					"nameShort": "Название должно содержать не менее 3 символов",
 					"expirationRequired": "Срок действия обязателен"
 				}
-			}
-		},
-		"workspaceGeneral": {
-			"pageTitle": "Основные настройки",
-			"title": "Основные настройки",
-			"subtitle": "Управляйте названием и описанием рабочей области.",
-			"workspaceInfoTitle": "Информация о рабочей области",
-			"workspaceInfoSubtitle": "Настройте параметры и предпочтения рабочей области.",
-			"nameLabel": "Название рабочей области",
-			"nameHint": "Название вашей рабочей области",
-			"namePlaceholder": "Введите название рабочей области",
-			"descriptionLabel": "Описание",
-			"descriptionHint": "Краткое описание вашей рабочей области",
-			"descriptionPlaceholder": "Введите описание рабочей области",
-			"dangerZone": "Опасная зона",
-			"dangerZoneSubtitle": "Необратимые и деструктивные действия.",
-			"deleteWorkspace": "Удалить рабочую область",
-			"deleteWorkspaceDescription": "Запланировать безвозвратное удаление рабочей области",
-			"deleteModalTitle": "Удалить рабочую область?",
-			"deleteModalDescription": "Рабочая область «{{name}}» и все её данные будут безвозвратно удалены. Это действие нельзя отменить.",
-			"deleteModalConfirm": "Удалить рабочую область",
-			"toastUpdated": "Рабочая область успешно обновлена",
-			"toastUpdateError": "Не удалось обновить рабочую область",
-			"toastDeleted": "Рабочая область успешно удалена",
-			"toastDeleteError": "Не удалось удалить рабочую область",
-			"validation": {
-				"nameRequired": "Название рабочей области обязательно",
-				"nameShort": "Название рабочей области должно содержать не менее 2 символов"
-			},
-			"transferOwnership": {
-				"toastSuccess": "Права владельца переданы",
-				"toastError": "Не удалось передать права владельца",
-				"title": "Передача прав владельца",
-				"subtitle": "Передайте эту рабочую область другому участнику. Вы станете администратором и потеряете возможности, доступные только владельцу.",
-				"pickerLabel": "Новый владелец",
-				"noEligibleMembers": "Пригласите хотя бы одного участника, прежде чем передавать права владельца.",
-				"pickerHint": "Этот участник станет единственным владельцем рабочей области.",
-				"pickerPlaceholder": "Выберите участника",
-				"button": "Передать",
-				"dialogTitle": "Передать права владельца?",
-				"dialogDescription": "{{name}} станет единственным владельцем рабочей области {{workspace}}. Вы сохраните права администратора, но потеряете возможности владельца, такие как удаление рабочей области или её повторная передача.",
-				"transferring": "Передача…",
-				"confirm": "Передать права владельца"
 			}
 		},
 		"projectGeneral": {
@@ -889,7 +694,6 @@
 			},
 			"connect": "Подключить Slack",
 			"saveChanges": "Сохранить изменения",
-			"update": "Обновить Slack",
 			"disconnect": "Отключить"
 		},
 		"discordIntegration": {
@@ -927,7 +731,6 @@
 			},
 			"connect": "Подключить Discord",
 			"saveChanges": "Сохранить изменения",
-			"update": "Обновить Discord",
 			"disconnect": "Отключить"
 		},
 		"genericWebhookIntegration": {
@@ -1052,14 +855,6 @@
 			"exportSuccess": "Задачи успешно экспортированы",
 			"exportError": "Не удалось экспортировать задачи",
 			"importing": "Импорт задач...",
-			"importSuccess_one": "Успешно импортирована {{count}} задача",
-			"importSuccess_few": "Успешно импортировано {{count}} задачи",
-			"importSuccess_many": "Успешно импортировано {{count}} задач",
-			"importSuccess_other": "Успешно импортировано {{count}} задач",
-			"importPartialError_one": "Не удалось импортировать {{count}} задачу",
-			"importPartialError_few": "Не удалось импортировать {{count}} задачи",
-			"importPartialError_many": "Не удалось импортировать {{count}} задач",
-			"importPartialError_other": "Не удалось импортировать {{count}} задач",
 			"importError": "Не удалось импортировать задачи",
 			"invalidFormat": "Некорректный формат файла импорта",
 			"noFileDropped": "Файл не был перетащен",
@@ -1093,146 +888,7 @@
 			"draft": "Черновик",
 			"open": "Открыт"
 		},
-		"workspaceRoles": {
-			"pageTitle": "Роли",
-			"title": "Роли",
-			"subtitle": "Определите, какие действия участники могут выполнять в {{workspaceName}}.",
-			"thisWorkspace": "этой рабочей области",
-			"noAccess": "Для управления ролями рабочей области нужны права администратора или владельца.",
-			"sectionTitle": "Роли рабочей области",
-			"sectionSubtitle": "Отредактируйте роли по умолчанию или добавьте собственную. Назначенные участникам роли сохраняются при изменениях.",
-			"newRole": "Новая роль",
-			"loading": "Загрузка…",
-			"loadError": "Не удалось загрузить роли.",
-			"emptyTitle": "Ролей пока нет",
-			"emptyDescription": "Роли по умолчанию появятся здесь, когда они будут созданы для этой рабочей области.",
-			"defaultBadge": "По умолчанию",
-			"permissionCount_one": "{{count}} право",
-			"permissionCount_few": "{{count}} права",
-			"permissionCount_many": "{{count}} прав",
-			"permissionCount_other": "{{count}} прав",
-			"nameLabel": "Название",
-			"nameHint": "Строчными буквами. Нельзя изменить позже.",
-			"namePlaceholder": "например, reviewer",
-			"discard": "Отменить",
-			"createRole": "Создать роль",
-			"deleteRole": "Удалить роль",
-			"defaultRoleHelp": "Роль по умолчанию: название зарезервировано, и строку нельзя удалить.",
-			"unsavedChanges": "Есть несохранённые изменения",
-			"allChangesSaved": "Все изменения сохранены",
-			"saveChanges": "Сохранить изменения",
-			"defaultRoleDescriptions": {
-				"viewer": "Может просматривать задачи и оставлять комментарии.",
-				"member": "Может создавать задачи и проекты и управлять ими.",
-				"admin": "Имеет полный доступ к рабочей области."
-			},
-			"resources": {
-				"project": "Проекты",
-				"task": "Задачи",
-				"label": "Метки",
-				"workspace": "Рабочая область"
-			},
-			"permissions": {
-				"project": {
-					"create": {
-						"label": "Создание",
-						"description": "Может создавать новые проекты"
-					},
-					"read": {
-						"label": "Просмотр",
-						"description": "Может просматривать проекты"
-					},
-					"update": {
-						"label": "Изменение",
-						"description": "Может изменять настройки проекта"
-					},
-					"delete": {
-						"label": "Удаление",
-						"description": "Может удалять проекты"
-					},
-					"share": {
-						"label": "Общий доступ",
-						"description": "Может делиться проектами"
-					}
-				},
-				"task": {
-					"create": {
-						"label": "Создание",
-						"description": "Может создавать задачи"
-					},
-					"read": {
-						"label": "Просмотр",
-						"description": "Может просматривать задачи"
-					},
-					"update": {
-						"label": "Изменение",
-						"description": "Может редактировать задачи"
-					},
-					"delete": {
-						"label": "Удаление",
-						"description": "Может удалять задачи"
-					},
-					"assign": {
-						"label": "Назначение",
-						"description": "Может назначать задачи участникам"
-					}
-				},
-				"label": {
-					"create": {
-						"label": "Создание",
-						"description": "Может создавать метки"
-					},
-					"read": {
-						"label": "Просмотр",
-						"description": "Может просматривать метки"
-					},
-					"update": {
-						"label": "Изменение",
-						"description": "Может редактировать метки"
-					},
-					"delete": {
-						"label": "Удаление",
-						"description": "Может удалять метки"
-					}
-				},
-				"workspace": {
-					"read": {
-						"label": "Просмотр",
-						"description": "Может просматривать настройки рабочей области"
-					},
-					"update": {
-						"label": "Изменение",
-						"description": "Может изменять настройки рабочей области"
-					},
-					"delete": {
-						"label": "Удаление",
-						"description": "Может удалить рабочую область"
-					},
-					"manage_settings": {
-						"label": "Управление настройками",
-						"description": "Может управлять настройками рабочей области"
-					}
-				}
-			},
-			"validation": {
-				"nameRequired": "Название роли обязательно",
-				"nameExists": "Роль с таким названием уже существует",
-				"permissionRequired": "Необходимо выбрать хотя бы одно право"
-			},
-			"toast": {
-				"created": "Роль создана",
-				"createError": "Не удалось создать роль",
-				"updated": "Роль обновлена",
-				"updateError": "Не удалось обновить роль",
-				"deleted": "Роль удалена",
-				"deleteError": "Не удалось удалить роль"
-			},
-			"deleteDialog": {
-				"title": "Удалить роль",
-				"description": "Роль «{{role}}» будет безвозвратно удалена. Участники с этой ролью потеряют её права."
-			}
-		},
-		"workspaceLabels": {
+		"teamLabels": {
 			"pageTitle": "Настройки меток",
 			"title": "Метки",
 			"subtitle": "Создавайте, редактируйте и удаляйте метки уровня рабочей области.",
@@ -1267,7 +923,6 @@
 			"members": "Участники",
 			"createTask": "Создать задачу",
 			"createProject": "Создать проект",
-			"createWorkspace": "Создать рабочую область",
 			"lightTheme": "Светлая тема",
 			"darkTheme": "Тёмная тема",
 			"systemTheme": "Системная тема",
@@ -1278,14 +933,14 @@
 				"navigate": "Навигация",
 				"open": "Открыть",
 				"close": "Закрыть"
-			}
+			},
+			"createTeam": "Create team"
 		},
 		"notifications": "Уведомления",
 		"sidebar": {
 			"overview": "Обзор",
 			"projects": "Проекты",
 			"members": "Участники",
-			"invitations": "Приглашения",
 			"more": "Ещё",
 			"backToBoard": "Назад к доске"
 		},
@@ -1306,10 +961,10 @@
 			"groups": {
 				"task": "Задачи",
 				"project": "Проекты",
-				"workspace": "Рабочие области",
 				"comment": "Комментарии",
 				"activity": "Активности",
-				"fallback": "Результаты"
+				"fallback": "Результаты",
+				"team": "Teams"
 			}
 		},
 		"settingsLayout": {
@@ -1324,17 +979,10 @@
 			"signingOut": "Выход...",
 			"logOut": "Выйти"
 		},
-		"workspaceSwitcher": {
-			"workspaces": "Рабочие области",
-			"switching": "Переключение...",
-			"addWorkspace": "Добавить рабочую область",
-			"selectWorkspace": "Выберите рабочую область"
-		},
 		"page": {
 			"projectsTitle": "Проекты",
 			"settingsTitle": "Настройки",
-			"backToWorkspace": "Вернуться к рабочей области",
-			"settingsWorkspaceTab": "Рабочая область"
+			"backToTeam": "Вернуться к рабочей области"
 		},
 		"projectSettings": {
 			"projectLabel": "Проект"
@@ -1359,23 +1007,25 @@
 				"closeModal": "Закрыть модальное окно/всплывающее меню",
 				"createTask": "Создать задачу",
 				"createProject": "Создать проект",
-				"createWorkspace": "Создать рабочую область",
 				"boardView": "Переключиться на доску",
 				"listView": "Переключиться на список",
 				"backlogView": "Переключиться на бэклог",
 				"nextTask": "Следующая задача",
 				"prevTask": "Предыдущая задача",
 				"openTask": "Открыть выбранную задачу",
-				"quickSelectNumber": "Выбрать вариант по номеру"
+				"quickSelectNumber": "Выбрать вариант по номеру",
+				"createTeam": "Create team"
 			}
+		},
+		"teamSwitcher": {
+			"addTeam": "Add team",
+			"selectTeam": "Select a team",
+			"switching": "Switching...",
+			"teams": "Teams"
 		}
 	},
 	"notifications": {
 		"title": "Уведомления",
-		"newCount_one": "{{count}} новое",
-		"newCount_few": "{{count}} новых",
-		"newCount_many": "{{count}} новых",
-		"newCount_other": "{{count}} новых",
 		"emptyTitle": "Уведомлений пока нет",
 		"emptySubtitle": "Здесь будут отображаться обновления и активность.",
 		"clearAll": "Очистить все уведомления",
@@ -1388,10 +1038,6 @@
 			"task_created": {
 				"title": "Создана новая задача",
 				"content": "Задача «{{taskTitle}}» создана"
-			},
-			"workspace_created": {
-				"title": "Рабочая область создана",
-				"content": "Ваша рабочая область «{{workspaceName}}» успешно создана"
 			},
 			"task_status_changed": {
 				"title": "Статус задачи изменён",
@@ -1425,16 +1071,10 @@
 		},
 		"reminderLeadTime": {
 			"minutes_one": "{{count}} минута",
-			"minutes_few": "{{count}} минуты",
-			"minutes_many": "{{count}} минут",
 			"minutes_other": "{{count}} минут",
 			"hours_one": "{{count}} час",
-			"hours_few": "{{count}} часа",
-			"hours_many": "{{count}} часов",
 			"hours_other": "{{count}} часов",
 			"days_one": "{{count}} день",
-			"days_few": "{{count}} дня",
-			"days_many": "{{count}} дней",
 			"days_other": "{{count}} дней"
 		}
 	},
@@ -1680,9 +1320,6 @@
 						"onlyYoutube": "Можно встраивать только ссылки YouTube."
 					},
 					"onlyYoutubeInline": "Можно встраивать только URL YouTube. Используйте режим ссылки."
-				},
-				"mermaid": {
-					"renderFailed": "Не удалось отобразить диаграмму Mermaid"
 				}
 			}
 		},
@@ -1788,10 +1425,6 @@
 			"pageTitle": "Бэклог – {{name}}",
 			"noTasksToMove": "Нет запланированных задач для перемещения",
 			"moveAllConfirm": "Переместить все {{count}} запланированных задач в «К выполнению»?",
-			"moveAllSuccess_one": "{{count}} задача перемещена в «К выполнению»",
-			"moveAllSuccess_few": "{{count}} задачи перемещены в «К выполнению»",
-			"moveAllSuccess_many": "{{count}} задач перемещено в «К выполнению»",
-			"moveAllSuccess_other": "{{count}} задач перемещено в «К выполнению»",
 			"plan": "Запланировать",
 			"moveAllTooltip": "Переместить все запланированные в «К выполнению»",
 			"moveAll": "Переместить все",
@@ -1836,10 +1469,6 @@
 			"allAssignees": "Все исполнители",
 			"allDueDates": "Все сроки",
 			"allLabels": "Все метки",
-			"selectedCount_one": "{{count}} выбран",
-			"selectedCount_few": "{{count}} выбрано",
-			"selectedCount_many": "{{count}} выбрано",
-			"selectedCount_other": "{{count}} выбрано",
 			"subjects": {
 				"status": "Статус",
 				"priority": "Приоритет",
@@ -1877,10 +1506,6 @@
 			"error": "Не удалось удалить задачу"
 		},
 		"archive": {
-			"success_one": "{{count}} задача архивирована",
-			"success_few": "{{count}} задачи архивированы",
-			"success_many": "{{count}} задач архивировано",
-			"success_other": "{{count}} задач архивировано",
 			"success": "{{count}} задач архивировано"
 		},
 		"listView": {
@@ -1897,8 +1522,6 @@
 			"open": "Открыт",
 			"label": "Pull Request",
 			"count_one": "{{count}} PR",
-			"count_few": "{{count}} PR",
-			"count_many": "{{count}} PR",
 			"count_other": "{{count}} PR"
 		},
 		"assignee": {
@@ -1931,56 +1554,20 @@
 			"delete": "Удалить..."
 		},
 		"bulk": {
-			"selectedCount_one": "{{count}} выбрана",
-			"selectedCount_few": "{{count}} выбраны",
-			"selectedCount_many": "{{count}} выбрано",
-			"selectedCount_other": "{{count}} выбрано",
 			"moveToBacklog": "Переместить в бэклог",
-			"moveToBacklogSuccess_one": "{{count}} задача перемещена в бэклог",
-			"moveToBacklogSuccess_few": "{{count}} задачи перемещены в бэклог",
-			"moveToBacklogSuccess_many": "{{count}} задач перемещено в бэклог",
-			"moveToBacklogSuccess_other": "{{count}} задач перемещено в бэклог",
 			"moveToBacklogError": "Не удалось переместить задачи в бэклог",
 			"moveToBoard": "Переместить на доску",
-			"moveToBoardSuccess_one": "{{count}} задача перемещена на доску",
-			"moveToBoardSuccess_few": "{{count}} задачи перемещены на доску",
-			"moveToBoardSuccess_many": "{{count}} задач перемещено на доску",
-			"moveToBoardSuccess_other": "{{count}} задач перемещено на доску",
 			"moveToBoardError": "Не удалось переместить задачи на доску",
 			"delete": "Удалить задачи",
-			"deleteConfirm_one": "Удалить {{count}} задачу? Это действие нельзя отменить.",
-			"deleteConfirm_few": "Удалить {{count}} задачи? Это действие нельзя отменить.",
-			"deleteConfirm_many": "Удалить {{count}} задач? Это действие нельзя отменить.",
-			"deleteConfirm_other": "Удалить {{count}} задач? Это действие нельзя отменить.",
-			"deleteSuccess_one": "{{count}} задача удалена",
-			"deleteSuccess_few": "{{count}} задачи удалены",
-			"deleteSuccess_many": "{{count}} задач удалено",
-			"deleteSuccess_other": "{{count}} задач удалено",
 			"deleteError": "Не удалось удалить задачи",
 			"archive": "Архивировать задачи",
-			"archiveSuccess_one": "{{count}} задача архивирована",
-			"archiveSuccess_few": "{{count}} задачи архивированы",
-			"archiveSuccess_many": "{{count}} задач архивировано",
-			"archiveSuccess_other": "{{count}} задач архивировано",
 			"archiveError": "Не удалось архивировать задачи",
-			"updateSuccess_one": "{{count}} задача обновлена",
-			"updateSuccess_few": "{{count}} задачи обновлены",
-			"updateSuccess_many": "{{count}} задач обновлено",
-			"updateSuccess_other": "{{count}} задач обновлено",
 			"updateError": "Не удалось обновить задачи",
 			"assignTo": "Назначить на",
-			"assignSuccess_one": "{{count}} задача назначена",
-			"assignSuccess_few": "{{count}} задачи назначены",
-			"assignSuccess_many": "{{count}} задач назначено",
-			"assignSuccess_other": "{{count}} задач назначено",
 			"assignError": "Не удалось назначить задачи",
 			"setPriority": "Установить приоритет",
 			"updatePriorityError": "Не удалось обновить приоритет",
 			"addLabel": "Добавить метку",
-			"addLabelSuccess_one": "Метка добавлена к {{count}} задаче",
-			"addLabelSuccess_few": "Метка добавлена к {{count}} задачам",
-			"addLabelSuccess_many": "Метка добавлена к {{count}} задачам",
-			"addLabelSuccess_other": "Метка добавлена к {{count}} задачам",
 			"addLabelError": "Не удалось добавить метку",
 			"setDueDate": "Установить срок",
 			"updateDueDateError": "Не удалось обновить срок выполнения",
@@ -2010,37 +1597,34 @@
 			}
 		}
 	},
-	"invitations": {
-		"email": {
-			"subject": "{{inviterName}} приглашает вас присоединиться к {{workspaceName}} в Kaneo",
-			"preview": "Вас пригласили в {{workspaceName}} в Kaneo",
-			"title": "Присоединяйтесь к {{workspaceName}}",
-			"subtitle": "{{inviterName}} ({{inviterEmail}}) приглашает вас к совместной работе в Kaneo.",
-			"cta": "Принять приглашение",
-			"sameEmail": "Вы можете принять приглашение с того же адреса электронной почты, на который пришло это письмо.",
-			"ignore": "Если вы не ожидали этого письма, просто проигнорируйте его.",
-			"footer": "Приглашение в рабочую область Kaneo"
+	"team": {
+		"roles": {
+			"owner": "Владелец",
+			"admin": "Администратор",
+			"member": "Участник",
+			"viewer": "Наблюдатель"
 		},
-		"pageTitle": "Приглашения",
-		"pendingInvitations": "Ожидающие приглашения",
-		"acceptSubtitle": "Примите приглашения для присоединения к рабочим областям",
-		"noPendingTitle": "Нет ожидающих приглашений",
-		"noPendingDescription": "На данный момент у вас нет ожидающих приглашений в рабочие области.",
-		"continueToSetup": "Продолжить настройку",
-		"skipForNow": "Пропустить пока",
-		"table": {
-			"workspace": "Рабочая область",
-			"invitedBy": "Пригласил",
-			"expires": "Истекает"
+		"members": {
+			"pageTitle": "Участники",
+			"you": "Вы"
 		},
-		"toast": {
-			"acceptError": "Не удалось принять приглашение",
-			"acceptSuccess": "Приглашение принято! Добро пожаловать в команду.",
-			"rejectError": "Не удалось отклонить приглашение",
-			"rejectSuccess": "Приглашение отклонено"
-		}
-	},
-	"workspace": {
+		"membersTable": {
+			"emptyTitle": "Участников команды пока нет",
+			"emptyDescription": "Ask an admin to add members to this team.",
+			"columns": {
+				"name": "Имя",
+				"role": "Роль",
+				"joined": "Присоединился"
+			},
+			"ariaRemoveMember": "Удалить участника",
+			"removeDialogTitle": "Удалить участника команды?",
+			"removeDialogDescription": "Вы уверены, что хотите удалить {{name}} из рабочей области? Это действие нельзя отменить.",
+			"removeMember": "Удалить участника",
+			"removeSuccess": "Участник команды успешно удалён",
+			"removeError": "Не удалось удалить участника команды",
+			"roleUpdateSuccess": "Роль обновлена",
+			"roleUpdateError": "Не удалось обновить роль"
+		},
 		"projects": {
 			"pageTitle": "Проекты",
 			"createProject": "Создать проект",
@@ -2057,7 +1641,6 @@
 				"inProgress": "В работе"
 			},
 			"noDueDate": "Без срока",
-			"reorderHandle": "Изменить порядок проекта",
 			"reorderError": "Не удалось изменить порядок проектов",
 			"emptyDescriptionReadOnly": "В этой рабочей области пока нет проектов. Попросите администратора создать проект."
 		},
@@ -2068,8 +1651,6 @@
 			"hint": "Поиск по всем проектам в этой рабочей области. Используйте короткие ID, такие как DEP-23, чтобы найти конкретные задачи.",
 			"searching": "Поиск...",
 			"resultsFound_one": "Найден {{count}} результат",
-			"resultsFound_few": "Найдено {{count}} результата",
-			"resultsFound_many": "Найдено {{count}} результатов",
 			"resultsFound_other": "Найдено {{count}} результатов",
 			"noResultsTitle": "Результатов не найдено",
 			"noResultsDescription": "Попробуйте изменить поисковый запрос или поискать что-то другое",
@@ -2086,73 +1667,13 @@
 			"pageTitle": "Создание рабочей области",
 			"heading": "Создать новую рабочую область",
 			"subtitle": "Рабочие области представляют собой общие среды, где команды могут работать над проектами, циклами и задачами.",
-			"nameLabel": "Название рабочей области",
 			"namePlaceholder": "Введите название рабочей области",
-			"descriptionLabel": "Описание (необязательно)",
-			"descriptionPlaceholder": "Добавьте описание для вашей рабочей области",
 			"required": "Обязательно",
 			"creating": "Создание...",
 			"submit": "Создать рабочую область",
 			"success": "Рабочая область успешно создана",
-			"error": "Не удалось создать рабочую область"
-		}
-	},
-	"team": {
-		"roles": {
-			"owner": "Владелец",
-			"admin": "Администратор",
-			"member": "Участник",
-			"viewer": "Наблюдатель"
-		},
-		"members": {
-			"pageTitle": "Участники",
-			"inviteMember": "Пригласить участника",
-			"you": "Вы"
-		},
-		"invitations": {
-			"linkLabel": "Ссылка для приглашения",
-			"copyLink": "Скопировать ссылку",
-			"linkCopied": "Ссылка для приглашения скопирована",
-			"copyFailed": "Не удалось скопировать автоматически. Выделите ссылку и нажмите Ctrl+C.",
-			"pendingBadge": "ожидает",
-			"expires": "Истекает {{date}}"
-		},
-		"inviteModal": {
-			"title": "Пригласить участника команды",
-			"emailLabel": "Электронная почта",
-			"emailPlaceholder": "colleague@company.com",
-			"sendInvitation": "Отправить приглашение",
-			"success": "Приглашение успешно отправлено",
-			"error": "Не удалось пригласить участника команды",
-			"createdTitle": "Приглашение создано",
-			"shareLinkDescription": "Поделитесь этой ссылкой с {{email}}, чтобы этот пользователь мог присоединиться к рабочей области.",
-			"done": "Готово"
-		},
-		"membersTable": {
-			"emptyTitle": "Участников команды пока нет",
-			"emptyDescription": "Пригласите первого участника команды, чтобы начать.",
-			"columns": {
-				"name": "Имя",
-				"role": "Роль",
-				"joined": "Присоединился",
-				"actions": "Действия"
-			},
-			"memberRolePending": "{{role}} (Ожидает)",
-			"ariaCancelInvitation": "Отменить приглашение",
-			"ariaRemoveMember": "Удалить участника",
-			"removeDialogTitle": "Удалить участника команды?",
-			"removeDialogDescription": "Вы уверены, что хотите удалить {{name}} из рабочей области? Это действие нельзя отменить.",
-			"cancelDialogTitle": "Отменить приглашение?",
-			"cancelDialogDescription": "Вы уверены, что хотите отменить приглашение для {{email}}? Это действие нельзя отменить.",
-			"removeMember": "Удалить участника",
-			"cancelInvitation": "Отменить приглашение",
-			"removeSuccess": "Участник команды успешно удалён",
-			"removeError": "Не удалось удалить участника команды",
-			"cancelInviteSuccess": "Приглашение успешно отменено",
-			"cancelInviteError": "Не удалось отменить приглашение",
-			"ariaInvitationActions": "Действия с приглашением",
-			"roleUpdateSuccess": "Роль обновлена",
-			"roleUpdateError": "Не удалось обновить роль"
+			"error": "Не удалось создать рабочую область",
+			"nameLabel": "Team Name"
 		}
 	},
 	"publicProject": {
@@ -2169,7 +1690,6 @@
 		"taskDetail": {
 			"labels": "Метки",
 			"externalLinks": "Внешние ссылки",
-			"pullRequestFallback": "Pull Request",
 			"issueFallback": "Issue",
 			"prStatusMerged": "Влит",
 			"prStatusDraft": "Черновик",
@@ -2191,5 +1711,169 @@
 		"branding": {
 			"poweredBy": "Работает на"
 		}
+	},
+	"admin": {
+		"actions": {
+			"delete": "Delete user",
+			"demote": "Demote to user",
+			"disable": "Disable account",
+			"enable": "Enable account",
+			"error": "Action failed",
+			"promote": "Promote to admin",
+			"resetPassword": "Reset password",
+			"successRole": "Role updated",
+			"successStatus": "Account status updated",
+			"manageTeams": "Manage teams"
+		},
+		"columns": {
+			"created": "Created",
+			"role": "Role",
+			"status": "Status",
+			"user": "User"
+		},
+		"create": {
+			"description": "Create a new account. The user can sign in with the username and password.",
+			"email": "Email (optional)",
+			"emailPlaceholder": "e.g. jane@example.com",
+			"error": "Failed to create user",
+			"name": "Name",
+			"namePlaceholder": "e.g. Jane Doe",
+			"password": "Password",
+			"passwordPlaceholder": "At least 8 characters",
+			"role": "Role",
+			"submit": "Create user",
+			"success": "User created",
+			"title": "Create user",
+			"username": "Username",
+			"usernamePlaceholder": "e.g. jane",
+			"validation": {
+				"nameRequired": "Name is required",
+				"passwordShort": "Password must be at least 8 characters",
+				"usernameInvalid": "Only lowercase letters, numbers and underscores (1-30 characters)",
+				"usernameRequired": "Username is required"
+			},
+			"team": "Team (optional)",
+			"teamNone": "No team",
+			"teamPlaceholder": "Choose a team…"
+		},
+		"deleteDialog": {
+			"confirm": "Delete",
+			"description": "Delete {{name}} ({{username}})? This cannot be undone.",
+			"success": "User deleted",
+			"title": "Delete user"
+		},
+		"page": {
+			"createUser": "Create user",
+			"currentUserBadge": "you",
+			"description": "Create and manage user accounts.",
+			"emptyDescription": "Create the first user account to get started.",
+			"emptyTitle": "No users",
+			"title": "User Management"
+		},
+		"resetPassword": {
+			"description": "Set a new password for {{username}}.",
+			"password": "New password",
+			"submit": "Reset password",
+			"success": "Password updated",
+			"title": "Reset password"
+		},
+		"role": {
+			"admin": "Admin",
+			"user": "User"
+		},
+		"status": {
+			"active": "Active",
+			"disabled": "Disabled"
+		},
+		"tab": "System",
+		"teams": {
+			"columns": {
+				"actions": "Actions",
+				"members": "Members",
+				"name": "Name",
+				"role": "Your role"
+			},
+			"create": "Create team",
+			"createDialogDescription": "Teams group users who collaborate on shared projects.",
+			"createDialogTitle": "Create a team",
+			"delete": "Delete team",
+			"deleteDialogDescription": "The team, its projects, and its memberships will be permanently deleted.",
+			"deleteDialogTitle": "Delete this team?",
+			"description": "Create and manage teams. Users join teams via invitation.",
+			"empty": "No teams yet. Create the first one to get started.",
+			"enter": "Enter team",
+			"hint": "As a system administrator, create the teams your users will join.",
+			"nameLabel": "Team name",
+			"namePlaceholder": "e.g. Acme",
+			"pageTitle": "Team management",
+			"tab": "Teams",
+			"title": "Teams",
+			"toast": {
+				"created": "Team \"{{name}}\" created",
+				"createError": "Failed to create team",
+				"deleted": "Team deleted",
+				"deleteError": "Failed to delete team",
+				"renamed": "Team renamed",
+				"renameError": "Failed to rename team"
+			},
+			"labels": "Labels",
+			"rename": "Rename",
+			"renameDialogDescription": "Change the name of this team.",
+			"renameDialogTitle": "Rename team",
+			"userTeamsAdd": "Add to team",
+			"userTeamsAddButton": "Add",
+			"userTeamsChoose": "Choose a team…",
+			"userTeamsCurrent": "Current teams",
+			"userTeamsDescription": "Manage which teams this user belongs to.",
+			"userTeamsEmpty": "This user is not a member of any team.",
+			"userTeamsNoAvailable": "This user is already in every team.",
+			"userTeamsRemove": "Remove from team",
+			"userTeamsTitle": "Teams of {{name}}",
+			"manageMembers": "Manage members",
+			"membersAdd": "Add user to team",
+			"membersAddButton": "Add",
+			"membersChooseUser": "Choose a user…",
+			"membersCurrent": "Current members",
+			"membersDescription": "Manage which users belong to this team.",
+			"membersEmpty": "This team has no members yet.",
+			"membersNoAvailable": "All users are already in this team.",
+			"membersRemove": "Remove from team",
+			"membersTitle": "Members of {{name}}"
+		},
+		"users": {
+			"tab": "Users"
+		},
+		"ai": {
+			"apiKeyHelp": "Stored encrypted. Sent as Bearer token. Never returned in responses.",
+			"apiKeyLabel": "API key",
+			"baseUrlHelp": "OpenAI-compatible endpoint. The client appends /v1/chat/completions.",
+			"baseUrlLabel": "API base URL",
+			"enableDescription": "When disabled, the Chat tab shows a placeholder and the API returns 503.",
+			"enableLabel": "Enable AI assistant",
+			"modelHelp": "Any model name accepted by your API. Default: gpt-4o.",
+			"modelLabel": "Model",
+			"pageDescription": "Configure the AI assistant used by project chat. Kaneo uses an OpenAI-compatible API.",
+			"pageTitle": "AI Assistant",
+			"save": "Save",
+			"saving": "Saving…",
+			"tab": "AI",
+			"toast": {
+				"error": "Failed to save settings",
+				"saved": "AI settings saved"
+			}
+		}
+	},
+	"chat": {
+		"errorFailed": "Failed to send message",
+		"errorTimeout": "Request timed out. Please try again.",
+		"notEnabledDescription": "The pi-agent AI assistant has not been configured for this instance. Please contact an administrator to enable it.",
+		"notEnabledTitle": "AI assistant not enabled",
+		"pageTitle": "Chat",
+		"placeholder": "Send a message to pi-agent…",
+		"send": "Send",
+		"streaming": "pi-agent is typing…",
+		"welcomeDescription": "Ask me to create tasks, check project status, or analyze progress. I'm your AI project management assistant.",
+		"welcomeTitle": "Chat with pi-agent",
+		"you": "You"
 	}
 }

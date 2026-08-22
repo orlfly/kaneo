@@ -57,7 +57,7 @@ import {
 import useDeleteProject from "@/hooks/mutations/project/use-delete-project";
 import useReorderProjects from "@/hooks/mutations/project/use-reorder-projects";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
-import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
+import useActiveTeam from "@/hooks/queries/team/use-active-team";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { toast } from "@/lib/toast";
 import type { ProjectWithTasks } from "@/types/project";
@@ -116,9 +116,9 @@ function SortableProjectItem({
 export function NavProjects() {
   const { t } = useTranslation();
   const { isMobile } = useSidebar();
-  const { data: workspace } = useActiveWorkspace();
+  const { data: team } = useActiveTeam();
   const { data: projects } = useGetProjects({
-    workspaceId: workspace?.id || "",
+    teamId: team?.id || "",
   });
   const queryClient = useQueryClient();
   const { mutateAsync: deleteProject } = useDeleteProject();
@@ -131,10 +131,9 @@ export function NavProjects() {
   // alone — not the create+update+delete bundle.
   const canReorder = canUpdateProjects();
   const navigate = useNavigate();
-  const { workspaceId: currentWorkspaceId, projectId: currentProjectId } =
-    useParams({
-      strict: false,
-    });
+  const { teamId: currentTeamId, projectId: currentProjectId } = useParams({
+    strict: false,
+  });
 
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] =
     useState(false);
@@ -152,16 +151,14 @@ export function NavProjects() {
   );
 
   const isCurrentProject = (projectId: string) => {
-    return (
-      currentProjectId === projectId && currentWorkspaceId === workspace?.id
-    );
+    return currentProjectId === projectId && currentTeamId === team?.id;
   };
 
   const handleProjectClick = (project: ProjectWithTasks) => {
     navigate({
-      to: "/dashboard/workspace/$workspaceId/project/$projectId/board",
+      to: "/dashboard/team/$teamId/project/$projectId/board",
       params: {
-        workspaceId: workspace?.id || "",
+        teamId: team?.id || "",
         projectId: project.id,
       },
     });
@@ -193,7 +190,7 @@ export function NavProjects() {
 
     endDrag();
 
-    if (!over || active.id === over.id || !projects || !workspace) return;
+    if (!over || active.id === over.id || !projects || !team) return;
 
     const oldIndex = projects.findIndex((project) => project.id === active.id);
     const newIndex = projects.findIndex((project) => project.id === over.id);
@@ -202,14 +199,14 @@ export function NavProjects() {
 
     const reordered = arrayMove(projects, oldIndex, newIndex);
 
-    reorderProjects(workspace.id, reordered, {
+    reorderProjects(team.id, reordered, {
       onError: () => {
-        toast.error(t("workspace:projects.reorderError"));
+        toast.error(t("team:projects.reorderError"));
       },
     });
   };
 
-  if (!workspace) return null;
+  if (!team) return null;
 
   return (
     <>
@@ -295,7 +292,7 @@ export function NavProjects() {
                                 className="h-7 items-start cursor-pointer text-sm"
                                 onClick={() => {
                                   navigator.clipboard.writeText(
-                                    `${window.location.origin}/dashboard/workspace/${workspace?.id}/project/${project.id}`,
+                                    `${window.location.origin}/dashboard/team/${team?.id}/project/${project.id}`,
                                   );
                                   toast.success(
                                     t("navigation:projectList.linkCopied"),
@@ -413,9 +410,9 @@ export function NavProjects() {
                       queryKey: ["projects"],
                     });
                     navigate({
-                      to: "/dashboard/workspace/$workspaceId",
+                      to: "/dashboard/team/$teamId",
                       params: {
-                        workspaceId: workspace?.id || "",
+                        teamId: team?.id || "",
                       },
                     });
                   }}

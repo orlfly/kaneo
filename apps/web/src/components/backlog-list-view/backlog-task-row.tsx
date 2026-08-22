@@ -17,8 +17,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useDeleteTask } from "@/hooks/mutations/task/use-delete-task";
-import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
-import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
+import useActiveTeam from "@/hooks/queries/team/use-active-team";
+import { useGetActiveTeamMembers } from "@/hooks/queries/team-member/use-get-active-team-members";
 import { cn } from "@/lib/cn";
 import {
   dueDateStatusColors,
@@ -55,7 +55,7 @@ export default function BacklogTaskRow({ task }: BacklogTaskRowProps) {
 
   const { project } = useProjectStore();
   const taskIsCompleted = isTaskCompleted(task.status, project?.columns);
-  const { data: workspace } = useActiveWorkspace();
+  const { data: team } = useActiveTeam();
   const {
     showAssignees,
     showPriority,
@@ -70,15 +70,11 @@ export default function BacklogTaskRow({ task }: BacklogTaskRowProps) {
   const isTaskSelected = isSelected(task.id);
   const isTaskFocused = isFocused(task.id);
 
-  const { data: workspaceUsers } = useGetActiveWorkspaceUsers(
-    workspace?.id ?? "",
-  );
+  const { data: teamUsers } = useGetActiveTeamMembers(team?.id ?? "");
 
   const assignee = useMemo(() => {
-    return workspaceUsers?.members?.find(
-      (member) => member.userId === task.userId,
-    );
-  }, [workspaceUsers, task.userId]);
+    return teamUsers?.find((member) => member.id === task.userId);
+  }, [teamUsers, task.userId]);
 
   const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -203,11 +199,11 @@ export default function BacklogTaskRow({ task }: BacklogTaskRowProps) {
                 {task.userId ? (
                   <Avatar className="h-6 w-6">
                     <AvatarImage
-                      src={assignee?.user?.image ?? ""}
-                      alt={assignee?.user?.name || ""}
+                      src={assignee?.image ?? ""}
+                      alt={assignee?.name || ""}
                     />
                     <AvatarFallback className="text-xs font-medium border border-border/30">
-                      {getInitials(assignee?.user?.name)}
+                      {getInitials(assignee?.name)}
                     </AvatarFallback>
                   </Avatar>
                 ) : (
@@ -225,12 +221,12 @@ export default function BacklogTaskRow({ task }: BacklogTaskRowProps) {
           </div>
         </ContextMenuTrigger>
 
-        {project && workspace && (
+        {project && team && (
           <TaskCardContextMenuContent
             task={task}
             taskCardContext={{
               projectId: project.id,
-              worskpaceId: workspace.id,
+              teamId: team.id,
             }}
             onDeleteClick={() => setIsDeleteTaskModalOpen(true)}
           />

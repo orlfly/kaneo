@@ -15,7 +15,7 @@ const EMPTY_STATISTICS: ProjectStatistics = {
 };
 
 async function getProjectStatistics(
-  workspaceId: string,
+  teamId: string,
   includeArchived: boolean,
 ) {
   const statisticsByProject = new Map<string, ProjectStatistics>();
@@ -23,7 +23,7 @@ async function getProjectStatistics(
   // Aggregate in the database instead of loading every task row into memory.
   // This endpoint needs three numbers per project; the previous
   // `with: { tasks: true }` made both the query and the response grow linearly
-  // with the number of tasks in the workspace. Scoping by workspaceId through
+  // with the number of tasks in the workspace. Scoping by teamId through
   // a join (rather than an `IN (...projectIds)` list) keeps the statement size
   // constant regardless of how many projects the workspace has.
   const rows = await db
@@ -39,9 +39,9 @@ async function getProjectStatistics(
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
     .where(
       includeArchived
-        ? eq(projectTable.workspaceId, workspaceId)
+        ? eq(projectTable.teamId, teamId)
         : and(
-            eq(projectTable.workspaceId, workspaceId),
+            eq(projectTable.teamId, teamId),
             isNull(projectTable.archivedAt),
           ),
     )
@@ -62,12 +62,12 @@ async function getProjectStatistics(
   return statisticsByProject;
 }
 
-async function getProjects(workspaceId: string, includeArchived = false) {
+async function getProjects(teamId: string, includeArchived = false) {
   const projects = await db.query.projectTable.findMany({
     where: includeArchived
-      ? eq(projectTable.workspaceId, workspaceId)
+      ? eq(projectTable.teamId, teamId)
       : and(
-          eq(projectTable.workspaceId, workspaceId),
+          eq(projectTable.teamId, teamId),
           isNull(projectTable.archivedAt),
         ),
     // `id` is the deterministic tie-breaker: without it, rows sharing both a
@@ -80,7 +80,7 @@ async function getProjects(workspaceId: string, includeArchived = false) {
   });
 
   const statisticsByProject = await getProjectStatistics(
-    workspaceId,
+    teamId,
     includeArchived,
   );
 

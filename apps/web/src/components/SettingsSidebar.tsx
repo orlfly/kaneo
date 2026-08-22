@@ -18,31 +18,31 @@ import {
 } from "@/components/ui/sheet";
 
 type SettingsSidebarContextValue = {
-  workspaceId?: string;
+  teamId?: string;
   menuOpen: boolean;
   setMenuOpen: (open: boolean) => void;
 };
 
 const SettingsSidebarContext = createContext<SettingsSidebarContextValue>({
-  workspaceId: undefined,
+  teamId: undefined,
   menuOpen: false,
   setMenuOpen: () => {},
 });
 
 export function SettingsSidebarProvider({
   children,
-  workspaceId,
+  teamId,
   menuOpen,
   setMenuOpen,
 }: {
   children: ReactNode;
-  workspaceId?: string;
+  teamId?: string;
   menuOpen: boolean;
   setMenuOpen: (open: boolean) => void;
 }): ReactElement {
   const value = useMemo(
-    () => ({ workspaceId, menuOpen, setMenuOpen }),
-    [workspaceId, menuOpen, setMenuOpen],
+    () => ({ teamId, menuOpen, setMenuOpen }),
+    [teamId, menuOpen, setMenuOpen],
   );
 
   return (
@@ -59,9 +59,7 @@ export default function SettingsSidebar({
 }): ReactElement {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { workspaceId, menuOpen, setMenuOpen } = useContext(
-    SettingsSidebarContext,
-  );
+  const { teamId, menuOpen, setMenuOpen } = useContext(SettingsSidebarContext);
 
   return (
     <>
@@ -81,19 +79,19 @@ export default function SettingsSidebar({
             <Button
               variant="ghost"
               size="sm"
-              disabled={!workspaceId}
+              disabled={!teamId}
               className="w-full justify-start text-sm font-normal"
               onClick={() => {
-                if (!workspaceId) return;
+                if (!teamId) return;
 
                 navigate({
-                  to: "/dashboard/workspace/$workspaceId",
-                  params: { workspaceId },
+                  to: "/dashboard/team/$teamId",
+                  params: { teamId },
                 });
               }}
             >
               <ChevronLeft aria-hidden="true" className="size-4" />
-              {t("navigation:page.backToWorkspace")}
+              {t("navigation:page.backToTeam")}
             </Button>
           </div>
           {children}

@@ -5,7 +5,7 @@ export type Project = {
   name: string;
   slug: string;
   description: string | null;
-  workspaceId: string;
+  teamId: string;
   icon: string | null;
   isPublic: boolean;
   createdAt: string;

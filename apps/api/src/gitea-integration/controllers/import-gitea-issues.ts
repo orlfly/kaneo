@@ -122,7 +122,7 @@ export async function importGiteaIssues(
         issue,
         integration.id,
         projectId,
-        project.workspaceId,
+        project.teamId,
         config,
         client,
       );
@@ -193,7 +193,7 @@ async function importSingleIssue(
   issue: GiteaIssue,
   integrationId: string,
   projectId: string,
-  workspaceId: string,
+  teamId: string,
   config: GiteaConfig,
   client: ReturnType<typeof createGiteaClient>,
 ): Promise<"imported" | "updated" | "skipped"> {
@@ -222,7 +222,7 @@ async function importSingleIssue(
       .set(updateData)
       .where(eq(taskTable.id, existingLink.taskId));
 
-    await importLabelsForTask(labels, existingLink.taskId, workspaceId);
+    await importLabelsForTask(labels, existingLink.taskId, teamId);
 
     await importCommentsForTask(
       issue.number,
@@ -285,7 +285,7 @@ async function importSingleIssue(
     },
   });
 
-  await importLabelsForTask(labels, createdTask.id, workspaceId);
+  await importLabelsForTask(labels, createdTask.id, teamId);
 
   await importCommentsForTask(issue.number, createdTask.id, config, client);
 
@@ -306,7 +306,7 @@ async function importSingleIssue(
 async function importLabelsForTask(
   issueLabels: GiteaIssue["labels"],
   taskId: string,
-  workspaceId: string,
+  teamId: string,
 ): Promise<void> {
   const nonSystemLabels = (issueLabels ?? [])
     .map((label) => {
@@ -361,14 +361,14 @@ async function importLabelsForTask(
       continue;
     }
 
-    const existingWorkspaceLabel = await db.query.labelTable.findFirst({
+    const existingTeamLabel = await db.query.labelTable.findFirst({
       where: and(
-        eq(labelTable.workspaceId, workspaceId),
+        eq(labelTable.teamId, teamId),
         eq(labelTable.name, labelData.name),
       ),
     });
 
-    const colorToUse = existingWorkspaceLabel?.color || labelData.color;
+    const colorToUse = existingTeamLabel?.color || labelData.color;
 
     await db
       .insert(labelTable)
@@ -376,7 +376,7 @@ async function importLabelsForTask(
         name: labelData.name,
         color: colorToUse,
         taskId,
-        workspaceId,
+        teamId,
       })
       .onConflictDoNothing({
         target: [labelTable.taskId, labelTable.name],

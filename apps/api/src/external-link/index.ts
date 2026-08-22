@@ -22,7 +22,7 @@ const externalLinkSchema = v.object({
 const externalLink = new Hono<{
   Variables: {
     userId: string;
-    workspaceId: string;
+    teamId: string;
   };
 }>().get(
   "/task/:taskId",

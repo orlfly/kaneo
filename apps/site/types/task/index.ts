@@ -11,7 +11,7 @@ type Task = {
   description: string | null;
   columnId?: string | null;
   projectId: string;
-  workspaceId: string;
+  teamId: string;
   userId: string | null;
   position: number;
   createdAt: string;

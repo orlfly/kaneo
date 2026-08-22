@@ -6,10 +6,10 @@ import {
   notificationTable,
   projectTable,
   taskTable,
+  teamTable,
   userNotificationPreferenceTable,
-  userNotificationWorkspaceRuleTable,
+  userNotificationTeamRuleTable,
   userTable,
-  workspaceTable,
 } from "../database/schema";
 import { assertPublicWebhookDestination } from "../plugins/generic-webhook/config";
 import { decryptSecret } from "./secrets";
@@ -32,8 +32,8 @@ async function fetchWithTimeout(
 }
 
 type ResolvedNotificationContext = {
-  workspaceId: string;
-  workspaceName: string;
+  teamId: string;
+  teamName: string;
   projectId: string | null;
   projectName: string | null;
   taskId: string | null;
@@ -46,9 +46,9 @@ type DeliveryContent = {
   body: string;
 };
 
-function buildTaskUrl(workspaceId: string, projectId: string, taskId: string) {
+function buildTaskUrl(teamId: string, projectId: string, taskId: string) {
   const clientUrl = process.env.KANEO_CLIENT_URL || "http://localhost:5173";
-  return `${clientUrl}/dashboard/workspace/${workspaceId}/project/${projectId}/task/${taskId}`;
+  return `${clientUrl}/dashboard/team/${teamId}/project/${projectId}/task/${taskId}`;
 }
 
 function getStringValue(
@@ -103,16 +103,16 @@ function buildDeliveryContent(notification: {
           : "A new task was created in Kaneo.",
       };
     }
-    case "workspace_created": {
-      const workspaceName = getStringValue(
+    case "team_created": {
+      const teamName = getStringValue(
         notification.eventData,
-        "workspaceName",
+        "teamName",
       );
       return {
-        title: "Workspace created",
-        body: workspaceName
-          ? `Workspace created: ${workspaceName}`
-          : "A new workspace was created in Kaneo.",
+        title: "Team created",
+        body: teamName
+          ? `Team created: ${teamName}`
+          : "A new team was created in Kaneo.",
       };
     }
     case "task_status_changed": {
@@ -219,14 +219,14 @@ async function resolveNotificationContext(notification: {
         taskTitle: taskTable.title,
         projectId: projectTable.id,
         projectName: projectTable.name,
-        workspaceId: workspaceTable.id,
-        workspaceName: workspaceTable.name,
+        teamId: teamTable.id,
+        teamName: teamTable.name,
       })
       .from(taskTable)
       .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
       .innerJoin(
-        workspaceTable,
-        eq(projectTable.workspaceId, workspaceTable.id),
+        teamTable,
+        eq(projectTable.teamId, teamTable.id),
       )
       .where(eq(taskTable.id, notification.resourceId))
       .limit(1);
@@ -236,33 +236,33 @@ async function resolveNotificationContext(notification: {
     }
 
     return {
-      workspaceId: task.workspaceId,
-      workspaceName: task.workspaceName,
+      teamId: task.teamId,
+      teamName: task.teamName,
       projectId: task.projectId,
       projectName: task.projectName,
       taskId: task.taskId,
       taskTitle: task.taskTitle,
-      taskUrl: buildTaskUrl(task.workspaceId, task.projectId, task.taskId),
+      taskUrl: buildTaskUrl(task.teamId, task.projectId, task.taskId),
     };
   }
 
-  if (notification.resourceType === "workspace") {
-    const [workspace] = await db
+  if (notification.resourceType === "team") {
+    const [team] = await db
       .select({
-        workspaceId: workspaceTable.id,
-        workspaceName: workspaceTable.name,
+        teamId: teamTable.id,
+        teamName: teamTable.name,
       })
-      .from(workspaceTable)
-      .where(eq(workspaceTable.id, notification.resourceId))
+      .from(teamTable)
+      .where(eq(teamTable.id, notification.resourceId))
       .limit(1);
 
-    if (!workspace) {
+    if (!team) {
       return null;
     }
 
     return {
-      workspaceId: workspace.workspaceId,
-      workspaceName: workspace.workspaceName,
+      teamId: team.teamId,
+      teamName: team.teamName,
       projectId: null,
       projectName: null,
       taskId: null,
@@ -434,10 +434,10 @@ export async function deliverNotification(
     webhookSecret: decryptSecret(preference.webhookSecret),
   };
 
-  const rule = await db.query.userNotificationWorkspaceRuleTable.findFirst({
+  const rule = await db.query.userNotificationTeamRuleTable.findFirst({
     where: and(
-      eq(userNotificationWorkspaceRuleTable.userId, notification.userId),
-      eq(userNotificationWorkspaceRuleTable.workspaceId, context.workspaceId),
+      eq(userNotificationTeamRuleTable.userId, notification.userId),
+      eq(userNotificationTeamRuleTable.teamId, context.teamId),
     ),
     with: {
       selectedProjects: true,
@@ -479,9 +479,9 @@ export async function deliverNotification(
       resourceId: notification.resourceId,
       resourceType: notification.resourceType,
     },
-    workspace: {
-      id: context.workspaceId,
-      name: context.workspaceName,
+    team: {
+      id: context.teamId,
+      name: context.teamName,
     },
     project: context.projectId
       ? {

@@ -60,8 +60,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/menu";
-import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
-import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
+import useActiveTeam from "@/hooks/queries/team/use-active-team";
+import { useGetActiveTeamMembers } from "@/hooks/queries/team-member/use-get-active-team-members";
 import { cn } from "@/lib/cn";
 import { parseTaskListMarkdownToNodes } from "@/lib/editor-task-list-paste";
 import {
@@ -192,19 +192,17 @@ export default function CommentEditor({
   const { t } = useTranslation();
   const resolvedPlaceholder =
     placeholder ?? t("activity:comment.leavePlaceholder");
-  const { data: activeWorkspace } = useActiveWorkspace();
-  const { data: workspaceUsers } = useGetActiveWorkspaceUsers(
-    activeWorkspace?.id ?? "",
-  );
+  const { data: team } = useActiveTeam();
+  const { data: teamUsers } = useGetActiveTeamMembers(team?.id ?? "");
   const mentionMembersRef = useRef<MentionMember[]>([]);
   mentionMembersRef.current = useMemo(
     () =>
-      (workspaceUsers?.members ?? []).map((member) => ({
-        id: member.userId,
-        label: member.user?.name ?? member.user?.email ?? "",
-        image: member.user?.image ?? null,
+      (teamUsers ?? []).map((member) => ({
+        id: member.id,
+        label: member.name ?? member.email ?? "",
+        image: member.image ?? null,
       })),
-    [workspaceUsers],
+    [teamUsers],
   );
   const editorShellRef = useRef<HTMLDivElement | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);

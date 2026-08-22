@@ -6,12 +6,12 @@ export const labelSchema = v.object({
   color: v.string(),
   createdAt: v.date(),
   taskId: v.nullable(v.string()),
-  workspaceId: v.nullable(v.string()),
+  teamId: v.nullable(v.string()),
 });
 
 export const projectSchema = v.object({
   id: v.string(),
-  workspaceId: v.string(),
+  teamId: v.string(),
   slug: v.string(),
   icon: v.nullable(v.string()),
   name: v.string(),
@@ -88,7 +88,7 @@ export const notificationSchema = v.object({
   type: v.picklist([
     "info",
     "task_created",
-    "workspace_created",
+    "team_created",
     "task_status_changed",
     "task_assignee_changed",
     "time_entry_created",
@@ -100,15 +100,15 @@ export const notificationSchema = v.object({
   eventData: v.nullable(v.record(v.string(), v.unknown())),
   isRead: v.optional(v.boolean()),
   resourceId: v.optional(v.string()),
-  resourceType: v.optional(v.picklist(["task", "workspace"] as const)),
+  resourceType: v.optional(v.picklist(["task", "team"] as const)),
   createdAt: v.date(),
   updatedAt: v.date(),
 });
 
-export const notificationPreferenceWorkspaceRuleSchema = v.object({
+export const notificationPreferenceTeamRuleSchema = v.object({
   id: v.string(),
-  workspaceId: v.string(),
-  workspaceName: v.string(),
+  teamId: v.string(),
+  teamName: v.string(),
   isActive: v.boolean(),
   emailEnabled: v.boolean(),
   ntfyEnabled: v.boolean(),
@@ -144,7 +144,7 @@ export const notificationPreferenceSchema = v.object({
   taskStatusChangeEnabled: v.boolean(),
   dueDateReminderEnabled: v.boolean(),
   dueDateReminderLeadTimeMinutes: v.number(),
-  workspaces: v.array(notificationPreferenceWorkspaceRuleSchema),
+  teams: v.array(notificationPreferenceTeamRuleSchema),
   createdAt: v.nullable(v.date()),
   updatedAt: v.nullable(v.date()),
 });

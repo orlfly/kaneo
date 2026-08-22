@@ -23,7 +23,7 @@ const taskRelationSchema = v.object({
 const taskRelation = new Hono<{
   Variables: {
     userId: string;
-    workspaceId: string;
+    teamId: string;
   };
 }>()
   .get(
@@ -45,7 +45,7 @@ const taskRelation = new Hono<{
     workspaceAccess.fromTaskId("taskId"),
     async (c) => {
       const { taskId } = c.req.valid("param");
-      const relations = await getTaskRelations(taskId, c.get("workspaceId"));
+      const relations = await getTaskRelations(taskId, c.get("teamId"));
       return c.json(relations);
     },
   )
@@ -79,7 +79,7 @@ const taskRelation = new Hono<{
       }
       const { sourceTaskId } = c.req.valid("json");
       const [task] = await db
-        .select({ workspaceId: projectTable.workspaceId })
+        .select({ teamId: projectTable.teamId })
         .from(taskTable)
         .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
         .where(eq(taskTable.id, sourceTaskId))
@@ -87,8 +87,8 @@ const taskRelation = new Hono<{
       if (!task) {
         throw new HTTPException(404, { message: "Source task not found" });
       }
-      await validateWorkspaceAccess(userId, task.workspaceId);
-      c.set("workspaceId", task.workspaceId);
+      await validateWorkspaceAccess(userId, task.teamId);
+      c.set("teamId", task.teamId);
       return next();
     },
     requireWorkspacePermission({ task: ["update"] }),
@@ -100,7 +100,7 @@ const taskRelation = new Hono<{
         targetTaskId,
         relationType,
         userId,
-        workspaceId: c.get("workspaceId"),
+        teamId: c.get("teamId"),
       });
       return c.json(relation);
     },
@@ -136,7 +136,7 @@ const taskRelation = new Hono<{
         throw new HTTPException(404, { message: "Task relation not found" });
       }
       const [task] = await db
-        .select({ workspaceId: projectTable.workspaceId })
+        .select({ teamId: projectTable.teamId })
         .from(taskTable)
         .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
         .where(eq(taskTable.id, rel.sourceTaskId))
@@ -144,8 +144,8 @@ const taskRelation = new Hono<{
       if (!task) {
         throw new HTTPException(404, { message: "Task not found" });
       }
-      await validateWorkspaceAccess(userId, task.workspaceId);
-      c.set("workspaceId", task.workspaceId);
+      await validateWorkspaceAccess(userId, task.teamId);
+      c.set("teamId", task.teamId);
       return next();
     },
     requireWorkspacePermission({ task: ["update"] }),

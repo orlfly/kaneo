@@ -1,43 +1,30 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { getPendingInvitations } from "@/fetchers/invitation/get-pending-invitations";
-import getWorkspaces from "@/fetchers/workspace/get-workspaces";
+import listTeams from "@/fetchers/team/list-teams";
 import { authClient } from "@/lib/auth-client";
-import type Workspace from "@/types/workspace";
 
 export const Route = createFileRoute("/_layout/_authenticated/dashboard/")({
   beforeLoad: async () => {
-    const workspaces: Workspace[] = await getWorkspaces();
-    const invitations = await getPendingInvitations();
+    const teams = await listTeams({});
 
-    if (invitations && invitations.length > 0 && !workspaces.length) {
-      throw redirect({ to: "/invitations" });
-    }
-
-    const session = await authClient.getSession();
-    const activeWorkspaceId = session?.data?.session?.activeOrganizationId;
-
-    if (workspaces && workspaces.length > 0) {
-      if (
-        activeWorkspaceId &&
-        workspaces.some((ws) => ws.id === activeWorkspaceId)
-      ) {
-        throw redirect({
-          to: "/dashboard/workspace/$workspaceId",
-          params: { workspaceId: activeWorkspaceId },
-        });
-      }
-
-      const firstWorkspace = workspaces[0];
-
-      authClient.organization.setActive({
-        organizationId: firstWorkspace.id,
-      });
-
+    if (teams && teams.length > 0) {
       throw redirect({
-        to: "/dashboard/workspace/$workspaceId",
-        params: { workspaceId: firstWorkspace.id },
+        to: "/dashboard/team/$teamId",
+        params: { teamId: teams[0].id },
       });
     }
-    throw redirect({ to: "/onboarding" });
+
+    // No team yet. System admins land in the team management area to create
+    // or join one; regular users also go there since invitations are removed
+    // and team membership is managed by admins.
+    const session = await authClient.getSession();
+    const isAdmin =
+      (session.data?.user as { role?: string | null } | null)?.role === "admin";
+
+    if (isAdmin) {
+      throw redirect({ to: "/dashboard/settings/admin/teams" });
+    }
+
+    // Regular users with no team are redirected to a notice page.
+    throw redirect({ to: "/dashboard/settings/admin/teams" });
   },
 });

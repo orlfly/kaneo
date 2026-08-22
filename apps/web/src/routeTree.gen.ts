@@ -24,38 +24,34 @@ import { Route as DeviceApproveRouteImport } from './routes/device/approve'
 import { Route as McpAuthorizeRouteImport } from './routes/mcp.authorize'
 import { Route as PublicProjectProjectIdRouteImport } from './routes/public-project.$projectId'
 import { Route as LayoutAuthenticatedDashboardRouteImport } from './routes/_layout/_authenticated/dashboard'
-import { Route as LayoutAuthenticatedInvitationsRouteImport } from './routes/_layout/_authenticated/invitations'
-import { Route as LayoutAuthenticatedOnboardingRouteImport } from './routes/_layout/_authenticated/onboarding'
 import { Route as LayoutAuthenticatedProfileSetupRouteImport } from './routes/_layout/_authenticated/profile-setup'
-import { Route as InvitationAcceptInviteIdRouteImport } from './routes/invitation/accept.$inviteId'
 import { Route as LayoutAuthenticatedDashboardIndexRouteImport } from './routes/_layout/_authenticated/dashboard/index'
-import { Route as LayoutAuthenticatedDashboardInvitationsRouteImport } from './routes/_layout/_authenticated/dashboard/invitations'
 import { Route as LayoutAuthenticatedDashboardSettingsRouteImport } from './routes/_layout/_authenticated/dashboard/settings'
 import { Route as LayoutAuthenticatedDashboardSettingsAccountRouteImport } from './routes/_layout/_authenticated/dashboard/settings/account'
 import { Route as LayoutAuthenticatedDashboardSettingsProjectsRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects'
-import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace'
-import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId'
-import { Route as LayoutAuthenticatedDashboardWorkspaceCreateRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/create'
+import { Route as LayoutAuthenticatedDashboardTeamTeamIdRouteImport } from './routes/_layout/_authenticated/dashboard/team/$teamId'
+import { Route as LayoutAuthenticatedDashboardTeamCreateRouteImport } from './routes/_layout/_authenticated/dashboard/team/create'
 import { Route as LayoutAuthenticatedDashboardSettingsAccountDeveloperRouteImport } from './routes/_layout/_authenticated/dashboard/settings/account/developer'
 import { Route as LayoutAuthenticatedDashboardSettingsAccountInformationRouteImport } from './routes/_layout/_authenticated/dashboard/settings/account/information'
 import { Route as LayoutAuthenticatedDashboardSettingsAccountNotificationsRouteImport } from './routes/_layout/_authenticated/dashboard/settings/account/notifications'
 import { Route as LayoutAuthenticatedDashboardSettingsAccountPreferencesRouteImport } from './routes/_layout/_authenticated/dashboard/settings/account/preferences'
-import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceBillingRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/billing'
-import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/general'
-import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/labels'
-import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceRolesRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/roles'
-import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/index'
-import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/members'
-import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdSearchRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/search'
+import { Route as LayoutAuthenticatedDashboardSettingsAdminAiRouteImport } from './routes/_layout/_authenticated/dashboard/settings/admin/ai'
+import { Route as LayoutAuthenticatedDashboardSettingsAdminTeamsRouteImport } from './routes/_layout/_authenticated/dashboard/settings/admin/teams'
+import { Route as LayoutAuthenticatedDashboardSettingsAdminUsersRouteImport } from './routes/_layout/_authenticated/dashboard/settings/admin/users'
+import { Route as LayoutAuthenticatedDashboardTeamTeamIdIndexRouteImport } from './routes/_layout/_authenticated/dashboard/team/$teamId/index'
+import { Route as LayoutAuthenticatedDashboardTeamTeamIdMembersRouteImport } from './routes/_layout/_authenticated/dashboard/team/$teamId/members'
+import { Route as LayoutAuthenticatedDashboardTeamTeamIdSearchRouteImport } from './routes/_layout/_authenticated/dashboard/team/$teamId/search'
 import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/general'
 import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/integrations'
 import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/visibility'
 import { Route as LayoutAuthenticatedDashboardSettingsProjectsProjectIdWorkflowRouteImport } from './routes/_layout/_authenticated/dashboard/settings/projects/$projectId/workflow'
-import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdIndexRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/index'
-import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBacklogRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/backlog'
-import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBoardRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/board'
-import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdGanttRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/gantt'
-import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdTaskTaskIdRouteImport } from './routes/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId_'
+import { Route as LayoutAuthenticatedDashboardSettingsAdminTeamsTeamIdLabelsRouteImport } from './routes/_layout/_authenticated/dashboard/settings/admin/teams/$teamId/labels'
+import { Route as LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdIndexRouteImport } from './routes/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/index'
+import { Route as LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRouteImport } from './routes/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/backlog'
+import { Route as LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRouteImport } from './routes/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/board'
+import { Route as LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRouteImport } from './routes/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/chat'
+import { Route as LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRouteImport } from './routes/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/gantt'
+import { Route as LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdTaskTaskIdRouteImport } from './routes/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/task/$taskId_'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -131,40 +127,16 @@ const LayoutAuthenticatedDashboardRoute =
     path: '/dashboard',
     getParentRoute: () => LayoutAuthenticatedRoute,
   } as any)
-const LayoutAuthenticatedInvitationsRoute =
-  LayoutAuthenticatedInvitationsRouteImport.update({
-    id: '/invitations',
-    path: '/invitations',
-    getParentRoute: () => LayoutAuthenticatedRoute,
-  } as any)
-const LayoutAuthenticatedOnboardingRoute =
-  LayoutAuthenticatedOnboardingRouteImport.update({
-    id: '/onboarding',
-    path: '/onboarding',
-    getParentRoute: () => LayoutAuthenticatedRoute,
-  } as any)
 const LayoutAuthenticatedProfileSetupRoute =
   LayoutAuthenticatedProfileSetupRouteImport.update({
     id: '/profile-setup',
     path: '/profile-setup',
     getParentRoute: () => LayoutAuthenticatedRoute,
   } as any)
-const InvitationAcceptInviteIdRoute =
-  InvitationAcceptInviteIdRouteImport.update({
-    id: '/invitation/accept/$inviteId',
-    path: '/invitation/accept/$inviteId',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const LayoutAuthenticatedDashboardIndexRoute =
   LayoutAuthenticatedDashboardIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => LayoutAuthenticatedDashboardRoute,
-  } as any)
-const LayoutAuthenticatedDashboardInvitationsRoute =
-  LayoutAuthenticatedDashboardInvitationsRouteImport.update({
-    id: '/invitations',
-    path: '/invitations',
     getParentRoute: () => LayoutAuthenticatedDashboardRoute,
   } as any)
 const LayoutAuthenticatedDashboardSettingsRoute =
@@ -185,22 +157,16 @@ const LayoutAuthenticatedDashboardSettingsProjectsRoute =
     path: '/projects',
     getParentRoute: () => LayoutAuthenticatedDashboardSettingsRoute,
   } as any)
-const LayoutAuthenticatedDashboardSettingsWorkspaceRoute =
-  LayoutAuthenticatedDashboardSettingsWorkspaceRouteImport.update({
-    id: '/workspace',
-    path: '/workspace',
-    getParentRoute: () => LayoutAuthenticatedDashboardSettingsRoute,
-  } as any)
-const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute =
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteImport.update({
-    id: '/workspace/$workspaceId',
-    path: '/workspace/$workspaceId',
+const LayoutAuthenticatedDashboardTeamTeamIdRoute =
+  LayoutAuthenticatedDashboardTeamTeamIdRouteImport.update({
+    id: '/team/$teamId',
+    path: '/team/$teamId',
     getParentRoute: () => LayoutAuthenticatedDashboardRoute,
   } as any)
-const LayoutAuthenticatedDashboardWorkspaceCreateRoute =
-  LayoutAuthenticatedDashboardWorkspaceCreateRouteImport.update({
-    id: '/workspace/create',
-    path: '/workspace/create',
+const LayoutAuthenticatedDashboardTeamCreateRoute =
+  LayoutAuthenticatedDashboardTeamCreateRouteImport.update({
+    id: '/team/create',
+    path: '/team/create',
     getParentRoute: () => LayoutAuthenticatedDashboardRoute,
   } as any)
 const LayoutAuthenticatedDashboardSettingsAccountDeveloperRoute =
@@ -227,47 +193,41 @@ const LayoutAuthenticatedDashboardSettingsAccountPreferencesRoute =
     path: '/preferences',
     getParentRoute: () => LayoutAuthenticatedDashboardSettingsAccountRoute,
   } as any)
-const LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute =
-  LayoutAuthenticatedDashboardSettingsWorkspaceBillingRouteImport.update({
-    id: '/billing',
-    path: '/billing',
-    getParentRoute: () => LayoutAuthenticatedDashboardSettingsWorkspaceRoute,
+const LayoutAuthenticatedDashboardSettingsAdminAiRoute =
+  LayoutAuthenticatedDashboardSettingsAdminAiRouteImport.update({
+    id: '/admin/ai',
+    path: '/admin/ai',
+    getParentRoute: () => LayoutAuthenticatedDashboardSettingsRoute,
   } as any)
-const LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRoute =
-  LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRouteImport.update({
-    id: '/general',
-    path: '/general',
-    getParentRoute: () => LayoutAuthenticatedDashboardSettingsWorkspaceRoute,
+const LayoutAuthenticatedDashboardSettingsAdminTeamsRoute =
+  LayoutAuthenticatedDashboardSettingsAdminTeamsRouteImport.update({
+    id: '/admin/teams',
+    path: '/admin/teams',
+    getParentRoute: () => LayoutAuthenticatedDashboardSettingsRoute,
   } as any)
-const LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRoute =
-  LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRouteImport.update({
-    id: '/labels',
-    path: '/labels',
-    getParentRoute: () => LayoutAuthenticatedDashboardSettingsWorkspaceRoute,
+const LayoutAuthenticatedDashboardSettingsAdminUsersRoute =
+  LayoutAuthenticatedDashboardSettingsAdminUsersRouteImport.update({
+    id: '/admin/users',
+    path: '/admin/users',
+    getParentRoute: () => LayoutAuthenticatedDashboardSettingsRoute,
   } as any)
-const LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute =
-  LayoutAuthenticatedDashboardSettingsWorkspaceRolesRouteImport.update({
-    id: '/roles',
-    path: '/roles',
-    getParentRoute: () => LayoutAuthenticatedDashboardSettingsWorkspaceRoute,
-  } as any)
-const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRoute =
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRouteImport.update({
+const LayoutAuthenticatedDashboardTeamTeamIdIndexRoute =
+  LayoutAuthenticatedDashboardTeamTeamIdIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
+    getParentRoute: () => LayoutAuthenticatedDashboardTeamTeamIdRoute,
   } as any)
-const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute =
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRouteImport.update({
+const LayoutAuthenticatedDashboardTeamTeamIdMembersRoute =
+  LayoutAuthenticatedDashboardTeamTeamIdMembersRouteImport.update({
     id: '/members',
     path: '/members',
-    getParentRoute: () => LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
+    getParentRoute: () => LayoutAuthenticatedDashboardTeamTeamIdRoute,
   } as any)
-const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdSearchRoute =
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdSearchRouteImport.update({
+const LayoutAuthenticatedDashboardTeamTeamIdSearchRoute =
+  LayoutAuthenticatedDashboardTeamTeamIdSearchRouteImport.update({
     id: '/search',
     path: '/search',
-    getParentRoute: () => LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
+    getParentRoute: () => LayoutAuthenticatedDashboardTeamTeamIdRoute,
   } as any)
 const LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute =
   LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRouteImport.update(
@@ -301,49 +261,56 @@ const LayoutAuthenticatedDashboardSettingsProjectsProjectIdWorkflowRoute =
       getParentRoute: () => LayoutAuthenticatedDashboardSettingsProjectsRoute,
     } as any,
   )
-const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdIndexRoute =
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdIndexRouteImport.update(
+const LayoutAuthenticatedDashboardSettingsAdminTeamsTeamIdLabelsRoute =
+  LayoutAuthenticatedDashboardSettingsAdminTeamsTeamIdLabelsRouteImport.update({
+    id: '/$teamId/labels',
+    path: '/$teamId/labels',
+    getParentRoute: () => LayoutAuthenticatedDashboardSettingsAdminTeamsRoute,
+  } as any)
+const LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdIndexRoute =
+  LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdIndexRouteImport.update(
     {
       id: '/project/$projectId/',
       path: '/project/$projectId/',
-      getParentRoute: () =>
-        LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
+      getParentRoute: () => LayoutAuthenticatedDashboardTeamTeamIdRoute,
     } as any,
   )
-const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBacklogRoute =
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBacklogRouteImport.update(
+const LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRoute =
+  LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRouteImport.update(
     {
       id: '/project/$projectId/backlog',
       path: '/project/$projectId/backlog',
-      getParentRoute: () =>
-        LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
+      getParentRoute: () => LayoutAuthenticatedDashboardTeamTeamIdRoute,
     } as any,
   )
-const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBoardRoute =
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBoardRouteImport.update(
+const LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRoute =
+  LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRouteImport.update(
     {
       id: '/project/$projectId/board',
       path: '/project/$projectId/board',
-      getParentRoute: () =>
-        LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
+      getParentRoute: () => LayoutAuthenticatedDashboardTeamTeamIdRoute,
     } as any,
   )
-const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdGanttRoute =
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdGanttRouteImport.update(
+const LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRoute =
+  LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRouteImport.update({
+    id: '/project/$projectId/chat',
+    path: '/project/$projectId/chat',
+    getParentRoute: () => LayoutAuthenticatedDashboardTeamTeamIdRoute,
+  } as any)
+const LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRoute =
+  LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRouteImport.update(
     {
       id: '/project/$projectId/gantt',
       path: '/project/$projectId/gantt',
-      getParentRoute: () =>
-        LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
+      getParentRoute: () => LayoutAuthenticatedDashboardTeamTeamIdRoute,
     } as any,
   )
-const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdTaskTaskIdRoute =
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdTaskTaskIdRouteImport.update(
+const LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdTaskTaskIdRoute =
+  LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdTaskTaskIdRouteImport.update(
     {
       id: '/project/$projectId/task/$taskId_',
       path: '/project/$projectId/task/$taskId',
-      getParentRoute: () =>
-        LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute,
+      getParentRoute: () => LayoutAuthenticatedDashboardTeamTeamIdRoute,
     } as any,
   )
 
@@ -361,38 +328,34 @@ export interface FileRoutesByFullPath {
   '/public-project/$projectId': typeof PublicProjectProjectIdRoute
   '/device/': typeof DeviceIndexRoute
   '/dashboard': typeof LayoutAuthenticatedDashboardRouteWithChildren
-  '/invitations': typeof LayoutAuthenticatedInvitationsRoute
-  '/onboarding': typeof LayoutAuthenticatedOnboardingRoute
   '/profile-setup': typeof LayoutAuthenticatedProfileSetupRoute
-  '/invitation/accept/$inviteId': typeof InvitationAcceptInviteIdRoute
-  '/dashboard/invitations': typeof LayoutAuthenticatedDashboardInvitationsRoute
   '/dashboard/settings': typeof LayoutAuthenticatedDashboardSettingsRouteWithChildren
   '/dashboard/': typeof LayoutAuthenticatedDashboardIndexRoute
   '/dashboard/settings/account': typeof LayoutAuthenticatedDashboardSettingsAccountRouteWithChildren
   '/dashboard/settings/projects': typeof LayoutAuthenticatedDashboardSettingsProjectsRouteWithChildren
-  '/dashboard/settings/workspace': typeof LayoutAuthenticatedDashboardSettingsWorkspaceRouteWithChildren
-  '/dashboard/workspace/$workspaceId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteWithChildren
-  '/dashboard/workspace/create': typeof LayoutAuthenticatedDashboardWorkspaceCreateRoute
+  '/dashboard/team/$teamId': typeof LayoutAuthenticatedDashboardTeamTeamIdRouteWithChildren
+  '/dashboard/team/create': typeof LayoutAuthenticatedDashboardTeamCreateRoute
   '/dashboard/settings/account/developer': typeof LayoutAuthenticatedDashboardSettingsAccountDeveloperRoute
   '/dashboard/settings/account/information': typeof LayoutAuthenticatedDashboardSettingsAccountInformationRoute
   '/dashboard/settings/account/notifications': typeof LayoutAuthenticatedDashboardSettingsAccountNotificationsRoute
   '/dashboard/settings/account/preferences': typeof LayoutAuthenticatedDashboardSettingsAccountPreferencesRoute
-  '/dashboard/settings/workspace/billing': typeof LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute
-  '/dashboard/settings/workspace/general': typeof LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRoute
-  '/dashboard/settings/workspace/labels': typeof LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRoute
-  '/dashboard/settings/workspace/roles': typeof LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute
-  '/dashboard/workspace/$workspaceId/members': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute
-  '/dashboard/workspace/$workspaceId/search': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdSearchRoute
-  '/dashboard/workspace/$workspaceId/': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRoute
+  '/dashboard/settings/admin/ai': typeof LayoutAuthenticatedDashboardSettingsAdminAiRoute
+  '/dashboard/settings/admin/teams': typeof LayoutAuthenticatedDashboardSettingsAdminTeamsRouteWithChildren
+  '/dashboard/settings/admin/users': typeof LayoutAuthenticatedDashboardSettingsAdminUsersRoute
+  '/dashboard/team/$teamId/members': typeof LayoutAuthenticatedDashboardTeamTeamIdMembersRoute
+  '/dashboard/team/$teamId/search': typeof LayoutAuthenticatedDashboardTeamTeamIdSearchRoute
+  '/dashboard/team/$teamId/': typeof LayoutAuthenticatedDashboardTeamTeamIdIndexRoute
   '/dashboard/settings/projects/$projectId/general': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute
   '/dashboard/settings/projects/$projectId/integrations': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRoute
   '/dashboard/settings/projects/$projectId/visibility': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRoute
   '/dashboard/settings/projects/$projectId/workflow': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdWorkflowRoute
-  '/dashboard/workspace/$workspaceId/project/$projectId/backlog': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBacklogRoute
-  '/dashboard/workspace/$workspaceId/project/$projectId/board': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBoardRoute
-  '/dashboard/workspace/$workspaceId/project/$projectId/gantt': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdGanttRoute
-  '/dashboard/workspace/$workspaceId/project/$projectId/': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdIndexRoute
-  '/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdTaskTaskIdRoute
+  '/dashboard/settings/admin/teams/$teamId/labels': typeof LayoutAuthenticatedDashboardSettingsAdminTeamsTeamIdLabelsRoute
+  '/dashboard/team/$teamId/project/$projectId/backlog': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRoute
+  '/dashboard/team/$teamId/project/$projectId/board': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRoute
+  '/dashboard/team/$teamId/project/$projectId/chat': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRoute
+  '/dashboard/team/$teamId/project/$projectId/gantt': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRoute
+  '/dashboard/team/$teamId/project/$projectId/': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdIndexRoute
+  '/dashboard/team/$teamId/project/$projectId/task/$taskId': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdTaskTaskIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -406,37 +369,33 @@ export interface FileRoutesByTo {
   '/mcp/authorize': typeof McpAuthorizeRoute
   '/public-project/$projectId': typeof PublicProjectProjectIdRoute
   '/device': typeof DeviceIndexRoute
-  '/invitations': typeof LayoutAuthenticatedInvitationsRoute
-  '/onboarding': typeof LayoutAuthenticatedOnboardingRoute
   '/profile-setup': typeof LayoutAuthenticatedProfileSetupRoute
-  '/invitation/accept/$inviteId': typeof InvitationAcceptInviteIdRoute
-  '/dashboard/invitations': typeof LayoutAuthenticatedDashboardInvitationsRoute
   '/dashboard/settings': typeof LayoutAuthenticatedDashboardSettingsRouteWithChildren
   '/dashboard': typeof LayoutAuthenticatedDashboardIndexRoute
   '/dashboard/settings/account': typeof LayoutAuthenticatedDashboardSettingsAccountRouteWithChildren
   '/dashboard/settings/projects': typeof LayoutAuthenticatedDashboardSettingsProjectsRouteWithChildren
-  '/dashboard/settings/workspace': typeof LayoutAuthenticatedDashboardSettingsWorkspaceRouteWithChildren
-  '/dashboard/workspace/create': typeof LayoutAuthenticatedDashboardWorkspaceCreateRoute
+  '/dashboard/team/create': typeof LayoutAuthenticatedDashboardTeamCreateRoute
   '/dashboard/settings/account/developer': typeof LayoutAuthenticatedDashboardSettingsAccountDeveloperRoute
   '/dashboard/settings/account/information': typeof LayoutAuthenticatedDashboardSettingsAccountInformationRoute
   '/dashboard/settings/account/notifications': typeof LayoutAuthenticatedDashboardSettingsAccountNotificationsRoute
   '/dashboard/settings/account/preferences': typeof LayoutAuthenticatedDashboardSettingsAccountPreferencesRoute
-  '/dashboard/settings/workspace/billing': typeof LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute
-  '/dashboard/settings/workspace/general': typeof LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRoute
-  '/dashboard/settings/workspace/labels': typeof LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRoute
-  '/dashboard/settings/workspace/roles': typeof LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute
-  '/dashboard/workspace/$workspaceId/members': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute
-  '/dashboard/workspace/$workspaceId/search': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdSearchRoute
-  '/dashboard/workspace/$workspaceId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRoute
+  '/dashboard/settings/admin/ai': typeof LayoutAuthenticatedDashboardSettingsAdminAiRoute
+  '/dashboard/settings/admin/teams': typeof LayoutAuthenticatedDashboardSettingsAdminTeamsRouteWithChildren
+  '/dashboard/settings/admin/users': typeof LayoutAuthenticatedDashboardSettingsAdminUsersRoute
+  '/dashboard/team/$teamId/members': typeof LayoutAuthenticatedDashboardTeamTeamIdMembersRoute
+  '/dashboard/team/$teamId/search': typeof LayoutAuthenticatedDashboardTeamTeamIdSearchRoute
+  '/dashboard/team/$teamId': typeof LayoutAuthenticatedDashboardTeamTeamIdIndexRoute
   '/dashboard/settings/projects/$projectId/general': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute
   '/dashboard/settings/projects/$projectId/integrations': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRoute
   '/dashboard/settings/projects/$projectId/visibility': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRoute
   '/dashboard/settings/projects/$projectId/workflow': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdWorkflowRoute
-  '/dashboard/workspace/$workspaceId/project/$projectId/backlog': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBacklogRoute
-  '/dashboard/workspace/$workspaceId/project/$projectId/board': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBoardRoute
-  '/dashboard/workspace/$workspaceId/project/$projectId/gantt': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdGanttRoute
-  '/dashboard/workspace/$workspaceId/project/$projectId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdIndexRoute
-  '/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdTaskTaskIdRoute
+  '/dashboard/settings/admin/teams/$teamId/labels': typeof LayoutAuthenticatedDashboardSettingsAdminTeamsTeamIdLabelsRoute
+  '/dashboard/team/$teamId/project/$projectId/backlog': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRoute
+  '/dashboard/team/$teamId/project/$projectId/board': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRoute
+  '/dashboard/team/$teamId/project/$projectId/chat': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRoute
+  '/dashboard/team/$teamId/project/$projectId/gantt': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRoute
+  '/dashboard/team/$teamId/project/$projectId': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdIndexRoute
+  '/dashboard/team/$teamId/project/$projectId/task/$taskId': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdTaskTaskIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -455,38 +414,34 @@ export interface FileRoutesById {
   '/public-project/$projectId': typeof PublicProjectProjectIdRoute
   '/device/': typeof DeviceIndexRoute
   '/_layout/_authenticated/dashboard': typeof LayoutAuthenticatedDashboardRouteWithChildren
-  '/_layout/_authenticated/invitations': typeof LayoutAuthenticatedInvitationsRoute
-  '/_layout/_authenticated/onboarding': typeof LayoutAuthenticatedOnboardingRoute
   '/_layout/_authenticated/profile-setup': typeof LayoutAuthenticatedProfileSetupRoute
-  '/invitation/accept/$inviteId': typeof InvitationAcceptInviteIdRoute
-  '/_layout/_authenticated/dashboard/invitations': typeof LayoutAuthenticatedDashboardInvitationsRoute
   '/_layout/_authenticated/dashboard/settings': typeof LayoutAuthenticatedDashboardSettingsRouteWithChildren
   '/_layout/_authenticated/dashboard/': typeof LayoutAuthenticatedDashboardIndexRoute
   '/_layout/_authenticated/dashboard/settings/account': typeof LayoutAuthenticatedDashboardSettingsAccountRouteWithChildren
   '/_layout/_authenticated/dashboard/settings/projects': typeof LayoutAuthenticatedDashboardSettingsProjectsRouteWithChildren
-  '/_layout/_authenticated/dashboard/settings/workspace': typeof LayoutAuthenticatedDashboardSettingsWorkspaceRouteWithChildren
-  '/_layout/_authenticated/dashboard/workspace/$workspaceId': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteWithChildren
-  '/_layout/_authenticated/dashboard/workspace/create': typeof LayoutAuthenticatedDashboardWorkspaceCreateRoute
+  '/_layout/_authenticated/dashboard/team/$teamId': typeof LayoutAuthenticatedDashboardTeamTeamIdRouteWithChildren
+  '/_layout/_authenticated/dashboard/team/create': typeof LayoutAuthenticatedDashboardTeamCreateRoute
   '/_layout/_authenticated/dashboard/settings/account/developer': typeof LayoutAuthenticatedDashboardSettingsAccountDeveloperRoute
   '/_layout/_authenticated/dashboard/settings/account/information': typeof LayoutAuthenticatedDashboardSettingsAccountInformationRoute
   '/_layout/_authenticated/dashboard/settings/account/notifications': typeof LayoutAuthenticatedDashboardSettingsAccountNotificationsRoute
   '/_layout/_authenticated/dashboard/settings/account/preferences': typeof LayoutAuthenticatedDashboardSettingsAccountPreferencesRoute
-  '/_layout/_authenticated/dashboard/settings/workspace/billing': typeof LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute
-  '/_layout/_authenticated/dashboard/settings/workspace/general': typeof LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRoute
-  '/_layout/_authenticated/dashboard/settings/workspace/labels': typeof LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRoute
-  '/_layout/_authenticated/dashboard/settings/workspace/roles': typeof LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute
-  '/_layout/_authenticated/dashboard/workspace/$workspaceId/members': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute
-  '/_layout/_authenticated/dashboard/workspace/$workspaceId/search': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdSearchRoute
-  '/_layout/_authenticated/dashboard/workspace/$workspaceId/': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRoute
+  '/_layout/_authenticated/dashboard/settings/admin/ai': typeof LayoutAuthenticatedDashboardSettingsAdminAiRoute
+  '/_layout/_authenticated/dashboard/settings/admin/teams': typeof LayoutAuthenticatedDashboardSettingsAdminTeamsRouteWithChildren
+  '/_layout/_authenticated/dashboard/settings/admin/users': typeof LayoutAuthenticatedDashboardSettingsAdminUsersRoute
+  '/_layout/_authenticated/dashboard/team/$teamId/members': typeof LayoutAuthenticatedDashboardTeamTeamIdMembersRoute
+  '/_layout/_authenticated/dashboard/team/$teamId/search': typeof LayoutAuthenticatedDashboardTeamTeamIdSearchRoute
+  '/_layout/_authenticated/dashboard/team/$teamId/': typeof LayoutAuthenticatedDashboardTeamTeamIdIndexRoute
   '/_layout/_authenticated/dashboard/settings/projects/$projectId/general': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdGeneralRoute
   '/_layout/_authenticated/dashboard/settings/projects/$projectId/integrations': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdIntegrationsRoute
   '/_layout/_authenticated/dashboard/settings/projects/$projectId/visibility': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdVisibilityRoute
   '/_layout/_authenticated/dashboard/settings/projects/$projectId/workflow': typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdWorkflowRoute
-  '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/backlog': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBacklogRoute
-  '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/board': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBoardRoute
-  '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/gantt': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdGanttRoute
-  '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdIndexRoute
-  '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId_': typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdTaskTaskIdRoute
+  '/_layout/_authenticated/dashboard/settings/admin/teams/$teamId/labels': typeof LayoutAuthenticatedDashboardSettingsAdminTeamsTeamIdLabelsRoute
+  '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/backlog': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRoute
+  '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/board': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRoute
+  '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/chat': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRoute
+  '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/gantt': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRoute
+  '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdIndexRoute
+  '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/task/$taskId_': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdTaskTaskIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -504,38 +459,34 @@ export interface FileRouteTypes {
     | '/public-project/$projectId'
     | '/device/'
     | '/dashboard'
-    | '/invitations'
-    | '/onboarding'
     | '/profile-setup'
-    | '/invitation/accept/$inviteId'
-    | '/dashboard/invitations'
     | '/dashboard/settings'
     | '/dashboard/'
     | '/dashboard/settings/account'
     | '/dashboard/settings/projects'
-    | '/dashboard/settings/workspace'
-    | '/dashboard/workspace/$workspaceId'
-    | '/dashboard/workspace/create'
+    | '/dashboard/team/$teamId'
+    | '/dashboard/team/create'
     | '/dashboard/settings/account/developer'
     | '/dashboard/settings/account/information'
     | '/dashboard/settings/account/notifications'
     | '/dashboard/settings/account/preferences'
-    | '/dashboard/settings/workspace/billing'
-    | '/dashboard/settings/workspace/general'
-    | '/dashboard/settings/workspace/labels'
-    | '/dashboard/settings/workspace/roles'
-    | '/dashboard/workspace/$workspaceId/members'
-    | '/dashboard/workspace/$workspaceId/search'
-    | '/dashboard/workspace/$workspaceId/'
+    | '/dashboard/settings/admin/ai'
+    | '/dashboard/settings/admin/teams'
+    | '/dashboard/settings/admin/users'
+    | '/dashboard/team/$teamId/members'
+    | '/dashboard/team/$teamId/search'
+    | '/dashboard/team/$teamId/'
     | '/dashboard/settings/projects/$projectId/general'
     | '/dashboard/settings/projects/$projectId/integrations'
     | '/dashboard/settings/projects/$projectId/visibility'
     | '/dashboard/settings/projects/$projectId/workflow'
-    | '/dashboard/workspace/$workspaceId/project/$projectId/backlog'
-    | '/dashboard/workspace/$workspaceId/project/$projectId/board'
-    | '/dashboard/workspace/$workspaceId/project/$projectId/gantt'
-    | '/dashboard/workspace/$workspaceId/project/$projectId/'
-    | '/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId'
+    | '/dashboard/settings/admin/teams/$teamId/labels'
+    | '/dashboard/team/$teamId/project/$projectId/backlog'
+    | '/dashboard/team/$teamId/project/$projectId/board'
+    | '/dashboard/team/$teamId/project/$projectId/chat'
+    | '/dashboard/team/$teamId/project/$projectId/gantt'
+    | '/dashboard/team/$teamId/project/$projectId/'
+    | '/dashboard/team/$teamId/project/$projectId/task/$taskId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -549,37 +500,33 @@ export interface FileRouteTypes {
     | '/mcp/authorize'
     | '/public-project/$projectId'
     | '/device'
-    | '/invitations'
-    | '/onboarding'
     | '/profile-setup'
-    | '/invitation/accept/$inviteId'
-    | '/dashboard/invitations'
     | '/dashboard/settings'
     | '/dashboard'
     | '/dashboard/settings/account'
     | '/dashboard/settings/projects'
-    | '/dashboard/settings/workspace'
-    | '/dashboard/workspace/create'
+    | '/dashboard/team/create'
     | '/dashboard/settings/account/developer'
     | '/dashboard/settings/account/information'
     | '/dashboard/settings/account/notifications'
     | '/dashboard/settings/account/preferences'
-    | '/dashboard/settings/workspace/billing'
-    | '/dashboard/settings/workspace/general'
-    | '/dashboard/settings/workspace/labels'
-    | '/dashboard/settings/workspace/roles'
-    | '/dashboard/workspace/$workspaceId/members'
-    | '/dashboard/workspace/$workspaceId/search'
-    | '/dashboard/workspace/$workspaceId'
+    | '/dashboard/settings/admin/ai'
+    | '/dashboard/settings/admin/teams'
+    | '/dashboard/settings/admin/users'
+    | '/dashboard/team/$teamId/members'
+    | '/dashboard/team/$teamId/search'
+    | '/dashboard/team/$teamId'
     | '/dashboard/settings/projects/$projectId/general'
     | '/dashboard/settings/projects/$projectId/integrations'
     | '/dashboard/settings/projects/$projectId/visibility'
     | '/dashboard/settings/projects/$projectId/workflow'
-    | '/dashboard/workspace/$workspaceId/project/$projectId/backlog'
-    | '/dashboard/workspace/$workspaceId/project/$projectId/board'
-    | '/dashboard/workspace/$workspaceId/project/$projectId/gantt'
-    | '/dashboard/workspace/$workspaceId/project/$projectId'
-    | '/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId'
+    | '/dashboard/settings/admin/teams/$teamId/labels'
+    | '/dashboard/team/$teamId/project/$projectId/backlog'
+    | '/dashboard/team/$teamId/project/$projectId/board'
+    | '/dashboard/team/$teamId/project/$projectId/chat'
+    | '/dashboard/team/$teamId/project/$projectId/gantt'
+    | '/dashboard/team/$teamId/project/$projectId'
+    | '/dashboard/team/$teamId/project/$projectId/task/$taskId'
   id:
     | '__root__'
     | '/'
@@ -597,38 +544,34 @@ export interface FileRouteTypes {
     | '/public-project/$projectId'
     | '/device/'
     | '/_layout/_authenticated/dashboard'
-    | '/_layout/_authenticated/invitations'
-    | '/_layout/_authenticated/onboarding'
     | '/_layout/_authenticated/profile-setup'
-    | '/invitation/accept/$inviteId'
-    | '/_layout/_authenticated/dashboard/invitations'
     | '/_layout/_authenticated/dashboard/settings'
     | '/_layout/_authenticated/dashboard/'
     | '/_layout/_authenticated/dashboard/settings/account'
     | '/_layout/_authenticated/dashboard/settings/projects'
-    | '/_layout/_authenticated/dashboard/settings/workspace'
-    | '/_layout/_authenticated/dashboard/workspace/$workspaceId'
-    | '/_layout/_authenticated/dashboard/workspace/create'
+    | '/_layout/_authenticated/dashboard/team/$teamId'
+    | '/_layout/_authenticated/dashboard/team/create'
     | '/_layout/_authenticated/dashboard/settings/account/developer'
     | '/_layout/_authenticated/dashboard/settings/account/information'
     | '/_layout/_authenticated/dashboard/settings/account/notifications'
     | '/_layout/_authenticated/dashboard/settings/account/preferences'
-    | '/_layout/_authenticated/dashboard/settings/workspace/billing'
-    | '/_layout/_authenticated/dashboard/settings/workspace/general'
-    | '/_layout/_authenticated/dashboard/settings/workspace/labels'
-    | '/_layout/_authenticated/dashboard/settings/workspace/roles'
-    | '/_layout/_authenticated/dashboard/workspace/$workspaceId/members'
-    | '/_layout/_authenticated/dashboard/workspace/$workspaceId/search'
-    | '/_layout/_authenticated/dashboard/workspace/$workspaceId/'
+    | '/_layout/_authenticated/dashboard/settings/admin/ai'
+    | '/_layout/_authenticated/dashboard/settings/admin/teams'
+    | '/_layout/_authenticated/dashboard/settings/admin/users'
+    | '/_layout/_authenticated/dashboard/team/$teamId/members'
+    | '/_layout/_authenticated/dashboard/team/$teamId/search'
+    | '/_layout/_authenticated/dashboard/team/$teamId/'
     | '/_layout/_authenticated/dashboard/settings/projects/$projectId/general'
     | '/_layout/_authenticated/dashboard/settings/projects/$projectId/integrations'
     | '/_layout/_authenticated/dashboard/settings/projects/$projectId/visibility'
     | '/_layout/_authenticated/dashboard/settings/projects/$projectId/workflow'
-    | '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/backlog'
-    | '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/board'
-    | '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/gantt'
-    | '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/'
-    | '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId_'
+    | '/_layout/_authenticated/dashboard/settings/admin/teams/$teamId/labels'
+    | '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/backlog'
+    | '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/board'
+    | '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/chat'
+    | '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/gantt'
+    | '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/'
+    | '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/task/$taskId_'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -639,7 +582,6 @@ export interface RootRouteChildren {
   TestErrorRoute: typeof TestErrorRoute
   McpAuthorizeRoute: typeof McpAuthorizeRoute
   PublicProjectProjectIdRoute: typeof PublicProjectProjectIdRoute
-  InvitationAcceptInviteIdRoute: typeof InvitationAcceptInviteIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -749,20 +691,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAuthenticatedDashboardRouteImport
       parentRoute: typeof LayoutAuthenticatedRoute
     }
-    '/_layout/_authenticated/invitations': {
-      id: '/_layout/_authenticated/invitations'
-      path: '/invitations'
-      fullPath: '/invitations'
-      preLoaderRoute: typeof LayoutAuthenticatedInvitationsRouteImport
-      parentRoute: typeof LayoutAuthenticatedRoute
-    }
-    '/_layout/_authenticated/onboarding': {
-      id: '/_layout/_authenticated/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof LayoutAuthenticatedOnboardingRouteImport
-      parentRoute: typeof LayoutAuthenticatedRoute
-    }
     '/_layout/_authenticated/profile-setup': {
       id: '/_layout/_authenticated/profile-setup'
       path: '/profile-setup'
@@ -770,25 +698,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAuthenticatedProfileSetupRouteImport
       parentRoute: typeof LayoutAuthenticatedRoute
     }
-    '/invitation/accept/$inviteId': {
-      id: '/invitation/accept/$inviteId'
-      path: '/invitation/accept/$inviteId'
-      fullPath: '/invitation/accept/$inviteId'
-      preLoaderRoute: typeof InvitationAcceptInviteIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_layout/_authenticated/dashboard/': {
       id: '/_layout/_authenticated/dashboard/'
       path: '/'
       fullPath: '/dashboard/'
       preLoaderRoute: typeof LayoutAuthenticatedDashboardIndexRouteImport
-      parentRoute: typeof LayoutAuthenticatedDashboardRoute
-    }
-    '/_layout/_authenticated/dashboard/invitations': {
-      id: '/_layout/_authenticated/dashboard/invitations'
-      path: '/invitations'
-      fullPath: '/dashboard/invitations'
-      preLoaderRoute: typeof LayoutAuthenticatedDashboardInvitationsRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardRoute
     }
     '/_layout/_authenticated/dashboard/settings': {
@@ -812,25 +726,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardSettingsRoute
     }
-    '/_layout/_authenticated/dashboard/settings/workspace': {
-      id: '/_layout/_authenticated/dashboard/settings/workspace'
-      path: '/workspace'
-      fullPath: '/dashboard/settings/workspace'
-      preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceRouteImport
-      parentRoute: typeof LayoutAuthenticatedDashboardSettingsRoute
-    }
-    '/_layout/_authenticated/dashboard/workspace/$workspaceId': {
-      id: '/_layout/_authenticated/dashboard/workspace/$workspaceId'
-      path: '/workspace/$workspaceId'
-      fullPath: '/dashboard/workspace/$workspaceId'
-      preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteImport
+    '/_layout/_authenticated/dashboard/team/$teamId': {
+      id: '/_layout/_authenticated/dashboard/team/$teamId'
+      path: '/team/$teamId'
+      fullPath: '/dashboard/team/$teamId'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardRoute
     }
-    '/_layout/_authenticated/dashboard/workspace/create': {
-      id: '/_layout/_authenticated/dashboard/workspace/create'
-      path: '/workspace/create'
-      fullPath: '/dashboard/workspace/create'
-      preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceCreateRouteImport
+    '/_layout/_authenticated/dashboard/team/create': {
+      id: '/_layout/_authenticated/dashboard/team/create'
+      path: '/team/create'
+      fullPath: '/dashboard/team/create'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardTeamCreateRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardRoute
     }
     '/_layout/_authenticated/dashboard/settings/account/developer': {
@@ -861,54 +768,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsAccountPreferencesRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardSettingsAccountRoute
     }
-    '/_layout/_authenticated/dashboard/settings/workspace/billing': {
-      id: '/_layout/_authenticated/dashboard/settings/workspace/billing'
-      path: '/billing'
-      fullPath: '/dashboard/settings/workspace/billing'
-      preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceBillingRouteImport
-      parentRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceRoute
+    '/_layout/_authenticated/dashboard/settings/admin/ai': {
+      id: '/_layout/_authenticated/dashboard/settings/admin/ai'
+      path: '/admin/ai'
+      fullPath: '/dashboard/settings/admin/ai'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsAdminAiRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardSettingsRoute
     }
-    '/_layout/_authenticated/dashboard/settings/workspace/general': {
-      id: '/_layout/_authenticated/dashboard/settings/workspace/general'
-      path: '/general'
-      fullPath: '/dashboard/settings/workspace/general'
-      preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRouteImport
-      parentRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceRoute
+    '/_layout/_authenticated/dashboard/settings/admin/teams': {
+      id: '/_layout/_authenticated/dashboard/settings/admin/teams'
+      path: '/admin/teams'
+      fullPath: '/dashboard/settings/admin/teams'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsAdminTeamsRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardSettingsRoute
     }
-    '/_layout/_authenticated/dashboard/settings/workspace/labels': {
-      id: '/_layout/_authenticated/dashboard/settings/workspace/labels'
-      path: '/labels'
-      fullPath: '/dashboard/settings/workspace/labels'
-      preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRouteImport
-      parentRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceRoute
+    '/_layout/_authenticated/dashboard/settings/admin/users': {
+      id: '/_layout/_authenticated/dashboard/settings/admin/users'
+      path: '/admin/users'
+      fullPath: '/dashboard/settings/admin/users'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsAdminUsersRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardSettingsRoute
     }
-    '/_layout/_authenticated/dashboard/settings/workspace/roles': {
-      id: '/_layout/_authenticated/dashboard/settings/workspace/roles'
-      path: '/roles'
-      fullPath: '/dashboard/settings/workspace/roles'
-      preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceRolesRouteImport
-      parentRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceRoute
-    }
-    '/_layout/_authenticated/dashboard/workspace/$workspaceId/': {
-      id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/'
+    '/_layout/_authenticated/dashboard/team/$teamId/': {
+      id: '/_layout/_authenticated/dashboard/team/$teamId/'
       path: '/'
-      fullPath: '/dashboard/workspace/$workspaceId/'
-      preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRouteImport
-      parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
+      fullPath: '/dashboard/team/$teamId/'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdIndexRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdRoute
     }
-    '/_layout/_authenticated/dashboard/workspace/$workspaceId/members': {
-      id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/members'
+    '/_layout/_authenticated/dashboard/team/$teamId/members': {
+      id: '/_layout/_authenticated/dashboard/team/$teamId/members'
       path: '/members'
-      fullPath: '/dashboard/workspace/$workspaceId/members'
-      preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRouteImport
-      parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
+      fullPath: '/dashboard/team/$teamId/members'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdMembersRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdRoute
     }
-    '/_layout/_authenticated/dashboard/workspace/$workspaceId/search': {
-      id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/search'
+    '/_layout/_authenticated/dashboard/team/$teamId/search': {
+      id: '/_layout/_authenticated/dashboard/team/$teamId/search'
       path: '/search'
-      fullPath: '/dashboard/workspace/$workspaceId/search'
-      preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdSearchRouteImport
-      parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
+      fullPath: '/dashboard/team/$teamId/search'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdSearchRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdRoute
     }
     '/_layout/_authenticated/dashboard/settings/projects/$projectId/general': {
       id: '/_layout/_authenticated/dashboard/settings/projects/$projectId/general'
@@ -938,40 +838,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsProjectIdWorkflowRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsRoute
     }
-    '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/': {
-      id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/'
+    '/_layout/_authenticated/dashboard/settings/admin/teams/$teamId/labels': {
+      id: '/_layout/_authenticated/dashboard/settings/admin/teams/$teamId/labels'
+      path: '/$teamId/labels'
+      fullPath: '/dashboard/settings/admin/teams/$teamId/labels'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsAdminTeamsTeamIdLabelsRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardSettingsAdminTeamsRoute
+    }
+    '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/': {
+      id: '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/'
       path: '/project/$projectId'
-      fullPath: '/dashboard/workspace/$workspaceId/project/$projectId/'
-      preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdIndexRouteImport
-      parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
+      fullPath: '/dashboard/team/$teamId/project/$projectId/'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdIndexRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdRoute
     }
-    '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/backlog': {
-      id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/backlog'
+    '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/backlog': {
+      id: '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/backlog'
       path: '/project/$projectId/backlog'
-      fullPath: '/dashboard/workspace/$workspaceId/project/$projectId/backlog'
-      preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBacklogRouteImport
-      parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
+      fullPath: '/dashboard/team/$teamId/project/$projectId/backlog'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdRoute
     }
-    '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/board': {
-      id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/board'
+    '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/board': {
+      id: '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/board'
       path: '/project/$projectId/board'
-      fullPath: '/dashboard/workspace/$workspaceId/project/$projectId/board'
-      preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBoardRouteImport
-      parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
+      fullPath: '/dashboard/team/$teamId/project/$projectId/board'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdRoute
     }
-    '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/gantt': {
-      id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/gantt'
+    '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/chat': {
+      id: '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/chat'
+      path: '/project/$projectId/chat'
+      fullPath: '/dashboard/team/$teamId/project/$projectId/chat'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdRoute
+    }
+    '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/gantt': {
+      id: '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/gantt'
       path: '/project/$projectId/gantt'
-      fullPath: '/dashboard/workspace/$workspaceId/project/$projectId/gantt'
-      preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdGanttRouteImport
-      parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
+      fullPath: '/dashboard/team/$teamId/project/$projectId/gantt'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdRoute
     }
-    '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId_': {
-      id: '/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId_'
+    '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/task/$taskId_': {
+      id: '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/task/$taskId_'
       path: '/project/$projectId/task/$taskId'
-      fullPath: '/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId'
-      preLoaderRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdTaskTaskIdRouteImport
-      parentRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute
+      fullPath: '/dashboard/team/$teamId/project/$projectId/task/$taskId'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdTaskTaskIdRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdRoute
     }
   }
 }
@@ -1024,34 +938,27 @@ const LayoutAuthenticatedDashboardSettingsProjectsRouteWithChildren =
     LayoutAuthenticatedDashboardSettingsProjectsRouteChildren,
   )
 
-interface LayoutAuthenticatedDashboardSettingsWorkspaceRouteChildren {
-  LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute
-  LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRoute
-  LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRoute
-  LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute
+interface LayoutAuthenticatedDashboardSettingsAdminTeamsRouteChildren {
+  LayoutAuthenticatedDashboardSettingsAdminTeamsTeamIdLabelsRoute: typeof LayoutAuthenticatedDashboardSettingsAdminTeamsTeamIdLabelsRoute
 }
 
-const LayoutAuthenticatedDashboardSettingsWorkspaceRouteChildren: LayoutAuthenticatedDashboardSettingsWorkspaceRouteChildren =
+const LayoutAuthenticatedDashboardSettingsAdminTeamsRouteChildren: LayoutAuthenticatedDashboardSettingsAdminTeamsRouteChildren =
   {
-    LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute:
-      LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute,
-    LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRoute:
-      LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRoute,
-    LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRoute:
-      LayoutAuthenticatedDashboardSettingsWorkspaceLabelsRoute,
-    LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute:
-      LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute,
+    LayoutAuthenticatedDashboardSettingsAdminTeamsTeamIdLabelsRoute:
+      LayoutAuthenticatedDashboardSettingsAdminTeamsTeamIdLabelsRoute,
   }
 
-const LayoutAuthenticatedDashboardSettingsWorkspaceRouteWithChildren =
-  LayoutAuthenticatedDashboardSettingsWorkspaceRoute._addFileChildren(
-    LayoutAuthenticatedDashboardSettingsWorkspaceRouteChildren,
+const LayoutAuthenticatedDashboardSettingsAdminTeamsRouteWithChildren =
+  LayoutAuthenticatedDashboardSettingsAdminTeamsRoute._addFileChildren(
+    LayoutAuthenticatedDashboardSettingsAdminTeamsRouteChildren,
   )
 
 interface LayoutAuthenticatedDashboardSettingsRouteChildren {
   LayoutAuthenticatedDashboardSettingsAccountRoute: typeof LayoutAuthenticatedDashboardSettingsAccountRouteWithChildren
   LayoutAuthenticatedDashboardSettingsProjectsRoute: typeof LayoutAuthenticatedDashboardSettingsProjectsRouteWithChildren
-  LayoutAuthenticatedDashboardSettingsWorkspaceRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceRouteWithChildren
+  LayoutAuthenticatedDashboardSettingsAdminAiRoute: typeof LayoutAuthenticatedDashboardSettingsAdminAiRoute
+  LayoutAuthenticatedDashboardSettingsAdminTeamsRoute: typeof LayoutAuthenticatedDashboardSettingsAdminTeamsRouteWithChildren
+  LayoutAuthenticatedDashboardSettingsAdminUsersRoute: typeof LayoutAuthenticatedDashboardSettingsAdminUsersRoute
 }
 
 const LayoutAuthenticatedDashboardSettingsRouteChildren: LayoutAuthenticatedDashboardSettingsRouteChildren =
@@ -1060,8 +967,12 @@ const LayoutAuthenticatedDashboardSettingsRouteChildren: LayoutAuthenticatedDash
       LayoutAuthenticatedDashboardSettingsAccountRouteWithChildren,
     LayoutAuthenticatedDashboardSettingsProjectsRoute:
       LayoutAuthenticatedDashboardSettingsProjectsRouteWithChildren,
-    LayoutAuthenticatedDashboardSettingsWorkspaceRoute:
-      LayoutAuthenticatedDashboardSettingsWorkspaceRouteWithChildren,
+    LayoutAuthenticatedDashboardSettingsAdminAiRoute:
+      LayoutAuthenticatedDashboardSettingsAdminAiRoute,
+    LayoutAuthenticatedDashboardSettingsAdminTeamsRoute:
+      LayoutAuthenticatedDashboardSettingsAdminTeamsRouteWithChildren,
+    LayoutAuthenticatedDashboardSettingsAdminUsersRoute:
+      LayoutAuthenticatedDashboardSettingsAdminUsersRoute,
   }
 
 const LayoutAuthenticatedDashboardSettingsRouteWithChildren =
@@ -1069,62 +980,62 @@ const LayoutAuthenticatedDashboardSettingsRouteWithChildren =
     LayoutAuthenticatedDashboardSettingsRouteChildren,
   )
 
-interface LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteChildren {
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdSearchRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdSearchRoute
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRoute
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBacklogRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBacklogRoute
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBoardRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBoardRoute
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdGanttRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdGanttRoute
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdIndexRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdIndexRoute
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdTaskTaskIdRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdTaskTaskIdRoute
+interface LayoutAuthenticatedDashboardTeamTeamIdRouteChildren {
+  LayoutAuthenticatedDashboardTeamTeamIdMembersRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdMembersRoute
+  LayoutAuthenticatedDashboardTeamTeamIdSearchRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdSearchRoute
+  LayoutAuthenticatedDashboardTeamTeamIdIndexRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdIndexRoute
+  LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRoute
+  LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRoute
+  LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRoute
+  LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRoute
+  LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdIndexRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdIndexRoute
+  LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdTaskTaskIdRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdTaskTaskIdRoute
 }
 
-const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteChildren: LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteChildren =
+const LayoutAuthenticatedDashboardTeamTeamIdRouteChildren: LayoutAuthenticatedDashboardTeamTeamIdRouteChildren =
   {
-    LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute:
-      LayoutAuthenticatedDashboardWorkspaceWorkspaceIdMembersRoute,
-    LayoutAuthenticatedDashboardWorkspaceWorkspaceIdSearchRoute:
-      LayoutAuthenticatedDashboardWorkspaceWorkspaceIdSearchRoute,
-    LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRoute:
-      LayoutAuthenticatedDashboardWorkspaceWorkspaceIdIndexRoute,
-    LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBacklogRoute:
-      LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBacklogRoute,
-    LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBoardRoute:
-      LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdBoardRoute,
-    LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdGanttRoute:
-      LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdGanttRoute,
-    LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdIndexRoute:
-      LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdIndexRoute,
-    LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdTaskTaskIdRoute:
-      LayoutAuthenticatedDashboardWorkspaceWorkspaceIdProjectProjectIdTaskTaskIdRoute,
+    LayoutAuthenticatedDashboardTeamTeamIdMembersRoute:
+      LayoutAuthenticatedDashboardTeamTeamIdMembersRoute,
+    LayoutAuthenticatedDashboardTeamTeamIdSearchRoute:
+      LayoutAuthenticatedDashboardTeamTeamIdSearchRoute,
+    LayoutAuthenticatedDashboardTeamTeamIdIndexRoute:
+      LayoutAuthenticatedDashboardTeamTeamIdIndexRoute,
+    LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRoute:
+      LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRoute,
+    LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRoute:
+      LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRoute,
+    LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRoute:
+      LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRoute,
+    LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRoute:
+      LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRoute,
+    LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdIndexRoute:
+      LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdIndexRoute,
+    LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdTaskTaskIdRoute:
+      LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdTaskTaskIdRoute,
   }
 
-const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteWithChildren =
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute._addFileChildren(
-    LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteChildren,
+const LayoutAuthenticatedDashboardTeamTeamIdRouteWithChildren =
+  LayoutAuthenticatedDashboardTeamTeamIdRoute._addFileChildren(
+    LayoutAuthenticatedDashboardTeamTeamIdRouteChildren,
   )
 
 interface LayoutAuthenticatedDashboardRouteChildren {
-  LayoutAuthenticatedDashboardInvitationsRoute: typeof LayoutAuthenticatedDashboardInvitationsRoute
   LayoutAuthenticatedDashboardSettingsRoute: typeof LayoutAuthenticatedDashboardSettingsRouteWithChildren
   LayoutAuthenticatedDashboardIndexRoute: typeof LayoutAuthenticatedDashboardIndexRoute
-  LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute: typeof LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteWithChildren
-  LayoutAuthenticatedDashboardWorkspaceCreateRoute: typeof LayoutAuthenticatedDashboardWorkspaceCreateRoute
+  LayoutAuthenticatedDashboardTeamTeamIdRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdRouteWithChildren
+  LayoutAuthenticatedDashboardTeamCreateRoute: typeof LayoutAuthenticatedDashboardTeamCreateRoute
 }
 
 const LayoutAuthenticatedDashboardRouteChildren: LayoutAuthenticatedDashboardRouteChildren =
   {
-    LayoutAuthenticatedDashboardInvitationsRoute:
-      LayoutAuthenticatedDashboardInvitationsRoute,
     LayoutAuthenticatedDashboardSettingsRoute:
       LayoutAuthenticatedDashboardSettingsRouteWithChildren,
     LayoutAuthenticatedDashboardIndexRoute:
       LayoutAuthenticatedDashboardIndexRoute,
-    LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRoute:
-      LayoutAuthenticatedDashboardWorkspaceWorkspaceIdRouteWithChildren,
-    LayoutAuthenticatedDashboardWorkspaceCreateRoute:
-      LayoutAuthenticatedDashboardWorkspaceCreateRoute,
+    LayoutAuthenticatedDashboardTeamTeamIdRoute:
+      LayoutAuthenticatedDashboardTeamTeamIdRouteWithChildren,
+    LayoutAuthenticatedDashboardTeamCreateRoute:
+      LayoutAuthenticatedDashboardTeamCreateRoute,
   }
 
 const LayoutAuthenticatedDashboardRouteWithChildren =
@@ -1134,16 +1045,12 @@ const LayoutAuthenticatedDashboardRouteWithChildren =
 
 interface LayoutAuthenticatedRouteChildren {
   LayoutAuthenticatedDashboardRoute: typeof LayoutAuthenticatedDashboardRouteWithChildren
-  LayoutAuthenticatedInvitationsRoute: typeof LayoutAuthenticatedInvitationsRoute
-  LayoutAuthenticatedOnboardingRoute: typeof LayoutAuthenticatedOnboardingRoute
   LayoutAuthenticatedProfileSetupRoute: typeof LayoutAuthenticatedProfileSetupRoute
 }
 
 const LayoutAuthenticatedRouteChildren: LayoutAuthenticatedRouteChildren = {
   LayoutAuthenticatedDashboardRoute:
     LayoutAuthenticatedDashboardRouteWithChildren,
-  LayoutAuthenticatedInvitationsRoute: LayoutAuthenticatedInvitationsRoute,
-  LayoutAuthenticatedOnboardingRoute: LayoutAuthenticatedOnboardingRoute,
   LayoutAuthenticatedProfileSetupRoute: LayoutAuthenticatedProfileSetupRoute,
 }
 
@@ -1198,7 +1105,6 @@ const rootRouteChildren: RootRouteChildren = {
   TestErrorRoute: TestErrorRoute,
   McpAuthorizeRoute: McpAuthorizeRoute,
   PublicProjectProjectIdRoute: PublicProjectProjectIdRoute,
-  InvitationAcceptInviteIdRoute: InvitationAcceptInviteIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

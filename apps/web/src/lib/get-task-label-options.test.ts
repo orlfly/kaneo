@@ -14,7 +14,7 @@ describe("getTaskLabelOptions", () => {
     expect(options.map((label) => label.id)).toEqual(["workspace", "current"]);
   });
 
-  it("prefers a workspace label over a task-scoped copy", () => {
+  it("prefers a team label over a task-scoped copy", () => {
     const labels = [
       { id: "task-copy", name: "Bug", taskId: "task-1" },
       { id: "workspace", name: "Bug", taskId: null },

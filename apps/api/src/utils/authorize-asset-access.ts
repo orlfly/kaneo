@@ -3,7 +3,7 @@ import { resolveAssetBearerOrCookie } from "./authenticate-api-request";
 import { validateWorkspaceAccess } from "./validate-workspace-access";
 
 type AssetAccessTarget = {
-  workspaceId: string;
+  teamId: string;
   isPublic: boolean | null;
 };
 
@@ -25,5 +25,5 @@ export async function authorizeAssetAccess(
   }
 
   const { userId, apiKeyId } = await resolveAssetBearerOrCookie(c);
-  await validateWorkspaceAccess(userId, asset.workspaceId, apiKeyId);
+  await validateWorkspaceAccess(userId, asset.teamId, apiKeyId);
 }

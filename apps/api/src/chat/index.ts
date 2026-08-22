@@ -1,0 +1,155 @@
+import { Hono } from "hono";
+import { describeRoute, resolver, validator } from "hono-openapi";
+import * as v from "valibot";
+import { requireAdminHandler } from "../admin/require-admin";
+import { requireTeamRole } from "../utils/require-team-role";
+import { teamAccess } from "../utils/team-access-middleware";
+import { type ChatConfig, loadChatConfig, saveChatConfig } from "./config";
+import listMessages from "./controllers/list-messages";
+import { sendMessage } from "./controllers/send-message";
+
+const chatMessageSchema = v.object({
+  id: v.string(),
+  projectId: v.string(),
+  role: v.string(),
+  content: v.string(),
+  createdAt: v.date(),
+});
+
+const chatConfigResponseSchema = v.object({
+  enabled: v.boolean(),
+  baseUrl: v.string(),
+  apiKey: v.string(),
+  model: v.string(),
+});
+
+const chatConfigRequestSchema = v.object({
+  enabled: v.boolean(),
+  baseUrl: v.string(),
+  apiKey: v.string(),
+  model: v.string(),
+});
+
+// Internal helpers strip the secret before sending it to the wire.
+// The fetchers always include apiKey; the server replaces it with a redacted
+// marker after a save so the UI cannot display a real key.
+function maskConfig(config: ChatConfig): ChatConfig {
+  return { ...config, apiKey: config.apiKey ? "********" : "" };
+}
+
+const chat = new Hono<{
+  Variables: {
+    userId: string;
+    teamId: string;
+    teamRole: "owner" | "member";
+  };
+}>()
+  // Admin-only config endpoints. Auth is enforced inside the handler so
+  // these remain outside the global `authenticateApiRequest` middleware.
+  .get(
+    "/config",
+    describeRoute({
+      operationId: "getChatConfig",
+      tags: ["Chat"],
+      description: "Get the AI assistant configuration (admin only)",
+      responses: {
+        200: {
+          description: "Chat configuration",
+          content: {
+            "application/json": {
+              schema: resolver(chatConfigResponseSchema),
+            },
+          },
+        },
+      },
+    }),
+    async (c) => {
+      await requireAdminHandler(c);
+      const config = await loadChatConfig();
+      return c.json(maskConfig(config));
+    },
+  )
+  .put(
+    "/config",
+    describeRoute({
+      operationId: "updateChatConfig",
+      tags: ["Chat"],
+      description: "Update the AI assistant configuration (admin only)",
+      responses: {
+        200: {
+          description: "Updated chat configuration",
+          content: {
+            "application/json": {
+              schema: resolver(chatConfigResponseSchema),
+            },
+          },
+        },
+      },
+    }),
+    validator("json", chatConfigRequestSchema),
+    async (c) => {
+      await requireAdminHandler(c);
+      const body = c.req.valid("json");
+      await saveChatConfig(body);
+      const updated = await loadChatConfig();
+      return c.json(maskConfig(updated));
+    },
+  )
+  .get(
+    "/project/:projectId",
+    describeRoute({
+      operationId: "listChatMessages",
+      tags: ["Chat"],
+      description: "List conversation history for a project",
+      responses: {
+        200: {
+          description: "Chat messages ordered by creation time",
+          content: {
+            "application/json": {
+              schema: resolver(v.array(chatMessageSchema)),
+            },
+          },
+        },
+      },
+    }),
+    teamAccess.fromProject("projectId"),
+    async (c) => {
+      const projectId = c.req.param("projectId");
+      const messages = await listMessages(projectId);
+      return c.json(messages);
+    },
+  )
+  .post(
+    "/project/:projectId",
+    describeRoute({
+      operationId: "sendChatMessage",
+      tags: ["Chat"],
+      description: "Send a message and stream the pi-agent response via SSE",
+      responses: {
+        200: {
+          description: "SSE stream of tokens",
+          content: {
+            "text/event-stream": {
+              schema: resolver(v.any()),
+            },
+          },
+        },
+        503: {
+          description: "pi-agent not configured",
+          content: {
+            "application/json": {
+              schema: resolver(v.object({ error: v.string() })),
+            },
+          },
+        },
+      },
+    }),
+    teamAccess.fromProject("projectId"),
+    requireTeamRole("member"),
+    async (c) => {
+      const projectId = c.req.param("projectId");
+      return sendMessage(c, projectId);
+    },
+  );
+
+export default chat;

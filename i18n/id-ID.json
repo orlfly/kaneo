@@ -11,7 +11,8 @@
 			"remove": "Hapus",
 			"reset": "Atur ulang",
 			"filter": "Filter",
-			"clearAllFilters": "Hapus semua filter"
+			"clearAllFilters": "Hapus semua filter",
+			"adding": "Adding…"
 		},
 		"a11y": {
 			"toggleSidebar": "Tampilkan/sembunyikan panel samping"
@@ -35,18 +36,6 @@
 			"label": "Jalur navigasi",
 			"more": "Lainnya"
 		},
-		"language": {
-			"english": "Inggris",
-			"german": "Jerman",
-			"greek": "Yunani",
-			"macedonian": "Makedonia",
-			"french": "Prancis",
-			"spanish": "Spanyol",
-			"dutch": "Belanda",
-			"korean": "Korea",
-			"chinese": "Mandarin",
-			"italian": "Italia"
-		},
 		"people": {
 			"someone": "Seseorang",
 			"unknown": "Tidak diketahui"
@@ -65,7 +54,6 @@
 			"createProject": {
 				"title": "Buat proyek baru",
 				"breadcrumbNew": "Buat proyek baru",
-				"workspaceFallback": "RUANG KERJA",
 				"description": "Buat proyek baru di ruang kerja Anda dengan memberikan nama, key, dan memilih ikon.",
 				"pickIcon": "Pilih ikon",
 				"searchIcons": "Cari ikon...",
@@ -74,17 +62,12 @@
 				"keyHint": "Digunakan untuk ID tiket (contoh, {{example}}-123)",
 				"createButton": "Buat Proyek",
 				"successToast": "Proyek berhasil dibuat",
-				"errorToast": "Gagal membuat proyek"
-			},
-			"createWorkspace": {
-				"breadcrumbKaneo": "KANEO",
-				"title": "Buat ruang kerja baru",
-				"description": "Buat ruang kerja baru dengan memberikan nama untuk ruang kerja Anda.",
-				"namePlaceholder": "Nama ruang kerja",
-				"descriptionPlaceholder": "Tambahkan deskripsi...",
-				"createButton": "Buat Ruang Kerja",
-				"successToast": "Ruang kerja berhasil dibuat",
-				"errorToast": "Gagal membuat ruang kerja"
+				"errorToast": "Gagal membuat proyek",
+				"manageTeams": "Go to team management",
+				"noTeams": "You don't have any teams yet. Create or join a team before creating a project.",
+				"teamLabel": "Team",
+				"teamPlaceholder": "Select a team",
+				"teamFallback": "RUANG KERJA"
 			},
 			"createTask": {
 				"breadcrumbTask": "TUGAS",
@@ -99,7 +82,6 @@
 				"successUpdated": "Tugas berhasil diperbarui",
 				"createError": "Gagal membuat tugas",
 				"priority": "Prioritas",
-				"statusFallback": "Sedang Berjalan",
 				"startDate": "Tanggal mulai",
 				"dueDate": "Tenggat",
 				"clearStartDate": "Hapus tanggal mulai",
@@ -128,7 +110,19 @@
 					"rose": "Merah Mawar",
 					"crimson": "Merah Tua"
 				}
+			},
+			"createTeam": {
+				"breadcrumbKaneo": "KANEO",
+				"createButton": "Create Team",
+				"description": "Create a new team by providing a name for your team.",
+				"errorToast": "Failed to create team",
+				"namePlaceholder": "Team name",
+				"successToast": "Team created successfully",
+				"title": "Create a new team"
 			}
+		},
+		"states": {
+			"loading": "Loading…"
 		}
 	},
 	"auth": {
@@ -136,43 +130,17 @@
 			"pageTitle": "Masuk",
 			"title": "Selamat datang kembali",
 			"subtitle": "Masukkan kredensial Anda untuk mengakses ruang kerja",
-			"invitationSubtitle": "Masuk untuk menerima undangan Anda",
-			"invitationAlert": "Setelah masuk, Anda dapat menerima undangan ruang kerja.",
-			"signingIn": "Masuk...",
-			"continueWithGoogle": "Lanjutkan dengan Google",
-			"continueWithGithub": "Lanjutkan dengan GitHub",
-			"continueWithDiscord": "Lanjutkan dengan Discord",
-			"continueWithOidc": "Lanjutkan dengan OIDC",
-			"lastUsed": "Terakhir digunakan",
-			"registrationDisabled": "Pendaftaran publik dinonaktifkan. Gunakan undangan untuk membuat akun.",
-			"passwordRegistrationDisabled": "Pendaftaran dengan kata sandi dinonaktifkan. Gunakan metode masuk sosial atau OIDC yang telah dikonfigurasi untuk membuat akun.",
-			"toggleMessage": "Belum punya akun?",
-			"toggleLink": "Buat akun",
-			"guestSuccess": "Masuk sebagai tamu",
-			"guestError": "Gagal masuk sebagai tamu",
-			"oidcError": "Gagal masuk dengan OIDC",
-			"googleError": "Gagal masuk dengan Google",
-			"githubError": "Gagal masuk dengan GitHub",
-			"discordError": "Gagal masuk dengan Discord",
-			"errors": {
-				"account_not_linked": "Identitas ini tidak dapat ditautkan ke akun yang sudah ada. Masuk dengan email untuk memverifikasi akun, lalu coba SSO lagi. Jika masuk dengan email tidak tersedia, hubungi administrator Anda.",
-				"oauth_code_verification_failed": "Verifikasi OAuth gagal. Silakan coba lagi.",
-				"registration_is_currently_disabled_you_need_a_valid_invitation_to_create_an_account_": "Pendaftaran saat ini dinonaktifkan. Anda memerlukan undangan yang valid untuk membuat akun."
-			},
+			"registrationDisabled": "Public registration is disabled. Ask an administrator to create your account.",
 			"instanceStatusError": "Tidak dapat menghubungi server. Silakan coba lagi beberapa saat lagi."
-		},
-		"providers": {
-			"google": "Google",
-			"discord": "Discord"
 		},
 		"forms": {
 			"or": "atau",
-			"email": "Email",
 			"password": "Kata sandi",
-			"emailPlaceholder": "saya@contoh.com",
 			"passwordPlaceholder": "••••••••",
 			"showPassword": "Tampilkan kata sandi",
-			"hidePassword": "Sembunyikan kata sandi"
+			"hidePassword": "Sembunyikan kata sandi",
+			"username": "Username",
+			"usernamePlaceholder": "Enter your username"
 		},
 		"checkEmail": {
 			"pageTitle": "Periksa Email Anda",
@@ -181,114 +149,11 @@
 			"emailFallback": "alamat email Anda",
 			"backToLogin": "Kembali ke masuk"
 		},
-		"signUp": {
-			"pageTitle": "Buat Akun",
-			"title": "Buat akun",
-			"subtitleInvitation": "Buat akun untuk menerima undangan Anda",
-			"subtitleRegistrationDisabled": "Pendaftaran memerlukan undangan",
-			"subtitlePasswordDisabled": "Gunakan masuk sosial atau OIDC untuk membuat akun",
-			"subtitleDefault": "Mulai dengan ruang kerja Anda",
-			"invitationAlert": "Setelah membuat akun, Anda dapat menerima undangan ruang kerja.",
-			"registrationDisabledAlert": "Pendaftaran saat ini dinonaktifkan. Jika Anda diundang, masukkan alamat email yang menerima undangan untuk membuat akun.",
-			"passwordDisabledAlert": "Pembuatan akun berbasis kata sandi dinonaktifkan. Gunakan metode masuk sosial atau OIDC yang telah dikonfigurasi dari halaman masuk.",
-			"signingIn": "Masuk...",
-			"continueAsGuest": "Lanjutkan sebagai tamu",
-			"toggleMessage": "Sudah punya akun?",
-			"toggleLink": "Masuk",
-			"instanceStatusError": "Tidak dapat menghubungi server. Silakan coba lagi beberapa saat lagi.",
-			"instanceAdminTitle": "Siapkan instans Kaneo Anda",
-			"instanceAdminSubtitle": "Akun ini menjadi administrator instans dengan akses penuh."
-		},
-		"verifyOtp": {
-			"pageTitle": "Verifikasi Kode",
-			"title": "Masukkan kode verifikasi",
-			"subtitle": "Gunakan kode 6 digit yang dikirim ke email Anda untuk melanjutkan",
-			"codeSentTo": "Kode dikirim ke {{email}}",
-			"verificationCodeLabel": "Kode Verifikasi",
-			"verifying": "Memverifikasi...",
-			"verifyAndSignIn": "Verifikasi & Masuk",
-			"changeEmail": "Ubah email",
-			"resend": "Kirim ulang",
-			"validation": {
-				"codeLength": "Kode harus 6 digit"
-			},
-			"toast": {
-				"invalidCode": "Kode verifikasi tidak valid",
-				"signedInSuccess": "Berhasil masuk!",
-				"verifyFailed": "Gagal memverifikasi kode",
-				"resendFailed": "Gagal mengirim ulang kode",
-				"resendSuccess": "Kode verifikasi baru dikirim!"
-			}
-		},
-		"otpSignIn": {
-			"sendFailed": "Gagal mengirim kode verifikasi",
-			"codeSent": "Kode verifikasi dikirim! Periksa email Anda.",
-			"sending": "Mengirim...",
-			"sendVerificationCode": "Kirim Kode Verifikasi"
-		},
 		"signInForm": {
 			"failedSignIn": "Gagal masuk",
 			"signedInSuccess": "Berhasil masuk",
 			"signingIn": "Masuk...",
 			"signIn": "Masuk"
-		},
-		"signUpForm": {
-			"fullName": "Nama Lengkap",
-			"namePlaceholder": "John Doe",
-			"failedSignUp": "Gagal mendaftar",
-			"accountCreated": "Akun berhasil dibuat",
-			"passwordTooShort": "Kata sandi terlalu pendek",
-			"creatingAccount": "Membuat Akun...",
-			"createAccount": "Buat Akun"
-		},
-		"invitation": {
-			"pageTitleAccept": "Terima Undangan",
-			"pageTitleError": "Kesalahan Undangan",
-			"pageTitleInvalid": "Undangan Tidak Valid",
-			"loadingTitle": "Memuat undangan...",
-			"errorTitle": "Kesalahan Undangan",
-			"invalidTitle": "Undangan Tidak Valid",
-			"invitationExpired": "Undangan Kedaluwarsa",
-			"errorLoadDescription": "Gagal memuat detail undangan. Undangan mungkin tidak valid atau sudah kedaluwarsa.",
-			"goToSignIn": "Buka Masuk",
-			"workspaceLabel": "Ruang kerja: {{workspaceName}}",
-			"joinWorkspace": "Gabung {{workspaceName}}",
-			"inviteBodySignedIn": "<inviter>{{inviterName}}</inviter> mengundang Anda untuk bergabung ke ruang kerjanya.",
-			"inviteBodySignedOut": "<inviter>{{inviterName}}</inviter> mengundang Anda untuk bergabung ke ruang kerjanya di Kaneo.",
-			"createAccountOrSignIn": "Buat akun untuk menerima undangan ini, atau masuk jika Anda sudah memilikinya.",
-			"createAccount": "Buat Akun",
-			"accepting": "Menerima...",
-			"acceptInvitation": "Terima Undangan",
-			"goToDashboard": "Buka Dasbor",
-			"signedInAs": "Masuk sebagai <email>{{email}}</email>",
-			"youveBeenInvited": "Anda telah diundang!",
-			"invitationFor": "Undangan untuk: <email>{{email}}</email>",
-			"signIn": "Masuk",
-			"toast": {
-				"acceptFailed": "Gagal menerima undangan",
-				"acceptSuccess": "Undangan diterima! Selamat bergabung dengan tim."
-			}
-		},
-		"onboarding": {
-			"pageTitle": "Selamat datang di Kaneo",
-			"workspacePageTitle": "Buat Ruang Kerja",
-			"createWorkspaceTitle": "Buat ruang kerja",
-			"createWorkspaceSubtitle": "Siapkan ruang kerja Anda untuk mulai mengelola proyek",
-			"workspaceName": "Nama ruang kerja",
-			"workspaceNamePlaceholder": "contohnya: Acme Inc, Tim Saya",
-			"descriptionOptional": "Deskripsi (opsional)",
-			"descriptionPlaceholder": "Tim Anda mengerjakan apa?",
-			"creating": "Membuat...",
-			"createWorkspace": "Buat ruang kerja",
-			"workspaceCreatedTitle": "Ruang kerja dibuat",
-			"redirectingToWorkspace": "Mengarahkan Anda ke <name>{{name}}</name>...",
-			"toast": {
-				"workspaceCreated": "Ruang kerja berhasil dibuat",
-				"createFailed": "Gagal membuat ruang kerja"
-			},
-			"validation": {
-				"workspaceNameRequired": "Nama ruang kerja wajib diisi"
-			}
 		},
 		"profileSetup": {
 			"pageTitle": "Lengkapi Profil",
@@ -348,7 +213,7 @@
 			"deleteAccount": {
 				"confirm": "Delete account",
 				"confirmLabel": "Confirm your email address",
-				"description": "Workspaces only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
+				"description": "Teams only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
 				"error": "Failed to delete account",
 				"modalDescription": "This cannot be undone. Type {{email}} to confirm.",
 				"modalTitle": "Delete your account?",
@@ -400,13 +265,6 @@
 			"webhookSecretHintConfigured": "Signing secret sudah dikonfigurasi ({{masked}}). Masukkan yang baru untuk menggantinya.",
 			"webhookSecretHintOptional": "Opsional. Kaneo mendeteksi dan menandatangani isi request jika secret dikonfigurasi.",
 			"connectWebhook": "Hubungkan webhook",
-			"workspaceRulesTitle": "Aturan pengiriman ruang kerja",
-			"workspaceRulesDescription": "Gunakan ulang kanal global Anda, lalu tentukan ruang kerja dan proyek mana yang boleh mengirim notifikasi akun.",
-			"workspaceCardHint": "Pilih kanal yang dapat digunakan ruang kerja ini untuk notifikasi akun.",
-			"workspaceCardLabelEmail": "Email",
-			"workspaceCardLabelNtfy": "ntfy",
-			"workspaceCardLabelGotify": "Gotify",
-			"workspaceCardLabelWebhook": "Webhook kustom",
 			"emailChannelHintEnabled": "Kirim notifikasi ruang kerja yang sesuai melalui email.",
 			"emailChannelHintDisabled": "Konfigurasikan dan aktifkan email secara global terlebih dahulu.",
 			"ntfyChannelHintEnabled": "Kirim notifikasi ruang kerja yang sesuai ke ntfy.",
@@ -421,32 +279,14 @@
 			"allProjectsDescription": "Kirim notifikasi dari setiap proyek di ruang kerja ini.",
 			"selectedProjects": "Proyek terpilih",
 			"selectedProjectsDescription": "Hanya kirim notifikasi dari proyek yang dipilih.",
-			"noProjectsInWorkspace": "Belum ada proyek yang tersedia untuk ruang kerja ini.",
 			"createRule": "Buat aturan",
 			"removeRule": "Hapus aturan",
-			"toastEmailSaved": "Pengaturan notifikasi email disimpan",
-			"toastEmailSaveFailed": "Gagal menyimpan pengaturan email",
-			"toastNtfySaved": "Pengaturan ntfy disimpan",
-			"toastNtfySaveFailed": "Gagal menyimpan pengaturan ntfy",
-			"toastNtfyDisconnected": "ntfy diputuskan",
-			"toastNtfyDisconnectFailed": "Gagal memutuskan ntfy",
-			"toastGotifySaved": "Pengaturan Gotify disimpan",
-			"toastGotifySaveFailed": "Gagal menyimpan pengaturan Gotify",
-			"toastGotifyDisconnected": "Gotify diputuskan",
-			"toastGotifyDisconnectFailed": "Gagal memutuskan Gotify",
-			"toastWebhookSaved": "Pengaturan webhook disimpan",
-			"toastWebhookSaveFailed": "Gagal menyimpan pengaturan webhook",
-			"toastWebhookDisconnected": "Webhook diputuskan",
-			"toastWebhookDisconnectFailed": "Gagal memutuskan webhook",
-			"toastRuleSaved": "Aturan notifikasi untuk {{workspaceName}} disimpan",
 			"toastRuleSaveFailed": "Gagal menyimpan aturan notifikasi ruang kerja",
-			"toastRuleRemoved": "Aturan notifikasi untuk {{workspaceName}} dihapus",
 			"toastRuleRemoveFailed": "Gagal menghapus aturan notifikasi ruang kerja",
 			"toastPreferencesSaved": "Preferensi notifikasi disimpan",
 			"toastPreferencesSaveFailed": "Gagal menyimpan preferensi notifikasi",
 			"toastRuleSavedGeneric": "Aturan notifikasi ruang kerja disimpan",
 			"toastRuleRemovedGeneric": "Aturan notifikasi ruang kerja dihapus",
-			"workspaceEnabledLabel": "Aktifkan notifikasi untuk {{workspaceName}}",
 			"eventPreferencesTitle": "Beri tahu saya tentang",
 			"eventPreferencesDescription": "Pilih event tugas mana yang membuat notifikasi dalam aplikasi dan dapat dikirim ke kanal yang terhubung.",
 			"eventTaskAssignments": "Penugasan tugas",
@@ -459,7 +299,16 @@
 			"reminderLeadTimeUnitHours": "Jam",
 			"reminderLeadTimeUnitDays": "Hari",
 			"reminderLeadTimeInvalid": "Masukkan bilangan bulat antara 1 dan {{max}}.",
-			"saveEventPreferences": "Simpan jenis notifikasi"
+			"saveEventPreferences": "Simpan jenis notifikasi",
+			"noProjectsInTeam": "No projects available for this team yet.",
+			"teamCardHint": "Choose which channels this team can use for account notifications.",
+			"teamCardLabelEmail": "Email",
+			"teamCardLabelGotify": "Gotify",
+			"teamCardLabelNtfy": "ntfy",
+			"teamCardLabelWebhook": "Custom webhook",
+			"teamEnabledLabel": "Enable notifications for {{teamName}}",
+			"teamRulesDescription": "Reuse your global channels, then decide which teams and projects are allowed to send account notifications.",
+			"teamRulesTitle": "Team delivery rules"
 		},
 		"preferencesPage": {
 			"title": "Preferensi",
@@ -486,7 +335,6 @@
 			"selectViewMode": "Pilih mode tampilan",
 			"board": "Papan",
 			"list": "Daftar",
-			"gantt": "Gantt",
 			"sidebarDefault": "Default panel samping",
 			"sidebarDefaultDescription": "Biarkan sanel samping terbuka saat mulai",
 			"displayOptions": "Opsi tampilan",
@@ -566,49 +414,6 @@
 					"nameShort": "Nama harus minimal 3 karakter",
 					"expirationRequired": "Masa berlaku wajib diisi"
 				}
-			}
-		},
-		"workspaceGeneral": {
-			"pageTitle": "Pengaturan Umum",
-			"title": "Pengaturan Umum",
-			"subtitle": "Kelola nama dan deskripsi ruang kerja Anda.",
-			"workspaceInfoTitle": "Informasi Ruang Kerja",
-			"workspaceInfoSubtitle": "Konfigurasikan detail dan preferensi ruang kerja Anda.",
-			"nameLabel": "Nama ruang kerja",
-			"nameHint": "Nama ruang kerja Anda",
-			"namePlaceholder": "Masukkan nama ruang kerja",
-			"descriptionLabel": "Deskripsi",
-			"descriptionHint": "Deskripsi singkat ruang kerja Anda",
-			"descriptionPlaceholder": "Masukkan deskripsi ruang kerja",
-			"dangerZone": "Zona berbahaya",
-			"dangerZoneSubtitle": "Tindakan destruktif dan tidak dapat dibatalkan.",
-			"deleteWorkspace": "Hapus ruang kerja",
-			"deleteWorkspaceDescription": "Jadwalkan ruang kerja untuk dihapus permanen",
-			"deleteModalTitle": "Hapus Ruang Kerja?",
-			"deleteModalDescription": "Ini akan menghapus ruang kerja \"{{name}}\" dan semua datanya secara permanen. Tindakan ini tidak dapat dibatalkan.",
-			"deleteModalConfirm": "Hapus Ruang Kerja",
-			"toastUpdated": "Ruang kerja berhasil diperbarui",
-			"toastUpdateError": "Gagal memperbarui ruang kerja",
-			"toastDeleted": "Ruang kerja berhasil dihapus",
-			"toastDeleteError": "Gagal menghapus ruang kerja",
-			"validation": {
-				"nameRequired": "Nama ruang kerja wajib diisi",
-				"nameShort": "Nama ruang kerja harus minimal 2 karakter"
-			},
-			"transferOwnership": {
-				"toastSuccess": "Kepemilikan ditransfer",
-				"toastError": "Gagal mentransfer kepemilikan",
-				"title": "Transfer kepemilikan",
-				"subtitle": "Serahkan ruang kerja ini kepada anggota lain. Anda akan diturunkan menjadi admin dan kehilangan kemampuan khusus pemilik.",
-				"pickerLabel": "Pemilik baru",
-				"noEligibleMembers": "Undang minimal satu anggota lain sebelum Anda dapat mentransfer kepemilikan.",
-				"pickerHint": "Mereka akan menjadi satu-satunya pemilik ruang kerja ini.",
-				"pickerPlaceholder": "Pilih anggota",
-				"button": "Transfer",
-				"dialogTitle": "Transfer kepemilikan?",
-				"dialogDescription": "{{name}} akan menjadi satu-satunya pemilik {{workspace}}. Anda tetap memiliki akses admin tetapi kehilangan kemampuan khusus pemilik seperti menghapus ruang kerja atau mentransfernya lagi.",
-				"transferring": "Mentransfer…",
-				"confirm": "Transfer kepemilikan"
 			}
 		},
 		"projectGeneral": {
@@ -889,7 +694,6 @@
 			},
 			"connect": "Hubungkan Slack",
 			"saveChanges": "Simpan perubahan",
-			"update": "Perbarui Slack",
 			"disconnect": "Putuskan"
 		},
 		"discordIntegration": {
@@ -927,7 +731,6 @@
 			},
 			"connect": "Hubungkan Discord",
 			"saveChanges": "Simpan perubahan",
-			"update": "Perbarui Discord",
 			"disconnect": "Putuskan"
 		},
 		"genericWebhookIntegration": {
@@ -1085,144 +888,7 @@
 			"draft": "Draf",
 			"open": "Terbuka"
 		},
-		"workspaceRoles": {
-			"pageTitle": "Peran",
-			"title": "Peran",
-			"subtitle": "Tentukan tindakan yang dapat dilakukan anggota di {{workspaceName}}.",
-			"thisWorkspace": "ruang kerja ini",
-			"noAccess": "Anda memerlukan izin admin atau pemilik untuk mengelola peran ruang kerja.",
-			"sectionTitle": "Peran ruang kerja",
-			"sectionSubtitle": "Ubah peran bawaan atau tambahkan peran khusus. Anggota tetap memakai nama peran yang ditetapkan meski peran diubah.",
-			"newRole": "Peran baru",
-			"loading": "Memuat...",
-			"loadError": "Gagal memuat peran.",
-			"emptyTitle": "Belum ada peran",
-			"emptyDescription": "Peran bawaan akan muncul di sini setelah disiapkan untuk ruang kerja ini.",
-			"defaultBadge": "Bawaan",
-			"permissionCount_one": "{{count}} izin",
-			"permissionCount_other": "{{count}} izin",
-			"nameLabel": "Nama",
-			"nameHint": "Huruf kecil. Tidak dapat diubah nanti.",
-			"namePlaceholder": "mis. peninjau",
-			"discard": "Buang",
-			"createRole": "Buat peran",
-			"deleteRole": "Hapus peran",
-			"defaultRoleHelp": "Peran bawaan - nama dicadangkan dan baris tidak dapat dihapus.",
-			"unsavedChanges": "Ada perubahan yang belum disimpan",
-			"allChangesSaved": "Semua perubahan tersimpan",
-			"saveChanges": "Simpan perubahan",
-			"defaultRoleDescriptions": {
-				"viewer": "Akses hanya baca ke proyek, tugas, dan ruang kerja.",
-				"member": "Dapat membuat dan memperbarui proyek serta tugas.",
-				"admin": "Manajemen penuh proyek dan tugas serta pengaturan ruang kerja."
-			},
-			"resources": {
-				"project": "Proyek",
-				"task": "Tugas",
-				"label": "Label",
-				"workspace": "Ruang kerja"
-			},
-			"permissions": {
-				"project": {
-					"create": {
-						"label": "Buat proyek",
-						"description": "Buat proyek baru di ruang kerja ini."
-					},
-					"read": {
-						"label": "Lihat proyek",
-						"description": "Lihat proyek dan detailnya."
-					},
-					"update": {
-						"label": "Ubah proyek",
-						"description": "Perbarui nama, ikon, deskripsi, dan pengaturan proyek."
-					},
-					"delete": {
-						"label": "Hapus proyek",
-						"description": "Hapus proyek di ruang kerja ini secara permanen."
-					},
-					"share": {
-						"label": "Bagikan proyek",
-						"description": "Jadikan proyek dapat diakses publik melalui tautan berbagi."
-					}
-				},
-				"task": {
-					"create": {
-						"label": "Buat tugas",
-						"description": "Buat tugas baru di proyek mana pun."
-					},
-					"read": {
-						"label": "Lihat tugas",
-						"description": "Lihat tugas di semua proyek."
-					},
-					"update": {
-						"label": "Ubah tugas",
-						"description": "Ubah isi tugas, status, prioritas, tenggat, dan label."
-					},
-					"delete": {
-						"label": "Hapus tugas",
-						"description": "Hapus tugas secara permanen."
-					},
-					"assign": {
-						"label": "Tugaskan tugas",
-						"description": "Tugaskan tugas kepada anggota ruang kerja lain."
-					}
-				},
-				"label": {
-					"create": {
-						"label": "Buat label",
-						"description": "Tambahkan label baru ke tugas di ruang kerja ini."
-					},
-					"read": {
-						"label": "Lihat label",
-						"description": "Lihat label yang terpasang pada tugas."
-					},
-					"update": {
-						"label": "Ubah label",
-						"description": "Ganti nama, warna, dan penugasan label."
-					},
-					"delete": {
-						"label": "Hapus label",
-						"description": "Hapus label dari ruang kerja ini secara permanen."
-					}
-				},
-				"workspace": {
-					"read": {
-						"label": "Akses ruang kerja",
-						"description": "Baca metadata dan anggota ruang kerja."
-					},
-					"update": {
-						"label": "Ubah ruang kerja",
-						"description": "Ubah nama dan deskripsi ruang kerja."
-					},
-					"delete": {
-						"label": "Hapus ruang kerja",
-						"description": "Hapus ruang kerja ini secara permanen."
-					},
-					"manage_settings": {
-						"label": "Kelola pengaturan",
-						"description": "Atur integrasi, aturan notifikasi, dan preferensi ruang kerja."
-					}
-				}
-			},
-			"validation": {
-				"nameRequired": "Nama wajib diisi",
-				"nameExists": "Peran dengan nama tersebut sudah ada",
-				"permissionRequired": "Pilih setidaknya satu izin"
-			},
-			"toast": {
-				"created": "Peran dibuat",
-				"createError": "Gagal membuat peran",
-				"updated": "Peran diperbarui",
-				"updateError": "Gagal memperbarui peran",
-				"deleted": "Peran dihapus",
-				"deleteError": "Gagal menghapus peran"
-			},
-			"deleteDialog": {
-				"title": "Hapus peran",
-				"description": "Ini akan menghapus peran \"{{role}}\" secara permanen. Anggota yang memakai peran ini akan kehilangan izinnya."
-			}
-		},
-		"workspaceLabels": {
+		"teamLabels": {
 			"pageTitle": "Pengaturan Label",
 			"title": "Label",
 			"subtitle": "Buat, edit, dan hapus label tingkat ruang kerja.",
@@ -1257,7 +923,6 @@
 			"members": "Anggota",
 			"createTask": "Buat tugas",
 			"createProject": "Buat proyek",
-			"createWorkspace": "Buat ruang kerja",
 			"lightTheme": "Tema terang",
 			"darkTheme": "Tema gelap",
 			"systemTheme": "Tema sistem",
@@ -1268,14 +933,14 @@
 				"navigate": "Navigasi",
 				"open": "Buka",
 				"close": "Tutup"
-			}
+			},
+			"createTeam": "Create team"
 		},
 		"notifications": "Notifikasi",
 		"sidebar": {
 			"overview": "Ringkasan",
 			"projects": "Proyek",
 			"members": "Anggota",
-			"invitations": "Undangan",
 			"more": "Lainnya",
 			"backToBoard": "Kembali ke papan"
 		},
@@ -1296,10 +961,10 @@
 			"groups": {
 				"task": "Tugas",
 				"project": "Proyek",
-				"workspace": "Ruang kerja",
 				"comment": "Komentar",
 				"activity": "Aktivitas",
-				"fallback": "Hasil"
+				"fallback": "Hasil",
+				"team": "Teams"
 			}
 		},
 		"settingsLayout": {
@@ -1314,17 +979,10 @@
 			"signingOut": "Keluar...",
 			"logOut": "Keluar"
 		},
-		"workspaceSwitcher": {
-			"workspaces": "Ruang kerja",
-			"switching": "Beralih...",
-			"addWorkspace": "Tambah ruang kerja",
-			"selectWorkspace": "Pilih ruang kerja"
-		},
 		"page": {
 			"projectsTitle": "Proyek",
 			"settingsTitle": "Pengaturan",
-			"backToWorkspace": "Kembali ke Ruang Kerja",
-			"settingsWorkspaceTab": "Ruang Kerja"
+			"backToTeam": "Kembali ke Ruang Kerja"
 		},
 		"projectSettings": {
 			"projectLabel": "Proyek"
@@ -1349,21 +1007,25 @@
 				"closeModal": "Tutup modal/popover",
 				"createTask": "Buat tugas",
 				"createProject": "Buat proyek",
-				"createWorkspace": "Buat ruang kerja",
 				"boardView": "Beralih ke tampilan papan",
 				"listView": "Beralih ke tampilan daftar",
 				"backlogView": "Beralih ke tampilan backlog",
 				"nextTask": "Tugas berikutnya",
 				"prevTask": "Tugas sebelumnya",
 				"openTask": "Buka tugas terpilih",
-				"quickSelectNumber": "Pilih opsi berdasarkan nomor"
+				"quickSelectNumber": "Pilih opsi berdasarkan nomor",
+				"createTeam": "Create team"
 			}
+		},
+		"teamSwitcher": {
+			"addTeam": "Add team",
+			"selectTeam": "Select a team",
+			"switching": "Switching...",
+			"teams": "Teams"
 		}
 	},
 	"notifications": {
 		"title": "Notifikasi",
-		"newCount_one": "{{count}} baru",
-		"newCount_other": "{{count}} baru",
 		"emptyTitle": "Belum ada notifikasi",
 		"emptySubtitle": "Pembaruan dan aktivitas akan muncul di sini.",
 		"clearAll": "Hapus semua notifikasi",
@@ -1376,10 +1038,6 @@
 			"task_created": {
 				"title": "Tugas Baru Dibuat",
 				"content": "Tugas \"{{taskTitle}}\" dibuat"
-			},
-			"workspace_created": {
-				"title": "Ruang kerja dibuat",
-				"content": "Ruang kerja Anda \"{{workspaceName}}\" berhasil dibuat"
 			},
 			"task_status_changed": {
 				"title": "Status tugas berubah",
@@ -1662,9 +1320,6 @@
 						"onlyYoutube": "Hanya tautan YouTube yang dapat disematkan."
 					},
 					"onlyYoutubeInline": "Hanya URL YouTube yang dapat disematkan. Gunakan mode tautan."
-				},
-				"mermaid": {
-					"renderFailed": "Diagram Mermaid tidak dapat dirender"
 				}
 			}
 		},
@@ -1942,37 +1597,34 @@
 			}
 		}
 	},
-	"invitations": {
-		"email": {
-			"subject": "{{inviterName}} mengundang Anda bergabung ke {{workspaceName}} di Kaneo",
-			"preview": "Anda diundang ke {{workspaceName}} di Kaneo",
-			"title": "Bergabung ke {{workspaceName}}",
-			"subtitle": "{{inviterName}} ({{inviterEmail}}) mengundang Anda untuk berkolaborasi di Kaneo.",
-			"cta": "Terima undangan",
-			"sameEmail": "Anda dapat menerima undangan menggunakan alamat email yang menerima pesan ini.",
-			"ignore": "Jika ini tidak Anda harapkan, Anda dapat mengabaikan email ini dengan aman.",
-			"footer": "Undangan ruang kerja Kaneo"
+	"team": {
+		"roles": {
+			"owner": "Pemilik",
+			"admin": "Admin",
+			"member": "Anggota",
+			"viewer": "Lihat Saja"
 		},
-		"pageTitle": "Undangan",
-		"pendingInvitations": "Undangan Tertunda",
-		"acceptSubtitle": "Terima undangan untuk bergabung ke ruang kerja",
-		"noPendingTitle": "Tidak ada undangan tertunda",
-		"noPendingDescription": "Saat ini Anda tidak memiliki undangan ruang kerja yang tertunda.",
-		"continueToSetup": "Lanjutkan ke Penyiapan",
-		"skipForNow": "Lewati dulu",
-		"table": {
-			"workspace": "Ruang kerja",
-			"invitedBy": "Diundang Oleh",
-			"expires": "Kedaluwarsa"
+		"members": {
+			"pageTitle": "Anggota",
+			"you": "Anda"
 		},
-		"toast": {
-			"acceptError": "Gagal menerima undangan",
-			"acceptSuccess": "Undangan diterima! Selamat bergabung dengan tim.",
-			"rejectError": "Gagal menolak undangan",
-			"rejectSuccess": "Undangan ditolak"
-		}
-	},
-	"workspace": {
+		"membersTable": {
+			"emptyTitle": "Belum ada anggota tim",
+			"emptyDescription": "Ask an admin to add members to this team.",
+			"columns": {
+				"name": "Nama",
+				"role": "Peran",
+				"joined": "Bergabung"
+			},
+			"ariaRemoveMember": "Hapus anggota",
+			"removeDialogTitle": "Hapus Anggota Tim?",
+			"removeDialogDescription": "Apakah Anda yakin ingin menghapus {{name}} dari ruang kerja? Tindakan ini tidak dapat dibatalkan.",
+			"removeMember": "Hapus Anggota",
+			"removeSuccess": "Anggota tim berhasil dihapus",
+			"removeError": "Gagal menghapus anggota tim",
+			"roleUpdateSuccess": "Peran diperbarui",
+			"roleUpdateError": "Gagal memperbarui peran"
+		},
 		"projects": {
 			"pageTitle": "Proyek",
 			"createProject": "Buat proyek",
@@ -1990,7 +1642,6 @@
 				"inProgress": "Sedang berjalan"
 			},
 			"noDueDate": "Tanpa tenggat",
-			"reorderHandle": "Ubah urutan proyek",
 			"reorderError": "Gagal mengubah urutan proyek"
 		},
 		"search": {
@@ -2016,73 +1667,13 @@
 			"pageTitle": "Buat Ruang Kerja",
 			"heading": "Buat ruang kerja baru",
 			"subtitle": "Ruang kerja adalah lingkungan bersama tempat tim dapat bekerja pada proyek, siklus, dan issue.",
-			"nameLabel": "Nama Ruang Kerja",
 			"namePlaceholder": "Masukkan nama ruang kerja",
-			"descriptionLabel": "Deskripsi (opsional)",
-			"descriptionPlaceholder": "Tambahkan deskripsi untuk ruang kerja Anda",
 			"required": "Wajib",
 			"creating": "Membuat...",
 			"submit": "Buat ruang kerja",
 			"success": "Ruang kerja berhasil dibuat",
-			"error": "Gagal membuat ruang kerja"
-		}
-	},
-	"team": {
-		"roles": {
-			"owner": "Pemilik",
-			"admin": "Admin",
-			"member": "Anggota",
-			"viewer": "Lihat Saja"
-		},
-		"members": {
-			"pageTitle": "Anggota",
-			"inviteMember": "Undang anggota",
-			"you": "Anda"
-		},
-		"invitations": {
-			"linkLabel": "Tautan undangan",
-			"copyLink": "Salin tautan",
-			"linkCopied": "Tautan undangan disalin",
-			"copyFailed": "Tidak dapat menyalin secara otomatis. Pilih tautan lalu tekan Ctrl+C.",
-			"pendingBadge": "tertunda",
-			"expires": "Kedaluwarsa {{date}}"
-		},
-		"inviteModal": {
-			"title": "Undang Anggota Tim",
-			"emailLabel": "Email",
-			"emailPlaceholder": "rekan@perusahaan.com",
-			"sendInvitation": "Kirim Undangan",
-			"success": "Undangan berhasil dikirim",
-			"error": "Gagal mengundang anggota tim",
-			"createdTitle": "Undangan dibuat",
-			"shareLinkDescription": "Bagikan tautan ini kepada {{email}} agar mereka dapat bergabung ke ruang kerja.",
-			"done": "Selesai"
-		},
-		"membersTable": {
-			"emptyTitle": "Belum ada anggota tim",
-			"emptyDescription": "Undang anggota tim pertama Anda untuk memulai.",
-			"columns": {
-				"name": "Nama",
-				"role": "Peran",
-				"joined": "Bergabung",
-				"actions": "Aksi"
-			},
-			"memberRolePending": "{{role}} (Tertunda)",
-			"ariaCancelInvitation": "Batalkan undangan",
-			"ariaRemoveMember": "Hapus anggota",
-			"removeDialogTitle": "Hapus Anggota Tim?",
-			"removeDialogDescription": "Apakah Anda yakin ingin menghapus {{name}} dari ruang kerja? Tindakan ini tidak dapat dibatalkan.",
-			"cancelDialogTitle": "Batalkan Undangan?",
-			"cancelDialogDescription": "Apakah Anda yakin ingin membatalkan undangan untuk {{email}}? Tindakan ini tidak dapat dibatalkan.",
-			"removeMember": "Hapus Anggota",
-			"cancelInvitation": "Batalkan Undangan",
-			"removeSuccess": "Anggota tim berhasil dihapus",
-			"removeError": "Gagal menghapus anggota tim",
-			"cancelInviteSuccess": "Undangan berhasil dibatalkan",
-			"cancelInviteError": "Gagal membatalkan undangan",
-			"roleUpdateSuccess": "Peran diperbarui",
-			"roleUpdateError": "Gagal memperbarui peran",
-			"ariaInvitationActions": "Tindakan undangan"
+			"error": "Gagal membuat ruang kerja",
+			"nameLabel": "Team Name"
 		}
 	},
 	"publicProject": {
@@ -2099,7 +1690,6 @@
 		"taskDetail": {
 			"labels": "Label",
 			"externalLinks": "Tautan Eksternal",
-			"pullRequestFallback": "Pull Request",
 			"issueFallback": "Issue",
 			"prStatusMerged": "Digabung",
 			"prStatusDraft": "Draf",
@@ -2121,5 +1711,169 @@
 		"branding": {
 			"poweredBy": "Didukung oleh"
 		}
+	},
+	"admin": {
+		"actions": {
+			"delete": "Delete user",
+			"demote": "Demote to user",
+			"disable": "Disable account",
+			"enable": "Enable account",
+			"error": "Action failed",
+			"promote": "Promote to admin",
+			"resetPassword": "Reset password",
+			"successRole": "Role updated",
+			"successStatus": "Account status updated",
+			"manageTeams": "Manage teams"
+		},
+		"columns": {
+			"created": "Created",
+			"role": "Role",
+			"status": "Status",
+			"user": "User"
+		},
+		"create": {
+			"description": "Create a new account. The user can sign in with the username and password.",
+			"email": "Email (optional)",
+			"emailPlaceholder": "e.g. jane@example.com",
+			"error": "Failed to create user",
+			"name": "Name",
+			"namePlaceholder": "e.g. Jane Doe",
+			"password": "Password",
+			"passwordPlaceholder": "At least 8 characters",
+			"role": "Role",
+			"submit": "Create user",
+			"success": "User created",
+			"title": "Create user",
+			"username": "Username",
+			"usernamePlaceholder": "e.g. jane",
+			"validation": {
+				"nameRequired": "Name is required",
+				"passwordShort": "Password must be at least 8 characters",
+				"usernameInvalid": "Only lowercase letters, numbers and underscores (1-30 characters)",
+				"usernameRequired": "Username is required"
+			},
+			"team": "Team (optional)",
+			"teamNone": "No team",
+			"teamPlaceholder": "Choose a team…"
+		},
+		"deleteDialog": {
+			"confirm": "Delete",
+			"description": "Delete {{name}} ({{username}})? This cannot be undone.",
+			"success": "User deleted",
+			"title": "Delete user"
+		},
+		"page": {
+			"createUser": "Create user",
+			"currentUserBadge": "you",
+			"description": "Create and manage user accounts.",
+			"emptyDescription": "Create the first user account to get started.",
+			"emptyTitle": "No users",
+			"title": "User Management"
+		},
+		"resetPassword": {
+			"description": "Set a new password for {{username}}.",
+			"password": "New password",
+			"submit": "Reset password",
+			"success": "Password updated",
+			"title": "Reset password"
+		},
+		"role": {
+			"admin": "Admin",
+			"user": "User"
+		},
+		"status": {
+			"active": "Active",
+			"disabled": "Disabled"
+		},
+		"tab": "System",
+		"teams": {
+			"columns": {
+				"actions": "Actions",
+				"members": "Members",
+				"name": "Name",
+				"role": "Your role"
+			},
+			"create": "Create team",
+			"createDialogDescription": "Teams group users who collaborate on shared projects.",
+			"createDialogTitle": "Create a team",
+			"delete": "Delete team",
+			"deleteDialogDescription": "The team, its projects, and its memberships will be permanently deleted.",
+			"deleteDialogTitle": "Delete this team?",
+			"description": "Create and manage teams. Users join teams via invitation.",
+			"empty": "No teams yet. Create the first one to get started.",
+			"enter": "Enter team",
+			"hint": "As a system administrator, create the teams your users will join.",
+			"nameLabel": "Team name",
+			"namePlaceholder": "e.g. Acme",
+			"pageTitle": "Team management",
+			"tab": "Teams",
+			"title": "Teams",
+			"toast": {
+				"created": "Team \"{{name}}\" created",
+				"createError": "Failed to create team",
+				"deleted": "Team deleted",
+				"deleteError": "Failed to delete team",
+				"renamed": "Team renamed",
+				"renameError": "Failed to rename team"
+			},
+			"labels": "Labels",
+			"rename": "Rename",
+			"renameDialogDescription": "Change the name of this team.",
+			"renameDialogTitle": "Rename team",
+			"userTeamsAdd": "Add to team",
+			"userTeamsAddButton": "Add",
+			"userTeamsChoose": "Choose a team…",
+			"userTeamsCurrent": "Current teams",
+			"userTeamsDescription": "Manage which teams this user belongs to.",
+			"userTeamsEmpty": "This user is not a member of any team.",
+			"userTeamsNoAvailable": "This user is already in every team.",
+			"userTeamsRemove": "Remove from team",
+			"userTeamsTitle": "Teams of {{name}}",
+			"manageMembers": "Manage members",
+			"membersAdd": "Add user to team",
+			"membersAddButton": "Add",
+			"membersChooseUser": "Choose a user…",
+			"membersCurrent": "Current members",
+			"membersDescription": "Manage which users belong to this team.",
+			"membersEmpty": "This team has no members yet.",
+			"membersNoAvailable": "All users are already in this team.",
+			"membersRemove": "Remove from team",
+			"membersTitle": "Members of {{name}}"
+		},
+		"users": {
+			"tab": "Users"
+		},
+		"ai": {
+			"apiKeyHelp": "Stored encrypted. Sent as Bearer token. Never returned in responses.",
+			"apiKeyLabel": "API key",
+			"baseUrlHelp": "OpenAI-compatible endpoint. The client appends /v1/chat/completions.",
+			"baseUrlLabel": "API base URL",
+			"enableDescription": "When disabled, the Chat tab shows a placeholder and the API returns 503.",
+			"enableLabel": "Enable AI assistant",
+			"modelHelp": "Any model name accepted by your API. Default: gpt-4o.",
+			"modelLabel": "Model",
+			"pageDescription": "Configure the AI assistant used by project chat. Kaneo uses an OpenAI-compatible API.",
+			"pageTitle": "AI Assistant",
+			"save": "Save",
+			"saving": "Saving…",
+			"tab": "AI",
+			"toast": {
+				"error": "Failed to save settings",
+				"saved": "AI settings saved"
+			}
+		}
+	},
+	"chat": {
+		"errorFailed": "Failed to send message",
+		"errorTimeout": "Request timed out. Please try again.",
+		"notEnabledDescription": "The pi-agent AI assistant has not been configured for this instance. Please contact an administrator to enable it.",
+		"notEnabledTitle": "AI assistant not enabled",
+		"pageTitle": "Chat",
+		"placeholder": "Send a message to pi-agent…",
+		"send": "Send",
+		"streaming": "pi-agent is typing…",
+		"welcomeDescription": "Ask me to create tasks, check project status, or analyze progress. I'm your AI project management assistant.",
+		"welcomeTitle": "Chat with pi-agent",
+		"you": "You"
 	}
 }

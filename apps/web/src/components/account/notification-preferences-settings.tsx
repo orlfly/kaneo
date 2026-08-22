@@ -23,20 +23,20 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import {
-  useDeleteNotificationWorkspaceRule,
+  useDeleteNotificationTeamRule,
   useUpdateNotificationPreferences,
-  useUpsertNotificationWorkspaceRule,
+  useUpsertNotificationTeamRule,
 } from "@/hooks/mutations/notification-preferences/use-notification-preferences";
 import useGetNotificationPreferences from "@/hooks/queries/notification-preferences/use-get-notification-preferences";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
-import useGetWorkspaces from "@/hooks/queries/workspace/use-get-workspaces";
+import useGetTeams from "@/hooks/queries/team/use-get-teams";
 
-type WorkspaceSummary = {
+type TeamSummary = {
   id: string;
   name: string;
 };
 
-type WorkspaceRuleState = {
+type TeamRuleState = {
   isActive: boolean;
   emailEnabled: boolean;
   ntfyEnabled: boolean;
@@ -62,13 +62,13 @@ type NotificationEventPrefsState = {
   dueDateReminderLeadUnit: "hours" | "days";
 };
 
-function createWorkspaceRuleState(input: {
+function createTeamRuleState(input: {
   hasEmailChannel: boolean;
   hasGotifyChannel: boolean;
   hasNtfyChannel: boolean;
   hasWebhookChannel: boolean;
-  rule?: WorkspaceRuleState;
-}): WorkspaceRuleState {
+  rule?: TeamRuleState;
+}): TeamRuleState {
   if (input.rule) {
     return {
       isActive: input.rule.isActive,
@@ -167,7 +167,7 @@ function ChannelToggle({
   );
 }
 
-function WorkspaceRuleCard({
+function TeamRuleCard({
   hasEmailChannel,
   hasGotifyChannel,
   hasNtfyChannel,
@@ -175,14 +175,14 @@ function WorkspaceRuleCard({
   onDelete,
   onSave,
   rule,
-  workspace,
+  team,
 }: {
   hasEmailChannel: boolean;
   hasGotifyChannel: boolean;
   hasNtfyChannel: boolean;
   hasWebhookChannel: boolean;
-  onDelete: (workspaceId: string) => Promise<unknown>;
-  onSave: (workspaceId: string, rule: WorkspaceRuleState) => Promise<void>;
+  onDelete: (teamId: string) => Promise<unknown>;
+  onSave: (teamId: string, rule: TeamRuleState) => Promise<void>;
   rule?: {
     isActive: boolean;
     emailEnabled: boolean;
@@ -192,11 +192,11 @@ function WorkspaceRuleCard({
     projectMode: "all" | "selected";
     selectedProjectIds: string[];
   };
-  workspace: WorkspaceSummary;
+  team: TeamSummary;
 }) {
   const { t } = useTranslation();
-  const [state, setState] = React.useState<WorkspaceRuleState>(() =>
-    createWorkspaceRuleState({
+  const [state, setState] = React.useState<TeamRuleState>(() =>
+    createTeamRuleState({
       hasEmailChannel,
       hasGotifyChannel,
       hasNtfyChannel,
@@ -207,16 +207,16 @@ function WorkspaceRuleCard({
   const [isSaving, setIsSaving] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const { data: projects } = useGetProjects({
-    workspaceId:
+    teamId:
       state.projectMode === "selected" ||
       (rule?.projectMode ?? "all") === "selected"
-        ? workspace.id
+        ? team.id
         : "",
   });
 
   React.useEffect(() => {
     setState(
-      createWorkspaceRuleState({
+      createTeamRuleState({
         hasEmailChannel,
         hasGotifyChannel,
         hasNtfyChannel,
@@ -248,9 +248,9 @@ function WorkspaceRuleCard({
     <div className="space-y-4 border border-border rounded-md bg-sidebar p-4">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 space-y-1">
-          <p className="text-sm font-medium">{workspace.name}</p>
+          <p className="text-sm font-medium">{team.name}</p>
           <p className="text-xs text-muted-foreground">
-            {t("settings:notificationsPage.workspaceCardHint")}
+            {t("settings:notificationsPage.teamCardHint")}
           </p>
         </div>
 
@@ -266,8 +266,8 @@ function WorkspaceRuleCard({
             </div>
           ) : null}
           <Switch
-            aria-label={t("settings:notificationsPage.workspaceEnabledLabel", {
-              workspaceName: workspace.name,
+            aria-label={t("settings:notificationsPage.teamEnabledLabel", {
+              teamName: team.name,
             })}
             checked={state.isActive}
             disabled={isBusy}
@@ -289,7 +289,7 @@ function WorkspaceRuleCard({
               ? t("settings:notificationsPage.emailChannelHintEnabled")
               : t("settings:notificationsPage.emailChannelHintDisabled")
           }
-          label={t("settings:notificationsPage.workspaceCardLabelEmail")}
+          label={t("settings:notificationsPage.teamCardLabelEmail")}
           onCheckedChange={(checked) =>
             setState((current) => ({ ...current, emailEnabled: checked }))
           }
@@ -302,7 +302,7 @@ function WorkspaceRuleCard({
               ? t("settings:notificationsPage.ntfyChannelHintEnabled")
               : t("settings:notificationsPage.ntfyChannelHintDisabled")
           }
-          label={t("settings:notificationsPage.workspaceCardLabelNtfy")}
+          label={t("settings:notificationsPage.teamCardLabelNtfy")}
           onCheckedChange={(checked) =>
             setState((current) => ({ ...current, ntfyEnabled: checked }))
           }
@@ -315,7 +315,7 @@ function WorkspaceRuleCard({
               ? t("settings:notificationsPage.gotifyChannelHintEnabled")
               : t("settings:notificationsPage.gotifyChannelHintDisabled")
           }
-          label={t("settings:notificationsPage.workspaceCardLabelGotify")}
+          label={t("settings:notificationsPage.teamCardLabelGotify")}
           onCheckedChange={(checked) =>
             setState((current) => ({ ...current, gotifyEnabled: checked }))
           }
@@ -328,7 +328,7 @@ function WorkspaceRuleCard({
               ? t("settings:notificationsPage.webhookChannelHintEnabled")
               : t("settings:notificationsPage.webhookChannelHintDisabled")
           }
-          label={t("settings:notificationsPage.workspaceCardLabelWebhook")}
+          label={t("settings:notificationsPage.teamCardLabelWebhook")}
           onCheckedChange={(checked) =>
             setState((current) => ({ ...current, webhookEnabled: checked }))
           }
@@ -359,11 +359,11 @@ function WorkspaceRuleCard({
         >
           <label
             className="flex items-start gap-3"
-            htmlFor={`${workspace.id}-project-scope-all`}
+            htmlFor={`${team.id}-project-scope-all`}
           >
             <Radio
               className="mt-0.5"
-              id={`${workspace.id}-project-scope-all`}
+              id={`${team.id}-project-scope-all`}
               value="all"
             />
             <div className="min-w-0 space-y-0.5">
@@ -378,11 +378,11 @@ function WorkspaceRuleCard({
 
           <label
             className="flex items-start gap-3"
-            htmlFor={`${workspace.id}-project-scope-selected`}
+            htmlFor={`${team.id}-project-scope-selected`}
           >
             <Radio
               className="mt-0.5"
-              id={`${workspace.id}-project-scope-selected`}
+              id={`${team.id}-project-scope-selected`}
               value="selected"
             />
             <div className="min-w-0 space-y-0.5">
@@ -400,7 +400,7 @@ function WorkspaceRuleCard({
           <div className="space-y-2 border border-dashed border-border/80 rounded-md px-3 py-3">
             {!projects?.length ? (
               <p className="text-sm text-muted-foreground">
-                {t("settings:notificationsPage.noProjectsInWorkspace")}
+                {t("settings:notificationsPage.noProjectsInTeam")}
               </p>
             ) : (
               projects.map((project) => {
@@ -410,11 +410,11 @@ function WorkspaceRuleCard({
                   <label
                     key={project.id}
                     className="flex items-center gap-3"
-                    htmlFor={`${workspace.id}-project-${project.id}`}
+                    htmlFor={`${team.id}-project-${project.id}`}
                   >
                     <Checkbox
                       checked={checked}
-                      id={`${workspace.id}-project-${project.id}`}
+                      id={`${team.id}-project-${project.id}`}
                       onCheckedChange={(value) =>
                         toggleProject(project.id, Boolean(value))
                       }
@@ -436,7 +436,7 @@ function WorkspaceRuleCard({
           onClick={async () => {
             setIsSaving(true);
             try {
-              await onSave(workspace.id, state);
+              await onSave(team.id, state);
             } finally {
               setIsSaving(false);
             }
@@ -453,7 +453,7 @@ function WorkspaceRuleCard({
             onClick={async () => {
               setIsDeleting(true);
               try {
-                await onDelete(workspace.id);
+                await onDelete(team.id);
               } finally {
                 setIsDeleting(false);
               }
@@ -473,21 +473,21 @@ function WorkspaceRuleCard({
 export function NotificationPreferencesSettings() {
   const { t } = useTranslation();
   const { data: preferences, isLoading } = useGetNotificationPreferences();
-  const { data: workspacesData } = useGetWorkspaces();
+  const { data: teamsData } = useGetTeams();
   const { mutateAsync: updatePreferences, isPending: isSavingPreferences } =
     useUpdateNotificationPreferences();
-  const { mutateAsync: upsertWorkspaceRule } =
-    useUpsertNotificationWorkspaceRule();
-  const { mutateAsync: deleteWorkspaceRule } =
-    useDeleteNotificationWorkspaceRule();
+  const { mutateAsync: upsertTeamRule } =
+    useUpsertNotificationTeamRule();
+  const { mutateAsync: deleteTeamRule } =
+    useDeleteNotificationTeamRule();
 
-  const workspaces = React.useMemo(
+  const teams = React.useMemo(
     () =>
-      ((workspacesData ?? []) as WorkspaceSummary[]).map((workspace) => ({
-        id: workspace.id,
-        name: workspace.name,
+      ((teamsData ?? []) as TeamSummary[]).map((team) => ({
+        id: team.id,
+        name: team.name,
       })),
-    [workspacesData],
+    [teamsData],
   );
 
   const [globalPrefs, setGlobalPrefs] = React.useState<GlobalChannelPrefsState>(
@@ -551,15 +551,15 @@ export function NotificationPreferencesSettings() {
     eventPrefs.dueDateReminderLeadAmount >= 1 &&
     eventPrefs.dueDateReminderLeadAmount <= leadTimeMax;
 
-  const workspaceRuleMap = React.useMemo(
+  const teamRuleMap = React.useMemo(
     () =>
       new Map(
-        (preferences?.workspaces ?? []).map((workspaceRule) => [
-          workspaceRule.workspaceId,
-          workspaceRule,
+        (preferences?.teams ?? []).map((teamRule) => [
+          teamRule.teamId,
+          teamRule,
         ]),
       ),
-    [preferences?.workspaces],
+    [preferences?.teams],
   );
 
   if (isLoading) {
@@ -1181,20 +1181,20 @@ export function NotificationPreferencesSettings() {
       <div className="space-y-4">
         <div className="space-y-1">
           <h3 className="font-medium">
-            {t("settings:notificationsPage.workspaceRulesTitle")}
+            {t("settings:notificationsPage.teamRulesTitle")}
           </h3>
           <p className="text-sm text-muted-foreground">
-            {t("settings:notificationsPage.workspaceRulesDescription")}
+            {t("settings:notificationsPage.teamRulesDescription")}
           </p>
         </div>
 
         <div className="space-y-4">
-          {workspaces.map((workspace) => {
-            const rule = workspaceRuleMap.get(workspace.id);
+          {teams.map((team) => {
+            const rule = teamRuleMap.get(team.id);
 
             return (
-              <WorkspaceRuleCard
-                key={workspace.id}
+              <TeamRuleCard
+                key={team.id}
                 hasEmailChannel={Boolean(preferences?.emailEnabled)}
                 hasGotifyChannel={Boolean(
                   preferences?.gotifyEnabled && preferences?.gotifyConfigured,
@@ -1205,15 +1205,15 @@ export function NotificationPreferencesSettings() {
                 hasWebhookChannel={Boolean(
                   preferences?.webhookEnabled && preferences?.webhookConfigured,
                 )}
-                onDelete={deleteWorkspaceRule}
-                onSave={async (workspaceId, nextRule) => {
-                  await upsertWorkspaceRule({
-                    workspaceId,
+                onDelete={deleteTeamRule}
+                onSave={async (teamId, nextRule) => {
+                  await upsertTeamRule({
+                    teamId,
                     json: nextRule,
                   });
                 }}
                 rule={rule}
-                workspace={workspace}
+                team={team}
               />
             );
           })}

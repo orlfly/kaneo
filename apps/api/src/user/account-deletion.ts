@@ -1,15 +1,15 @@
-export type WorkspaceMembershipSummary = {
-  workspaceId: string;
-  workspaceName: string;
+export type TeamMembershipSummary = {
+  teamId: string;
+  teamName: string;
   isOwner: boolean;
   memberCount: number;
   ownerCount: number;
 };
 
 export type AccountDeletionPlan = {
-  blockedWorkspaceNames: string[];
-  workspaceIdsToDelete: string[];
-  workspaceIdsToLeave: string[];
+  blockedTeamNames: string[];
+  teamIdsToDelete: string[];
+  teamIdsToLeave: string[];
 };
 
 export function hasOwnerRole(role: string) {
@@ -20,32 +20,32 @@ export function hasOwnerRole(role: string) {
 }
 
 export function planAccountDeletion(
-  memberships: WorkspaceMembershipSummary[],
+  memberships: TeamMembershipSummary[],
 ): AccountDeletionPlan {
   const plan: AccountDeletionPlan = {
-    blockedWorkspaceNames: [],
-    workspaceIdsToDelete: [],
-    workspaceIdsToLeave: [],
+    blockedTeamNames: [],
+    teamIdsToDelete: [],
+    teamIdsToLeave: [],
   };
 
   for (const membership of memberships) {
     if (membership.memberCount <= 1) {
-      plan.workspaceIdsToDelete.push(membership.workspaceId);
+      plan.teamIdsToDelete.push(membership.teamId);
       continue;
     }
 
     if (membership.isOwner && membership.ownerCount <= 1) {
-      plan.blockedWorkspaceNames.push(membership.workspaceName);
+      plan.blockedTeamNames.push(membership.teamName);
       continue;
     }
 
-    plan.workspaceIdsToLeave.push(membership.workspaceId);
+    plan.teamIdsToLeave.push(membership.teamId);
   }
 
   return plan;
 }
 
-export function formatBlockedWorkspacesMessage(names: string[]) {
+export function formatBlockedTeamsMessage(names: string[]) {
   const quoted = names.map((name) => `"${name}"`);
   const list =
     quoted.length === 1

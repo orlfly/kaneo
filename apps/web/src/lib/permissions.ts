@@ -1,10 +1,1 @@
-export {
-  ac,
-  admin,
-  type BuiltInRoleName,
-  builtInRoles,
-  member,
-  owner,
-  statement,
-  viewer,
-} from "@kaneo/permissions";
+export { DEFAULT_TEAM_ROLE, isTeamRole, TEAM_ROLES, type TeamRole } from "@kaneo/permissions";

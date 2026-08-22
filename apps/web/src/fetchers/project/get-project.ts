@@ -4,7 +4,7 @@ import type { InferRequestType } from "hono/client";
 export type GetProjectRequest = InferRequestType<
   (typeof client)["project"][":id"]["$get"]
 >["param"] & {
-  workspaceId: string;
+  teamId: string;
 };
 
 async function getProject({ id }: GetProjectRequest) {

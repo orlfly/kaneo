@@ -10,7 +10,7 @@ export const DEFAULT_PROJECT_COLUMNS = [
 ] as const;
 
 async function createProject(
-  workspaceId: string,
+  teamId: string,
   name: string,
   icon: string,
   slug: string,
@@ -21,19 +21,19 @@ async function createProject(
     // create can interleave with a reorder's renumber. `reorderProjects` takes
     // the same lock with the same key.
     await tx.execute(
-      sql`SELECT pg_advisory_xact_lock(1524, hashtext(${workspaceId}))`,
+      sql`SELECT pg_advisory_xact_lock(1524, hashtext(${teamId}))`,
     );
 
     // New projects go to the bottom of the workspace's ordering.
     const [{ maxPosition } = { maxPosition: null }] = await tx
       .select({ maxPosition: max(projectTable.position) })
       .from(projectTable)
-      .where(eq(projectTable.workspaceId, workspaceId));
+      .where(eq(projectTable.teamId, teamId));
 
     const [createdProject] = await tx
       .insert(projectTable)
       .values({
-        workspaceId,
+        teamId,
         name,
         icon,
         slug,

@@ -3,12 +3,12 @@ import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { projectTable } from "../../database/schema";
 
-async function archiveProject(id: string, workspaceId: string) {
+async function archiveProject(id: string, teamId: string) {
   const [existingProject] = await db
     .select()
     .from(projectTable)
     .where(
-      and(eq(projectTable.id, id), eq(projectTable.workspaceId, workspaceId)),
+      and(eq(projectTable.id, id), eq(projectTable.teamId, teamId)),
     );
 
   if (!existingProject) {

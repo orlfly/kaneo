@@ -19,8 +19,10 @@ import {
 } from "hono-openapi";
 import * as v from "valibot";
 import activity from "./activity";
+import adminRoutes from "./admin";
 import { auth } from "./auth";
-import billing from "./billing";
+import chat from "./chat";
+import chatPublic from "./chat/public";
 import column from "./column";
 import comment from "./comment";
 import config from "./config";
@@ -36,7 +38,6 @@ import githubIntegration, {
   handleGithubWebhookRoute,
 } from "./github-integration";
 import getInstanceStatus from "./instance/controllers/get-instance-status";
-import invitation from "./invitation";
 import label from "./label";
 import mcpRoutes, { mcpWellKnownRoutes } from "./mcp";
 import { migrateColumns } from "./migrations/column-migration";
@@ -53,17 +54,19 @@ import slackIntegration from "./slack-integration";
 import { getPrivateObject } from "./storage/s3";
 import task from "./task";
 import taskRelation from "./task-relation";
+import team from "./team";
 import telegramIntegration from "./telegram-integration";
 import timeEntry from "./time-entry";
 import user from "./user";
 import getAvatar from "./user/controllers/get-avatar";
 import { authenticateApiRequest } from "./utils/authenticate-api-request";
 import { authorizeAssetAccess } from "./utils/authorize-asset-access";
-import { getInvitationDetails } from "./utils/check-registration-allowed";
+import { ensureAdminUser } from "./utils/ensure-admin-user";
 import { migrateApiKeyReferenceId } from "./utils/migrate-apikey-reference-id";
 import { migrateNotificationPreferencesSchema } from "./utils/migrate-notification-preferences-schema";
 import { migrateSessionColumn } from "./utils/migrate-session-column";
 import { migrateWorkspaceUserEmail } from "./utils/migrate-workspace-user-email";
+import { migrateWorkspacesToTeams } from "./utils/migrate-workspaces-to-teams";
 import {
   dedupeOperationIds,
   ensureOperationSummaries,
@@ -76,10 +79,7 @@ import {
   normalizeNullableSchemasForOpenApi30,
   normalizeOrganizationAuthOperations,
 } from "./utils/openapi-spec";
-import { seedDefaultWorkspaceRoles } from "./utils/seed-default-workspace-roles";
-import { validateWorkspaceAccess } from "./utils/validate-workspace-access";
 import workflowRule from "./workflow-rule";
-import workspace from "./workspace";
 import {
   addConnection,
   addUserConnection,
@@ -254,12 +254,6 @@ export function createApp() {
     handleGiteaWebhookRoute,
   );
 
-  const invitationPublicApi = api.get("/invitation/public/:id", async (c) => {
-    const { id } = c.req.param();
-    const result = await getInvitationDetails(id);
-    return c.json(result);
-  });
-
   api.get(
     "/auth/get-session",
     describeRoute({
@@ -306,7 +300,7 @@ export function createApp() {
           objectKey: schema.assetTable.objectKey,
           mimeType: schema.assetTable.mimeType,
           filename: schema.assetTable.filename,
-          workspaceId: schema.assetTable.workspaceId,
+          teamId: schema.assetTable.teamId,
           isPublic: schema.projectTable.isPublic,
         })
         .from(schema.assetTable)
@@ -573,11 +567,7 @@ export function createApp() {
 
   api.use("*", async (c, next) => {
     const path = c.req.path;
-    if (
-      path.startsWith("/api/mcp") ||
-      path.startsWith("/api/.well-known/") ||
-      path === "/api/billing/webhook"
-    ) {
+    if (path.startsWith("/api/mcp") || path.startsWith("/api/.well-known/")) {
       return next();
     }
     return Sentry.withIsolationScope(async () => {
@@ -602,7 +592,6 @@ export function createApp() {
 
   const oauthApi = api.route("/oauth", oauth);
 
-  const billingApi = api.route("/billing", billing);
   const projectApi = api.route("/project", project);
   const taskApi = api.route("/task", task);
   const columnApi = api.route("/column", column);
@@ -637,9 +626,10 @@ export function createApp() {
   const taskRelationApi = api.route("/task-relation", taskRelation);
   const externalLinkApi = api.route("/external-link", externalLink);
   const workflowRuleApi = api.route("/workflow-rule", workflowRule);
-  const invitationApi = api.route("/invitation", invitation);
-  const workspaceApi = api.route("/workspace", workspace);
+  const teamApi = api.route("/team", team);
+  const chatApi = api.route("/chat", chat);
   const userApi = api.route("/user", user);
+  const adminApi = api.route("/admin", adminRoutes);
 
   app.route(
     "/",
@@ -721,7 +711,7 @@ export function createApp() {
 
       if (projectId) {
         const [project] = await db
-          .select({ workspaceId: schema.projectTable.workspaceId })
+          .select({ teamId: schema.projectTable.teamId })
           .from(schema.projectTable)
           .where(eq(schema.projectTable.id, projectId))
           .limit(1);
@@ -730,7 +720,12 @@ export function createApp() {
           throw new HTTPException(401, { message: "Unauthorized" });
         }
 
-        await validateWorkspaceAccess(userId, project.workspaceId);
+        if (project.teamId) {
+          const { validateTeamAccess } = await import(
+            "./utils/validate-team-access"
+          );
+          await validateTeamAccess(userId, project.teamId);
+        }
       }
 
       const windowId = c.req.query("windowId");
@@ -773,6 +768,7 @@ export function createApp() {
     }),
   );
 
+  app.route("/api/chat", chatPublic);
   app.route("/api", api);
 
   return {
@@ -780,7 +776,7 @@ export function createApp() {
     api,
     injectWebSocket,
     activityApi,
-    billingApi,
+    adminApi,
     columnApi,
     commentApi,
     configApi,
@@ -789,8 +785,6 @@ export function createApp() {
     genericWebhookIntegrationApi,
     githubIntegrationApi,
     giteaIntegrationApi,
-    invitationApi,
-    invitationPublicApi,
     labelApi,
     notificationApi,
     notificationPreferencesApi,
@@ -800,11 +794,12 @@ export function createApp() {
     slackIntegrationApi,
     taskApi,
     taskRelationApi,
+    teamApi,
+    chatApi,
     telegramIntegrationApi,
     timeEntryApi,
     userApi,
     workflowRuleApi,
-    workspaceApi,
     oauthApi,
   };
 }
@@ -839,7 +834,8 @@ export async function runStartupTasks() {
   await migrateNotificationPreferencesSchema();
   await migrateGitHubIntegration();
   await migrateColumns();
-  await seedDefaultWorkspaceRoles();
+  await migrateWorkspacesToTeams();
+  await ensureAdminUser();
 
   initializePlugins();
   initializeScheduler();
@@ -898,7 +894,7 @@ const {
   app,
   injectWebSocket,
   activityApi,
-  billingApi,
+  adminApi,
   columnApi,
   commentApi,
   configApi,
@@ -907,8 +903,6 @@ const {
   genericWebhookIntegrationApi,
   githubIntegrationApi,
   giteaIntegrationApi,
-  invitationApi,
-  invitationPublicApi,
   labelApi,
   notificationApi,
   notificationPreferencesApi,
@@ -918,11 +912,12 @@ const {
   slackIntegrationApi,
   taskApi,
   taskRelationApi,
+  teamApi,
+  chatApi,
   telegramIntegrationApi,
   timeEntryApi,
   userApi,
   workflowRuleApi,
-  workspaceApi,
   oauthApi,
 } = createdApp;
 
@@ -937,12 +932,12 @@ if (isMainModule) {
 }
 
 export type AppType =
-  | typeof billingApi
   | typeof configApi
   | typeof projectApi
   | typeof taskApi
   | typeof columnApi
   | typeof activityApi
+  | typeof adminApi
   | typeof commentApi
   | typeof timeEntryApi
   | typeof labelApi
@@ -958,11 +953,10 @@ export type AppType =
   | typeof taskRelationApi
   | typeof externalLinkApi
   | typeof workflowRuleApi
-  | typeof invitationApi
-  | typeof workspaceApi
+  | typeof teamApi
+  | typeof chatApi
   | typeof userApi
   | typeof publicProjectApi
-  | typeof invitationPublicApi
   | typeof oauthApi;
 
 export default app;

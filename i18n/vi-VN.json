@@ -11,7 +11,8 @@
 			"remove": "Gỡ bỏ",
 			"reset": "Đặt lại",
 			"filter": "Lọc",
-			"clearAllFilters": "Xóa tất cả bộ lọc"
+			"clearAllFilters": "Xóa tất cả bộ lọc",
+			"adding": "Adding…"
 		},
 		"a11y": {
 			"toggleSidebar": "Bật/tắt thanh bên"
@@ -35,18 +36,6 @@
 			"label": "Đường dẫn",
 			"more": "Thêm"
 		},
-		"language": {
-			"english": "Tiếng Anh",
-			"german": "Tiếng Đức",
-			"greek": "Tiếng Hy Lạp",
-			"macedonian": "Tiếng Macedonia",
-			"french": "Tiếng Pháp",
-			"spanish": "Tiếng Tây Ban Nha",
-			"dutch": "Tiếng Hà Lan",
-			"korean": "Tiếng Hàn",
-			"chinese": "Tiếng Trung",
-			"italian": "Tiếng Ý"
-		},
 		"people": {
 			"someone": "Ai đó",
 			"unknown": "Không xác định"
@@ -65,7 +54,6 @@
 			"createProject": {
 				"title": "Tạo dự án mới",
 				"breadcrumbNew": "Tạo dự án mới",
-				"workspaceFallback": "KHÔNG GIAN LÀM VIỆC",
 				"description": "Tạo một dự án mới trong không gian làm việc của bạn bằng cách cung cấp tên, mã và chọn biểu tượng.",
 				"pickIcon": "Chọn biểu tượng",
 				"searchIcons": "Tìm biểu tượng...",
@@ -74,17 +62,12 @@
 				"keyHint": "Dùng cho mã số phiếu (ví dụ: {{example}}-123)",
 				"createButton": "Tạo dự án",
 				"successToast": "Tạo dự án thành công",
-				"errorToast": "Không thể tạo dự án"
-			},
-			"createWorkspace": {
-				"breadcrumbKaneo": "KANEO",
-				"title": "Tạo không gian làm việc mới",
-				"description": "Tạo một không gian làm việc mới bằng cách đặt tên cho nó.",
-				"namePlaceholder": "Tên không gian làm việc",
-				"descriptionPlaceholder": "Thêm mô tả...",
-				"createButton": "Tạo không gian làm việc",
-				"successToast": "Tạo không gian làm việc thành công",
-				"errorToast": "Không thể tạo không gian làm việc"
+				"errorToast": "Không thể tạo dự án",
+				"manageTeams": "Go to team management",
+				"noTeams": "You don't have any teams yet. Create or join a team before creating a project.",
+				"teamLabel": "Team",
+				"teamPlaceholder": "Select a team",
+				"teamFallback": "KHÔNG GIAN LÀM VIỆC"
 			},
 			"createTask": {
 				"breadcrumbTask": "CÔNG VIỆC",
@@ -99,7 +82,6 @@
 				"successUpdated": "Cập nhật công việc thành công",
 				"createError": "Không thể tạo công việc",
 				"priority": "Mức ưu tiên",
-				"statusFallback": "Đang thực hiện",
 				"startDate": "Ngày bắt đầu",
 				"dueDate": "Ngày đến hạn",
 				"clearStartDate": "Xóa ngày bắt đầu",
@@ -128,7 +110,19 @@
 					"rose": "Hồng",
 					"crimson": "Đỏ thẫm"
 				}
+			},
+			"createTeam": {
+				"breadcrumbKaneo": "KANEO",
+				"createButton": "Create Team",
+				"description": "Create a new team by providing a name for your team.",
+				"errorToast": "Failed to create team",
+				"namePlaceholder": "Team name",
+				"successToast": "Team created successfully",
+				"title": "Create a new team"
 			}
+		},
+		"states": {
+			"loading": "Loading…"
 		}
 	},
 	"auth": {
@@ -136,43 +130,17 @@
 			"pageTitle": "Đăng nhập",
 			"title": "Chào mừng trở lại",
 			"subtitle": "Nhập thông tin đăng nhập để truy cập không gian làm việc của bạn",
-			"invitationSubtitle": "Đăng nhập để chấp nhận lời mời của bạn",
-			"invitationAlert": "Sau khi đăng nhập, bạn sẽ có thể chấp nhận lời mời tham gia không gian làm việc.",
-			"signingIn": "Đang đăng nhập...",
-			"continueWithGoogle": "Tiếp tục với Google",
-			"continueWithGithub": "Tiếp tục với GitHub",
-			"continueWithDiscord": "Tiếp tục với Discord",
-			"continueWithOidc": "Tiếp tục với OIDC",
-			"lastUsed": "Dùng lần cuối",
-			"registrationDisabled": "Đăng ký công khai đã bị tắt. Hãy dùng lời mời để tạo tài khoản.",
-			"passwordRegistrationDisabled": "Đăng ký bằng mật khẩu đã bị tắt. Hãy dùng phương thức đăng nhập mạng xã hội hoặc OIDC đã cấu hình để tạo tài khoản.",
-			"toggleMessage": "Chưa có tài khoản?",
-			"toggleLink": "Tạo tài khoản",
-			"guestSuccess": "Đã đăng nhập với tư cách khách",
-			"guestError": "Không thể đăng nhập với tư cách khách",
-			"oidcError": "Không thể đăng nhập bằng OIDC",
-			"googleError": "Không thể đăng nhập bằng Google",
-			"githubError": "Không thể đăng nhập bằng GitHub",
-			"discordError": "Không thể đăng nhập bằng Discord",
-			"errors": {
-				"account_not_linked": "Không thể liên kết danh tính này với tài khoản hiện có. Hãy đăng nhập bằng email để xác minh tài khoản, sau đó thử SSO lại. Nếu không thể đăng nhập bằng email, hãy liên hệ quản trị viên của bạn.",
-				"oauth_code_verification_failed": "Xác minh OAuth thất bại. Vui lòng thử lại.",
-				"registration_is_currently_disabled_you_need_a_valid_invitation_to_create_an_account_": "Đăng ký hiện đang bị tắt. Bạn cần có lời mời hợp lệ để tạo tài khoản."
-			},
+			"registrationDisabled": "Public registration is disabled. Ask an administrator to create your account.",
 			"instanceStatusError": "Không thể kết nối đến máy chủ. Vui lòng thử lại sau giây lát."
-		},
-		"providers": {
-			"google": "Google",
-			"discord": "Discord"
 		},
 		"forms": {
 			"or": "hoặc",
-			"email": "Email",
 			"password": "Mật khẩu",
-			"emailPlaceholder": "me@example.com",
 			"passwordPlaceholder": "••••••••",
 			"showPassword": "Hiện mật khẩu",
-			"hidePassword": "Ẩn mật khẩu"
+			"hidePassword": "Ẩn mật khẩu",
+			"username": "Username",
+			"usernamePlaceholder": "Enter your username"
 		},
 		"checkEmail": {
 			"pageTitle": "Kiểm tra email",
@@ -181,114 +149,11 @@
 			"emailFallback": "địa chỉ email của bạn",
 			"backToLogin": "Quay lại đăng nhập"
 		},
-		"signUp": {
-			"pageTitle": "Tạo tài khoản",
-			"title": "Tạo tài khoản",
-			"subtitleInvitation": "Tạo tài khoản để chấp nhận lời mời của bạn",
-			"subtitleRegistrationDisabled": "Đăng ký yêu cầu có lời mời",
-			"subtitlePasswordDisabled": "Dùng đăng nhập mạng xã hội hoặc OIDC để tạo tài khoản",
-			"subtitleDefault": "Bắt đầu với không gian làm việc của bạn",
-			"invitationAlert": "Sau khi tạo tài khoản, bạn sẽ có thể chấp nhận lời mời tham gia không gian làm việc.",
-			"registrationDisabledAlert": "Đăng ký hiện đang bị tắt. Nếu bạn đã được mời, hãy nhập địa chỉ email đã nhận lời mời để tạo tài khoản.",
-			"passwordDisabledAlert": "Tạo tài khoản bằng mật khẩu đã bị tắt. Hãy dùng phương thức đăng nhập mạng xã hội hoặc OIDC đã cấu hình từ trang đăng nhập.",
-			"signingIn": "Đang đăng nhập...",
-			"continueAsGuest": "Tiếp tục với tư cách khách",
-			"toggleMessage": "Đã có tài khoản?",
-			"toggleLink": "Đăng nhập",
-			"instanceStatusError": "Không thể kết nối đến máy chủ. Vui lòng thử lại sau giây lát.",
-			"instanceAdminTitle": "Thiết lập phiên bản Kaneo của bạn",
-			"instanceAdminSubtitle": "Tài khoản này sẽ trở thành quản trị viên của phiên bản với toàn quyền truy cập."
-		},
-		"verifyOtp": {
-			"pageTitle": "Xác minh mã",
-			"title": "Nhập mã xác minh",
-			"subtitle": "Dùng mã 6 chữ số đã gửi đến email của bạn để tiếp tục",
-			"codeSentTo": "Đã gửi mã đến {{email}}",
-			"verificationCodeLabel": "Mã xác minh",
-			"verifying": "Đang xác minh...",
-			"verifyAndSignIn": "Xác minh & Đăng nhập",
-			"changeEmail": "Đổi email",
-			"resend": "Gửi lại",
-			"validation": {
-				"codeLength": "Mã phải có 6 chữ số"
-			},
-			"toast": {
-				"invalidCode": "Mã xác minh không hợp lệ",
-				"signedInSuccess": "Đăng nhập thành công!",
-				"verifyFailed": "Không thể xác minh mã",
-				"resendFailed": "Không thể gửi lại mã",
-				"resendSuccess": "Đã gửi mã xác minh mới!"
-			}
-		},
-		"otpSignIn": {
-			"sendFailed": "Không thể gửi mã xác minh",
-			"codeSent": "Đã gửi mã xác minh! Hãy kiểm tra email của bạn.",
-			"sending": "Đang gửi...",
-			"sendVerificationCode": "Gửi mã xác minh"
-		},
 		"signInForm": {
 			"failedSignIn": "Đăng nhập thất bại",
 			"signedInSuccess": "Đăng nhập thành công",
 			"signingIn": "Đang đăng nhập...",
 			"signIn": "Đăng nhập"
-		},
-		"signUpForm": {
-			"fullName": "Họ và tên",
-			"namePlaceholder": "Nguyễn Văn A",
-			"failedSignUp": "Đăng ký thất bại",
-			"accountCreated": "Tạo tài khoản thành công",
-			"passwordTooShort": "Mật khẩu quá ngắn",
-			"creatingAccount": "Đang tạo tài khoản...",
-			"createAccount": "Tạo tài khoản"
-		},
-		"invitation": {
-			"pageTitleAccept": "Chấp nhận lời mời",
-			"pageTitleError": "Lỗi lời mời",
-			"pageTitleInvalid": "Lời mời không hợp lệ",
-			"loadingTitle": "Đang tải lời mời...",
-			"errorTitle": "Lỗi lời mời",
-			"invalidTitle": "Lời mời không hợp lệ",
-			"invitationExpired": "Lời mời đã hết hạn",
-			"errorLoadDescription": "Không thể tải thông tin lời mời. Lời mời có thể không hợp lệ hoặc đã hết hạn.",
-			"goToSignIn": "Đến trang đăng nhập",
-			"workspaceLabel": "Không gian làm việc: {{workspaceName}}",
-			"joinWorkspace": "Tham gia {{workspaceName}}",
-			"inviteBodySignedIn": "<inviter>{{inviterName}}</inviter> đã mời bạn tham gia không gian làm việc của họ.",
-			"inviteBodySignedOut": "<inviter>{{inviterName}}</inviter> đã mời bạn tham gia không gian làm việc của họ trên Kaneo.",
-			"createAccountOrSignIn": "Tạo tài khoản để chấp nhận lời mời này, hoặc đăng nhập nếu bạn đã có tài khoản.",
-			"createAccount": "Tạo tài khoản",
-			"accepting": "Đang chấp nhận...",
-			"acceptInvitation": "Chấp nhận lời mời",
-			"goToDashboard": "Đến bảng điều khiển",
-			"signedInAs": "Đã đăng nhập với <email>{{email}}</email>",
-			"youveBeenInvited": "Bạn đã được mời!",
-			"invitationFor": "Lời mời dành cho: <email>{{email}}</email>",
-			"signIn": "Đăng nhập",
-			"toast": {
-				"acceptFailed": "Không thể chấp nhận lời mời",
-				"acceptSuccess": "Đã chấp nhận lời mời! Chào mừng bạn đến với nhóm."
-			}
-		},
-		"onboarding": {
-			"pageTitle": "Chào mừng đến với Kaneo",
-			"workspacePageTitle": "Tạo không gian làm việc",
-			"createWorkspaceTitle": "Tạo không gian làm việc",
-			"createWorkspaceSubtitle": "Thiết lập không gian làm việc để bắt đầu quản lý dự án",
-			"workspaceName": "Tên không gian làm việc",
-			"workspaceNamePlaceholder": "ví dụ: Acme Inc, Nhóm của tôi",
-			"descriptionOptional": "Mô tả (không bắt buộc)",
-			"descriptionPlaceholder": "Nhóm của bạn làm việc về lĩnh vực gì?",
-			"creating": "Đang tạo...",
-			"createWorkspace": "Tạo không gian làm việc",
-			"workspaceCreatedTitle": "Đã tạo không gian làm việc",
-			"redirectingToWorkspace": "Đang đưa bạn đến <name>{{name}}</name>...",
-			"toast": {
-				"workspaceCreated": "Tạo không gian làm việc thành công",
-				"createFailed": "Không thể tạo không gian làm việc"
-			},
-			"validation": {
-				"workspaceNameRequired": "Cần có tên không gian làm việc"
-			}
 		},
 		"profileSetup": {
 			"pageTitle": "Hoàn tất hồ sơ",
@@ -348,7 +213,7 @@
 			"deleteAccount": {
 				"confirm": "Delete account",
 				"confirmLabel": "Confirm your email address",
-				"description": "Workspaces only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
+				"description": "Teams only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
 				"error": "Failed to delete account",
 				"modalDescription": "This cannot be undone. Type {{email}} to confirm.",
 				"modalTitle": "Delete your account?",
@@ -400,10 +265,6 @@
 			"webhookSecretHintConfigured": "Đã cấu hình khóa bí mật ký ({{masked}}). Nhập khóa mới để thay thế.",
 			"webhookSecretHintOptional": "Không bắt buộc. Kaneo sẽ ký nội dung yêu cầu khi có thiết lập khóa bí mật.",
 			"connectWebhook": "Kết nối webhook",
-			"workspaceRulesTitle": "Quy tắc gửi thông báo theo không gian làm việc",
-			"workspaceRulesDescription": "Tái sử dụng các kênh chung của bạn, sau đó quyết định không gian làm việc và dự án nào được phép gửi thông báo tài khoản.",
-			"workspaceCardHint": "Chọn kênh mà không gian làm việc này có thể dùng để gửi thông báo tài khoản.",
-			"workspaceEnabledLabel": "Bật thông báo cho {{workspaceName}}",
 			"eventPreferencesTitle": "Thông báo cho tôi về",
 			"eventPreferencesDescription": "Chọn sự kiện công việc nào sẽ tạo thông báo trong ứng dụng và có thể được gửi đến các kênh đã kết nối.",
 			"eventTaskAssignments": "Giao việc",
@@ -417,10 +278,6 @@
 			"reminderLeadTimeUnitDays": "Ngày",
 			"reminderLeadTimeInvalid": "Nhập một số nguyên từ 1 đến {{max}}.",
 			"saveEventPreferences": "Lưu loại thông báo",
-			"workspaceCardLabelEmail": "Email",
-			"workspaceCardLabelNtfy": "ntfy",
-			"workspaceCardLabelGotify": "Gotify",
-			"workspaceCardLabelWebhook": "Webhook tùy chỉnh",
 			"emailChannelHintEnabled": "Gửi thông báo phù hợp của không gian làm việc qua email.",
 			"emailChannelHintDisabled": "Hãy cấu hình và bật email ở cấp toàn cục trước.",
 			"ntfyChannelHintEnabled": "Gửi thông báo phù hợp của không gian làm việc đến ntfy.",
@@ -435,31 +292,23 @@
 			"allProjectsDescription": "Gửi thông báo từ mọi dự án trong không gian làm việc này.",
 			"selectedProjects": "Dự án đã chọn",
 			"selectedProjectsDescription": "Chỉ gửi thông báo từ các dự án đã chọn.",
-			"noProjectsInWorkspace": "Chưa có dự án nào khả dụng cho không gian làm việc này.",
 			"createRule": "Tạo quy tắc",
 			"removeRule": "Gỡ bỏ quy tắc",
-			"toastEmailSaved": "Đã lưu cài đặt thông báo email",
-			"toastEmailSaveFailed": "Không thể lưu cài đặt email",
-			"toastNtfySaved": "Đã lưu cài đặt ntfy",
-			"toastNtfySaveFailed": "Không thể lưu cài đặt ntfy",
-			"toastNtfyDisconnected": "Đã ngắt kết nối ntfy",
-			"toastNtfyDisconnectFailed": "Không thể ngắt kết nối ntfy",
-			"toastGotifySaved": "Đã lưu cài đặt Gotify",
-			"toastGotifySaveFailed": "Không thể lưu cài đặt Gotify",
-			"toastGotifyDisconnected": "Đã ngắt kết nối Gotify",
-			"toastGotifyDisconnectFailed": "Không thể ngắt kết nối Gotify",
-			"toastWebhookSaved": "Đã lưu cài đặt webhook",
-			"toastWebhookSaveFailed": "Không thể lưu cài đặt webhook",
-			"toastWebhookDisconnected": "Đã ngắt kết nối webhook",
-			"toastWebhookDisconnectFailed": "Không thể ngắt kết nối webhook",
-			"toastRuleSaved": "Đã lưu quy tắc thông báo cho {{workspaceName}}",
 			"toastRuleSaveFailed": "Không thể lưu quy tắc thông báo không gian làm việc",
-			"toastRuleRemoved": "Đã gỡ quy tắc thông báo cho {{workspaceName}}",
 			"toastRuleRemoveFailed": "Không thể gỡ quy tắc thông báo không gian làm việc",
 			"toastPreferencesSaved": "Đã lưu tùy chọn thông báo",
 			"toastPreferencesSaveFailed": "Không thể lưu tùy chọn thông báo",
 			"toastRuleSavedGeneric": "Đã lưu quy tắc thông báo không gian làm việc",
-			"toastRuleRemovedGeneric": "Đã gỡ quy tắc thông báo không gian làm việc"
+			"toastRuleRemovedGeneric": "Đã gỡ quy tắc thông báo không gian làm việc",
+			"noProjectsInTeam": "No projects available for this team yet.",
+			"teamCardHint": "Choose which channels this team can use for account notifications.",
+			"teamCardLabelEmail": "Email",
+			"teamCardLabelGotify": "Gotify",
+			"teamCardLabelNtfy": "ntfy",
+			"teamCardLabelWebhook": "Custom webhook",
+			"teamEnabledLabel": "Enable notifications for {{teamName}}",
+			"teamRulesDescription": "Reuse your global channels, then decide which teams and projects are allowed to send account notifications.",
+			"teamRulesTitle": "Team delivery rules"
 		},
 		"preferencesPage": {
 			"title": "Tùy chọn",
@@ -486,7 +335,6 @@
 			"selectViewMode": "Chọn chế độ xem",
 			"board": "Bảng",
 			"list": "Danh sách",
-			"gantt": "Gantt",
 			"sidebarDefault": "Thanh bên mặc định",
 			"sidebarDefaultDescription": "Giữ thanh bên mở rộng khi khởi động",
 			"displayOptions": "Tùy chọn hiển thị",
@@ -567,211 +415,6 @@
 					"expirationRequired": "Cần có thời hạn"
 				}
 			}
-		},
-		"workspaceGeneral": {
-			"pageTitle": "Cài đặt chung",
-			"title": "Cài đặt chung",
-			"subtitle": "Quản lý tên và mô tả không gian làm việc của bạn.",
-			"workspaceInfoTitle": "Thông tin không gian làm việc",
-			"workspaceInfoSubtitle": "Cấu hình chi tiết và tùy chọn cho không gian làm việc của bạn.",
-			"nameLabel": "Tên không gian làm việc",
-			"nameHint": "Tên của không gian làm việc",
-			"namePlaceholder": "Nhập tên không gian làm việc",
-			"descriptionLabel": "Mô tả",
-			"descriptionHint": "Mô tả ngắn gọn về không gian làm việc của bạn",
-			"descriptionPlaceholder": "Nhập mô tả không gian làm việc",
-			"dangerZone": "Vùng nguy hiểm",
-			"dangerZoneSubtitle": "Các hành động không thể hoàn tác và mang tính phá hủy.",
-			"deleteWorkspace": "Xóa không gian làm việc",
-			"deleteWorkspaceDescription": "Lên lịch xóa vĩnh viễn không gian làm việc",
-			"deleteModalTitle": "Xóa không gian làm việc?",
-			"deleteModalDescription": "Thao tác này sẽ xóa vĩnh viễn không gian làm việc \"{{name}}\" và toàn bộ dữ liệu của nó. Hành động này không thể hoàn tác.",
-			"deleteModalConfirm": "Xóa không gian làm việc",
-			"toastUpdated": "Cập nhật không gian làm việc thành công",
-			"toastUpdateError": "Không thể cập nhật không gian làm việc",
-			"toastDeleted": "Xóa không gian làm việc thành công",
-			"toastDeleteError": "Không thể xóa không gian làm việc",
-			"validation": {
-				"nameRequired": "Cần có tên không gian làm việc",
-				"nameShort": "Tên không gian làm việc phải có ít nhất 2 ký tự"
-			},
-			"transferOwnership": {
-				"toastSuccess": "Đã chuyển quyền sở hữu",
-				"toastError": "Không thể chuyển quyền sở hữu",
-				"title": "Chuyển quyền sở hữu",
-				"subtitle": "Bàn giao không gian làm việc này cho một thành viên khác. Bạn sẽ bị hạ xuống quản trị viên và mất các quyền chỉ dành cho chủ sở hữu.",
-				"pickerLabel": "Chủ sở hữu mới",
-				"noEligibleMembers": "Hãy mời ít nhất một thành viên khác trước khi bạn có thể chuyển quyền sở hữu.",
-				"pickerHint": "Họ sẽ trở thành chủ sở hữu duy nhất của không gian làm việc này.",
-				"pickerPlaceholder": "Chọn một thành viên",
-				"button": "Chuyển",
-				"dialogTitle": "Chuyển quyền sở hữu?",
-				"dialogDescription": "{{name}} sẽ trở thành chủ sở hữu duy nhất của {{workspace}}. Bạn sẽ giữ quyền quản trị viên nhưng mất các quyền chỉ dành cho chủ sở hữu như xóa không gian làm việc hoặc chuyển quyền sở hữu lần nữa.",
-				"transferring": "Đang chuyển…",
-				"confirm": "Chuyển quyền sở hữu"
-			}
-		},
-		"workspaceRoles": {
-			"pageTitle": "Vai trò",
-			"title": "Vai trò",
-			"subtitle": "Xác định các hành động mà thành viên có thể thực hiện trong {{workspaceName}}.",
-			"thisWorkspace": "không gian làm việc này",
-			"noAccess": "Bạn cần quyền quản trị viên hoặc chủ sở hữu để quản lý vai trò không gian làm việc.",
-			"sectionTitle": "Vai trò không gian làm việc",
-			"sectionSubtitle": "Chỉnh sửa vai trò mặc định hoặc thêm vai trò tùy chỉnh. Thành viên giữ nguyên tên vai trò đã gán qua các lần chỉnh sửa.",
-			"newRole": "Vai trò mới",
-			"loading": "Đang tải…",
-			"loadError": "Không thể tải vai trò.",
-			"emptyTitle": "Chưa có vai trò nào",
-			"emptyDescription": "Các vai trò mặc định sẽ xuất hiện ở đây khi được khởi tạo cho không gian làm việc này.",
-			"defaultBadge": "Mặc định",
-			"permissionCount_one": "{{count}} quyền",
-			"permissionCount_other": "{{count}} quyền",
-			"nameLabel": "Tên",
-			"nameHint": "Chữ thường. Không thể thay đổi sau này.",
-			"namePlaceholder": "ví dụ: reviewer",
-			"discard": "Hủy bỏ",
-			"createRole": "Tạo vai trò",
-			"deleteRole": "Xóa vai trò",
-			"defaultRoleHelp": "Vai trò mặc định: tên đã được giữ trước và không thể xóa hàng này.",
-			"unsavedChanges": "Bạn có thay đổi chưa lưu",
-			"allChangesSaved": "Đã lưu tất cả thay đổi",
-			"saveChanges": "Lưu thay đổi",
-			"defaultRoleDescriptions": {
-				"viewer": "Có thể xem và bình luận công việc.",
-				"member": "Có thể tạo và quản lý công việc, dự án.",
-				"admin": "Có toàn quyền truy cập không gian làm việc."
-			},
-			"resources": {
-				"project": "Dự án",
-				"task": "Công việc",
-				"label": "Nhãn",
-				"workspace": "Không gian làm việc"
-			},
-			"permissions": {
-				"project": {
-					"create": {
-						"label": "Tạo",
-						"description": "Có thể tạo dự án mới"
-					},
-					"read": {
-						"label": "Xem",
-						"description": "Có thể xem dự án"
-					},
-					"update": {
-						"label": "Cập nhật",
-						"description": "Có thể chỉnh sửa cài đặt dự án"
-					},
-					"delete": {
-						"label": "Xóa",
-						"description": "Có thể xóa dự án"
-					},
-					"share": {
-						"label": "Chia sẻ",
-						"description": "Có thể chia sẻ dự án"
-					}
-				},
-				"task": {
-					"create": {
-						"label": "Tạo",
-						"description": "Có thể tạo công việc"
-					},
-					"read": {
-						"label": "Xem",
-						"description": "Có thể xem công việc"
-					},
-					"update": {
-						"label": "Cập nhật",
-						"description": "Có thể chỉnh sửa công việc"
-					},
-					"delete": {
-						"label": "Xóa",
-						"description": "Có thể xóa công việc"
-					},
-					"assign": {
-						"label": "Giao việc",
-						"description": "Có thể giao công việc cho thành viên"
-					}
-				},
-				"label": {
-					"create": {
-						"label": "Tạo",
-						"description": "Có thể tạo nhãn"
-					},
-					"read": {
-						"label": "Xem",
-						"description": "Có thể xem nhãn"
-					},
-					"update": {
-						"label": "Cập nhật",
-						"description": "Có thể chỉnh sửa nhãn"
-					},
-					"delete": {
-						"label": "Xóa",
-						"description": "Có thể xóa nhãn"
-					}
-				},
-				"workspace": {
-					"read": {
-						"label": "Xem",
-						"description": "Có thể xem cài đặt không gian làm việc"
-					},
-					"update": {
-						"label": "Cập nhật",
-						"description": "Có thể cập nhật cài đặt không gian làm việc"
-					},
-					"delete": {
-						"label": "Xóa",
-						"description": "Có thể xóa không gian làm việc"
-					},
-					"manage_settings": {
-						"label": "Quản lý cài đặt",
-						"description": "Có thể quản lý cài đặt không gian làm việc"
-					}
-				}
-			},
-			"validation": {
-				"nameRequired": "Cần có tên vai trò",
-				"nameExists": "Đã tồn tại vai trò với tên này",
-				"permissionRequired": "Phải chọn ít nhất một quyền"
-			},
-			"toast": {
-				"created": "Đã tạo vai trò",
-				"createError": "Không thể tạo vai trò",
-				"updated": "Đã cập nhật vai trò",
-				"updateError": "Không thể cập nhật vai trò",
-				"deleted": "Đã xóa vai trò",
-				"deleteError": "Không thể xóa vai trò"
-			},
-			"deleteDialog": {
-				"title": "Xóa vai trò",
-				"description": "Thao tác này sẽ xóa vĩnh viễn vai trò \"{{role}}\". Các thành viên được gán vai trò này sẽ mất các quyền của nó."
-			}
-		},
-		"workspaceLabels": {
-			"pageTitle": "Cài đặt nhãn",
-			"title": "Nhãn",
-			"subtitle": "Tạo, chỉnh sửa và xóa nhãn cấp không gian làm việc.",
-			"cardDescription": "Quản lý các nhãn có thể gán cho công việc.",
-			"createLabel": "Tạo nhãn",
-			"editLabel": "Chỉnh sửa nhãn",
-			"deleteLabel": "Xóa",
-			"saveLabel": "Lưu",
-			"nameLabel": "Tên nhãn",
-			"namePlaceholder": "Nhập tên nhãn",
-			"colorLabel": "Màu",
-			"createDescription": "Tạo một nhãn mới có thể dùng cho các công việc trong không gian làm việc này.",
-			"editDescription": "Cập nhật tên hoặc màu của nhãn này.",
-			"deleteConfirmTitle": "Xóa nhãn này?",
-			"deleteConfirmDescription": "Thao tác này sẽ xóa vĩnh viễn nhãn này khỏi tất cả công việc. Hành động này không thể hoàn tác.",
-			"empty": "Chưa có nhãn nào. Hãy tạo nhãn đầu tiên để bắt đầu.",
-			"createSuccess": "Đã tạo nhãn",
-			"updateSuccess": "Đã cập nhật nhãn",
-			"deleteSuccess": "Đã xóa nhãn",
-			"createError": "Không thể tạo nhãn",
-			"updateError": "Không thể cập nhật nhãn",
-			"deleteError": "Không thể xóa nhãn",
-			"nameRequired": "Cần có tên nhãn"
 		},
 		"projectGeneral": {
 			"pageTitle": "Cài đặt dự án",
@@ -1051,7 +694,6 @@
 			},
 			"connect": "Kết nối Slack",
 			"saveChanges": "Lưu thay đổi",
-			"update": "Cập nhật Slack",
 			"disconnect": "Ngắt kết nối"
 		},
 		"discordIntegration": {
@@ -1089,7 +731,6 @@
 			},
 			"connect": "Kết nối Discord",
 			"saveChanges": "Lưu thay đổi",
-			"update": "Cập nhật Discord",
 			"disconnect": "Ngắt kết nối"
 		},
 		"genericWebhookIntegration": {
@@ -1246,6 +887,31 @@
 			"merged": "Đã gộp",
 			"draft": "Bản nháp",
 			"open": "Đang mở"
+		},
+		"teamLabels": {
+			"pageTitle": "Cài đặt nhãn",
+			"title": "Nhãn",
+			"subtitle": "Tạo, chỉnh sửa và xóa nhãn cấp không gian làm việc.",
+			"cardDescription": "Quản lý các nhãn có thể gán cho công việc.",
+			"createLabel": "Tạo nhãn",
+			"editLabel": "Chỉnh sửa nhãn",
+			"deleteLabel": "Xóa",
+			"saveLabel": "Lưu",
+			"nameLabel": "Tên nhãn",
+			"namePlaceholder": "Nhập tên nhãn",
+			"colorLabel": "Màu",
+			"createDescription": "Tạo một nhãn mới có thể dùng cho các công việc trong không gian làm việc này.",
+			"editDescription": "Cập nhật tên hoặc màu của nhãn này.",
+			"deleteConfirmTitle": "Xóa nhãn này?",
+			"deleteConfirmDescription": "Thao tác này sẽ xóa vĩnh viễn nhãn này khỏi tất cả công việc. Hành động này không thể hoàn tác.",
+			"empty": "Chưa có nhãn nào. Hãy tạo nhãn đầu tiên để bắt đầu.",
+			"createSuccess": "Đã tạo nhãn",
+			"updateSuccess": "Đã cập nhật nhãn",
+			"deleteSuccess": "Đã xóa nhãn",
+			"createError": "Không thể tạo nhãn",
+			"updateError": "Không thể cập nhật nhãn",
+			"deleteError": "Không thể xóa nhãn",
+			"nameRequired": "Cần có tên nhãn"
 		}
 	},
 	"navigation": {
@@ -1257,7 +923,6 @@
 			"members": "Thành viên",
 			"createTask": "Tạo công việc",
 			"createProject": "Tạo dự án",
-			"createWorkspace": "Tạo không gian làm việc",
 			"lightTheme": "Chủ đề sáng",
 			"darkTheme": "Chủ đề tối",
 			"systemTheme": "Chủ đề hệ thống",
@@ -1268,14 +933,14 @@
 				"navigate": "Điều hướng",
 				"open": "Mở",
 				"close": "Đóng"
-			}
+			},
+			"createTeam": "Create team"
 		},
 		"notifications": "Thông báo",
 		"sidebar": {
 			"overview": "Tổng quan",
 			"projects": "Dự án",
 			"members": "Thành viên",
-			"invitations": "Lời mời",
 			"more": "Thêm",
 			"backToBoard": "Quay lại bảng"
 		},
@@ -1296,10 +961,10 @@
 			"groups": {
 				"task": "Công việc",
 				"project": "Dự án",
-				"workspace": "Không gian làm việc",
 				"comment": "Bình luận",
 				"activity": "Hoạt động",
-				"fallback": "Kết quả"
+				"fallback": "Kết quả",
+				"team": "Teams"
 			}
 		},
 		"settingsLayout": {
@@ -1314,17 +979,10 @@
 			"signingOut": "Đang đăng xuất...",
 			"logOut": "Đăng xuất"
 		},
-		"workspaceSwitcher": {
-			"workspaces": "Không gian làm việc",
-			"switching": "Đang chuyển...",
-			"addWorkspace": "Thêm không gian làm việc",
-			"selectWorkspace": "Chọn không gian làm việc"
-		},
 		"page": {
 			"projectsTitle": "Dự án",
 			"settingsTitle": "Cài đặt",
-			"backToWorkspace": "Quay lại không gian làm việc",
-			"settingsWorkspaceTab": "Không gian làm việc"
+			"backToTeam": "Quay lại không gian làm việc"
 		},
 		"projectSettings": {
 			"projectLabel": "Dự án"
@@ -1349,21 +1007,25 @@
 				"closeModal": "Đóng modal/popover",
 				"createTask": "Tạo công việc",
 				"createProject": "Tạo dự án",
-				"createWorkspace": "Tạo không gian làm việc",
 				"boardView": "Chuyển sang chế độ xem bảng",
 				"listView": "Chuyển sang chế độ xem danh sách",
 				"backlogView": "Chuyển sang chế độ xem backlog",
 				"nextTask": "Công việc tiếp theo",
 				"prevTask": "Công việc trước đó",
 				"openTask": "Mở công việc đã chọn",
-				"quickSelectNumber": "Chọn tùy chọn theo số"
+				"quickSelectNumber": "Chọn tùy chọn theo số",
+				"createTeam": "Create team"
 			}
+		},
+		"teamSwitcher": {
+			"addTeam": "Add team",
+			"selectTeam": "Select a team",
+			"switching": "Switching...",
+			"teams": "Teams"
 		}
 	},
 	"notifications": {
 		"title": "Thông báo",
-		"newCount_one": "{{count}} mới",
-		"newCount_other": "{{count}} mới",
 		"emptyTitle": "Chưa có thông báo nào",
 		"emptySubtitle": "Bạn sẽ thấy các cập nhật và hoạt động ở đây.",
 		"clearAll": "Xóa tất cả thông báo",
@@ -1384,10 +1046,6 @@
 			"task_created": {
 				"title": "Công việc mới được tạo",
 				"content": "Công việc \"{{taskTitle}}\" đã được tạo"
-			},
-			"workspace_created": {
-				"title": "Đã tạo không gian làm việc",
-				"content": "Không gian làm việc \"{{workspaceName}}\" của bạn đã được tạo thành công"
 			},
 			"task_status_changed": {
 				"title": "Trạng thái công việc đã thay đổi",
@@ -1662,9 +1320,6 @@
 						"onlyYoutube": "Chỉ có thể nhúng liên kết YouTube."
 					},
 					"onlyYoutubeInline": "Chỉ có thể nhúng URL YouTube. Hãy dùng chế độ liên kết thay thế."
-				},
-				"mermaid": {
-					"renderFailed": "Mermaid diagram couldn't be rendered"
 				}
 			}
 		},
@@ -1942,37 +1597,34 @@
 			}
 		}
 	},
-	"invitations": {
-		"email": {
-			"subject": "{{inviterName}} đã mời bạn tham gia {{workspaceName}} trên Kaneo",
-			"preview": "Bạn được mời tham gia {{workspaceName}} trên Kaneo",
-			"title": "Tham gia {{workspaceName}}",
-			"subtitle": "{{inviterName}} ({{inviterEmail}}) đã mời bạn cộng tác trên Kaneo.",
-			"cta": "Chấp nhận lời mời",
-			"sameEmail": "Bạn có thể chấp nhận bằng email đã nhận thư này.",
-			"ignore": "Nếu bạn không mong đợi email này, bạn có thể yên tâm bỏ qua.",
-			"footer": "Lời mời không gian làm việc Kaneo"
+	"team": {
+		"roles": {
+			"owner": "Chủ sở hữu",
+			"admin": "Quản trị viên",
+			"member": "Thành viên",
+			"viewer": "Người xem"
 		},
-		"pageTitle": "Lời mời",
-		"pendingInvitations": "Lời mời đang chờ",
-		"acceptSubtitle": "Chấp nhận lời mời để tham gia không gian làm việc",
-		"noPendingTitle": "Không có lời mời đang chờ",
-		"noPendingDescription": "Bạn hiện không có lời mời tham gia không gian làm việc nào đang chờ.",
-		"continueToSetup": "Tiếp tục thiết lập",
-		"skipForNow": "Bỏ qua lúc này",
-		"table": {
-			"workspace": "Không gian làm việc",
-			"invitedBy": "Được mời bởi",
-			"expires": "Hết hạn"
+		"members": {
+			"pageTitle": "Thành viên",
+			"you": "Bạn"
 		},
-		"toast": {
-			"acceptError": "Không thể chấp nhận lời mời",
-			"acceptSuccess": "Đã chấp nhận lời mời! Chào mừng bạn đến với nhóm.",
-			"rejectError": "Không thể từ chối lời mời",
-			"rejectSuccess": "Đã từ chối lời mời"
-		}
-	},
-	"workspace": {
+		"membersTable": {
+			"emptyTitle": "Chưa có thành viên nhóm nào",
+			"emptyDescription": "Ask an admin to add members to this team.",
+			"columns": {
+				"name": "Tên",
+				"role": "Vai trò",
+				"joined": "Ngày tham gia"
+			},
+			"ariaRemoveMember": "Gỡ thành viên",
+			"removeDialogTitle": "Gỡ thành viên nhóm?",
+			"removeDialogDescription": "Bạn có chắc muốn gỡ {{name}} khỏi không gian làm việc? Hành động này không thể hoàn tác.",
+			"removeMember": "Gỡ thành viên",
+			"removeSuccess": "Gỡ thành viên nhóm thành công",
+			"removeError": "Không thể gỡ thành viên nhóm",
+			"roleUpdateSuccess": "Đã cập nhật vai trò",
+			"roleUpdateError": "Không thể cập nhật vai trò"
+		},
 		"projects": {
 			"pageTitle": "Dự án",
 			"createProject": "Tạo dự án",
@@ -1990,7 +1642,6 @@
 				"inProgress": "Đang thực hiện"
 			},
 			"noDueDate": "Không có ngày đến hạn",
-			"reorderHandle": "Sắp xếp lại dự án",
 			"reorderError": "Không thể sắp xếp lại dự án"
 		},
 		"search": {
@@ -2016,73 +1667,13 @@
 			"pageTitle": "Tạo không gian làm việc",
 			"heading": "Tạo một không gian làm việc mới",
 			"subtitle": "Không gian làm việc là môi trường chung nơi các nhóm có thể làm việc trên dự án, chu kỳ và vấn đề.",
-			"nameLabel": "Tên không gian làm việc",
 			"namePlaceholder": "Nhập tên không gian làm việc",
-			"descriptionLabel": "Mô tả (không bắt buộc)",
-			"descriptionPlaceholder": "Thêm mô tả cho không gian làm việc của bạn",
 			"required": "Bắt buộc",
 			"creating": "Đang tạo...",
 			"submit": "Tạo không gian làm việc",
 			"success": "Tạo không gian làm việc thành công",
-			"error": "Không thể tạo không gian làm việc"
-		}
-	},
-	"team": {
-		"roles": {
-			"owner": "Chủ sở hữu",
-			"admin": "Quản trị viên",
-			"member": "Thành viên",
-			"viewer": "Người xem"
-		},
-		"members": {
-			"pageTitle": "Thành viên",
-			"inviteMember": "Mời thành viên",
-			"you": "Bạn"
-		},
-		"invitations": {
-			"pendingBadge": "đang chờ",
-			"expires": "Hết hạn {{date}}",
-			"linkLabel": "Liên kết lời mời",
-			"copyLink": "Sao chép liên kết",
-			"linkCopied": "Đã sao chép liên kết lời mời",
-			"copyFailed": "Không thể sao chép tự động. Hãy chọn liên kết và nhấn Ctrl+C."
-		},
-		"inviteModal": {
-			"title": "Mời thành viên nhóm",
-			"emailLabel": "Email",
-			"emailPlaceholder": "colleague@company.com",
-			"sendInvitation": "Gửi lời mời",
-			"success": "Gửi lời mời thành công",
-			"error": "Không thể mời thành viên nhóm",
-			"createdTitle": "Đã tạo lời mời",
-			"shareLinkDescription": "Chia sẻ liên kết này với {{email}} để họ có thể tham gia không gian làm việc.",
-			"done": "Xong"
-		},
-		"membersTable": {
-			"emptyTitle": "Chưa có thành viên nhóm nào",
-			"emptyDescription": "Mời thành viên nhóm đầu tiên của bạn để bắt đầu.",
-			"columns": {
-				"name": "Tên",
-				"role": "Vai trò",
-				"joined": "Ngày tham gia",
-				"actions": "Hành động"
-			},
-			"memberRolePending": "{{role}} (Đang chờ)",
-			"ariaCancelInvitation": "Hủy lời mời",
-			"ariaInvitationActions": "Hành động lời mời",
-			"ariaRemoveMember": "Gỡ thành viên",
-			"removeDialogTitle": "Gỡ thành viên nhóm?",
-			"removeDialogDescription": "Bạn có chắc muốn gỡ {{name}} khỏi không gian làm việc? Hành động này không thể hoàn tác.",
-			"cancelDialogTitle": "Hủy lời mời?",
-			"cancelDialogDescription": "Bạn có chắc muốn hủy lời mời cho {{email}}? Hành động này không thể hoàn tác.",
-			"removeMember": "Gỡ thành viên",
-			"cancelInvitation": "Hủy lời mời",
-			"removeSuccess": "Gỡ thành viên nhóm thành công",
-			"removeError": "Không thể gỡ thành viên nhóm",
-			"cancelInviteSuccess": "Hủy lời mời thành công",
-			"cancelInviteError": "Không thể hủy lời mời",
-			"roleUpdateSuccess": "Đã cập nhật vai trò",
-			"roleUpdateError": "Không thể cập nhật vai trò"
+			"error": "Không thể tạo không gian làm việc",
+			"nameLabel": "Team Name"
 		}
 	},
 	"publicProject": {
@@ -2099,7 +1690,6 @@
 		"taskDetail": {
 			"labels": "Nhãn",
 			"externalLinks": "Liên kết ngoài",
-			"pullRequestFallback": "Pull Request",
 			"issueFallback": "Issue",
 			"prStatusMerged": "Đã gộp",
 			"prStatusDraft": "Bản nháp",
@@ -2121,5 +1711,169 @@
 		"branding": {
 			"poweredBy": "Được vận hành bởi"
 		}
+	},
+	"admin": {
+		"actions": {
+			"delete": "Delete user",
+			"demote": "Demote to user",
+			"disable": "Disable account",
+			"enable": "Enable account",
+			"error": "Action failed",
+			"promote": "Promote to admin",
+			"resetPassword": "Reset password",
+			"successRole": "Role updated",
+			"successStatus": "Account status updated",
+			"manageTeams": "Manage teams"
+		},
+		"columns": {
+			"created": "Created",
+			"role": "Role",
+			"status": "Status",
+			"user": "User"
+		},
+		"create": {
+			"description": "Create a new account. The user can sign in with the username and password.",
+			"email": "Email (optional)",
+			"emailPlaceholder": "e.g. jane@example.com",
+			"error": "Failed to create user",
+			"name": "Name",
+			"namePlaceholder": "e.g. Jane Doe",
+			"password": "Password",
+			"passwordPlaceholder": "At least 8 characters",
+			"role": "Role",
+			"submit": "Create user",
+			"success": "User created",
+			"title": "Create user",
+			"username": "Username",
+			"usernamePlaceholder": "e.g. jane",
+			"validation": {
+				"nameRequired": "Name is required",
+				"passwordShort": "Password must be at least 8 characters",
+				"usernameInvalid": "Only lowercase letters, numbers and underscores (1-30 characters)",
+				"usernameRequired": "Username is required"
+			},
+			"team": "Team (optional)",
+			"teamNone": "No team",
+			"teamPlaceholder": "Choose a team…"
+		},
+		"deleteDialog": {
+			"confirm": "Delete",
+			"description": "Delete {{name}} ({{username}})? This cannot be undone.",
+			"success": "User deleted",
+			"title": "Delete user"
+		},
+		"page": {
+			"createUser": "Create user",
+			"currentUserBadge": "you",
+			"description": "Create and manage user accounts.",
+			"emptyDescription": "Create the first user account to get started.",
+			"emptyTitle": "No users",
+			"title": "User Management"
+		},
+		"resetPassword": {
+			"description": "Set a new password for {{username}}.",
+			"password": "New password",
+			"submit": "Reset password",
+			"success": "Password updated",
+			"title": "Reset password"
+		},
+		"role": {
+			"admin": "Admin",
+			"user": "User"
+		},
+		"status": {
+			"active": "Active",
+			"disabled": "Disabled"
+		},
+		"tab": "System",
+		"teams": {
+			"columns": {
+				"actions": "Actions",
+				"members": "Members",
+				"name": "Name",
+				"role": "Your role"
+			},
+			"create": "Create team",
+			"createDialogDescription": "Teams group users who collaborate on shared projects.",
+			"createDialogTitle": "Create a team",
+			"delete": "Delete team",
+			"deleteDialogDescription": "The team, its projects, and its memberships will be permanently deleted.",
+			"deleteDialogTitle": "Delete this team?",
+			"description": "Create and manage teams. Users join teams via invitation.",
+			"empty": "No teams yet. Create the first one to get started.",
+			"enter": "Enter team",
+			"hint": "As a system administrator, create the teams your users will join.",
+			"nameLabel": "Team name",
+			"namePlaceholder": "e.g. Acme",
+			"pageTitle": "Team management",
+			"tab": "Teams",
+			"title": "Teams",
+			"toast": {
+				"created": "Team \"{{name}}\" created",
+				"createError": "Failed to create team",
+				"deleted": "Team deleted",
+				"deleteError": "Failed to delete team",
+				"renamed": "Team renamed",
+				"renameError": "Failed to rename team"
+			},
+			"labels": "Labels",
+			"rename": "Rename",
+			"renameDialogDescription": "Change the name of this team.",
+			"renameDialogTitle": "Rename team",
+			"userTeamsAdd": "Add to team",
+			"userTeamsAddButton": "Add",
+			"userTeamsChoose": "Choose a team…",
+			"userTeamsCurrent": "Current teams",
+			"userTeamsDescription": "Manage which teams this user belongs to.",
+			"userTeamsEmpty": "This user is not a member of any team.",
+			"userTeamsNoAvailable": "This user is already in every team.",
+			"userTeamsRemove": "Remove from team",
+			"userTeamsTitle": "Teams of {{name}}",
+			"manageMembers": "Manage members",
+			"membersAdd": "Add user to team",
+			"membersAddButton": "Add",
+			"membersChooseUser": "Choose a user…",
+			"membersCurrent": "Current members",
+			"membersDescription": "Manage which users belong to this team.",
+			"membersEmpty": "This team has no members yet.",
+			"membersNoAvailable": "All users are already in this team.",
+			"membersRemove": "Remove from team",
+			"membersTitle": "Members of {{name}}"
+		},
+		"users": {
+			"tab": "Users"
+		},
+		"ai": {
+			"apiKeyHelp": "Stored encrypted. Sent as Bearer token. Never returned in responses.",
+			"apiKeyLabel": "API key",
+			"baseUrlHelp": "OpenAI-compatible endpoint. The client appends /v1/chat/completions.",
+			"baseUrlLabel": "API base URL",
+			"enableDescription": "When disabled, the Chat tab shows a placeholder and the API returns 503.",
+			"enableLabel": "Enable AI assistant",
+			"modelHelp": "Any model name accepted by your API. Default: gpt-4o.",
+			"modelLabel": "Model",
+			"pageDescription": "Configure the AI assistant used by project chat. Kaneo uses an OpenAI-compatible API.",
+			"pageTitle": "AI Assistant",
+			"save": "Save",
+			"saving": "Saving…",
+			"tab": "AI",
+			"toast": {
+				"error": "Failed to save settings",
+				"saved": "AI settings saved"
+			}
+		}
+	},
+	"chat": {
+		"errorFailed": "Failed to send message",
+		"errorTimeout": "Request timed out. Please try again.",
+		"notEnabledDescription": "The pi-agent AI assistant has not been configured for this instance. Please contact an administrator to enable it.",
+		"notEnabledTitle": "AI assistant not enabled",
+		"pageTitle": "Chat",
+		"placeholder": "Send a message to pi-agent…",
+		"send": "Send",
+		"streaming": "pi-agent is typing…",
+		"welcomeDescription": "Ask me to create tasks, check project status, or analyze progress. I'm your AI project management assistant.",
+		"welcomeTitle": "Chat with pi-agent",
+		"you": "You"
 	}
 }

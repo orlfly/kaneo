@@ -44,7 +44,7 @@ async function bulkUpdateTasks({
       projectId: taskTable.projectId,
       userId: taskTable.userId,
       dueDate: taskTable.dueDate,
-      workspaceId: projectTable.workspaceId,
+      teamId: projectTable.teamId,
     })
     .from(taskTable)
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
@@ -56,17 +56,17 @@ async function bulkUpdateTasks({
     });
   }
 
-  const workspaceIds = [...new Set(tasks.map((t) => t.workspaceId))];
+  const teamIds = [...new Set(tasks.map((t) => t.teamId))];
 
-  if (workspaceIds.length > 1) {
+  if (teamIds.length > 1) {
     throw new HTTPException(400, {
-      message: "All tasks must belong to the same workspace",
+      message: "All tasks must belong to the same team",
     });
   }
 
-  const workspaceId = workspaceIds[0];
+  const teamId = teamIds[0];
 
-  if (!workspaceId) {
+  if (!teamId) {
     throw new HTTPException(400, {
       message: "Could not determine workspace",
     });
@@ -78,7 +78,7 @@ async function bulkUpdateTasks({
     .where(
       and(
         eq(workspaceUserTable.userId, userId),
-        eq(workspaceUserTable.workspaceId, workspaceId),
+        eq(workspaceUserTable.teamId, teamId),
       ),
     )
     .limit(1);
@@ -228,7 +228,7 @@ async function bulkUpdateTasks({
         throw new HTTPException(404, { message: "Label not found" });
       }
 
-      if (label.workspaceId && label.workspaceId !== workspaceId) {
+      if (label.teamId && label.teamId !== teamId) {
         throw new HTTPException(400, {
           message: "Label and tasks must belong to the same workspace",
         });
@@ -248,7 +248,7 @@ async function bulkUpdateTasks({
             .values({
               name: label.name,
               color: label.color,
-              workspaceId: workspaceId,
+              teamId: teamId,
               taskId: task.id,
             })
             .onConflictDoNothing({
@@ -284,7 +284,7 @@ async function bulkUpdateTasks({
         .delete(labelTable)
         .where(
           and(
-            eq(labelTable.workspaceId, workspaceId),
+            eq(labelTable.teamId, teamId),
             eq(labelTable.name, label.name),
             inArray(labelTable.taskId, foundIds),
           ),

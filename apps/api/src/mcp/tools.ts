@@ -253,9 +253,9 @@ export function registerMcpTools(
   registerTool(
     "list_projects",
     {
-      description: "List projects in a workspace.",
+      description: "List projects in a team.",
       inputSchema: z.object({
-        workspaceId: nonEmptyString.describe("Workspace ID"),
+        teamId: nonEmptyString.describe("Team ID"),
         includeArchived: z
           .boolean()
           .optional()
@@ -263,7 +263,7 @@ export function registerMcpTools(
       }),
     },
     async (args) => {
-      const qs = new URLSearchParams({ workspaceId: args.workspaceId });
+      const qs = new URLSearchParams({ teamId: args.teamId });
       if (args.includeArchived === true) qs.set("includeArchived", "true");
       return run(() =>
         client.json(`/api/project?${qs.toString()}`, { method: "GET" }),
@@ -284,10 +284,10 @@ export function registerMcpTools(
   registerTool(
     "create_project",
     {
-      description: "Create a project in a workspace.",
+      description: "Create a project in a team.",
       inputSchema: z.object({
         name: nonEmptyString,
-        workspaceId: nonEmptyString,
+        teamId: nonEmptyString,
         icon: nonEmptyString,
         slug: nonEmptyString,
       }),
@@ -298,7 +298,7 @@ export function registerMcpTools(
           method: "POST",
           body: JSON.stringify({
             name: args.name,
-            workspaceId: args.workspaceId,
+            teamId: args.teamId,
             icon: args.icon,
             slug: args.slug,
           }),
@@ -592,27 +592,25 @@ export function registerMcpTools(
   registerTool(
     "list_workspace_labels",
     {
-      description: "List labels defined in a workspace.",
-      inputSchema: z.object({ workspaceId: nonEmptyString }),
+      description: "List labels defined in a team.",
+      inputSchema: z.object({ teamId: nonEmptyString }),
     },
     async (args) =>
       run(() =>
-        client.json(
-          `/api/label/workspace/${encodeURIComponent(args.workspaceId)}`,
-          { method: "GET" },
-        ),
+        client.json(`/api/label/workspace/${encodeURIComponent(args.teamId)}`, {
+          method: "GET",
+        }),
       ),
   );
 
   registerTool(
     "create_label",
     {
-      description:
-        "Create a label in a workspace (optionally attach to a task).",
+      description: "Create a label in a team (optionally attach to a task).",
       inputSchema: z.object({
         name: nonEmptyString,
         color: hexColorSchema,
-        workspaceId: nonEmptyString,
+        teamId: nonEmptyString,
         taskId: optionalNonEmptyString,
       }),
     },
@@ -623,7 +621,7 @@ export function registerMcpTools(
           body: JSON.stringify({
             name: args.name,
             color: args.color,
-            workspaceId: args.workspaceId,
+            teamId: args.teamId,
             ...(args.taskId !== undefined ? { taskId: args.taskId } : {}),
           }),
         }),
@@ -743,14 +741,12 @@ export function registerMcpTools(
     "list_workspace_members",
     {
       description:
-        "List the members of a workspace. Use this to resolve the user ID an assignee tool expects.",
-      inputSchema: z.object({ workspaceId: nonEmptyString }),
+        "List the members of a workspace (team). Use this to resolve the user ID an assignee tool expects.",
+      inputSchema: z.object({ teamId: nonEmptyString }),
     },
     async (args) =>
       run(() =>
-        client.json(
-          `/api/workspace/${encodeURIComponent(args.workspaceId)}/members`,
-        ),
+        client.json(`/api/team/${encodeURIComponent(args.teamId)}/members`),
       ),
   );
 
@@ -772,7 +768,7 @@ export function registerMcpTools(
           ])
           .optional()
           .describe("Restrict results to one kind. Defaults to all."),
-        workspaceId: optionalNonEmptyString.describe("Limit to one workspace"),
+        teamId: optionalNonEmptyString.describe("Limit to one workspace"),
         projectId: optionalNonEmptyString.describe("Limit to one project"),
         limit: z
           .number()
@@ -786,7 +782,7 @@ export function registerMcpTools(
     async (args) => {
       const qs = new URLSearchParams({ q: args.q });
       if (args.type) qs.set("type", args.type);
-      if (args.workspaceId) qs.set("workspaceId", args.workspaceId);
+      if (args.teamId) qs.set("teamId", args.teamId);
       if (args.projectId) qs.set("projectId", args.projectId);
       if (args.limit !== undefined) qs.set("limit", String(args.limit));
       return run(() => client.json(`/api/search?${qs.toString()}`));

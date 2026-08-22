@@ -4,7 +4,7 @@ import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import SearchCommandMenu from "@/components/search-command-menu";
 import CreateTaskModal from "@/components/shared/modals/create-task-modal";
-import CreateWorkspaceModal from "@/components/shared/modals/create-workspace-modal";
+import CreateTeamModal from "@/components/shared/modals/create-team-modal";
 import {
   Command,
   CommandCollection,
@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/command";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { shortcuts } from "@/constants/shortcuts";
-import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
+import useActiveTeam from "@/hooks/queries/team/use-active-team";
 import { useRegisterShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { useUserPreferencesStore } from "@/store/user-preferences";
 import CreateProjectModal from "../shared/modals/create-project-modal";
@@ -46,12 +46,12 @@ function CommandPalette() {
   const { setTheme } = useUserPreferencesStore();
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: workspace } = useActiveWorkspace();
+  const { data: team } = useActiveTeam();
   const [open, setOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
-  const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false);
+  const [isCreateTeamOpen, setIsCreateTeamOpen] = useState(false);
   const projectIdFromRoute =
     location.pathname.match(/\/project\/([^/]+)/)?.[1] ?? undefined;
   const isBacklogView = location.pathname.endsWith("/backlog");
@@ -72,10 +72,10 @@ function CommandPalette() {
     sequentialShortcuts: {
       [shortcuts.project.prefix]: {
         [shortcuts.project.list]: () => {
-          if (!workspace?.id) return;
+          if (!team?.id) return;
           navigate({
-            to: "/dashboard/workspace/$workspaceId",
-            params: { workspaceId: workspace.id },
+            to: "/dashboard/team/$teamId",
+            params: { teamId: team.id },
           });
         },
         [shortcuts.project.create]: () => setIsCreateProjectOpen(true),
@@ -83,9 +83,9 @@ function CommandPalette() {
       [shortcuts.task.prefix]: {
         [shortcuts.task.create]: () => setIsCreateTaskOpen(true),
       },
-      [shortcuts.workspace.prefix]: {
-        [shortcuts.workspace.create]: () => {
-          setIsCreateWorkspaceOpen(true);
+      [shortcuts.team.prefix]: {
+        [shortcuts.team.create]: () => {
+          setIsCreateTeamOpen(true);
         },
       },
     },
@@ -107,10 +107,10 @@ function CommandPalette() {
             label: t("navigation:commandPalette.projects"),
             shortcut: `${shortcuts.project.prefix} ${shortcuts.project.list}`,
             onRun: () => {
-              if (!workspace?.id) return;
+              if (!team?.id) return;
               navigate({
-                to: "/dashboard/workspace/$workspaceId",
-                params: { workspaceId: workspace.id },
+                to: "/dashboard/team/$teamId",
+                params: { teamId: team.id },
               });
             },
           },
@@ -126,7 +126,11 @@ function CommandPalette() {
               defaultValue: "Members",
             }),
             onRun: () => {
-              navigate({ to: "/dashboard/settings/workspace/members" });
+              if (!team?.id) return;
+              navigate({
+                to: "/dashboard/team/$teamId/members",
+                params: { teamId: team.id },
+              });
             },
           },
           {
@@ -148,10 +152,10 @@ function CommandPalette() {
         label: t("navigation:commandPalette.commands"),
         items: [
           {
-            value: "create-workspace",
-            label: t("navigation:commandPalette.createWorkspace"),
-            shortcut: `${shortcuts.workspace.prefix} ${shortcuts.workspace.create}`,
-            onRun: () => setIsCreateWorkspaceOpen(true),
+            value: "create-team",
+            label: t("navigation:commandPalette.createTeam"),
+            shortcut: `${shortcuts.team.prefix} ${shortcuts.team.create}`,
+            onRun: () => setIsCreateTeamOpen(true),
           },
           {
             value: "theme-light",
@@ -183,7 +187,7 @@ function CommandPalette() {
         ],
       },
     ],
-    [navigate, setTheme, t, workspace?.id],
+    [navigate, setTheme, t, team?.id],
   );
 
   const shortcutHandlers = useMemo(() => {
@@ -322,9 +326,9 @@ function CommandPalette() {
         status={isBacklogView ? "planned" : undefined}
         onClose={() => setIsCreateTaskOpen(false)}
       />
-      <CreateWorkspaceModal
-        open={isCreateWorkspaceOpen}
-        onClose={() => setIsCreateWorkspaceOpen(false)}
+      <CreateTeamModal
+        open={isCreateTeamOpen}
+        onClose={() => setIsCreateTeamOpen(false)}
       />
       <CreateProjectModal
         open={isCreateProjectOpen}

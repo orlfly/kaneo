@@ -11,7 +11,8 @@
 			"remove": "Entfernen",
 			"reset": "Zurücksetzen",
 			"filter": "Filter",
-			"clearAllFilters": "Alle Filter löschen"
+			"clearAllFilters": "Alle Filter löschen",
+			"adding": "Adding…"
 		},
 		"a11y": {
 			"toggleSidebar": "Sidebar umschalten"
@@ -35,18 +36,6 @@
 			"label": "Brotkrümelnavigation",
 			"more": "Mehr"
 		},
-		"language": {
-			"english": "Englisch",
-			"german": "Deutsch",
-			"greek": "Griechisch",
-			"macedonian": "Mazedonisch",
-			"french": "Französisch",
-			"spanish": "Spanisch",
-			"dutch": "Niederländisch",
-			"korean": "Koreanisch",
-			"chinese": "Chinesisch",
-			"italian": "Italienisch"
-		},
 		"people": {
 			"someone": "Jemand",
 			"unknown": "Unbekannt"
@@ -65,8 +54,7 @@
 			"createProject": {
 				"title": "Neues Projekt erstellen",
 				"breadcrumbNew": "Neues Projekt erstellen",
-				"workspaceFallback": "WORKSPACE",
-				"description": "Erstelle ein neues Projekt in deinem Workspace, indem du einen Namen, einen Schlüssel und ein Symbol auswählst.",
+				"description": "Erstelle ein neues Projekt in deinem Team, indem du einen Namen, einen Schlüssel und ein Symbol auswählst.",
 				"pickIcon": "Symbol auswählen",
 				"searchIcons": "Symbole suchen...",
 				"projectName": "Projektname",
@@ -74,17 +62,12 @@
 				"keyHint": "Wird für Ticket-IDs verwendet (z. B. {{example}}-123)",
 				"createButton": "Projekt erstellen",
 				"successToast": "Projekt erfolgreich erstellt",
-				"errorToast": "Projekt konnte nicht erstellt werden"
-			},
-			"createWorkspace": {
-				"breadcrumbKaneo": "KANEO",
-				"title": "Neuen Workspace erstellen",
-				"description": "Erstelle einen neuen Workspace, indem du einen Namen dafür angibst.",
-				"namePlaceholder": "Workspace-Name",
-				"descriptionPlaceholder": "Beschreibung hinzufügen...",
-				"createButton": "Workspace erstellen",
-				"successToast": "Workspace erfolgreich erstellt",
-				"errorToast": "Workspace konnte nicht erstellt werden"
+				"errorToast": "Projekt konnte nicht erstellt werden",
+				"manageTeams": "Go to team management",
+				"noTeams": "You don't have any teams yet. Create or join a team before creating a project.",
+				"teamLabel": "Team",
+				"teamPlaceholder": "Select a team",
+				"teamFallback": "TEAM"
 			},
 			"createTask": {
 				"breadcrumbTask": "AUFGABE",
@@ -99,7 +82,6 @@
 				"successUpdated": "Aufgabe erfolgreich aktualisiert",
 				"createError": "Aufgabe konnte nicht erstellt werden",
 				"priority": "Priorität",
-				"statusFallback": "In Bearbeitung",
 				"startDate": "Startdatum",
 				"dueDate": "Fälligkeitsdatum",
 				"clearStartDate": "Startdatum entfernen",
@@ -128,51 +110,37 @@
 					"rose": "Rosa",
 					"crimson": "Karmesinrot"
 				}
+			},
+			"createTeam": {
+				"breadcrumbKaneo": "KANEO",
+				"createButton": "Create Team",
+				"description": "Create a new team by providing a name for your team.",
+				"errorToast": "Failed to create team",
+				"namePlaceholder": "Team name",
+				"successToast": "Team created successfully",
+				"title": "Create a new team"
 			}
+		},
+		"states": {
+			"loading": "Loading…"
 		}
 	},
 	"auth": {
 		"signIn": {
 			"pageTitle": "Anmelden",
 			"title": "Willkommen zurück",
-			"subtitle": "Gib deine Zugangsdaten ein, um auf deinen Workspace zuzugreifen",
-			"invitationSubtitle": "Melde dich an, um deine Einladung anzunehmen",
-			"invitationAlert": "Nach der Anmeldung kannst du deine Workspace-Einladung annehmen.",
-			"signingIn": "Wird angemeldet...",
-			"continueWithGoogle": "Mit Google fortfahren",
-			"continueWithGithub": "Mit GitHub fortfahren",
-			"continueWithDiscord": "Mit Discord fortfahren",
-			"continueWithOidc": "Mit OIDC fortfahren",
-			"lastUsed": "Zuletzt verwendet",
-			"registrationDisabled": "Die öffentliche Registrierung ist deaktiviert. Nutze eine Einladung, um ein Konto zu erstellen.",
-			"passwordRegistrationDisabled": "Die Registrierung per Passwort ist deaktiviert. Nutze eine konfigurierte Social- oder OIDC-Anmeldemethode, um ein Konto zu erstellen.",
-			"toggleMessage": "Du hast noch kein Konto?",
-			"toggleLink": "Konto erstellen",
-			"guestSuccess": "Als Gast angemeldet",
-			"guestError": "Anmeldung als Gast fehlgeschlagen",
-			"oidcError": "Anmeldung mit OIDC fehlgeschlagen",
-			"googleError": "Anmeldung mit Google fehlgeschlagen",
-			"githubError": "Anmeldung mit GitHub fehlgeschlagen",
-			"discordError": "Anmeldung mit Discord fehlgeschlagen",
-			"errors": {
-				"account_not_linked": "Diese Identität konnte nicht mit dem bestehenden Konto verknüpft werden. Melde dich per E-Mail an, um das Konto zu bestätigen, und versuche SSO danach erneut. Falls die Anmeldung per E-Mail nicht verfügbar ist, wende dich an deinen Administrator.",
-				"oauth_code_verification_failed": "OAuth-Verifizierung fehlgeschlagen. Bitte versuche es erneut.",
-				"registration_is_currently_disabled_you_need_a_valid_invitation_to_create_an_account_": "Die Registrierung ist derzeit deaktiviert. Du benötigst eine gültige Einladung, um ein Konto zu erstellen."
-			},
+			"subtitle": "Gib deine Zugangsdaten ein, um auf deinen Team zuzugreifen",
+			"registrationDisabled": "Public registration is disabled. Ask an administrator to create your account.",
 			"instanceStatusError": "Der Server konnte nicht erreicht werden. Bitte versuche es gleich noch einmal."
-		},
-		"providers": {
-			"google": "Google",
-			"discord": "Discord"
 		},
 		"forms": {
 			"or": "oder",
-			"email": "E-Mail",
 			"password": "Passwort",
-			"emailPlaceholder": "me@example.com",
 			"passwordPlaceholder": "••••••••",
 			"showPassword": "Passwort anzeigen",
-			"hidePassword": "Passwort ausblenden"
+			"hidePassword": "Passwort ausblenden",
+			"username": "Username",
+			"usernamePlaceholder": "Enter your username"
 		},
 		"checkEmail": {
 			"pageTitle": "Prüfe deine E-Mails",
@@ -181,114 +149,11 @@
 			"emailFallback": "deine E-Mail-Adresse",
 			"backToLogin": "Zurück zur Anmeldung"
 		},
-		"signUp": {
-			"pageTitle": "Konto erstellen",
-			"title": "Konto erstellen",
-			"subtitleInvitation": "Erstelle ein Konto, um deine Einladung anzunehmen",
-			"subtitleRegistrationDisabled": "Für die Registrierung ist eine Einladung erforderlich",
-			"subtitlePasswordDisabled": "Nutze Social- oder OIDC-Anmeldung, um ein Konto zu erstellen",
-			"subtitleDefault": "Lege mit deinem Workspace los",
-			"invitationAlert": "Nach dem Erstellen deines Kontos kannst du deine Workspace-Einladung annehmen.",
-			"registrationDisabledAlert": "Die Registrierung ist derzeit deaktiviert. Wenn du eingeladen wurdest, gib die E-Mail-Adresse ein, die die Einladung erhalten hat, um dein Konto zu erstellen.",
-			"passwordDisabledAlert": "Die kontoerstellung per Passwort ist deaktiviert. Nutze eine konfigurierte Social- oder OIDC-Anmeldemethode auf der Anmeldeseite.",
-			"signingIn": "Anmeldung läuft...",
-			"continueAsGuest": "Als Gast fortfahren",
-			"toggleMessage": "Du hast bereits ein Konto?",
-			"toggleLink": "Anmelden",
-			"instanceStatusError": "Der Server konnte nicht erreicht werden. Bitte versuche es gleich noch einmal.",
-			"instanceAdminTitle": "Richte deine Kaneo-Instanz ein",
-			"instanceAdminSubtitle": "Dieses Konto wird zum Instanz-Administrator mit vollem Zugriff."
-		},
-		"verifyOtp": {
-			"pageTitle": "Code verifizieren",
-			"title": "Bestätigungscode eingeben",
-			"subtitle": "Nutze den 6-stelligen Code, der an deine E-Mail gesendet wurde, um fortzufahren",
-			"codeSentTo": "Code gesendet an {{email}}",
-			"verificationCodeLabel": "Bestätigungscode",
-			"verifying": "Wird verifiziert...",
-			"verifyAndSignIn": "Verifizieren & anmelden",
-			"changeEmail": "E-Mail ändern",
-			"resend": "Erneut senden",
-			"validation": {
-				"codeLength": "Der Code muss 6 Ziffern haben"
-			},
-			"toast": {
-				"invalidCode": "Ungültiger Bestätigungscode",
-				"signedInSuccess": "Erfolgreich angemeldet!",
-				"verifyFailed": "Code konnte nicht verifiziert werden",
-				"resendFailed": "Code konnte nicht erneut gesendet werden",
-				"resendSuccess": "Neuer Bestätigungscode gesendet!"
-			}
-		},
-		"otpSignIn": {
-			"sendFailed": "Bestätigungscode konnte nicht gesendet werden",
-			"codeSent": "Bestätigungscode gesendet! Prüfe deine E-Mails.",
-			"sending": "Wird gesendet...",
-			"sendVerificationCode": "Bestätigungscode senden"
-		},
 		"signInForm": {
 			"failedSignIn": "Anmeldung fehlgeschlagen",
 			"signedInSuccess": "Erfolgreich angemeldet",
 			"signingIn": "Wird angemeldet...",
 			"signIn": "Anmelden"
-		},
-		"signUpForm": {
-			"fullName": "Vollständiger Name",
-			"namePlaceholder": "Max Mustermann",
-			"failedSignUp": "Registrierung fehlgeschlagen",
-			"accountCreated": "Konto erfolgreich erstellt",
-			"passwordTooShort": "Das Passwort ist zu kurz",
-			"creatingAccount": "Konto wird erstellt...",
-			"createAccount": "Konto erstellen"
-		},
-		"invitation": {
-			"pageTitleAccept": "Einladung annehmen",
-			"pageTitleError": "Einladungsfehler",
-			"pageTitleInvalid": "Ungültige Einladung",
-			"loadingTitle": "Einladung wird geladen...",
-			"errorTitle": "Einladungsfehler",
-			"invalidTitle": "Ungültige Einladung",
-			"invitationExpired": "Einladung abgelaufen",
-			"errorLoadDescription": "Die Einladungsdetails konnten nicht geladen werden. Die Einladung ist möglicherweise ungültig oder abgelaufen.",
-			"goToSignIn": "Zur Anmeldung",
-			"workspaceLabel": "Workspace: {{workspaceName}}",
-			"joinWorkspace": "{{workspaceName}} beitreten",
-			"inviteBodySignedIn": "<inviter>{{inviterName}}</inviter> hat dich eingeladen, ihrem Workspace beizutreten.",
-			"inviteBodySignedOut": "<inviter>{{inviterName}}</inviter> hat dich eingeladen, ihrem Workspace auf Kaneo beizutreten.",
-			"createAccountOrSignIn": "Erstelle ein Konto, um diese Einladung anzunehmen, oder melde dich an, falls du bereits eines hast.",
-			"createAccount": "Konto erstellen",
-			"accepting": "Wird angenommen...",
-			"acceptInvitation": "Einladung annehmen",
-			"goToDashboard": "Zum Dashboard",
-			"signedInAs": "Angemeldet als <email>{{email}}</email>",
-			"youveBeenInvited": "Du wurdest eingeladen!",
-			"invitationFor": "Einladung für: <email>{{email}}</email>",
-			"signIn": "Anmelden",
-			"toast": {
-				"acceptFailed": "Einladung konnte nicht angenommen werden",
-				"acceptSuccess": "Einladung angenommen! Willkommen im Team."
-			}
-		},
-		"onboarding": {
-			"pageTitle": "Willkommen bei Kaneo",
-			"workspacePageTitle": "Workspace erstellen",
-			"createWorkspaceTitle": "Workspace erstellen",
-			"createWorkspaceSubtitle": "Richte deinen Workspace ein, um mit der Verwaltung von Projekten zu beginnen",
-			"workspaceName": "Workspace-Name",
-			"workspaceNamePlaceholder": "z. B. Acme Inc, Mein Team",
-			"descriptionOptional": "Beschreibung (optional)",
-			"descriptionPlaceholder": "Woran arbeitet dein Team?",
-			"creating": "Wird erstellt...",
-			"createWorkspace": "Workspace erstellen",
-			"workspaceCreatedTitle": "Workspace erstellt",
-			"redirectingToWorkspace": "Du wirst zu <name>{{name}}</name> weitergeleitet...",
-			"toast": {
-				"workspaceCreated": "Workspace erfolgreich erstellt",
-				"createFailed": "Workspace konnte nicht erstellt werden"
-			},
-			"validation": {
-				"workspaceNameRequired": "Workspace-Name ist erforderlich"
-			}
 		},
 		"profileSetup": {
 			"pageTitle": "Profil vervollständigen",
@@ -348,7 +213,7 @@
 			"deleteAccount": {
 				"confirm": "Delete account",
 				"confirmLabel": "Confirm your email address",
-				"description": "Workspaces only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
+				"description": "Teams only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
 				"error": "Failed to delete account",
 				"modalDescription": "This cannot be undone. Type {{email}} to confirm.",
 				"modalTitle": "Delete your account?",
@@ -400,10 +265,6 @@
 			"webhookSecretHintConfigured": "Ein Signatur-Geheimnis ist bereits konfiguriert ({{masked}}). Gib ein neues ein, um es zu ersetzen.",
 			"webhookSecretHintOptional": "Optional. Kaneo signiert den Anfragetext, wenn ein Geheimnis gesetzt ist.",
 			"connectWebhook": "Webhook verbinden",
-			"workspaceRulesTitle": "Zustellregeln für Arbeitsbereiche",
-			"workspaceRulesDescription": "Nutze deine globalen Kanäle erneut und lege fest, welche Arbeitsbereiche und Projekte Kontobenachrichtigungen senden dürfen.",
-			"workspaceCardHint": "Wähle, welche Kanäle dieser Arbeitsbereich für Kontobenachrichtigungen nutzen darf.",
-			"workspaceEnabledLabel": "Benachrichtigungen für {{workspaceName}} aktivieren",
 			"eventPreferencesTitle": "Benachrichtige mich über",
 			"eventPreferencesDescription": "Wähle aus, welche Aufgabenereignisse Benachrichtigungen in Kaneo erstellen und über verbundene Kanäle zugestellt werden können.",
 			"eventTaskAssignments": "Aufgabenzuweisungen",
@@ -417,10 +278,6 @@
 			"reminderLeadTimeUnitDays": "Tage",
 			"reminderLeadTimeInvalid": "Gib eine ganze Zahl zwischen 1 und {{max}} ein.",
 			"saveEventPreferences": "Benachrichtigungstypen speichern",
-			"workspaceCardLabelEmail": "E-Mail",
-			"workspaceCardLabelNtfy": "ntfy",
-			"workspaceCardLabelGotify": "Gotify",
-			"workspaceCardLabelWebhook": "Benutzerdefinierter Webhook",
 			"emailChannelHintEnabled": "Passende Arbeitsbereichs-Benachrichtigungen per E-Mail senden.",
 			"emailChannelHintDisabled": "E-Mail zuerst global konfigurieren und aktivieren.",
 			"ntfyChannelHintEnabled": "Passende Arbeitsbereichs-Benachrichtigungen an ntfy senden.",
@@ -435,31 +292,23 @@
 			"allProjectsDescription": "Benachrichtigungen aus jedem Projekt in diesem Arbeitsbereich zustellen.",
 			"selectedProjects": "Ausgewählte Projekte",
 			"selectedProjectsDescription": "Nur Benachrichtigungen aus gewählten Projekten zustellen.",
-			"noProjectsInWorkspace": "Für diesen Arbeitsbereich sind noch keine Projekte vorhanden.",
 			"createRule": "Regel erstellen",
 			"removeRule": "Regel entfernen",
-			"toastEmailSaved": "E-Mail-Benachrichtigungseinstellungen gespeichert",
-			"toastEmailSaveFailed": "E-Mail-Einstellungen konnten nicht gespeichert werden",
-			"toastNtfySaved": "ntfy-Einstellungen gespeichert",
-			"toastNtfySaveFailed": "ntfy-Einstellungen konnten nicht gespeichert werden",
-			"toastNtfyDisconnected": "ntfy getrennt",
-			"toastNtfyDisconnectFailed": "ntfy konnte nicht getrennt werden",
-			"toastGotifySaved": "Gotify-Einstellungen gespeichert",
-			"toastGotifySaveFailed": "Gotify-Einstellungen konnten nicht gespeichert werden",
-			"toastGotifyDisconnected": "Gotify getrennt",
-			"toastGotifyDisconnectFailed": "Gotify konnte nicht getrennt werden",
-			"toastWebhookSaved": "Webhook-Einstellungen gespeichert",
-			"toastWebhookSaveFailed": "Webhook-Einstellungen konnten nicht gespeichert werden",
-			"toastWebhookDisconnected": "Webhook getrennt",
-			"toastWebhookDisconnectFailed": "Webhook konnte nicht getrennt werden",
-			"toastRuleSaved": "Benachrichtigungsregel für {{workspaceName}} gespeichert",
 			"toastRuleSaveFailed": "Arbeitsbereichs-Benachrichtigungsregel konnte nicht gespeichert werden",
-			"toastRuleRemoved": "Benachrichtigungsregel für {{workspaceName}} entfernt",
 			"toastRuleRemoveFailed": "Arbeitsbereichs-Benachrichtigungsregel konnte nicht entfernt werden",
 			"toastPreferencesSaved": "Benachrichtigungseinstellungen gespeichert",
 			"toastPreferencesSaveFailed": "Benachrichtigungseinstellungen konnten nicht gespeichert werden",
 			"toastRuleSavedGeneric": "Arbeitsbereichs-Benachrichtigungsregel gespeichert",
-			"toastRuleRemovedGeneric": "Arbeitsbereichs-Benachrichtigungsregel entfernt"
+			"toastRuleRemovedGeneric": "Arbeitsbereichs-Benachrichtigungsregel entfernt",
+			"noProjectsInTeam": "No projects available for this team yet.",
+			"teamCardHint": "Choose which channels this team can use for account notifications.",
+			"teamCardLabelEmail": "Email",
+			"teamCardLabelGotify": "Gotify",
+			"teamCardLabelNtfy": "ntfy",
+			"teamCardLabelWebhook": "Custom webhook",
+			"teamEnabledLabel": "Enable notifications for {{teamName}}",
+			"teamRulesDescription": "Reuse your global channels, then decide which teams and projects are allowed to send account notifications.",
+			"teamRulesTitle": "Team delivery rules"
 		},
 		"preferencesPage": {
 			"title": "Einstellungen",
@@ -486,7 +335,6 @@
 			"selectViewMode": "Ansicht auswählen",
 			"board": "Board",
 			"list": "Liste",
-			"gantt": "Gantt",
 			"sidebarDefault": "Standard-Sidebar",
 			"sidebarDefaultDescription": "Sidebar beim Start erweitert geöffnet halten",
 			"displayOptions": "Anzeigeoptionen",
@@ -566,49 +414,6 @@
 					"nameShort": "Der Name muss mindestens 3 Zeichen lang sein",
 					"expirationRequired": "Ablauf ist erforderlich"
 				}
-			}
-		},
-		"workspaceGeneral": {
-			"pageTitle": "Allgemeine Einstellungen",
-			"title": "Allgemeine Einstellungen",
-			"subtitle": "Verwalte den Namen und die Beschreibung deines Workspaces.",
-			"workspaceInfoTitle": "Workspace-Informationen",
-			"workspaceInfoSubtitle": "Konfiguriere Details und Einstellungen deines Workspaces.",
-			"nameLabel": "Workspace-Name",
-			"nameHint": "Der Name deines Workspaces",
-			"namePlaceholder": "Workspace-Name eingeben",
-			"descriptionLabel": "Beschreibung",
-			"descriptionHint": "Eine kurze Beschreibung deines Workspaces",
-			"descriptionPlaceholder": "Workspace-Beschreibung eingeben",
-			"dangerZone": "Gefahrenbereich",
-			"dangerZoneSubtitle": "Unumkehrbare und destruktive Aktionen.",
-			"deleteWorkspace": "Workspace löschen",
-			"deleteWorkspaceDescription": "Plane die dauerhafte Löschung des Workspaces",
-			"deleteModalTitle": "Workspace löschen?",
-			"deleteModalDescription": "Dadurch wird der Workspace \"{{name}}\" und alle zugehörigen Daten dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
-			"deleteModalConfirm": "Workspace löschen",
-			"toastUpdated": "Workspace erfolgreich aktualisiert",
-			"toastUpdateError": "Workspace konnte nicht aktualisiert werden",
-			"toastDeleted": "Workspace erfolgreich gelöscht",
-			"toastDeleteError": "Workspace konnte nicht gelöscht werden",
-			"validation": {
-				"nameRequired": "Workspace-Name ist erforderlich",
-				"nameShort": "Der Workspace-Name muss mindestens 2 Zeichen lang sein"
-			},
-			"transferOwnership": {
-				"toastSuccess": "Eigentümerschaft übertragen",
-				"toastError": "Eigentümerschaft konnte nicht übertragen werden",
-				"title": "Eigentümerschaft übertragen",
-				"subtitle": "Übergib diesen Workspace an ein anderes Mitglied. Du wirst zum Admin herabgestuft und verlierst die Rechte, die nur Eigentümern vorbehalten sind.",
-				"pickerLabel": "Neuer Eigentümer",
-				"noEligibleMembers": "Lade mindestens ein weiteres Mitglied ein, bevor du die Eigentümerschaft übertragen kannst.",
-				"pickerHint": "Diese Person wird alleiniger Eigentümer dieses Workspaces.",
-				"pickerPlaceholder": "Mitglied auswählen",
-				"button": "Übertragen",
-				"dialogTitle": "Eigentümerschaft übertragen?",
-				"dialogDescription": "{{name}} wird alleiniger Eigentümer von {{workspace}}. Du behältst Admin-Zugriff, verlierst aber Rechte, die nur Eigentümern vorbehalten sind, etwa das Löschen des Workspaces oder eine erneute Übertragung.",
-				"transferring": "Wird übertragen…",
-				"confirm": "Eigentümerschaft übertragen"
 			}
 		},
 		"projectGeneral": {
@@ -889,7 +694,6 @@
 			},
 			"connect": "Slack verbinden",
 			"saveChanges": "Änderungen speichern",
-			"update": "Slack aktualisieren",
 			"disconnect": "Trennen"
 		},
 		"discordIntegration": {
@@ -927,7 +731,6 @@
 			},
 			"connect": "Discord verbinden",
 			"saveChanges": "Änderungen speichern",
-			"update": "Discord aktualisieren",
 			"disconnect": "Trennen"
 		},
 		"genericWebhookIntegration": {
@@ -1085,147 +888,10 @@
 			"draft": "Entwurf",
 			"open": "Offen"
 		},
-		"workspaceRoles": {
-			"pageTitle": "Rollen",
-			"title": "Rollen",
-			"subtitle": "Lege fest, welche Aktionen Mitglieder in {{workspaceName}} ausführen können.",
-			"thisWorkspace": "diesem Workspace",
-			"noAccess": "Du benötigst Admin- oder Eigentümerrechte, um Workspace-Rollen zu verwalten.",
-			"sectionTitle": "Workspace-Rollen",
-			"sectionSubtitle": "Bearbeite die Standardrollen oder füge eine maßgeschneiderte hinzu. Mitglieder behalten ihren zugewiesenen Rollennamen über Änderungen hinweg.",
-			"newRole": "Neue Rolle",
-			"loading": "Lädt…",
-			"loadError": "Rollen konnten nicht geladen werden.",
-			"emptyTitle": "Noch keine Rollen",
-			"emptyDescription": "Standardrollen erscheinen hier, sobald sie für diesen Workspace angelegt wurden.",
-			"defaultBadge": "Standard",
-			"permissionCount_one": "{{count}} Berechtigung",
-			"permissionCount_other": "{{count}} Berechtigungen",
-			"nameLabel": "Name",
-			"nameHint": "Kleinbuchstaben. Kann später nicht geändert werden.",
-			"namePlaceholder": "z. B. reviewer",
-			"discard": "Verwerfen",
-			"createRole": "Rolle erstellen",
-			"deleteRole": "Rolle löschen",
-			"defaultRoleHelp": "Standardrolle: Der Name ist reserviert und die Zeile kann nicht gelöscht werden.",
-			"unsavedChanges": "Du hast ungespeicherte Änderungen",
-			"allChangesSaved": "Alle Änderungen gespeichert",
-			"saveChanges": "Änderungen speichern",
-			"defaultRoleDescriptions": {
-				"viewer": "Kann Aufgaben ansehen und kommentieren.",
-				"member": "Kann Aufgaben und Projekte erstellen und verwalten.",
-				"admin": "Hat vollen Zugriff auf den Workspace."
-			},
-			"resources": {
-				"project": "Projekte",
-				"task": "Aufgaben",
-				"label": "Labels",
-				"workspace": "Workspace"
-			},
-			"permissions": {
-				"project": {
-					"create": {
-						"label": "Erstellen",
-						"description": "Kann neue Projekte erstellen"
-					},
-					"read": {
-						"label": "Lesen",
-						"description": "Kann Projekte ansehen"
-					},
-					"update": {
-						"label": "Aktualisieren",
-						"description": "Kann Projekteinstellungen bearbeiten"
-					},
-					"delete": {
-						"label": "Löschen",
-						"description": "Kann Projekte löschen"
-					},
-					"share": {
-						"label": "Teilen",
-						"description": "Kann Projekte teilen"
-					}
-				},
-				"task": {
-					"create": {
-						"label": "Erstellen",
-						"description": "Kann Aufgaben erstellen"
-					},
-					"read": {
-						"label": "Lesen",
-						"description": "Kann Aufgaben ansehen"
-					},
-					"update": {
-						"label": "Aktualisieren",
-						"description": "Kann Aufgaben bearbeiten"
-					},
-					"delete": {
-						"label": "Löschen",
-						"description": "Kann Aufgaben löschen"
-					},
-					"assign": {
-						"label": "Zuweisen",
-						"description": "Kann Aufgaben Mitgliedern zuweisen"
-					}
-				},
-				"label": {
-					"create": {
-						"label": "Erstellen",
-						"description": "Kann Labels erstellen"
-					},
-					"read": {
-						"label": "Lesen",
-						"description": "Kann Labels ansehen"
-					},
-					"update": {
-						"label": "Aktualisieren",
-						"description": "Kann Labels bearbeiten"
-					},
-					"delete": {
-						"label": "Löschen",
-						"description": "Kann Labels löschen"
-					}
-				},
-				"workspace": {
-					"read": {
-						"label": "Lesen",
-						"description": "Kann Workspace-Einstellungen ansehen"
-					},
-					"update": {
-						"label": "Aktualisieren",
-						"description": "Kann Workspace-Einstellungen aktualisieren"
-					},
-					"delete": {
-						"label": "Löschen",
-						"description": "Kann den Workspace löschen"
-					},
-					"manage_settings": {
-						"label": "Einstellungen verwalten",
-						"description": "Kann Workspace-Einstellungen verwalten"
-					}
-				}
-			},
-			"validation": {
-				"nameRequired": "Rollenname ist erforderlich",
-				"nameExists": "Eine Rolle mit diesem Namen existiert bereits",
-				"permissionRequired": "Mindestens eine Berechtigung muss ausgewählt werden"
-			},
-			"toast": {
-				"created": "Rolle erstellt",
-				"createError": "Rolle konnte nicht erstellt werden",
-				"updated": "Rolle aktualisiert",
-				"updateError": "Rolle konnte nicht aktualisiert werden",
-				"deleted": "Rolle gelöscht",
-				"deleteError": "Rolle konnte nicht gelöscht werden"
-			},
-			"deleteDialog": {
-				"title": "Rolle löschen",
-				"description": "Dadurch wird die Rolle \"{{role}}\" dauerhaft gelöscht. Mitglieder mit dieser Rolle verlieren deren Berechtigungen."
-			}
-		},
-		"workspaceLabels": {
+		"teamLabels": {
 			"pageTitle": "Label-Einstellungen",
 			"title": "Labels",
-			"subtitle": "Erstelle, bearbeite und lösche Labels auf Workspace-Ebene.",
+			"subtitle": "Erstelle, bearbeite und lösche Labels auf Team-Ebene.",
 			"cardDescription": "Verwalte Labels, die Aufgaben zugewiesen werden können.",
 			"createLabel": "Label erstellen",
 			"editLabel": "Label bearbeiten",
@@ -1234,7 +900,7 @@
 			"nameLabel": "Label-Name",
 			"namePlaceholder": "Label-Namen eingeben",
 			"colorLabel": "Farbe",
-			"createDescription": "Erstelle ein neues Label, das für Aufgaben in diesem Workspace verwendet werden kann.",
+			"createDescription": "Erstelle ein neues Label, das für Aufgaben in diesem Team verwendet werden kann.",
 			"editDescription": "Aktualisiere den Namen oder die Farbe dieses Labels.",
 			"deleteConfirmTitle": "Dieses Label löschen?",
 			"deleteConfirmDescription": "Dadurch wird dieses Label dauerhaft von allen Aufgaben entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
@@ -1257,7 +923,6 @@
 			"members": "Mitglieder",
 			"createTask": "Aufgabe erstellen",
 			"createProject": "Projekt erstellen",
-			"createWorkspace": "Workspace erstellen",
 			"lightTheme": "Helles Design",
 			"darkTheme": "Dunkles Design",
 			"systemTheme": "Systemdesign",
@@ -1268,14 +933,14 @@
 				"navigate": "Navigieren",
 				"open": "Öffnen",
 				"close": "Schließen"
-			}
+			},
+			"createTeam": "Create team"
 		},
 		"notifications": "Benachrichtigungen",
 		"sidebar": {
 			"overview": "Übersicht",
 			"projects": "Projekte",
 			"members": "Mitglieder",
-			"invitations": "Einladungen",
 			"more": "Mehr",
 			"backToBoard": "Zurück zum Board"
 		},
@@ -1296,10 +961,10 @@
 			"groups": {
 				"task": "Aufgaben",
 				"project": "Projekte",
-				"workspace": "Workspaces",
 				"comment": "Kommentare",
 				"activity": "Aktivitäten",
-				"fallback": "Ergebnisse"
+				"fallback": "Ergebnisse",
+				"team": "Teams"
 			}
 		},
 		"settingsLayout": {
@@ -1314,17 +979,10 @@
 			"signingOut": "Wird abgemeldet...",
 			"logOut": "Abmelden"
 		},
-		"workspaceSwitcher": {
-			"workspaces": "Workspaces",
-			"switching": "Wechseln...",
-			"addWorkspace": "Workspace hinzufügen",
-			"selectWorkspace": "Workspace auswählen"
-		},
 		"page": {
 			"projectsTitle": "Projekte",
 			"settingsTitle": "Einstellungen",
-			"backToWorkspace": "Zurück zum Workspace",
-			"settingsWorkspaceTab": "Workspace"
+			"backToTeam": "Zurück zum Team"
 		},
 		"projectSettings": {
 			"projectLabel": "Projekt"
@@ -1349,21 +1007,25 @@
 				"closeModal": "Modal/Popover schließen",
 				"createTask": "Aufgabe erstellen",
 				"createProject": "Projekt erstellen",
-				"createWorkspace": "Workspace erstellen",
 				"boardView": "Zur Board-Ansicht wechseln",
 				"listView": "Zur Listenansicht wechseln",
 				"backlogView": "Zur Backlog-Ansicht wechseln",
 				"nextTask": "Nächste Aufgabe",
 				"prevTask": "Vorherige Aufgabe",
 				"openTask": "Ausgewählte Aufgabe öffnen",
-				"quickSelectNumber": "Option per Nummer auswählen"
+				"quickSelectNumber": "Option per Nummer auswählen",
+				"createTeam": "Create team"
 			}
+		},
+		"teamSwitcher": {
+			"addTeam": "Add team",
+			"selectTeam": "Select a team",
+			"switching": "Switching...",
+			"teams": "Teams"
 		}
 	},
 	"notifications": {
 		"title": "Benachrichtigungen",
-		"newCount_one": "{{count}} neu",
-		"newCount_other": "{{count}} neu",
 		"emptyTitle": "Noch keine Benachrichtigungen",
 		"emptySubtitle": "Hier erscheinen Updates und Aktivitäten.",
 		"clearAll": "Alle Benachrichtigungen löschen",
@@ -1384,10 +1046,6 @@
 			"task_created": {
 				"title": "Neue Aufgabe erstellt",
 				"content": "Die Aufgabe \"{{taskTitle}}\" wurde erstellt"
-			},
-			"workspace_created": {
-				"title": "Workspace erstellt",
-				"content": "Dein Workspace \"{{workspaceName}}\" wurde erfolgreich erstellt"
 			},
 			"task_status_changed": {
 				"title": "Aufgabenstatus geändert",
@@ -1662,9 +1320,6 @@
 						"onlyYoutube": "Nur YouTube-Links können eingebettet werden."
 					},
 					"onlyYoutubeInline": "Nur YouTube-URLs können eingebettet werden. Verwende stattdessen den Link-Modus."
-				},
-				"mermaid": {
-					"renderFailed": "Mermaid-Diagramm konnte nicht gerendert werden"
 				}
 			}
 		},
@@ -1942,37 +1597,34 @@
 			}
 		}
 	},
-	"invitations": {
-		"email": {
-			"subject": "{{inviterName}} hat dich eingeladen, {{workspaceName}} auf Kaneo beizutreten",
-			"preview": "Du wurdest zu {{workspaceName}} auf Kaneo eingeladen",
-			"title": "{{workspaceName}} beitreten",
-			"subtitle": "{{inviterName}} ({{inviterEmail}}) hat dich eingeladen, in Kaneo zusammenzuarbeiten.",
-			"cta": "Einladung annehmen",
-			"sameEmail": "Du kannst die Einladung mit derselben E-Mail-Adresse annehmen, die diese Nachricht erhalten hat.",
-			"ignore": "Falls du damit nicht gerechnet hast, kannst du diese E-Mail einfach ignorieren.",
-			"footer": "Kaneo Workspace-Einladung"
+	"team": {
+		"roles": {
+			"owner": "Eigentümer",
+			"admin": "Admin",
+			"member": "Mitglied",
+			"viewer": "Betrachter"
 		},
-		"pageTitle": "Einladungen",
-		"pendingInvitations": "Ausstehende Einladungen",
-		"acceptSubtitle": "Nimm Einladungen an, um Workspaces beizutreten",
-		"noPendingTitle": "Keine ausstehenden Einladungen",
-		"noPendingDescription": "Du hast derzeit keine ausstehenden Workspace-Einladungen.",
-		"continueToSetup": "Weiter zum Setup",
-		"skipForNow": "Vorerst überspringen",
-		"table": {
-			"workspace": "Workspace",
-			"invitedBy": "Eingeladen von",
-			"expires": "Läuft ab"
+		"members": {
+			"pageTitle": "Mitglieder",
+			"you": "Du"
 		},
-		"toast": {
-			"acceptError": "Einladung konnte nicht angenommen werden",
-			"acceptSuccess": "Einladung angenommen! Willkommen im Team.",
-			"rejectError": "Einladung konnte nicht abgelehnt werden",
-			"rejectSuccess": "Einladung abgelehnt"
-		}
-	},
-	"workspace": {
+		"membersTable": {
+			"emptyTitle": "Noch keine Teammitglieder",
+			"emptyDescription": "Ask an admin to add members to this team.",
+			"columns": {
+				"name": "Name",
+				"role": "Rolle",
+				"joined": "Beigetreten"
+			},
+			"ariaRemoveMember": "Mitglied entfernen",
+			"removeDialogTitle": "Teammitglied entfernen?",
+			"removeDialogDescription": "Bist du sicher, dass du {{name}} aus dem Team entfernen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
+			"removeMember": "Mitglied entfernen",
+			"removeSuccess": "Teammitglied erfolgreich entfernt",
+			"removeError": "Teammitglied konnte nicht entfernt werden",
+			"roleUpdateSuccess": "Rolle aktualisiert",
+			"roleUpdateError": "Rolle konnte nicht aktualisiert werden"
+		},
 		"projects": {
 			"pageTitle": "Projekte",
 			"createProject": "Projekt erstellen",
@@ -1989,15 +1641,14 @@
 				"inProgress": "In Bearbeitung"
 			},
 			"noDueDate": "Kein Fälligkeitsdatum",
-			"reorderHandle": "Projekt neu anordnen",
 			"reorderError": "Projekte konnten nicht neu angeordnet werden",
-			"emptyDescriptionReadOnly": "In diesem Workspace gibt es noch keine Projekte. Bitte einen Admin, eines zu erstellen."
+			"emptyDescriptionReadOnly": "In diesem Team gibt es noch keine Projekte. Bitte einen Admin, eines zu erstellen."
 		},
 		"search": {
 			"pageTitle": "Suche",
 			"backToDashboard": "Zurück zum Dashboard",
 			"placeholder": "Suche nach Aufgaben nach Titel oder Kurz-ID (z. B. DEP-23)...",
-			"hint": "Suche über alle Projekte in diesem Workspace. Nutze Kurz-IDs wie DEP-23, um bestimmte Aufgaben zu finden.",
+			"hint": "Suche über alle Projekte in diesem Team. Nutze Kurz-IDs wie DEP-23, um bestimmte Aufgaben zu finden.",
 			"searching": "Suche läuft...",
 			"resultsFound_one": "{{count}} Ergebnis gefunden",
 			"resultsFound_other": "{{count}} Ergebnisse gefunden",
@@ -2013,76 +1664,16 @@
 			"suggestionCompleted": "Abgeschlossen"
 		},
 		"create": {
-			"pageTitle": "Workspace erstellen",
-			"heading": "Neuen Workspace erstellen",
-			"subtitle": "Workspaces sind gemeinsame Umgebungen, in denen Teams an Projekten, Zyklen und Issues arbeiten können.",
-			"nameLabel": "Workspace-Name",
-			"namePlaceholder": "Workspace-Namen eingeben",
-			"descriptionLabel": "Beschreibung (optional)",
-			"descriptionPlaceholder": "Füge eine Beschreibung für deinen Workspace hinzu",
+			"pageTitle": "Team erstellen",
+			"heading": "Neuen Team erstellen",
+			"subtitle": "Teams sind gemeinsame Umgebungen, in denen Teams an Projekten, Zyklen und Issues arbeiten können.",
+			"namePlaceholder": "Team-Namen eingeben",
 			"required": "Erforderlich",
 			"creating": "Wird erstellt...",
-			"submit": "Workspace erstellen",
-			"success": "Workspace erfolgreich erstellt",
-			"error": "Workspace konnte nicht erstellt werden"
-		}
-	},
-	"team": {
-		"roles": {
-			"owner": "Eigentümer",
-			"admin": "Admin",
-			"member": "Mitglied",
-			"viewer": "Betrachter"
-		},
-		"members": {
-			"pageTitle": "Mitglieder",
-			"inviteMember": "Mitglied einladen",
-			"you": "Du"
-		},
-		"invitations": {
-			"linkLabel": "Einladungslink",
-			"copyLink": "Link kopieren",
-			"linkCopied": "Einladungslink kopiert",
-			"copyFailed": "Automatisches Kopieren fehlgeschlagen. Markiere den Link und drücke Strg+C.",
-			"pendingBadge": "ausstehend",
-			"expires": "Läuft ab am {{date}}"
-		},
-		"inviteModal": {
-			"title": "Teammitglied einladen",
-			"emailLabel": "E-Mail",
-			"emailPlaceholder": "kollege@firma.com",
-			"sendInvitation": "Einladung senden",
-			"success": "Einladung erfolgreich gesendet",
-			"error": "Teammitglied konnte nicht eingeladen werden",
-			"createdTitle": "Einladung erstellt",
-			"shareLinkDescription": "Teile diesen Link mit {{email}}, damit die Person dem Workspace beitreten kann.",
-			"done": "Fertig"
-		},
-		"membersTable": {
-			"emptyTitle": "Noch keine Teammitglieder",
-			"emptyDescription": "Lade dein erstes Teammitglied ein, um loszulegen.",
-			"columns": {
-				"name": "Name",
-				"role": "Rolle",
-				"joined": "Beigetreten",
-				"actions": "Aktionen"
-			},
-			"memberRolePending": "{{role}} (Ausstehend)",
-			"ariaCancelInvitation": "Einladung abbrechen",
-			"ariaRemoveMember": "Mitglied entfernen",
-			"removeDialogTitle": "Teammitglied entfernen?",
-			"removeDialogDescription": "Bist du sicher, dass du {{name}} aus dem Workspace entfernen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
-			"cancelDialogTitle": "Einladung abbrechen?",
-			"cancelDialogDescription": "Bist du sicher, dass du die Einladung für {{email}} abbrechen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
-			"removeMember": "Mitglied entfernen",
-			"cancelInvitation": "Einladung abbrechen",
-			"removeSuccess": "Teammitglied erfolgreich entfernt",
-			"removeError": "Teammitglied konnte nicht entfernt werden",
-			"cancelInviteSuccess": "Einladung erfolgreich abgebrochen",
-			"cancelInviteError": "Einladung konnte nicht abgebrochen werden",
-			"ariaInvitationActions": "Einladungsaktionen",
-			"roleUpdateSuccess": "Rolle aktualisiert",
-			"roleUpdateError": "Rolle konnte nicht aktualisiert werden"
+			"submit": "Team erstellen",
+			"success": "Team erfolgreich erstellt",
+			"error": "Team konnte nicht erstellt werden",
+			"nameLabel": "Team Name"
 		}
 	},
 	"publicProject": {
@@ -2099,7 +1690,6 @@
 		"taskDetail": {
 			"labels": "Labels",
 			"externalLinks": "Externe Links",
-			"pullRequestFallback": "Pull Request",
 			"issueFallback": "Issue",
 			"prStatusMerged": "Zusammengeführt",
 			"prStatusDraft": "Entwurf",
@@ -2121,5 +1711,169 @@
 		"branding": {
 			"poweredBy": "Bereitgestellt von"
 		}
+	},
+	"admin": {
+		"actions": {
+			"delete": "Delete user",
+			"demote": "Demote to user",
+			"disable": "Disable account",
+			"enable": "Enable account",
+			"error": "Action failed",
+			"promote": "Promote to admin",
+			"resetPassword": "Reset password",
+			"successRole": "Role updated",
+			"successStatus": "Account status updated",
+			"manageTeams": "Manage teams"
+		},
+		"columns": {
+			"created": "Created",
+			"role": "Role",
+			"status": "Status",
+			"user": "User"
+		},
+		"create": {
+			"description": "Create a new account. The user can sign in with the username and password.",
+			"email": "Email (optional)",
+			"emailPlaceholder": "e.g. jane@example.com",
+			"error": "Failed to create user",
+			"name": "Name",
+			"namePlaceholder": "e.g. Jane Doe",
+			"password": "Password",
+			"passwordPlaceholder": "At least 8 characters",
+			"role": "Role",
+			"submit": "Create user",
+			"success": "User created",
+			"title": "Create user",
+			"username": "Username",
+			"usernamePlaceholder": "e.g. jane",
+			"validation": {
+				"nameRequired": "Name is required",
+				"passwordShort": "Password must be at least 8 characters",
+				"usernameInvalid": "Only lowercase letters, numbers and underscores (1-30 characters)",
+				"usernameRequired": "Username is required"
+			},
+			"team": "Team (optional)",
+			"teamNone": "No team",
+			"teamPlaceholder": "Choose a team…"
+		},
+		"deleteDialog": {
+			"confirm": "Delete",
+			"description": "Delete {{name}} ({{username}})? This cannot be undone.",
+			"success": "User deleted",
+			"title": "Delete user"
+		},
+		"page": {
+			"createUser": "Create user",
+			"currentUserBadge": "you",
+			"description": "Create and manage user accounts.",
+			"emptyDescription": "Create the first user account to get started.",
+			"emptyTitle": "No users",
+			"title": "User Management"
+		},
+		"resetPassword": {
+			"description": "Set a new password for {{username}}.",
+			"password": "New password",
+			"submit": "Reset password",
+			"success": "Password updated",
+			"title": "Reset password"
+		},
+		"role": {
+			"admin": "Admin",
+			"user": "User"
+		},
+		"status": {
+			"active": "Active",
+			"disabled": "Disabled"
+		},
+		"tab": "System",
+		"teams": {
+			"columns": {
+				"actions": "Actions",
+				"members": "Members",
+				"name": "Name",
+				"role": "Your role"
+			},
+			"create": "Create team",
+			"createDialogDescription": "Teams group users who collaborate on shared projects.",
+			"createDialogTitle": "Create a team",
+			"delete": "Delete team",
+			"deleteDialogDescription": "The team, its projects, and its memberships will be permanently deleted.",
+			"deleteDialogTitle": "Delete this team?",
+			"description": "Create and manage teams. Users join teams via invitation.",
+			"empty": "No teams yet. Create the first one to get started.",
+			"enter": "Enter team",
+			"hint": "As a system administrator, create the teams your users will join.",
+			"nameLabel": "Team name",
+			"namePlaceholder": "e.g. Acme",
+			"pageTitle": "Team management",
+			"tab": "Teams",
+			"title": "Teams",
+			"toast": {
+				"created": "Team \"{{name}}\" created",
+				"createError": "Failed to create team",
+				"deleted": "Team deleted",
+				"deleteError": "Failed to delete team",
+				"renamed": "Team renamed",
+				"renameError": "Failed to rename team"
+			},
+			"labels": "Labels",
+			"rename": "Rename",
+			"renameDialogDescription": "Change the name of this team.",
+			"renameDialogTitle": "Rename team",
+			"userTeamsAdd": "Add to team",
+			"userTeamsAddButton": "Add",
+			"userTeamsChoose": "Choose a team…",
+			"userTeamsCurrent": "Current teams",
+			"userTeamsDescription": "Manage which teams this user belongs to.",
+			"userTeamsEmpty": "This user is not a member of any team.",
+			"userTeamsNoAvailable": "This user is already in every team.",
+			"userTeamsRemove": "Remove from team",
+			"userTeamsTitle": "Teams of {{name}}",
+			"manageMembers": "Manage members",
+			"membersAdd": "Add user to team",
+			"membersAddButton": "Add",
+			"membersChooseUser": "Choose a user…",
+			"membersCurrent": "Current members",
+			"membersDescription": "Manage which users belong to this team.",
+			"membersEmpty": "This team has no members yet.",
+			"membersNoAvailable": "All users are already in this team.",
+			"membersRemove": "Remove from team",
+			"membersTitle": "Members of {{name}}"
+		},
+		"users": {
+			"tab": "Users"
+		},
+		"ai": {
+			"apiKeyHelp": "Stored encrypted. Sent as Bearer token. Never returned in responses.",
+			"apiKeyLabel": "API key",
+			"baseUrlHelp": "OpenAI-compatible endpoint. The client appends /v1/chat/completions.",
+			"baseUrlLabel": "API base URL",
+			"enableDescription": "When disabled, the Chat tab shows a placeholder and the API returns 503.",
+			"enableLabel": "Enable AI assistant",
+			"modelHelp": "Any model name accepted by your API. Default: gpt-4o.",
+			"modelLabel": "Model",
+			"pageDescription": "Configure the AI assistant used by project chat. Kaneo uses an OpenAI-compatible API.",
+			"pageTitle": "AI Assistant",
+			"save": "Save",
+			"saving": "Saving…",
+			"tab": "AI",
+			"toast": {
+				"error": "Failed to save settings",
+				"saved": "AI settings saved"
+			}
+		}
+	},
+	"chat": {
+		"errorFailed": "Failed to send message",
+		"errorTimeout": "Request timed out. Please try again.",
+		"notEnabledDescription": "The pi-agent AI assistant has not been configured for this instance. Please contact an administrator to enable it.",
+		"notEnabledTitle": "AI assistant not enabled",
+		"pageTitle": "Chat",
+		"placeholder": "Send a message to pi-agent…",
+		"send": "Send",
+		"streaming": "pi-agent is typing…",
+		"welcomeDescription": "Ask me to create tasks, check project status, or analyze progress. I'm your AI project management assistant.",
+		"welcomeTitle": "Chat with pi-agent",
+		"you": "You"
 	}
 }

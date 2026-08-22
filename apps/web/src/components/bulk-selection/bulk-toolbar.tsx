@@ -38,9 +38,9 @@ import {
 } from "@/components/ui/popover";
 import labelColors from "@/constants/label-colors";
 import { useBulkOperations } from "@/hooks/mutations/task/use-bulk-operations";
-import useGetLabelsByWorkspace from "@/hooks/queries/label/use-get-labels-by-workspace";
-import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
-import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
+import useGetLabelsByTeam from "@/hooks/queries/label/use-get-labels-by-team";
+import useActiveTeam from "@/hooks/queries/team/use-active-team";
+import { useGetActiveTeamMembers } from "@/hooks/queries/team-member/use-get-active-team-members";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { getColumnIcon } from "@/lib/column";
 import { getInitials } from "@/lib/get-initials";
@@ -91,13 +91,9 @@ function BulkToolbar() {
     bulkAddLabel,
     bulkDueDate,
   } = useBulkOperations();
-  const { data: workspace } = useActiveWorkspace();
-  const { data: workspaceUsers } = useGetActiveWorkspaceUsers(
-    workspace?.id ?? "",
-  );
-  const { data: workspaceLabels = [] } = useGetLabelsByWorkspace(
-    workspace?.id ?? "",
-  );
+  const { data: team } = useActiveTeam();
+  const { data: teamUsers } = useGetActiveTeamMembers(team?.id ?? "");
+  const { data: teamLabels = [] } = useGetLabelsByTeam(team?.id ?? "");
   const { canUpdateTasks, canDeleteTasks, canAssignTasks, canUpdateLabels } =
     useWorkspacePermission();
   const canEdit = canUpdateTasks();
@@ -110,15 +106,15 @@ function BulkToolbar() {
   const selectedCount = selectedTaskIds.size;
 
   const uniqueLabels = useMemo(() => {
-    const labelMap = new Map<string, (typeof workspaceLabels)[0]>();
-    for (const label of workspaceLabels) {
+    const labelMap = new Map<string, (typeof teamLabels)[0]>();
+    for (const label of teamLabels) {
       const existing = labelMap.get(label.name);
       if (!existing || (label.taskId === null && existing.taskId !== null)) {
         labelMap.set(label.name, label);
       }
     }
     return Array.from(labelMap.values());
-  }, [workspaceLabels]);
+  }, [teamLabels]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -319,22 +315,19 @@ function BulkToolbar() {
       groups.push({
         value: "assign",
         label: t("tasks:bulk.assignTo"),
-        items: (workspaceUsers?.members ?? []).map((member) => ({
-          value: `assign-${member.userId}`,
-          label: member.user?.name || t("common:people.someone"),
+        items: (teamUsers ?? []).map((member) => ({
+          value: `assign-${member.id}`,
+          label: member.name || t("common:people.someone"),
           icon: (
             <Avatar className="h-5 w-5">
-              <AvatarImage
-                src={member.user?.image ?? ""}
-                alt={member.user?.name || ""}
-              />
+              <AvatarImage src={member.image ?? ""} alt={member.name || ""} />
               <AvatarFallback className="text-xs font-medium border border-border/30">
-                {getInitials(member.user?.name)}
+                {getInitials(member.name)}
               </AvatarFallback>
             </Avatar>
           ),
           onRun: () => {
-            void handleBulkAssign(member.userId);
+            void handleBulkAssign(member.id);
           },
         })),
       });
@@ -383,7 +376,7 @@ function BulkToolbar() {
     canAssign,
     canEditLabels,
     project?.columns,
-    workspaceUsers?.members,
+    teamUsers,
     uniqueLabels,
     handleBulkDelete,
     handleBulkArchive,

@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const { state } = vi.hoisted(() => ({
   state: {
     resolveCalls: 0,
-    validateCalls: [] as { userId: string; workspaceId: string }[],
+    validateCalls: [] as { userId: string; teamId: string }[],
     caller: "anonymous" as "anonymous" | "member" | "outsider",
   },
 }));
@@ -23,8 +23,8 @@ vi.mock("../../../apps/api/src/utils/authenticate-api-request", () => ({
 }));
 
 vi.mock("../../../apps/api/src/utils/validate-workspace-access", () => ({
-  validateWorkspaceAccess: async (userId: string, workspaceId: string) => {
-    state.validateCalls.push({ userId, workspaceId });
+  validateWorkspaceAccess: async (userId: string, teamId: string) => {
+    state.validateCalls.push({ userId, teamId });
     if (userId !== "user-member") {
       throw new HTTPException(403, {
         message: "You don't have access to this workspace",
@@ -58,7 +58,7 @@ describe("authorizeAssetAccess", () => {
   it("allows an anonymous caller to read an asset of a public project", async () => {
     const status = await statusOf(
       authorizeAssetAccess(context, {
-        workspaceId: "workspace-1",
+        teamId: "team-1",
         isPublic: true,
       }),
     );
@@ -72,7 +72,7 @@ describe("authorizeAssetAccess", () => {
   it("rejects an anonymous caller for a private asset", async () => {
     const status = await statusOf(
       authorizeAssetAccess(context, {
-        workspaceId: "workspace-1",
+        teamId: "team-1",
         isPublic: false,
       }),
     );
@@ -85,7 +85,7 @@ describe("authorizeAssetAccess", () => {
 
     const status = await statusOf(
       authorizeAssetAccess(context, {
-        workspaceId: "workspace-1",
+        teamId: "team-1",
         isPublic: null,
       }),
     );
@@ -98,14 +98,14 @@ describe("authorizeAssetAccess", () => {
 
     const status = await statusOf(
       authorizeAssetAccess(context, {
-        workspaceId: "workspace-1",
+        teamId: "team-1",
         isPublic: false,
       }),
     );
 
     expect(status).toBe(200);
     expect(state.validateCalls).toEqual([
-      { userId: "user-member", workspaceId: "workspace-1" },
+      { userId: "user-member", teamId: "team-1" },
     ]);
   });
 });

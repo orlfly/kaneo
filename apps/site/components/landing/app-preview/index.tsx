@@ -61,9 +61,9 @@ import { cn } from "@/lib/utils";
 import type Task from "@/types/task";
 import {
   MOCK_PROJECTS,
+  MOCK_TEAM_LABELS,
   MOCK_USERS,
-  MOCK_WORKSPACE,
-  MOCK_WORKSPACE_LABELS,
+  MOCK_TEAM,
 } from "./mock-data";
 
 const PREVIEW_W = 1400;
@@ -360,7 +360,7 @@ function MockSidebar({
       variant="inset"
       className="border-none pt-1.5"
     >
-      {/* Header: WorkspaceSwitcher */}
+      {/* Header: TeamSwitcher */}
       <SidebarHeader className="pt-1 pb-1.5">
         <div className="flex items-center justify-between w-full gap-2">
           <SidebarMenu>
@@ -376,7 +376,7 @@ function MockSidebar({
                 >
                   <div className="flex items-center min-w-0 w-full">
                     <span className="truncate text-sm font-medium text-sidebar-foreground">
-                      {MOCK_WORKSPACE.name}
+                      {MOCK_TEAM.name}
                     </span>
                   </div>
                   <ChevronDown className="ml-1 size-3.5 text-sidebar-foreground/72 opacity-90 transition-all duration-200 ease-out group-hover:opacity-100" />
@@ -388,15 +388,15 @@ function MockSidebar({
                   sideOffset={4}
                 >
                   <DropdownMenuGroup>
-                    <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
+                    <DropdownMenuLabel>Teams</DropdownMenuLabel>
                     <DropdownMenuItem className="h-7 text-sm data-highlighted:bg-sidebar-accent">
-                      {MOCK_WORKSPACE.name}
+                      {MOCK_TEAM.name}
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
                     <DropdownMenuItem className="h-7 text-sm data-highlighted:bg-sidebar-accent">
-                      Add workspace
+                      Add team
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
@@ -602,7 +602,7 @@ export function AppPreview() {
                   {/* Breadcrumb */}
                   <div className="flex min-w-0 items-center gap-1">
                     <span className="text-sm text-muted-foreground truncate">
-                      {MOCK_WORKSPACE.name}
+                      {MOCK_TEAM.name}
                     </span>
                     <span className="text-muted-foreground/70 text-xs">/</span>
                     <span className="text-sm font-medium truncate">
@@ -663,7 +663,7 @@ export function AppPreview() {
                 clearFilters={clearFilters}
                 hasActiveFilters={hasActiveFilters}
                 users={MOCK_USERS}
-                workspaceLabels={MOCK_WORKSPACE_LABELS}
+                teamLabels={MOCK_TEAM_LABELS}
                 viewMode={viewMode}
                 setViewMode={setBoardToolbarMode}
               />

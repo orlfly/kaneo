@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { describeRoute, resolver, validator } from "hono-openapi";
 import * as v from "valibot";
-import { requireEntitlement } from "../billing/require-entitlement-middleware";
 import { projectSchema } from "../schemas";
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
@@ -17,7 +16,7 @@ import updateProjectCtrl from "./controllers/update-project";
 const project = new Hono<{
   Variables: {
     userId: string;
-    workspaceId: string;
+    teamId: string;
   };
 }>()
   .get(
@@ -25,7 +24,7 @@ const project = new Hono<{
     describeRoute({
       operationId: "listProjects",
       tags: ["Projects"],
-      description: "Get all projects in a workspace",
+      description: "Get all projects in a team",
       responses: {
         200: {
           description: "List of projects with statistics",
@@ -38,16 +37,16 @@ const project = new Hono<{
     validator(
       "query",
       v.object({
-        workspaceId: v.string(),
+        teamId: v.string(),
         includeArchived: v.optional(v.string()),
       }),
     ),
     workspaceAccess.fromQuery(),
     async (c) => {
-      const workspaceId = c.get("workspaceId");
+      const teamId = c.get("teamId");
       const { includeArchived } = c.req.valid("query");
       const projects = await getProjectsCtrl(
-        workspaceId,
+        teamId,
         includeArchived === "true",
       );
       return c.json(projects);
@@ -58,7 +57,7 @@ const project = new Hono<{
     describeRoute({
       operationId: "createProject",
       tags: ["Projects"],
-      description: "Create a new project in a workspace",
+      description: "Create a new project in a team",
       responses: {
         200: {
           description: "Project created successfully",
@@ -72,18 +71,17 @@ const project = new Hono<{
       "json",
       v.object({
         name: v.string(),
-        workspaceId: v.string(),
+        teamId: v.string(),
         icon: v.string(),
         slug: v.string(),
       }),
     ),
     workspaceAccess.fromBody(),
     requireWorkspacePermission({ project: ["create"] }),
-    requireEntitlement,
     async (c) => {
       const { name, icon, slug } = c.req.valid("json");
-      const workspaceId = c.get("workspaceId");
-      const newProject = await createProjectCtrl(workspaceId, name, icon, slug);
+      const teamId = c.get("teamId");
+      const newProject = await createProjectCtrl(teamId, name, icon, slug);
       return c.json(newProject);
     },
   )
@@ -106,8 +104,8 @@ const project = new Hono<{
     workspaceAccess.fromProject(),
     async (c) => {
       const { id } = c.req.valid("param");
-      const workspaceId = c.get("workspaceId");
-      const projectData = await getProjectCtrl(id, workspaceId);
+      const teamId = c.get("teamId");
+      const projectData = await getProjectCtrl(id, teamId);
       return c.json(projectData);
     },
   )
@@ -116,7 +114,7 @@ const project = new Hono<{
     describeRoute({
       operationId: "reorderProjects",
       tags: ["Projects"],
-      description: "Reorder projects in a workspace",
+      description: "Reorder projects in a team",
       responses: {
         200: {
           description: "Projects reordered successfully",
@@ -126,7 +124,7 @@ const project = new Hono<{
         },
       },
     }),
-    validator("query", v.object({ workspaceId: v.string() })),
+    validator("query", v.object({ teamId: v.string() })),
     validator(
       "json",
       v.object({
@@ -146,9 +144,9 @@ const project = new Hono<{
     workspaceAccess.fromQuery(),
     requireWorkspacePermission({ project: ["update"] }),
     async (c) => {
-      const workspaceId = c.get("workspaceId");
+      const teamId = c.get("teamId");
       const { projects } = c.req.valid("json");
-      const reordered = await reorderProjectsCtrl(workspaceId, projects);
+      const reordered = await reorderProjectsCtrl(teamId, projects);
       return c.json(reordered);
     },
   )
@@ -183,7 +181,7 @@ const project = new Hono<{
     async (c) => {
       const { id } = c.req.valid("param");
       const { name, icon, slug, description, isPublic } = c.req.valid("json");
-      const workspaceId = c.get("workspaceId");
+      const teamId = c.get("teamId");
       const updatedProject = await updateProjectCtrl(
         id,
         name,
@@ -191,7 +189,7 @@ const project = new Hono<{
         slug,
         description,
         isPublic,
-        workspaceId,
+        teamId,
       );
       return c.json(updatedProject);
     },
@@ -216,8 +214,8 @@ const project = new Hono<{
     requireWorkspacePermission({ project: ["delete"] }),
     async (c) => {
       const { id } = c.req.valid("param");
-      const workspaceId = c.get("workspaceId");
-      const deletedProject = await deleteProjectCtrl(id, workspaceId);
+      const teamId = c.get("teamId");
+      const deletedProject = await deleteProjectCtrl(id, teamId);
       return c.json(deletedProject);
     },
   )
@@ -241,8 +239,8 @@ const project = new Hono<{
     requireWorkspacePermission({ project: ["update"] }),
     async (c) => {
       const { id } = c.req.valid("param");
-      const workspaceId = c.get("workspaceId");
-      const archivedProject = await archiveProjectCtrl(id, workspaceId);
+      const teamId = c.get("teamId");
+      const archivedProject = await archiveProjectCtrl(id, teamId);
       return c.json(archivedProject);
     },
   )
@@ -266,8 +264,8 @@ const project = new Hono<{
     requireWorkspacePermission({ project: ["update"] }),
     async (c) => {
       const { id } = c.req.valid("param");
-      const workspaceId = c.get("workspaceId");
-      const unarchivedProject = await unarchiveProjectCtrl(id, workspaceId);
+      const teamId = c.get("teamId");
+      const unarchivedProject = await unarchiveProjectCtrl(id, teamId);
       return c.json(unarchivedProject);
     },
   );

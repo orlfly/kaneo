@@ -4,7 +4,7 @@ import db from "../../database";
 import { projectTable } from "../../database/schema";
 
 async function reorderProjects(
-  workspaceId: string,
+  teamId: string,
   projects: Array<{ id: string; position: number }>,
 ) {
   const ids = projects.map((project) => project.id);
@@ -21,7 +21,7 @@ async function reorderProjects(
     // appends at max(position) + 1) cannot interleave with a renumber.
     // `createProject` takes the same lock with the same key.
     await tx.execute(
-      sql`SELECT pg_advisory_xact_lock(1524, hashtext(${workspaceId}))`,
+      sql`SELECT pg_advisory_xact_lock(1524, hashtext(${teamId}))`,
     );
 
     // The whole workspace, not just the payload: the client only ever sees
@@ -31,7 +31,7 @@ async function reorderProjects(
     const existing = await tx
       .select({ id: projectTable.id, position: projectTable.position })
       .from(projectTable)
-      .where(eq(projectTable.workspaceId, workspaceId))
+      .where(eq(projectTable.teamId, teamId))
       .orderBy(
         asc(projectTable.position),
         asc(projectTable.createdAt),
@@ -85,7 +85,7 @@ async function reorderProjects(
     }
 
     return tx.query.projectTable.findMany({
-      where: eq(projectTable.workspaceId, workspaceId),
+      where: eq(projectTable.teamId, teamId),
       orderBy: [
         asc(projectTable.position),
         asc(projectTable.createdAt),

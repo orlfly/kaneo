@@ -8,11 +8,11 @@ export type CreateProjectRequest = InferRequestType<
 async function createProject({
   name,
   slug,
-  workspaceId,
+  teamId,
   icon,
 }: CreateProjectRequest) {
   const response = await client.project.$post({
-    json: { name, slug, icon, workspaceId },
+    json: { name, slug, icon, teamId },
   });
 
   if (!response.ok) {

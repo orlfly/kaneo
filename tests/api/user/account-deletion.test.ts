@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest";
 import {
-  formatBlockedWorkspacesMessage,
+  formatBlockedTeamsMessage,
   hasOwnerRole,
   planAccountDeletion,
-  type WorkspaceMembershipSummary,
+  type TeamMembershipSummary,
 } from "../../../apps/api/src/user/account-deletion";
 
 function membership(
-  overrides: Partial<WorkspaceMembershipSummary> = {},
-): WorkspaceMembershipSummary {
+  overrides: Partial<TeamMembershipSummary> = {},
+): TeamMembershipSummary {
   return {
-    workspaceId: "workspace-1",
-    workspaceName: "Acme",
+    teamId: "team-1",
+    teamName: "Acme",
     isOwner: true,
     memberCount: 1,
     ownerCount: 1,
@@ -36,81 +36,81 @@ describe("hasOwnerRole", () => {
 });
 
 describe("planAccountDeletion", () => {
-  it("deletes a workspace nobody else belongs to", () => {
+  it("deletes a team nobody else belongs to", () => {
     const plan = planAccountDeletion([membership()]);
 
-    expect(plan.workspaceIdsToDelete).toEqual(["workspace-1"]);
-    expect(plan.workspaceIdsToLeave).toEqual([]);
-    expect(plan.blockedWorkspaceNames).toEqual([]);
+    expect(plan.teamIdsToDelete).toEqual(["team-1"]);
+    expect(plan.teamIdsToLeave).toEqual([]);
+    expect(plan.blockedTeamNames).toEqual([]);
   });
 
-  it("blocks when the account is the only owner of a shared workspace", () => {
+  it("blocks when the account is the only owner of a shared team", () => {
     const plan = planAccountDeletion([
       membership({ memberCount: 3, ownerCount: 1 }),
     ]);
 
-    expect(plan.blockedWorkspaceNames).toEqual(["Acme"]);
-    expect(plan.workspaceIdsToDelete).toEqual([]);
-    expect(plan.workspaceIdsToLeave).toEqual([]);
+    expect(plan.blockedTeamNames).toEqual(["Acme"]);
+    expect(plan.teamIdsToDelete).toEqual([]);
+    expect(plan.teamIdsToLeave).toEqual([]);
   });
 
-  it("leaves a shared workspace that keeps another owner", () => {
+  it("leaves a shared team that keeps another owner", () => {
     const plan = planAccountDeletion([
       membership({ memberCount: 3, ownerCount: 2 }),
     ]);
 
-    expect(plan.workspaceIdsToLeave).toEqual(["workspace-1"]);
-    expect(plan.blockedWorkspaceNames).toEqual([]);
+    expect(plan.teamIdsToLeave).toEqual(["team-1"]);
+    expect(plan.blockedTeamNames).toEqual([]);
   });
 
-  it("leaves workspaces the account does not own", () => {
+  it("leaves teams the account does not own", () => {
     const plan = planAccountDeletion([
       membership({ isOwner: false, memberCount: 4, ownerCount: 1 }),
     ]);
 
-    expect(plan.workspaceIdsToLeave).toEqual(["workspace-1"]);
+    expect(plan.teamIdsToLeave).toEqual(["team-1"]);
   });
 
-  it("plans each workspace independently", () => {
+  it("plans each team independently", () => {
     const plan = planAccountDeletion([
-      membership({ workspaceId: "solo" }),
+      membership({ teamId: "solo" }),
       membership({
-        workspaceId: "shared",
-        workspaceName: "Shared",
+        teamId: "shared",
+        teamName: "Shared",
         memberCount: 2,
         ownerCount: 1,
       }),
       membership({
-        workspaceId: "guest",
+        teamId: "guest",
         isOwner: false,
         memberCount: 5,
         ownerCount: 1,
       }),
     ]);
 
-    expect(plan.workspaceIdsToDelete).toEqual(["solo"]);
-    expect(plan.blockedWorkspaceNames).toEqual(["Shared"]);
-    expect(plan.workspaceIdsToLeave).toEqual(["guest"]);
+    expect(plan.teamIdsToDelete).toEqual(["solo"]);
+    expect(plan.blockedTeamNames).toEqual(["Shared"]);
+    expect(plan.teamIdsToLeave).toEqual(["guest"]);
   });
 
-  it("returns an empty plan for an account without workspaces", () => {
+  it("returns an empty plan for an account without teams", () => {
     expect(planAccountDeletion([])).toEqual({
-      blockedWorkspaceNames: [],
-      workspaceIdsToDelete: [],
-      workspaceIdsToLeave: [],
+      blockedTeamNames: [],
+      teamIdsToDelete: [],
+      teamIdsToLeave: [],
     });
   });
 });
 
-describe("formatBlockedWorkspacesMessage", () => {
-  it("names a single workspace", () => {
-    expect(formatBlockedWorkspacesMessage(["Acme"])).toBe(
+describe("formatBlockedTeamsMessage", () => {
+  it("names a single team", () => {
+    expect(formatBlockedTeamsMessage(["Acme"])).toBe(
       'You are the only owner of "Acme". Transfer ownership or delete it before deleting your account.',
     );
   });
 
-  it("joins several workspaces", () => {
-    expect(formatBlockedWorkspacesMessage(["Acme", "Globex", "Initech"])).toBe(
+  it("joins several teams", () => {
+    expect(formatBlockedTeamsMessage(["Acme", "Globex", "Initech"])).toBe(
       'You are the only owner of "Acme", "Globex" and "Initech". Transfer ownership or delete them before deleting your account.',
     );
   });

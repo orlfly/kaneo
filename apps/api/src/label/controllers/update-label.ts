@@ -21,15 +21,15 @@ async function updateLabel(id: string, name: string, color: string) {
       .where(eq(labelTable.id, id))
       .returning();
 
-    // If this is a workspace-level label, cascade the changes to all
+    // If this is a team-level label, cascade the changes to all
     // task-level copies so existing label assignments reflect the new color/name
-    if (!label.taskId && label.workspaceId) {
+    if (!label.taskId && label.teamId) {
       await tx
         .update(labelTable)
         .set({ name, color })
         .where(
           and(
-            eq(labelTable.workspaceId, label.workspaceId),
+            eq(labelTable.teamId, label.teamId),
             eq(labelTable.name, label.name),
             isNotNull(labelTable.taskId),
           ),

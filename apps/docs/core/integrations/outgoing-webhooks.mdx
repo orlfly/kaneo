@@ -83,7 +83,7 @@ Each POST has `Content-Type: application/json`. Top-level fields:
 - `event`: string, one of: `task.created`, `task.status_changed`, `task.priority_changed`, `task.title_changed`, `task.description_changed`, `task.comment_created`
 - `timestamp`: ISO 8601 time when Kaneo sent the request
 - `integration`: `{ "type": "generic-webhook" }`
-- `project`: `id`, `name`, `workspaceId`
+- `project`: `id`, `name`, `teamId`
 - `task`: `id`, `number`, `title`, `status`, `priority`, `url` (link to the task in the web UI)
 - `actor`: `id` and `name` of the user when available, or nulls for automated actions
 - `data`: event-specific fields (for example `oldStatus` / `newStatus` for status changes, `comment` text for comments)

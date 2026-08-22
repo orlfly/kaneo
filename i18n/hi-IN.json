@@ -11,7 +11,8 @@
 			"remove": "निकालें",
 			"reset": "रीसेट करें",
 			"filter": "फ़िल्टर",
-			"clearAllFilters": "सभी फ़िल्टर साफ़ करें"
+			"clearAllFilters": "सभी फ़िल्टर साफ़ करें",
+			"adding": "Adding…"
 		},
 		"a11y": {
 			"toggleSidebar": "साइडबार टॉगल करें"
@@ -35,18 +36,6 @@
 			"label": "ब्रेडक्रंब",
 			"more": "और"
 		},
-		"language": {
-			"english": "अंग्रेज़ी",
-			"german": "जर्मन",
-			"greek": "ग्रीक",
-			"macedonian": "मैसेडोनियन",
-			"french": "फ़्रेंच",
-			"spanish": "स्पेनिश",
-			"dutch": "डच",
-			"korean": "कोरियन",
-			"chinese": "चीनी",
-			"italian": "इतालवी"
-		},
 		"people": {
 			"someone": "कोई",
 			"unknown": "अज्ञात"
@@ -65,7 +54,6 @@
 			"createProject": {
 				"title": "नया प्रोजेक्ट बनाएँ",
 				"breadcrumbNew": "नया प्रोजेक्ट बनाएँ",
-				"workspaceFallback": "वर्कस्पेस",
 				"description": "अपने वर्कस्पेस में नाम, कुंजी और आइकन चुनकर एक नया प्रोजेक्ट बनाएँ।",
 				"pickIcon": "आइकन चुनें",
 				"searchIcons": "आइकन खोजें...",
@@ -74,17 +62,12 @@
 				"keyHint": "टिकट ID के लिए उपयोग (जैसे, {{example}}-123)",
 				"createButton": "प्रोजेक्ट बनाएँ",
 				"successToast": "प्रोजेक्ट सफलतापूर्वक बनाया गया",
-				"errorToast": "प्रोजेक्ट बनाने में विफल"
-			},
-			"createWorkspace": {
-				"breadcrumbKaneo": "KANEO",
-				"title": "नया वर्कस्पेस बनाएँ",
-				"description": "अपने वर्कस्पेस के लिए नाम देकर एक नया वर्कस्पेस बनाएँ।",
-				"namePlaceholder": "वर्कस्पेस का नाम",
-				"descriptionPlaceholder": "विवरण जोड़ें...",
-				"createButton": "वर्कस्पेस बनाएँ",
-				"successToast": "वर्कस्पेस सफलतापूर्वक बनाया गया",
-				"errorToast": "वर्कस्पेस बनाने में विफल"
+				"errorToast": "प्रोजेक्ट बनाने में विफल",
+				"manageTeams": "Go to team management",
+				"noTeams": "You don't have any teams yet. Create or join a team before creating a project.",
+				"teamLabel": "Team",
+				"teamPlaceholder": "Select a team",
+				"teamFallback": "वर्कस्पेस"
 			},
 			"createTask": {
 				"breadcrumbTask": "कार्य",
@@ -99,7 +82,6 @@
 				"successUpdated": "कार्य सफलतापूर्वक अपडेट किया गया",
 				"createError": "कार्य बनाने में विफल",
 				"priority": "प्राथमिकता",
-				"statusFallback": "प्रगति में",
 				"startDate": "शुरू की तारीख",
 				"dueDate": "नियत तारीख",
 				"clearStartDate": "शुरू की तारीख साफ़ करें",
@@ -128,7 +110,19 @@
 					"rose": "गुलाब",
 					"crimson": "किरमिज़ी"
 				}
+			},
+			"createTeam": {
+				"breadcrumbKaneo": "KANEO",
+				"createButton": "Create Team",
+				"description": "Create a new team by providing a name for your team.",
+				"errorToast": "Failed to create team",
+				"namePlaceholder": "Team name",
+				"successToast": "Team created successfully",
+				"title": "Create a new team"
 			}
+		},
+		"states": {
+			"loading": "Loading…"
 		}
 	},
 	"auth": {
@@ -136,43 +130,17 @@
 			"pageTitle": "साइन इन",
 			"title": "वापस स्वागत है",
 			"subtitle": "अपने वर्कस्पेस तक पहुँचने के लिए अपनी जानकारी दर्ज करें",
-			"invitationSubtitle": "अपना निमंत्रण स्वीकार करने के लिए साइन इन करें",
-			"invitationAlert": "साइन इन करने के बाद, आप अपना वर्कस्पेस निमंत्रण स्वीकार कर सकेंगे।",
-			"signingIn": "साइन इन हो रहा है...",
-			"continueWithGoogle": "Google से जारी रखें",
-			"continueWithGithub": "GitHub से जारी रखें",
-			"continueWithDiscord": "Discord से जारी रखें",
-			"continueWithOidc": "OIDC से जारी रखें",
-			"lastUsed": "पिछली बार उपयोग किया",
-			"registrationDisabled": "सार्वजनिक पंजीकरण अक्षम है। खाता बनाने के लिए निमंत्रण का उपयोग करें।",
-			"passwordRegistrationDisabled": "पासवर्ड पंजीकरण अक्षम है। खाता बनाने के लिए कॉन्फ़िगर की गई सामाजिक या OIDC साइन-इन विधि का उपयोग करें।",
-			"toggleMessage": "खाता नहीं है?",
-			"toggleLink": "खाता बनाएँ",
-			"guestSuccess": "अतिथि के रूप में साइन इन किया",
-			"guestError": "अतिथि के रूप में साइन इन विफल",
-			"oidcError": "OIDC से साइन इन विफल",
-			"googleError": "Google से साइन इन विफल",
-			"githubError": "GitHub से साइन इन विफल",
-			"discordError": "Discord से साइन इन विफल",
-			"errors": {
-				"account_not_linked": "यह पहचान मौजूदा खाते से लिंक नहीं हो सकी। खाते की पुष्टि के लिए ईमेल से साइन इन करें, फिर SSO पुनः प्रयास करें। यदि ईमेल साइन-इन उपलब्ध नहीं है, तो अपने व्यवस्थापक से संपर्क करें।",
-				"oauth_code_verification_failed": "OAuth सत्यापन विफल। कृपया पुनः प्रयास करें।",
-				"registration_is_currently_disabled_you_need_a_valid_invitation_to_create_an_account_": "पंजीकरण वर्तमान में अक्षम है। खाता बनाने के लिए आपको वैध निमंत्रण चाहिए।"
-			},
+			"registrationDisabled": "Public registration is disabled. Ask an administrator to create your account.",
 			"instanceStatusError": "सर्वर से संपर्क नहीं हो सका। कृपया कुछ देर बाद पुनः प्रयास करें।"
-		},
-		"providers": {
-			"google": "Google",
-			"discord": "Discord"
 		},
 		"forms": {
 			"or": "या",
-			"email": "ईमेल",
 			"password": "पासवर्ड",
-			"emailPlaceholder": "me@example.com",
 			"passwordPlaceholder": "••••••••",
 			"showPassword": "पासवर्ड दिखाएँ",
-			"hidePassword": "पासवर्ड छिपाएँ"
+			"hidePassword": "पासवर्ड छिपाएँ",
+			"username": "Username",
+			"usernamePlaceholder": "Enter your username"
 		},
 		"checkEmail": {
 			"pageTitle": "अपना ईमेल जाँचें",
@@ -181,114 +149,11 @@
 			"emailFallback": "आपका ईमेल पता",
 			"backToLogin": "लॉगिन पर वापस जाएँ"
 		},
-		"signUp": {
-			"pageTitle": "खाता बनाएँ",
-			"title": "खाता बनाएँ",
-			"subtitleInvitation": "अपना निमंत्रण स्वीकार करने के लिए खाता बनाएँ",
-			"subtitleRegistrationDisabled": "पंजीकरण के लिए निमंत्रण आवश्यक है",
-			"subtitlePasswordDisabled": "खाता बनाने के लिए सामाजिक या OIDC साइन-इन का उपयोग करें",
-			"subtitleDefault": "अपने वर्कस्पेस के साथ शुरू करें",
-			"invitationAlert": "खाता बनाने के बाद, आप अपना वर्कस्पेस निमंत्रण स्वीकार कर सकेंगे।",
-			"registrationDisabledAlert": "पंजीकरण वर्तमान में अक्षम है। यदि आपको निमंत्रित किया गया था, तो वह ईमेल पता दर्ज करें जिसे निमंत्रण मिला था।",
-			"passwordDisabledAlert": "पासवर्ड-आधारित खाता निर्माण अक्षम है। साइन-इन पेज से कॉन्फ़िगर की गई सामाजिक या OIDC साइन-इन विधि का उपयोग करें।",
-			"signingIn": "साइन इन हो रहा है...",
-			"continueAsGuest": "अतिथि के रूप में जारी रखें",
-			"toggleMessage": "पहले से खाता है?",
-			"toggleLink": "साइन इन करें",
-			"instanceStatusError": "सर्वर से संपर्क नहीं हो सका। कृपया कुछ देर बाद पुनः प्रयास करें।",
-			"instanceAdminTitle": "अपना Kaneo इंस्टेंस सेट अप करें",
-			"instanceAdminSubtitle": "यह खाता पूर्ण पहुँच के साथ इंस्टेंस व्यवस्थापक बन जाता है।"
-		},
-		"verifyOtp": {
-			"pageTitle": "कोड सत्यापित करें",
-			"title": "सत्यापन कोड दर्ज करें",
-			"subtitle": "जारी रखने के लिए अपने ईमेल पर भेजे गए 6 अंकों के कोड का उपयोग करें",
-			"codeSentTo": "कोड {{email}} पर भेजा गया",
-			"verificationCodeLabel": "सत्यापन कोड",
-			"verifying": "सत्यापित हो रहा है...",
-			"verifyAndSignIn": "सत्यापित करें और साइन इन करें",
-			"changeEmail": "ईमेल बदलें",
-			"resend": "पुनः भेजें",
-			"validation": {
-				"codeLength": "कोड 6 अंकों का होना चाहिए"
-			},
-			"toast": {
-				"invalidCode": "अमान्य सत्यापन कोड",
-				"signedInSuccess": "सफलतापूर्वक साइन इन किया!",
-				"verifyFailed": "कोड सत्यापित करने में विफल",
-				"resendFailed": "कोड पुनः भेजने में विफल",
-				"resendSuccess": "नया सत्यापन कोड भेजा गया!"
-			}
-		},
-		"otpSignIn": {
-			"sendFailed": "सत्यापन कोड भेजने में विफल",
-			"codeSent": "सत्यापन कोड भेजा गया! अपना ईमेल जाँचें।",
-			"sending": "भेज रहे हैं...",
-			"sendVerificationCode": "सत्यापन कोड भेजें"
-		},
 		"signInForm": {
 			"failedSignIn": "साइन इन विफल",
 			"signedInSuccess": "सफलतापूर्वक साइन इन किया",
 			"signingIn": "साइन इन हो रहा है...",
 			"signIn": "साइन इन"
-		},
-		"signUpForm": {
-			"fullName": "पूरा नाम",
-			"namePlaceholder": "राहुल शर्मा",
-			"failedSignUp": "साइन अप विफल",
-			"accountCreated": "खाता सफलतापूर्वक बनाया गया",
-			"passwordTooShort": "पासवर्ड बहुत छोटा है",
-			"creatingAccount": "खाता बना रहे हैं...",
-			"createAccount": "खाता बनाएँ"
-		},
-		"invitation": {
-			"pageTitleAccept": "निमंत्रण स्वीकार करें",
-			"pageTitleError": "निमंत्रण त्रुटि",
-			"pageTitleInvalid": "अमान्य निमंत्रण",
-			"loadingTitle": "निमंत्रण लोड हो रहा है...",
-			"errorTitle": "निमंत्रण त्रुटि",
-			"invalidTitle": "अमान्य निमंत्रण",
-			"invitationExpired": "निमंत्रण समाप्त हो गया",
-			"errorLoadDescription": "निमंत्रण विवरण लोड करने में विफल। निमंत्रण अमान्य या समाप्त हो सकता है।",
-			"goToSignIn": "साइन इन पर जाएँ",
-			"workspaceLabel": "वर्कस्पेस: {{workspaceName}}",
-			"joinWorkspace": "{{workspaceName}} में शामिल हों",
-			"inviteBodySignedIn": "<inviter>{{inviterName}}</inviter> ने आपको अपने वर्कस्पेस में शामिल होने का निमंत्रण दिया है।",
-			"inviteBodySignedOut": "<inviter>{{inviterName}}</inviter> ने आपको Kaneo पर अपने वर्कस्पेस में शामिल होने का निमंत्रण दिया है।",
-			"createAccountOrSignIn": "इस निमंत्रण को स्वीकार करने के लिए खाता बनाएँ, या यदि आपके पास पहले से खाता है तो साइन इन करें।",
-			"createAccount": "खाता बनाएँ",
-			"accepting": "स्वीकार हो रहा है...",
-			"acceptInvitation": "निमंत्रण स्वीकार करें",
-			"goToDashboard": "डैशबोर्ड पर जाएँ",
-			"signedInAs": "<email>{{email}}</email> के रूप में साइन इन",
-			"youveBeenInvited": "आपको निमंत्रित किया गया है!",
-			"invitationFor": "निमंत्रण: <email>{{email}}</email> के लिए",
-			"signIn": "साइन इन",
-			"toast": {
-				"acceptFailed": "निमंत्रण स्वीकार करने में विफल",
-				"acceptSuccess": "निमंत्रण स्वीकार किया! टीम में स्वागत है।"
-			}
-		},
-		"onboarding": {
-			"pageTitle": "Kaneo में आपका स्वागत है",
-			"workspacePageTitle": "वर्कस्पेस बनाएँ",
-			"createWorkspaceTitle": "वर्कस्पेस बनाएँ",
-			"createWorkspaceSubtitle": "प्रोजेक्ट प्रबंधित करना शुरू करने के लिए अपना वर्कस्पेस सेटअप करें",
-			"workspaceName": "वर्कस्पेस का नाम",
-			"workspaceNamePlaceholder": "जैसे Acme Inc, मेरी टीम",
-			"descriptionOptional": "विवरण (वैकल्पिक)",
-			"descriptionPlaceholder": "आपकी टीम किस पर काम करती है?",
-			"creating": "बना रहे हैं...",
-			"createWorkspace": "वर्कस्पेस बनाएँ",
-			"workspaceCreatedTitle": "वर्कस्पेस बनाया गया",
-			"redirectingToWorkspace": "आपको <name>{{name}}</name> पर ले जा रहे हैं...",
-			"toast": {
-				"workspaceCreated": "वर्कस्पेस सफलतापूर्वक बनाया गया",
-				"createFailed": "वर्कस्पेस बनाने में विफल"
-			},
-			"validation": {
-				"workspaceNameRequired": "वर्कस्पेस का नाम आवश्यक है"
-			}
 		},
 		"profileSetup": {
 			"pageTitle": "प्रोफ़ाइल पूरा करें",
@@ -348,7 +213,7 @@
 			"deleteAccount": {
 				"confirm": "Delete account",
 				"confirmLabel": "Confirm your email address",
-				"description": "Workspaces only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
+				"description": "Teams only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
 				"error": "Failed to delete account",
 				"modalDescription": "This cannot be undone. Type {{email}} to confirm.",
 				"modalTitle": "Delete your account?",
@@ -400,10 +265,6 @@
 			"webhookSecretHintConfigured": "साइनिंग सीक्रेट पहले से कॉन्फ़िगर है ({{masked}})। बदलने के लिए नया दर्ज करें।",
 			"webhookSecretHintOptional": "वैकल्पिक। सीक्रेट सेट होने पर Kaneo अनुरोध बॉडी पर हस्ताक्षर करता है।",
 			"connectWebhook": "वेबहुक कनेक्ट करें",
-			"workspaceRulesTitle": "वर्कस्पेस डिलीवरी नियम",
-			"workspaceRulesDescription": "अपने वैश्विक चैनल पुनः उपयोग करें, फिर तय करें कि कौन से वर्कस्पेस और प्रोजेक्ट खाता सूचनाएँ भेज सकते हैं।",
-			"workspaceCardHint": "चुनें कि यह वर्कस्पेस खाता सूचनाओं के लिए कौन से चैनल उपयोग कर सकता है।",
-			"workspaceEnabledLabel": "{{workspaceName}} के लिए सूचनाएँ सक्षम करें",
 			"eventPreferencesTitle": "इन विषयों पर सूचित करें",
 			"eventPreferencesDescription": "चुनें कि कौन से कार्य इवेंट इन-ऐप सूचनाएँ बनाएँ और आपके जुड़े चैनलों पर वितरित किए जा सकें।",
 			"eventTaskAssignments": "कार्य असाइनमेंट",
@@ -417,10 +278,6 @@
 			"reminderLeadTimeUnitDays": "दिन",
 			"reminderLeadTimeInvalid": "1 से {{max}} के बीच पूर्ण संख्या दर्ज करें।",
 			"saveEventPreferences": "सूचना प्रकार सहेजें",
-			"workspaceCardLabelEmail": "ईमेल",
-			"workspaceCardLabelNtfy": "ntfy",
-			"workspaceCardLabelGotify": "Gotify",
-			"workspaceCardLabelWebhook": "कस्टम वेबहुक",
 			"emailChannelHintEnabled": "मिलान वर्कस्पेस सूचनाएँ ईमेल से भेजें।",
 			"emailChannelHintDisabled": "पहले ईमेल को वैश्विक रूप से कॉन्फ़िगर और सक्षम करें।",
 			"ntfyChannelHintEnabled": "मिलान वर्कस्पेस सूचनाएँ ntfy पर भेजें।",
@@ -435,31 +292,23 @@
 			"allProjectsDescription": "इस वर्कस्पेस के हर प्रोजेक्ट से सूचनाएँ वितरित करें।",
 			"selectedProjects": "चयनित प्रोजेक्ट",
 			"selectedProjectsDescription": "केवल चुने गए प्रोजेक्ट से सूचनाएँ वितरित करें।",
-			"noProjectsInWorkspace": "इस वर्कस्पेस के लिए अभी तक कोई प्रोजेक्ट उपलब्ध नहीं।",
 			"createRule": "नियम बनाएँ",
 			"removeRule": "नियम हटाएँ",
-			"toastEmailSaved": "ईमेल सूचना सेटिंग सहेजी गई",
-			"toastEmailSaveFailed": "ईमेल सेटिंग सहेजने में विफल",
-			"toastNtfySaved": "ntfy सेटिंग सहेजी गई",
-			"toastNtfySaveFailed": "ntfy सेटिंग सहेजने में विफल",
-			"toastNtfyDisconnected": "ntfy डिस्कनेक्ट किया गया",
-			"toastNtfyDisconnectFailed": "ntfy डिस्कनेक्ट करने में विफल",
-			"toastGotifySaved": "Gotify सेटिंग सहेजी गई",
-			"toastGotifySaveFailed": "Gotify सेटिंग सहेजने में विफल",
-			"toastGotifyDisconnected": "Gotify डिस्कनेक्ट किया गया",
-			"toastGotifyDisconnectFailed": "Gotify डिस्कनेक्ट करने में विफल",
-			"toastWebhookSaved": "वेबहुक सेटिंग सहेजी गई",
-			"toastWebhookSaveFailed": "वेबहुक सेटिंग सहेजने में विफल",
-			"toastWebhookDisconnected": "वेबहुक डिस्कनेक्ट किया गया",
-			"toastWebhookDisconnectFailed": "वेबहुक डिस्कनेक्ट करने में विफल",
-			"toastRuleSaved": "{{workspaceName}} के लिए सूचना नियम सहेजा गया",
 			"toastRuleSaveFailed": "वर्कस्पेस सूचना नियम सहेजने में विफल",
-			"toastRuleRemoved": "{{workspaceName}} के लिए सूचना नियम हटाया गया",
 			"toastRuleRemoveFailed": "वर्कस्पेस सूचना नियम हटाने में विफल",
 			"toastPreferencesSaved": "सूचना प्राथमिकताएँ सहेजी गईं",
 			"toastPreferencesSaveFailed": "सूचना प्राथमिकताएँ सहेजने में विफल",
 			"toastRuleSavedGeneric": "वर्कस्पेस सूचना नियम सहेजा गया",
-			"toastRuleRemovedGeneric": "वर्कस्पेस सूचना नियम हटाया गया"
+			"toastRuleRemovedGeneric": "वर्कस्पेस सूचना नियम हटाया गया",
+			"noProjectsInTeam": "No projects available for this team yet.",
+			"teamCardHint": "Choose which channels this team can use for account notifications.",
+			"teamCardLabelEmail": "Email",
+			"teamCardLabelGotify": "Gotify",
+			"teamCardLabelNtfy": "ntfy",
+			"teamCardLabelWebhook": "Custom webhook",
+			"teamEnabledLabel": "Enable notifications for {{teamName}}",
+			"teamRulesDescription": "Reuse your global channels, then decide which teams and projects are allowed to send account notifications.",
+			"teamRulesTitle": "Team delivery rules"
 		},
 		"preferencesPage": {
 			"title": "प्राथमिकताएँ",
@@ -486,7 +335,6 @@
 			"selectViewMode": "दृश्य मोड चुनें",
 			"board": "बोर्ड",
 			"list": "सूची",
-			"gantt": "गैंट",
 			"sidebarDefault": "साइडबार डिफ़ॉल्ट",
 			"sidebarDefaultDescription": "शुरुआत पर साइडबार विस्तारित रखें",
 			"displayOptions": "प्रदर्शन विकल्प",
@@ -567,211 +415,6 @@
 					"expirationRequired": "समाप्ति आवश्यक है"
 				}
 			}
-		},
-		"workspaceGeneral": {
-			"pageTitle": "सामान्य सेटिंग",
-			"title": "सामान्य सेटिंग",
-			"subtitle": "अपने वर्कस्पेस का नाम और विवरण प्रबंधित करें।",
-			"workspaceInfoTitle": "वर्कस्पेस जानकारी",
-			"workspaceInfoSubtitle": "अपने वर्कस्पेस का विवरण और प्राथमिकताएँ कॉन्फ़िगर करें।",
-			"nameLabel": "वर्कस्पेस का नाम",
-			"nameHint": "आपके वर्कस्पेस का नाम",
-			"namePlaceholder": "वर्कस्पेस का नाम दर्ज करें",
-			"descriptionLabel": "विवरण",
-			"descriptionHint": "आपके वर्कस्पेस का संक्षिप्त विवरण",
-			"descriptionPlaceholder": "वर्कस्पेस विवरण दर्ज करें",
-			"dangerZone": "खतरनाक ज़ोन",
-			"dangerZoneSubtitle": "अपरिवर्तनीय और विनाशकारी कार्रवाइयाँ।",
-			"deleteWorkspace": "वर्कस्पेस हटाएँ",
-			"deleteWorkspaceDescription": "वर्कस्पेस को स्थायी रूप से हटाने के लिए शेड्यूल करें",
-			"deleteModalTitle": "वर्कस्पेस हटाएँ?",
-			"deleteModalDescription": "यह वर्कस्पेस \"{{name}}\" और इसके सभी डेटा को स्थायी रूप से हटा देगा। यह कार्रवाई पूर्ववत नहीं की जा सकती।",
-			"deleteModalConfirm": "वर्कस्पेस हटाएँ",
-			"toastUpdated": "वर्कस्पेस सफलतापूर्वक अपडेट किया गया",
-			"toastUpdateError": "वर्कस्पेस अपडेट करने में विफल",
-			"toastDeleted": "वर्कस्पेस सफलतापूर्वक हटाया गया",
-			"toastDeleteError": "वर्कस्पेस हटाने में विफल",
-			"validation": {
-				"nameRequired": "वर्कस्पेस का नाम आवश्यक है",
-				"nameShort": "वर्कस्पेस का नाम कम से कम 2 अक्षरों का होना चाहिए"
-			},
-			"transferOwnership": {
-				"toastSuccess": "स्वामित्व स्थानांतरित किया गया",
-				"toastError": "स्वामित्व स्थानांतरित करने में विफल",
-				"title": "स्वामित्व स्थानांतरित करें",
-				"subtitle": "यह वर्कस्पेस किसी अन्य सदस्य को सौंपें। आपकी भूमिका घटकर एडमिन हो जाएगी और आप केवल मालिक को उपलब्ध क्षमताएँ खो देंगे।",
-				"pickerLabel": "नया मालिक",
-				"noEligibleMembers": "स्वामित्व स्थानांतरित करने से पहले कम से कम एक अन्य सदस्य को आमंत्रित करें।",
-				"pickerHint": "वे इस वर्कस्पेस के एकमात्र मालिक बन जाएँगे।",
-				"pickerPlaceholder": "सदस्य चुनें",
-				"button": "स्थानांतरित करें",
-				"dialogTitle": "स्वामित्व स्थानांतरित करें?",
-				"dialogDescription": "{{name}} {{workspace}} के एकमात्र मालिक बन जाएँगे। आपकी एडमिन पहुँच बनी रहेगी, लेकिन वर्कस्पेस हटाने या उसे फिर से स्थानांतरित करने जैसी केवल मालिक को उपलब्ध क्षमताएँ आप खो देंगे।",
-				"transferring": "स्थानांतरित हो रहा है…",
-				"confirm": "स्वामित्व स्थानांतरित करें"
-			}
-		},
-		"workspaceRoles": {
-			"pageTitle": "भूमिकाएँ",
-			"title": "भूमिकाएँ",
-			"subtitle": "परिभाषित करें कि सदस्य {{workspaceName}} में कौन से कार्य कर सकते हैं।",
-			"thisWorkspace": "इस वर्कस्पेस",
-			"noAccess": "वर्कस्पेस भूमिकाएँ प्रबंधित करने के लिए आपको व्यवस्थापक या मालिक अनुमति चाहिए।",
-			"sectionTitle": "वर्कस्पेस भूमिकाएँ",
-			"sectionSubtitle": "डिफ़ॉल्ट भूमिकाएँ संपादित करें या कस्टम जोड़ें। संपादन के बाद भी सदस्य अपनी असाइन की गई भूमिका का नाम रखते हैं।",
-			"newRole": "नई भूमिका",
-			"loading": "लोड हो रहा है…",
-			"loadError": "भूमिकाएँ लोड करने में विफल।",
-			"emptyTitle": "अभी तक कोई भूमिका नहीं",
-			"emptyDescription": "डिफ़ॉल्ट भूमिकाएँ इस वर्कस्पेस के लिए सीड होने पर यहाँ दिखाई देंगी।",
-			"defaultBadge": "डिफ़ॉल्ट",
-			"permissionCount_one": "{{count}} अनुमति",
-			"permissionCount_other": "{{count}} अनुमतियाँ",
-			"nameLabel": "नाम",
-			"nameHint": "लोअरकेस। बाद में बदला नहीं जा सकता।",
-			"namePlaceholder": "जैसे reviewer",
-			"discard": "खारिज करें",
-			"createRole": "भूमिका बनाएँ",
-			"deleteRole": "भूमिका हटाएँ",
-			"defaultRoleHelp": "डिफ़ॉल्ट भूमिका: नाम आरक्षित है और पंक्ति हटाई नहीं जा सकती।",
-			"unsavedChanges": "आपके पास सहेजे नहीं गए परिवर्तन हैं",
-			"allChangesSaved": "सभी परिवर्तन सहेजे गए",
-			"saveChanges": "परिवर्तन सहेजें",
-			"defaultRoleDescriptions": {
-				"viewer": "कार्य देख और टिप्पणी कर सकते हैं।",
-				"member": "कार्य और प्रोजेक्ट बना और प्रबंधित कर सकते हैं।",
-				"admin": "वर्कस्पेस तक पूर्ण पहुँच है।"
-			},
-			"resources": {
-				"project": "प्रोजेक्ट",
-				"task": "कार्य",
-				"label": "लेबल",
-				"workspace": "वर्कस्पेस"
-			},
-			"permissions": {
-				"project": {
-					"create": {
-						"label": "बनाएँ",
-						"description": "नए प्रोजेक्ट बना सकते हैं"
-					},
-					"read": {
-						"label": "पढ़ें",
-						"description": "प्रोजेक्ट देख सकते हैं"
-					},
-					"update": {
-						"label": "अपडेट करें",
-						"description": "प्रोजेक्ट सेटिंग संपादित कर सकते हैं"
-					},
-					"delete": {
-						"label": "हटाएँ",
-						"description": "प्रोजेक्ट हटा सकते हैं"
-					},
-					"share": {
-						"label": "साझा करें",
-						"description": "प्रोजेक्ट साझा कर सकते हैं"
-					}
-				},
-				"task": {
-					"create": {
-						"label": "बनाएँ",
-						"description": "कार्य बना सकते हैं"
-					},
-					"read": {
-						"label": "पढ़ें",
-						"description": "कार्य देख सकते हैं"
-					},
-					"update": {
-						"label": "अपडेट करें",
-						"description": "कार्य संपादित कर सकते हैं"
-					},
-					"delete": {
-						"label": "हटाएँ",
-						"description": "कार्य हटा सकते हैं"
-					},
-					"assign": {
-						"label": "सौंपें",
-						"description": "सदस्यों को कार्य सौंप सकते हैं"
-					}
-				},
-				"label": {
-					"create": {
-						"label": "बनाएँ",
-						"description": "लेबल बना सकते हैं"
-					},
-					"read": {
-						"label": "पढ़ें",
-						"description": "लेबल देख सकते हैं"
-					},
-					"update": {
-						"label": "अपडेट करें",
-						"description": "लेबल संपादित कर सकते हैं"
-					},
-					"delete": {
-						"label": "हटाएँ",
-						"description": "लेबल हटा सकते हैं"
-					}
-				},
-				"workspace": {
-					"read": {
-						"label": "पढ़ें",
-						"description": "वर्कस्पेस सेटिंग देख सकते हैं"
-					},
-					"update": {
-						"label": "अपडेट करें",
-						"description": "वर्कस्पेस सेटिंग अपडेट कर सकते हैं"
-					},
-					"delete": {
-						"label": "हटाएँ",
-						"description": "वर्कस्पेस हटा सकते हैं"
-					},
-					"manage_settings": {
-						"label": "सेटिंग प्रबंधित करें",
-						"description": "वर्कस्पेस सेटिंग प्रबंधित कर सकते हैं"
-					}
-				}
-			},
-			"validation": {
-				"nameRequired": "भूमिका का नाम आवश्यक है",
-				"nameExists": "इस नाम की भूमिका पहले से मौजूद है",
-				"permissionRequired": "कम से कम एक अनुमति चुनी जानी चाहिए"
-			},
-			"toast": {
-				"created": "भूमिका बनाई गई",
-				"createError": "भूमिका बनाने में विफल",
-				"updated": "भूमिका अपडेट की गई",
-				"updateError": "भूमिका अपडेट करने में विफल",
-				"deleted": "भूमिका हटाई गई",
-				"deleteError": "भूमिका हटाने में विफल"
-			},
-			"deleteDialog": {
-				"title": "भूमिका हटाएँ",
-				"description": "यह भूमिका \"{{role}}\" को स्थायी रूप से हटा देगा। इस भूमिका वाले सदस्य इसकी अनुमतियाँ खो देंगे।"
-			}
-		},
-		"workspaceLabels": {
-			"pageTitle": "लेबल सेटिंग",
-			"title": "लेबल",
-			"subtitle": "वर्कस्पेस-स्तरीय लेबल बनाएँ, संपादित करें और हटाएँ।",
-			"cardDescription": "कार्यों को असाइन किए जा सकने वाले लेबल प्रबंधित करें।",
-			"createLabel": "लेबल बनाएँ",
-			"editLabel": "लेबल संपादित करें",
-			"deleteLabel": "हटाएँ",
-			"saveLabel": "सहेजें",
-			"nameLabel": "लेबल का नाम",
-			"namePlaceholder": "लेबल का नाम दर्ज करें",
-			"colorLabel": "रंग",
-			"createDescription": "एक नया लेबल बनाएँ जो इस वर्कस्पेस में सभी कार्यों में उपयोग किया जा सकता है।",
-			"editDescription": "इस लेबल का नाम या रंग अपडेट करें।",
-			"deleteConfirmTitle": "यह लेबल हटाएँ?",
-			"deleteConfirmDescription": "यह सभी कार्यों से इस लेबल को स्थायी रूप से हटा देगा। यह कार्रवाई पूर्ववत नहीं की जा सकती।",
-			"empty": "अभी तक कोई लेबल नहीं। शुरू करने के लिए अपना पहला लेबल बनाएँ।",
-			"createSuccess": "लेबल बनाया गया",
-			"updateSuccess": "लेबल अपडेट किया गया",
-			"deleteSuccess": "लेबल हटाया गया",
-			"createError": "लेबल बनाने में विफल",
-			"updateError": "लेबल अपडेट करने में विफल",
-			"deleteError": "लेबल हटाने में विफल",
-			"nameRequired": "लेबल का नाम आवश्यक है"
 		},
 		"projectGeneral": {
 			"pageTitle": "प्रोजेक्ट सेटिंग",
@@ -1051,7 +694,6 @@
 			},
 			"connect": "Slack कनेक्ट करें",
 			"saveChanges": "परिवर्तन सहेजें",
-			"update": "Slack अपडेट करें",
 			"disconnect": "डिस्कनेक्ट करें"
 		},
 		"discordIntegration": {
@@ -1089,7 +731,6 @@
 			},
 			"connect": "Discord कनेक्ट करें",
 			"saveChanges": "परिवर्तन सहेजें",
-			"update": "Discord अपडेट करें",
 			"disconnect": "डिस्कनेक्ट करें"
 		},
 		"genericWebhookIntegration": {
@@ -1246,6 +887,31 @@
 			"merged": "मर्ज किया",
 			"draft": "ड्राफ़्ट",
 			"open": "खुला"
+		},
+		"teamLabels": {
+			"pageTitle": "लेबल सेटिंग",
+			"title": "लेबल",
+			"subtitle": "वर्कस्पेस-स्तरीय लेबल बनाएँ, संपादित करें और हटाएँ।",
+			"cardDescription": "कार्यों को असाइन किए जा सकने वाले लेबल प्रबंधित करें।",
+			"createLabel": "लेबल बनाएँ",
+			"editLabel": "लेबल संपादित करें",
+			"deleteLabel": "हटाएँ",
+			"saveLabel": "सहेजें",
+			"nameLabel": "लेबल का नाम",
+			"namePlaceholder": "लेबल का नाम दर्ज करें",
+			"colorLabel": "रंग",
+			"createDescription": "एक नया लेबल बनाएँ जो इस वर्कस्पेस में सभी कार्यों में उपयोग किया जा सकता है।",
+			"editDescription": "इस लेबल का नाम या रंग अपडेट करें।",
+			"deleteConfirmTitle": "यह लेबल हटाएँ?",
+			"deleteConfirmDescription": "यह सभी कार्यों से इस लेबल को स्थायी रूप से हटा देगा। यह कार्रवाई पूर्ववत नहीं की जा सकती।",
+			"empty": "अभी तक कोई लेबल नहीं। शुरू करने के लिए अपना पहला लेबल बनाएँ।",
+			"createSuccess": "लेबल बनाया गया",
+			"updateSuccess": "लेबल अपडेट किया गया",
+			"deleteSuccess": "लेबल हटाया गया",
+			"createError": "लेबल बनाने में विफल",
+			"updateError": "लेबल अपडेट करने में विफल",
+			"deleteError": "लेबल हटाने में विफल",
+			"nameRequired": "लेबल का नाम आवश्यक है"
 		}
 	},
 	"navigation": {
@@ -1257,7 +923,6 @@
 			"members": "सदस्य",
 			"createTask": "कार्य बनाएँ",
 			"createProject": "प्रोजेक्ट बनाएँ",
-			"createWorkspace": "वर्कस्पेस बनाएँ",
 			"lightTheme": "लाइट थीम",
 			"darkTheme": "डार्क थीम",
 			"systemTheme": "सिस्टम थीम",
@@ -1268,14 +933,14 @@
 				"navigate": "नेविगेट करें",
 				"open": "खोलें",
 				"close": "बंद करें"
-			}
+			},
+			"createTeam": "Create team"
 		},
 		"notifications": "सूचनाएँ",
 		"sidebar": {
 			"overview": "अवलोकन",
 			"projects": "प्रोजेक्ट",
 			"members": "सदस्य",
-			"invitations": "निमंत्रण",
 			"more": "और",
 			"backToBoard": "बोर्ड पर वापस जाएँ"
 		},
@@ -1296,10 +961,10 @@
 			"groups": {
 				"task": "कार्य",
 				"project": "प्रोजेक्ट",
-				"workspace": "वर्कस्पेस",
 				"comment": "टिप्पणियाँ",
 				"activity": "गतिविधियाँ",
-				"fallback": "परिणाम"
+				"fallback": "परिणाम",
+				"team": "Teams"
 			}
 		},
 		"settingsLayout": {
@@ -1314,17 +979,10 @@
 			"signingOut": "साइन आउट हो रहा है...",
 			"logOut": "लॉग आउट"
 		},
-		"workspaceSwitcher": {
-			"workspaces": "वर्कस्पेस",
-			"switching": "बदल रहे हैं...",
-			"addWorkspace": "वर्कस्पेस जोड़ें",
-			"selectWorkspace": "वर्कस्पेस चुनें"
-		},
 		"page": {
 			"projectsTitle": "प्रोजेक्ट",
 			"settingsTitle": "सेटिंग",
-			"backToWorkspace": "वर्कस्पेस पर वापस जाएँ",
-			"settingsWorkspaceTab": "वर्कस्पेस"
+			"backToTeam": "वर्कस्पेस पर वापस जाएँ"
 		},
 		"projectSettings": {
 			"projectLabel": "प्रोजेक्ट"
@@ -1349,21 +1007,25 @@
 				"closeModal": "मोडल/पॉपओवर बंद करें",
 				"createTask": "कार्य बनाएँ",
 				"createProject": "प्रोजेक्ट बनाएँ",
-				"createWorkspace": "वर्कस्पेस बनाएँ",
 				"boardView": "बोर्ड दृश्य पर स्विच करें",
 				"listView": "सूची दृश्य पर स्विच करें",
 				"backlogView": "बैकलॉग दृश्य पर स्विच करें",
 				"nextTask": "अगला कार्य",
 				"prevTask": "पिछला कार्य",
 				"openTask": "चयनित कार्य खोलें",
-				"quickSelectNumber": "संख्या द्वारा विकल्प चुनें"
+				"quickSelectNumber": "संख्या द्वारा विकल्प चुनें",
+				"createTeam": "Create team"
 			}
+		},
+		"teamSwitcher": {
+			"addTeam": "Add team",
+			"selectTeam": "Select a team",
+			"switching": "Switching...",
+			"teams": "Teams"
 		}
 	},
 	"notifications": {
 		"title": "सूचनाएँ",
-		"newCount_one": "{{count}} नई",
-		"newCount_other": "{{count}} नई",
 		"emptyTitle": "अभी तक कोई सूचना नहीं",
 		"emptySubtitle": "आप यहाँ अपडेट और गतिविधि देखेंगे।",
 		"clearAll": "सभी सूचनाएँ साफ़ करें",
@@ -1384,10 +1046,6 @@
 			"task_created": {
 				"title": "नया कार्य बनाया गया",
 				"content": "कार्य \"{{taskTitle}}\" बनाया गया"
-			},
-			"workspace_created": {
-				"title": "वर्कस्पेस बनाया गया",
-				"content": "आपका वर्कस्पेस \"{{workspaceName}}\" सफलतापूर्वक बनाया गया है"
 			},
 			"task_status_changed": {
 				"title": "कार्य स्थिति बदली",
@@ -1662,9 +1320,6 @@
 						"onlyYoutube": "केवल YouTube लिंक एम्बेड किए जा सकते हैं।"
 					},
 					"onlyYoutubeInline": "केवल YouTube URL एम्बेड किए जा सकते हैं। इसके बजाय लिंक मोड का उपयोग करें।"
-				},
-				"mermaid": {
-					"renderFailed": "Mermaid डायग्राम प्रस्तुत नहीं किया जा सका"
 				}
 			}
 		},
@@ -1942,37 +1597,34 @@
 			}
 		}
 	},
-	"invitations": {
-		"email": {
-			"subject": "{{inviterName}} ने आपको Kaneo पर {{workspaceName}} में शामिल होने के लिए आमंत्रित किया है",
-			"preview": "आपको Kaneo पर {{workspaceName}} में आमंत्रित किया गया है",
-			"title": "{{workspaceName}} में शामिल हों",
-			"subtitle": "{{inviterName}} ({{inviterEmail}}) ने आपको Kaneo में सहयोग करने के लिए आमंत्रित किया है।",
-			"cta": "निमंत्रण स्वीकार करें",
-			"sameEmail": "आप उसी ईमेल से स्वीकार कर सकते हैं जिस पर यह संदेश मिला।",
-			"ignore": "यदि यह अपेक्षित नहीं था, तो आप इस ईमेल को सुरक्षित रूप से अनदेखा कर सकते हैं।",
-			"footer": "Kaneo वर्कस्पेस निमंत्रण"
+	"team": {
+		"roles": {
+			"owner": "मालिक",
+			"admin": "व्यवस्थापक",
+			"member": "सदस्य",
+			"viewer": "दर्शक"
 		},
-		"pageTitle": "निमंत्रण",
-		"pendingInvitations": "लंबित निमंत्रण",
-		"acceptSubtitle": "वर्कस्पेस में शामिल होने के लिए निमंत्रण स्वीकार करें",
-		"noPendingTitle": "कोई लंबित निमंत्रण नहीं",
-		"noPendingDescription": "इस समय आपके पास कोई लंबित वर्कस्पेस निमंत्रण नहीं है।",
-		"continueToSetup": "सेटअप जारी रखें",
-		"skipForNow": "अभी के लिए छोड़ें",
-		"table": {
-			"workspace": "वर्कस्पेस",
-			"invitedBy": "द्वारा आमंत्रित",
-			"expires": "समाप्ति"
+		"members": {
+			"pageTitle": "सदस्य",
+			"you": "आप"
 		},
-		"toast": {
-			"acceptError": "निमंत्रण स्वीकार करने में विफल",
-			"acceptSuccess": "निमंत्रण स्वीकार किया! टीम में स्वागत है।",
-			"rejectError": "निमंत्रण अस्वीकार करने में विफल",
-			"rejectSuccess": "निमंत्रण अस्वीकार किया गया"
-		}
-	},
-	"workspace": {
+		"membersTable": {
+			"emptyTitle": "अभी तक कोई टीम सदस्य नहीं",
+			"emptyDescription": "Ask an admin to add members to this team.",
+			"columns": {
+				"name": "नाम",
+				"role": "भूमिका",
+				"joined": "शामिल हुए"
+			},
+			"ariaRemoveMember": "सदस्य हटाएँ",
+			"removeDialogTitle": "टीम सदस्य हटाएँ?",
+			"removeDialogDescription": "क्या आप वाकई {{name}} को वर्कस्पेस से हटाना चाहते हैं? यह कार्रवाई पूर्ववत नहीं की जा सकती।",
+			"removeMember": "सदस्य हटाएँ",
+			"removeSuccess": "टीम सदस्य सफलतापूर्वक हटाया गया",
+			"removeError": "टीम सदस्य हटाने में विफल",
+			"roleUpdateSuccess": "भूमिका अपडेट की गई",
+			"roleUpdateError": "भूमिका अपडेट करने में विफल"
+		},
 		"projects": {
 			"pageTitle": "प्रोजेक्ट",
 			"createProject": "प्रोजेक्ट बनाएँ",
@@ -1990,7 +1642,6 @@
 				"inProgress": "प्रगति में"
 			},
 			"noDueDate": "कोई नियत तारीख नहीं",
-			"reorderHandle": "प्रोजेक्ट का क्रम बदलें",
 			"reorderError": "प्रोजेक्ट का क्रम बदलने में विफल"
 		},
 		"search": {
@@ -2016,73 +1667,13 @@
 			"pageTitle": "वर्कस्पेस बनाएँ",
 			"heading": "नया वर्कस्पेस बनाएँ",
 			"subtitle": "वर्कस्पेस साझा वातावरण हैं जहाँ टीमें प्रोजेक्ट, साइकल और मुद्दों पर काम कर सकती हैं।",
-			"nameLabel": "वर्कस्पेस का नाम",
 			"namePlaceholder": "वर्कस्पेस का नाम दर्ज करें",
-			"descriptionLabel": "विवरण (वैकल्पिक)",
-			"descriptionPlaceholder": "अपने वर्कस्पेस के लिए विवरण जोड़ें",
 			"required": "आवश्यक",
 			"creating": "बना रहे हैं...",
 			"submit": "वर्कस्पेस बनाएँ",
 			"success": "वर्कस्पेस सफलतापूर्वक बनाया गया",
-			"error": "वर्कस्पेस बनाने में विफल"
-		}
-	},
-	"team": {
-		"roles": {
-			"owner": "मालिक",
-			"admin": "व्यवस्थापक",
-			"member": "सदस्य",
-			"viewer": "दर्शक"
-		},
-		"members": {
-			"pageTitle": "सदस्य",
-			"inviteMember": "सदस्य आमंत्रित करें",
-			"you": "आप"
-		},
-		"invitations": {
-			"pendingBadge": "लंबित",
-			"expires": "{{date}} को समाप्त होता है",
-			"linkLabel": "निमंत्रण लिंक",
-			"copyLink": "लिंक कॉपी करें",
-			"linkCopied": "निमंत्रण लिंक कॉपी किया गया",
-			"copyFailed": "स्वचालित रूप से कॉपी नहीं हो सका। लिंक चुनें और Ctrl+C दबाएँ।"
-		},
-		"inviteModal": {
-			"title": "टीम सदस्य आमंत्रित करें",
-			"emailLabel": "ईमेल",
-			"emailPlaceholder": "colleague@company.com",
-			"sendInvitation": "निमंत्रण भेजें",
-			"success": "निमंत्रण सफलतापूर्वक भेजा गया",
-			"error": "टीम सदस्य आमंत्रित करने में विफल",
-			"createdTitle": "निमंत्रण बनाया गया",
-			"shareLinkDescription": "यह लिंक {{email}} के साथ साझा करें ताकि वे वर्कस्पेस में शामिल हो सकें।",
-			"done": "हो गया"
-		},
-		"membersTable": {
-			"emptyTitle": "अभी तक कोई टीम सदस्य नहीं",
-			"emptyDescription": "शुरू करने के लिए अपने पहले टीम सदस्य को आमंत्रित करें।",
-			"columns": {
-				"name": "नाम",
-				"role": "भूमिका",
-				"joined": "शामिल हुए",
-				"actions": "कार्रवाइयाँ"
-			},
-			"memberRolePending": "{{role}} (लंबित)",
-			"ariaCancelInvitation": "निमंत्रण रद्द करें",
-			"ariaInvitationActions": "निमंत्रण कार्रवाइयाँ",
-			"ariaRemoveMember": "सदस्य हटाएँ",
-			"removeDialogTitle": "टीम सदस्य हटाएँ?",
-			"removeDialogDescription": "क्या आप वाकई {{name}} को वर्कस्पेस से हटाना चाहते हैं? यह कार्रवाई पूर्ववत नहीं की जा सकती।",
-			"cancelDialogTitle": "निमंत्रण रद्द करें?",
-			"cancelDialogDescription": "क्या आप वाकई {{email}} के लिए निमंत्रण रद्द करना चाहते हैं? यह कार्रवाई पूर्ववत नहीं की जा सकती।",
-			"removeMember": "सदस्य हटाएँ",
-			"cancelInvitation": "निमंत्रण रद्द करें",
-			"removeSuccess": "टीम सदस्य सफलतापूर्वक हटाया गया",
-			"removeError": "टीम सदस्य हटाने में विफल",
-			"cancelInviteSuccess": "निमंत्रण सफलतापूर्वक रद्द किया गया",
-			"cancelInviteError": "निमंत्रण रद्द करने में विफल",
-			"roleUpdateSuccess": "भूमिका अपडेट की गई",
-			"roleUpdateError": "भूमिका अपडेट करने में विफल"
+			"error": "वर्कस्पेस बनाने में विफल",
+			"nameLabel": "Team Name"
 		}
 	},
 	"publicProject": {
@@ -2099,7 +1690,6 @@
 		"taskDetail": {
 			"labels": "लेबल",
 			"externalLinks": "बाहरी लिंक",
-			"pullRequestFallback": "पुल अनुरोध",
 			"issueFallback": "मुद्दा",
 			"prStatusMerged": "मर्ज किया गया",
 			"prStatusDraft": "ड्राफ़्ट",
@@ -2121,5 +1711,169 @@
 		"branding": {
 			"poweredBy": "द्वारा संचालित"
 		}
+	},
+	"admin": {
+		"actions": {
+			"delete": "Delete user",
+			"demote": "Demote to user",
+			"disable": "Disable account",
+			"enable": "Enable account",
+			"error": "Action failed",
+			"promote": "Promote to admin",
+			"resetPassword": "Reset password",
+			"successRole": "Role updated",
+			"successStatus": "Account status updated",
+			"manageTeams": "Manage teams"
+		},
+		"columns": {
+			"created": "Created",
+			"role": "Role",
+			"status": "Status",
+			"user": "User"
+		},
+		"create": {
+			"description": "Create a new account. The user can sign in with the username and password.",
+			"email": "Email (optional)",
+			"emailPlaceholder": "e.g. jane@example.com",
+			"error": "Failed to create user",
+			"name": "Name",
+			"namePlaceholder": "e.g. Jane Doe",
+			"password": "Password",
+			"passwordPlaceholder": "At least 8 characters",
+			"role": "Role",
+			"submit": "Create user",
+			"success": "User created",
+			"title": "Create user",
+			"username": "Username",
+			"usernamePlaceholder": "e.g. jane",
+			"validation": {
+				"nameRequired": "Name is required",
+				"passwordShort": "Password must be at least 8 characters",
+				"usernameInvalid": "Only lowercase letters, numbers and underscores (1-30 characters)",
+				"usernameRequired": "Username is required"
+			},
+			"team": "Team (optional)",
+			"teamNone": "No team",
+			"teamPlaceholder": "Choose a team…"
+		},
+		"deleteDialog": {
+			"confirm": "Delete",
+			"description": "Delete {{name}} ({{username}})? This cannot be undone.",
+			"success": "User deleted",
+			"title": "Delete user"
+		},
+		"page": {
+			"createUser": "Create user",
+			"currentUserBadge": "you",
+			"description": "Create and manage user accounts.",
+			"emptyDescription": "Create the first user account to get started.",
+			"emptyTitle": "No users",
+			"title": "User Management"
+		},
+		"resetPassword": {
+			"description": "Set a new password for {{username}}.",
+			"password": "New password",
+			"submit": "Reset password",
+			"success": "Password updated",
+			"title": "Reset password"
+		},
+		"role": {
+			"admin": "Admin",
+			"user": "User"
+		},
+		"status": {
+			"active": "Active",
+			"disabled": "Disabled"
+		},
+		"tab": "System",
+		"teams": {
+			"columns": {
+				"actions": "Actions",
+				"members": "Members",
+				"name": "Name",
+				"role": "Your role"
+			},
+			"create": "Create team",
+			"createDialogDescription": "Teams group users who collaborate on shared projects.",
+			"createDialogTitle": "Create a team",
+			"delete": "Delete team",
+			"deleteDialogDescription": "The team, its projects, and its memberships will be permanently deleted.",
+			"deleteDialogTitle": "Delete this team?",
+			"description": "Create and manage teams. Users join teams via invitation.",
+			"empty": "No teams yet. Create the first one to get started.",
+			"enter": "Enter team",
+			"hint": "As a system administrator, create the teams your users will join.",
+			"nameLabel": "Team name",
+			"namePlaceholder": "e.g. Acme",
+			"pageTitle": "Team management",
+			"tab": "Teams",
+			"title": "Teams",
+			"toast": {
+				"created": "Team \"{{name}}\" created",
+				"createError": "Failed to create team",
+				"deleted": "Team deleted",
+				"deleteError": "Failed to delete team",
+				"renamed": "Team renamed",
+				"renameError": "Failed to rename team"
+			},
+			"labels": "Labels",
+			"rename": "Rename",
+			"renameDialogDescription": "Change the name of this team.",
+			"renameDialogTitle": "Rename team",
+			"userTeamsAdd": "Add to team",
+			"userTeamsAddButton": "Add",
+			"userTeamsChoose": "Choose a team…",
+			"userTeamsCurrent": "Current teams",
+			"userTeamsDescription": "Manage which teams this user belongs to.",
+			"userTeamsEmpty": "This user is not a member of any team.",
+			"userTeamsNoAvailable": "This user is already in every team.",
+			"userTeamsRemove": "Remove from team",
+			"userTeamsTitle": "Teams of {{name}}",
+			"manageMembers": "Manage members",
+			"membersAdd": "Add user to team",
+			"membersAddButton": "Add",
+			"membersChooseUser": "Choose a user…",
+			"membersCurrent": "Current members",
+			"membersDescription": "Manage which users belong to this team.",
+			"membersEmpty": "This team has no members yet.",
+			"membersNoAvailable": "All users are already in this team.",
+			"membersRemove": "Remove from team",
+			"membersTitle": "Members of {{name}}"
+		},
+		"users": {
+			"tab": "Users"
+		},
+		"ai": {
+			"apiKeyHelp": "Stored encrypted. Sent as Bearer token. Never returned in responses.",
+			"apiKeyLabel": "API key",
+			"baseUrlHelp": "OpenAI-compatible endpoint. The client appends /v1/chat/completions.",
+			"baseUrlLabel": "API base URL",
+			"enableDescription": "When disabled, the Chat tab shows a placeholder and the API returns 503.",
+			"enableLabel": "Enable AI assistant",
+			"modelHelp": "Any model name accepted by your API. Default: gpt-4o.",
+			"modelLabel": "Model",
+			"pageDescription": "Configure the AI assistant used by project chat. Kaneo uses an OpenAI-compatible API.",
+			"pageTitle": "AI Assistant",
+			"save": "Save",
+			"saving": "Saving…",
+			"tab": "AI",
+			"toast": {
+				"error": "Failed to save settings",
+				"saved": "AI settings saved"
+			}
+		}
+	},
+	"chat": {
+		"errorFailed": "Failed to send message",
+		"errorTimeout": "Request timed out. Please try again.",
+		"notEnabledDescription": "The pi-agent AI assistant has not been configured for this instance. Please contact an administrator to enable it.",
+		"notEnabledTitle": "AI assistant not enabled",
+		"pageTitle": "Chat",
+		"placeholder": "Send a message to pi-agent…",
+		"send": "Send",
+		"streaming": "pi-agent is typing…",
+		"welcomeDescription": "Ask me to create tasks, check project status, or analyze progress. I'm your AI project management assistant.",
+		"welcomeTitle": "Chat with pi-agent",
+		"you": "You"
 	}
 }

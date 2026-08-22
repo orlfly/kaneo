@@ -52,10 +52,10 @@ function lastRequest() {
 
 describe("MCP tool catalog", () => {
   it("resolves workspace members", async () => {
-    await call("list_workspace_members", { workspaceId: "ws 1" });
+    await call("list_workspace_members", { teamId: "ws 1" });
 
     const request = lastRequest();
-    expect(request.url).toBe("http://api.test/api/workspace/ws%201/members");
+    expect(request.url).toBe("http://api.test/api/team/ws%201/members");
     expect(request.auth).toBe("Bearer test-token");
   });
 

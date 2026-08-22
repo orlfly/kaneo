@@ -1,7 +1,7 @@
 import { Calendar, CircleAlert, History, UserRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
-import useGetWorkspaceUsers from "@/hooks/queries/workspace-users/use-get-workspace-users";
+import useActiveTeam from "@/hooks/queries/team/use-active-team";
+import useGetTeamMembers from "@/hooks/queries/team-member/use-get-team-members";
 import { formatDateMedium, formatRelativeTime } from "@/lib/format";
 import { getInitials } from "@/lib/get-initials";
 import { getPriorityLabel, getStatusLabel } from "@/lib/i18n/domain";
@@ -39,13 +39,13 @@ function getEventDataRecord(
   return eventData as Record<string, unknown>;
 }
 
-type WorkspaceUser = {
-  user?: {
-    id?: string;
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
-  } | null;
+type TeamUser = {
+  id: string;
+  name: string;
+  email: string;
+  image: string | null;
+  role: "owner" | "member";
+  joinedAt: string;
 };
 
 function getActivityTypeIcon(type: string) {
@@ -88,11 +88,10 @@ function toDisplayCase(value: string) {
     .join(" ");
 }
 
-function findUserByName(users: WorkspaceUser[] | undefined, name: string) {
+function findUserByName(users: TeamUser[] | undefined, name: string) {
   if (!users) return null;
   const matches = users.filter(
-    (member) =>
-      member.user?.name?.toLowerCase().trim() === name.toLowerCase().trim(),
+    (member) => member.name?.toLowerCase().trim() === name.toLowerCase().trim(),
   );
 
   if (matches.length !== 1) return null;
@@ -103,10 +102,10 @@ function UserHoverName({
   user,
   fallbackName,
 }: {
-  user: WorkspaceUser | null;
+  user: TeamUser | null;
   fallbackName: string;
 }) {
-  if (!user?.user) {
+  if (!user) {
     return <span className="font-medium text-foreground">{fallbackName}</span>;
   }
 
@@ -114,27 +113,22 @@ function UserHoverName({
     <HoverCard>
       <HoverCardTrigger asChild>
         <span className="cursor-pointer font-medium text-foreground transition-colors hover:text-primary">
-          {user.user.name}
+          {user.name}
         </span>
       </HoverCardTrigger>
       <HoverCardContent className="w-52 p-3">
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
-            <AvatarImage
-              src={user.user.image ?? ""}
-              alt={user.user.name || ""}
-            />
+            <AvatarImage src={user.image ?? ""} alt={user.name || ""} />
             <AvatarFallback className="bg-muted text-xs font-medium">
-              {getInitials(user.user.name)}
+              {getInitials(user.name)}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-foreground leading-none">
-              {user.user.name}
+              {user.name}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {user.user.email}
-            </p>
+            <p className="mt-1 text-xs text-muted-foreground">{user.email}</p>
           </div>
         </div>
       </HoverCardContent>
@@ -146,12 +140,12 @@ function ActorAvatar({
   user,
   fallbackName,
 }: {
-  user: WorkspaceUser | null;
+  user: TeamUser | null;
   fallbackName: string;
 }) {
   return (
     <Avatar className="size-6">
-      <AvatarImage src={user?.user?.image ?? ""} alt={fallbackName} />
+      <AvatarImage src={user?.image ?? ""} alt={fallbackName} />
       <AvatarFallback className="bg-muted text-[11px] font-medium">
         {getInitials(fallbackName)}
       </AvatarFallback>
@@ -161,11 +155,11 @@ function ActorAvatar({
 
 function renderActivityContent({
   activity,
-  workspaceUsers,
+  teamUsers,
   t,
 }: {
   activity: ActivityItem;
-  workspaceUsers: WorkspaceUser[] | undefined;
+  teamUsers: TeamUser[] | undefined;
   t: (key: string, options?: Record<string, unknown>) => string;
 }) {
   const content = activity.content || "";
@@ -305,12 +299,12 @@ function renderActivityContent({
       const targetId = String(eventData.newAssigneeId ?? "");
       const targetName = String(eventData.newAssignee ?? "");
       const targetUser =
-        workspaceUsers?.find((member) => member.user?.id === targetId) || null;
+        teamUsers?.find((member) => member.id === targetId) || null;
 
       return (
         <span className="text-sm text-muted-foreground">
           {t("activity:assignedTo", {
-            name: targetUser?.user?.name ?? targetName,
+            name: targetUser?.name ?? targetName,
           })}
         </span>
       );
@@ -330,12 +324,12 @@ function renderActivityContent({
     if (tokenMatch) {
       const [, targetId, targetName] = tokenMatch;
       const targetUser =
-        workspaceUsers?.find((member) => member.user?.id === targetId) || null;
+        teamUsers?.find((member) => member.id === targetId) || null;
 
       return (
         <span className="text-sm text-muted-foreground">
           {t("activity:assignedTo", {
-            name: targetUser?.user?.name ?? targetName,
+            name: targetUser?.name ?? targetName,
           })}
         </span>
       );
@@ -344,11 +338,11 @@ function renderActivityContent({
     const legacyMatch = content.match(/assigned the task to (.+)$/i);
     if (legacyMatch) {
       const targetName = legacyMatch[1];
-      const targetUser = findUserByName(workspaceUsers, targetName);
+      const targetUser = findUserByName(teamUsers, targetName);
       return (
         <span className="text-sm text-muted-foreground">
           {t("activity:assignedTo", {
-            name: targetUser?.user?.name ?? targetName,
+            name: targetUser?.name ?? targetName,
           })}
         </span>
       );
@@ -420,19 +414,17 @@ function Activity({
   showConnector?: boolean;
 }) {
   const { t } = useTranslation();
-  const { data: workspace } = useActiveWorkspace();
-  const { data: workspaceUsers } = useGetWorkspaceUsers({
-    workspaceId: workspace?.id,
+  const { data: team } = useActiveTeam();
+  const { data: teamUsers } = useGetTeamMembers({
+    teamId: team?.id,
   });
 
   const user = activity.userId
-    ? workspaceUsers?.find(
-        (workspaceUser) => workspaceUser.user?.id === activity.userId,
-      )
+    ? teamUsers?.find((teamMember) => teamMember.id === activity.userId)
     : null;
 
   const isExternalComment = Boolean(activity.externalSource);
-  const actorName = user?.user?.name || t("common:people.someone");
+  const actorName = user?.name || t("common:people.someone");
 
   if (isCommentActivity(activity)) {
     const commentUser = isExternalComment
@@ -443,10 +435,10 @@ function Activity({
           image: activity.externalUserAvatar ?? undefined,
         }
       : {
-          id: user?.user?.id,
-          name: user?.user?.name,
-          email: user?.user?.email,
-          image: user?.user?.image,
+          id: user?.id,
+          name: user?.name,
+          email: user?.email,
+          image: user?.image,
         };
 
     return (
@@ -484,7 +476,7 @@ function Activity({
         <UserHoverName user={user || null} fallbackName={actorName} />{" "}
         {renderActivityContent({
           activity,
-          workspaceUsers: workspaceUsers as WorkspaceUser[] | undefined,
+          teamUsers: teamUsers as TeamUser[] | undefined,
           t,
         })}{" "}
         <span className="whitespace-nowrap text-muted-foreground/70 text-xs">

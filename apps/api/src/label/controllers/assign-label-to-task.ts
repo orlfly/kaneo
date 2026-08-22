@@ -34,7 +34,7 @@ async function assignLabelToTask(id: string, taskId: string, userId: string) {
     .select({
       id: taskTable.id,
       projectId: taskTable.projectId,
-      workspaceId: projectTable.workspaceId,
+      teamId: projectTable.teamId,
     })
     .from(taskTable)
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
@@ -47,9 +47,9 @@ async function assignLabelToTask(id: string, taskId: string, userId: string) {
     });
   }
 
-  if (label.workspaceId && label.workspaceId !== task.workspaceId) {
+  if (label.teamId && label.teamId !== task.teamId) {
     throw new HTTPException(400, {
-      message: "Label and task must belong to the same workspace",
+      message: "Label and task must belong to the same team",
     });
   }
 
@@ -76,11 +76,11 @@ async function assignLabelToTask(id: string, taskId: string, userId: string) {
       }
 
       if (
-        currentLabel.workspaceId &&
-        currentLabel.workspaceId !== task.workspaceId
+        currentLabel.teamId &&
+        currentLabel.teamId !== task.teamId
       ) {
         throw new HTTPException(400, {
-          message: "Label and task must belong to the same workspace",
+          message: "Label and task must belong to the same team",
         });
       }
 
@@ -104,7 +104,7 @@ async function assignLabelToTask(id: string, taskId: string, userId: string) {
           name: currentLabel.name,
           color: currentLabel.color,
           taskId,
-          workspaceId: task.workspaceId,
+          teamId: task.teamId,
         })
         .onConflictDoNothing({
           target: [labelTable.taskId, labelTable.name],

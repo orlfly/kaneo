@@ -41,10 +41,10 @@ import useCreateLabel from "@/hooks/mutations/label/use-create-label";
 import useCreateTask from "@/hooks/mutations/task/use-create-task";
 import { useDeleteTask } from "@/hooks/mutations/task/use-delete-task";
 import { useUpdateTask } from "@/hooks/mutations/task/use-update-task";
-import useGetLabelsByWorkspace from "@/hooks/queries/label/use-get-labels-by-workspace";
+import useGetLabelsByTeam from "@/hooks/queries/label/use-get-labels-by-team";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
-import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
-import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
+import useActiveTeam from "@/hooks/queries/team/use-active-team";
+import { useGetActiveTeamMembers } from "@/hooks/queries/team-member/use-get-active-team-members";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { cn } from "@/lib/cn";
 import { formatDateMedium } from "@/lib/format";
@@ -79,7 +79,7 @@ type Label = {
   name: string;
   color: string;
   taskId: string | null;
-  workspaceId: string;
+  teamId: string;
   createdAt: string;
 };
 
@@ -170,14 +170,10 @@ function CreateTaskModal({
     [t],
   );
   const location = useLocation();
-  const { data: workspace } = useActiveWorkspace();
-  const { data: workspaceUsers } = useGetActiveWorkspaceUsers(
-    workspace?.id || "",
-  );
+  const { data: team } = useActiveTeam();
+  const { data: teamUsers } = useGetActiveTeamMembers(team?.id || "");
   const { mutateAsync: createLabel } = useCreateLabel();
-  const { data: workspaceLabels = [] } = useGetLabelsByWorkspace(
-    workspace?.id || "",
-  );
+  const { data: teamLabels = [] } = useGetLabelsByTeam(team?.id || "");
   const { canCreateTasks, canCreateLabels } = useWorkspacePermission();
   const canCreateTaskCapability = canCreateTasks();
   const canCreateLabelCapability = canCreateLabels();
@@ -204,12 +200,12 @@ function CreateTaskModal({
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const resolvedProjectId =
     explicitProjectId || selectedProjectId || project?.id || "";
-  const { data: workspaceProjects } = useGetProjects({
-    workspaceId: workspace?.id || "",
+  const { data: teamProjects } = useGetProjects({
+    teamId: team?.id || "",
   });
   const resolvedProject = explicitProjectId
     ? project
-    : (workspaceProjects?.find((p) => p.id === resolvedProjectId) ?? null);
+    : (teamProjects?.find((p) => p.id === resolvedProjectId) ?? null);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const draftCreationPromiseRef = useRef<Promise<Task> | null>(null);
@@ -220,11 +216,11 @@ function CreateTaskModal({
   const { mutateAsync: deleteTask } = useDeleteTask();
 
   const filteredLabels = (() => {
-    const searchFiltered = workspaceLabels.filter((label) =>
+    const searchFiltered = teamLabels.filter((label) =>
       label.name.toLowerCase().includes(searchValue.toLowerCase()),
     );
 
-    const labelMap = new Map<string, (typeof workspaceLabels)[0]>();
+    const labelMap = new Map<string, (typeof teamLabels)[0]>();
     for (const label of searchFiltered) {
       const existing = labelMap.get(label.name);
       if (!existing || (label.taskId === null && existing.taskId !== null)) {
@@ -237,7 +233,7 @@ function CreateTaskModal({
 
   const isCreatingNewLabel =
     searchValue &&
-    !workspaceLabels.some(
+    !teamLabels.some(
       (label) => label.name.toLowerCase() === searchValue.toLowerCase(),
     );
 
@@ -303,15 +299,11 @@ function CreateTaskModal({
           ...task,
           assigneeId: task.userId,
           assigneeName:
-            workspaceUsers?.members?.find(
-              (member) => member.userId === task.userId,
-            )?.user?.name ??
+            teamUsers?.find((member) => member.id === task.userId)?.name ??
             existingTask?.assigneeName ??
             null,
           assigneeImage:
-            workspaceUsers?.members?.find(
-              (member) => member.userId === task.userId,
-            )?.user?.image ??
+            teamUsers?.find((member) => member.id === task.userId)?.image ??
             existingTask?.assigneeImage ??
             null,
           position: task.position ?? 0,
@@ -320,7 +312,7 @@ function CreateTaskModal({
 
       setProject(updatedProject);
     },
-    [project, setProject, workspaceUsers?.members],
+    [project, setProject, teamUsers],
   );
 
   const ensureDraftTask = useCallback(async () => {
@@ -381,7 +373,7 @@ function CreateTaskModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !resolvedProjectId || !workspace?.id) return;
+    if (!title.trim() || !resolvedProjectId || !team?.id) return;
 
     try {
       const taskStatus = status ?? "to-do";
@@ -420,7 +412,7 @@ function CreateTaskModal({
             name: label.name,
             color: label.color,
             taskId: savedTask.id,
-            workspaceId: workspace.id,
+            teamId: team.id,
           });
         } catch (error) {
           console.error("Failed to create label:", error);
@@ -482,9 +474,7 @@ function CreateTaskModal({
     }
     return t("tasks:status.in-progress");
   }, [status, t]);
-  const selectedUser = workspaceUsers?.members?.find(
-    (u) => u.userId === assigneeId,
-  );
+  const selectedUser = teamUsers?.find((u) => u.id === assigneeId);
 
   useEffect(() => {
     if (labelsOpen && labelsStep === "select" && searchInputRef.current) {
@@ -498,7 +488,7 @@ function CreateTaskModal({
 
       if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
         e.preventDefault();
-        if (title.trim() && resolvedProjectId && workspace?.id) {
+        if (title.trim() && resolvedProjectId && team?.id) {
           const form = document.querySelector("form");
           if (form) {
             form.dispatchEvent(
@@ -508,7 +498,7 @@ function CreateTaskModal({
         }
       }
     },
-    [open, title, resolvedProjectId, workspace?.id],
+    [open, title, resolvedProjectId, team?.id],
   );
 
   useEffect(() => {
@@ -533,17 +523,17 @@ function CreateTaskModal({
     if (existingLabel) {
       setLabels(labels.filter((l) => l.name !== labelName));
     } else {
-      const workspaceLabel = workspaceLabels.find((l) => l.name === labelName);
-      if (workspaceLabel) {
+      const teamLabel = teamLabels.find((l) => l.name === labelName);
+      if (teamLabel) {
         setLabels([
           ...labels,
           {
-            id: workspaceLabel.id,
-            name: workspaceLabel.name,
-            color: workspaceLabel.color,
+            id: teamLabel.id,
+            name: teamLabel.name,
+            color: teamLabel.color,
             taskId: null,
-            workspaceId: workspaceLabel.workspaceId || "",
-            createdAt: workspaceLabel.createdAt,
+            teamId: teamLabel.teamId || "",
+            createdAt: teamLabel.createdAt,
           },
         ]);
       }
@@ -558,13 +548,13 @@ function CreateTaskModal({
   const handleColorSelect = async (color: LabelColor) => {
     setSelectedColor(color);
 
-    if (!newLabelName.trim() || !workspace?.id) return;
+    if (!newLabelName.trim() || !team?.id) return;
 
     try {
       const createdLabel = await createLabel({
         name: newLabelName.trim(),
         color: color,
-        workspaceId: workspace.id,
+        teamId: team.id,
       });
 
       const newLabel: Label = {
@@ -572,7 +562,7 @@ function CreateTaskModal({
         name: createdLabel.name,
         color: createdLabel.color,
         taskId: createdLabel.taskId ?? null,
-        workspaceId: createdLabel.workspaceId ?? workspace.id,
+        teamId: createdLabel.teamId ?? team.id,
         createdAt: createdLabel.createdAt,
       };
 
@@ -696,19 +686,17 @@ function CreateTaskModal({
                   </PopoverTrigger>
                   <PopoverContent className="w-48 p-1" align="start">
                     <div className="space-y-1">
-                      {workspaceProjects?.map((workspaceProject) => (
+                      {teamProjects?.map((teamProject) => (
                         <button
-                          key={workspaceProject.id}
+                          key={teamProject.id}
                           type="button"
                           className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-accent/50 text-left transition-colors h-8"
-                          onClick={() =>
-                            setSelectedProjectId(workspaceProject.id)
-                          }
+                          onClick={() => setSelectedProjectId(teamProject.id)}
                         >
                           <span className="text-sm truncate">
-                            {workspaceProject.name}
+                            {teamProject.name}
                           </span>
-                          {resolvedProjectId === workspaceProject.id && (
+                          {resolvedProjectId === teamProject.id && (
                             <Check className="ml-auto h-4 w-4 shrink-0" />
                           )}
                         </button>
@@ -818,14 +806,14 @@ function CreateTaskModal({
                       <>
                         <Avatar className="h-4 w-4">
                           <AvatarImage
-                            src={selectedUser?.user?.image ?? ""}
-                            alt={selectedUser?.user?.name || ""}
+                            src={selectedUser.image ?? ""}
+                            alt={selectedUser.name || ""}
                           />
                           <AvatarFallback className="text-[10px] font-medium border border-border/30">
-                            {getInitials(selectedUser?.user?.name)}
+                            {getInitials(selectedUser.name)}
                           </AvatarFallback>
                         </Avatar>
-                        <span>{selectedUser.user?.name}</span>
+                        <span>{selectedUser.name}</span>
                       </>
                     ) : (
                       <>
@@ -857,24 +845,24 @@ function CreateTaskModal({
                       </span>
                       {!assigneeId && <Check className="ml-auto h-4 w-4" />}
                     </button>
-                    {workspaceUsers?.members?.map((member) => (
+                    {teamUsers?.map((member) => (
                       <button
-                        key={member.userId}
+                        key={member.id}
                         type="button"
                         className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-accent/50 text-left transition-colors h-8"
-                        onClick={() => setAssigneeId(member.userId || "")}
+                        onClick={() => setAssigneeId(member.id || "")}
                       >
                         <Avatar className="h-6 w-6">
                           <AvatarImage
-                            src={member?.user?.image ?? ""}
-                            alt={member?.user?.name || ""}
+                            src={member?.image ?? ""}
+                            alt={member?.name || ""}
                           />
                           <AvatarFallback className="text-xs font-medium border border-border/30">
-                            {getInitials(member?.user?.name)}
+                            {getInitials(member?.name)}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="text-sm">{member?.user?.name}</span>
-                        {assigneeId === member.userId && (
+                        <span className="text-sm">{member?.name}</span>
+                        {assigneeId === member.id && (
                           <Check className="ml-auto h-4 w-4" />
                         )}
                       </button>

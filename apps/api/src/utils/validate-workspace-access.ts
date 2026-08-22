@@ -1,59 +1,27 @@
-import { and, eq, or } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db, { schema } from "../database";
+import { and, eq } from "drizzle-orm";
 
+// Back-compat shim for the old workspace access validator. Routes still
+// calling `validateWorkspaceAccess(userId, teamId, apiKeyId?)` will be
+// re-checked as a team membership check; apiKeyId is ignored.
 export async function validateWorkspaceAccess(
   userId: string,
-  workspaceId: string,
-  apiKeyId?: string,
-): Promise<void> {
-  if (apiKeyId) {
-    const apiKey = await db
-      .select()
-      .from(schema.apikeyTable)
-      .where(
-        and(
-          eq(schema.apikeyTable.id, apiKeyId),
-          or(
-            eq(schema.apikeyTable.referenceId, userId),
-            eq(schema.apikeyTable.userId, userId),
-          ),
-          eq(schema.apikeyTable.enabled, true),
-        ),
-      )
-      .limit(1);
-
-    if (apiKey.length === 0) {
-      throw new HTTPException(403, {
-        message: "Invalid API key for this workspace",
-      });
-    }
-  }
-
-  const [user] = await db
-    .select({ role: schema.userTable.role })
-    .from(schema.userTable)
-    .where(eq(schema.userTable.id, userId))
-    .limit(1);
-
-  if (user?.role === "admin") {
-    return;
-  }
-
-  const membership = await db
-    .select()
-    .from(schema.workspaceUserTable)
+  teamId: string,
+  _apiKeyId?: string,
+) {
+  const [membership] = await db
+    .select({ role: schema.teamMemberTable.role })
+    .from(schema.teamMemberTable)
     .where(
       and(
-        eq(schema.workspaceUserTable.userId, userId),
-        eq(schema.workspaceUserTable.workspaceId, workspaceId),
+        eq(schema.teamMemberTable.userId, userId),
+        eq(schema.teamMemberTable.teamId, teamId),
       ),
     )
     .limit(1);
 
-  if (membership.length === 0) {
-    throw new HTTPException(403, {
-      message: "You don't have access to this workspace",
-    });
+  if (!membership) {
+    throw new HTTPException(401, { message: "Unauthorized" });
   }
 }

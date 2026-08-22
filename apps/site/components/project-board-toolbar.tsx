@@ -19,7 +19,7 @@ import { getColumnIcon } from "@/lib/column";
 import { getPriorityIcon } from "@/lib/priority";
 import type { ProjectWithTasks } from "@/types/project";
 
-type WorkspaceLabel = {
+type TeamLabel = {
   id: string;
   name: string;
   color: string;
@@ -46,7 +46,7 @@ type BoardToolbarProps = {
   clearFilters: () => void;
   hasActiveFilters: boolean;
   users?: ActiveUsers;
-  workspaceLabels: WorkspaceLabel[];
+  teamLabels: TeamLabel[];
   viewMode: "board" | "list";
   setViewMode: (mode: "board" | "list") => void;
 };
@@ -128,7 +128,7 @@ export default function BoardToolbar({
   clearFilters,
   hasActiveFilters,
   users,
-  workspaceLabels,
+  teamLabels,
   viewMode,
   setViewMode,
 }: BoardToolbarProps) {
@@ -172,8 +172,8 @@ export default function BoardToolbar({
     );
   };
 
-  const uniqueLabels = workspaceLabels.reduce(
-    (acc: WorkspaceLabel[], label: WorkspaceLabel) => {
+  const uniqueLabels = teamLabels.reduce(
+    (acc: TeamLabel[], label: TeamLabel) => {
       const existing = acc.find(
         (l) => l.name === label.name && l.color === label.color,
       );
@@ -184,7 +184,7 @@ export default function BoardToolbar({
   );
 
   const isLabelGroupSelected = (label: { name: string; color: string }) => {
-    return workspaceLabels
+    return teamLabels
       .filter((l) => l.name === label.name && l.color === label.color)
       .some((l) => filters.labels?.includes(l.id));
   };
@@ -222,7 +222,7 @@ export default function BoardToolbar({
   };
 
   const toggleLabelGroup = (label: { name: string; color: string }) => {
-    const matching = workspaceLabels.filter(
+    const matching = teamLabels.filter(
       (l) => l.name === label.name && l.color === label.color,
     );
     const anySelected = matching.some((l) => filters.labels?.includes(l.id));

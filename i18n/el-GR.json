@@ -11,7 +11,8 @@
 			"remove": "Αφαίρεση",
 			"reset": "Επαναφορά",
 			"filter": "Φίλτρο",
-			"clearAllFilters": "Εκκαθάριση όλων των φίλτρων"
+			"clearAllFilters": "Εκκαθάριση όλων των φίλτρων",
+			"adding": "Adding…"
 		},
 		"a11y": {
 			"toggleSidebar": "Εναλλαγή πλαϊνής μπάρας"
@@ -35,18 +36,6 @@
 			"label": "Διαδρομή πλοήγησης",
 			"more": "Περισσότερα"
 		},
-		"language": {
-			"english": "Αγγλικά",
-			"german": "Γερμανικά",
-			"greek": "Ελληνικά",
-			"macedonian": "Μακεδονικά",
-			"french": "Γαλλικά",
-			"spanish": "Ισπανικά",
-			"dutch": "Ολλανδικά",
-			"korean": "Κορεατικά",
-			"chinese": "Κινεζικά",
-			"italian": "Ιταλικά"
-		},
 		"people": {
 			"someone": "Κάποιος",
 			"unknown": "Άγνωστος"
@@ -65,7 +54,6 @@
 			"createProject": {
 				"title": "Δημιουργία νέου έργου",
 				"breadcrumbNew": "Δημιουργία νέου έργου",
-				"workspaceFallback": "ΧΩΡΟΣ ΕΡΓΑΣΙΑΣ",
 				"description": "Δημιουργήστε ένα νέο έργο στον χώρο εργασίας σας, ορίζοντας όνομα, κλειδί και επιλέγοντας ένα εικονίδιο.",
 				"pickIcon": "Επιλογή εικονιδίου",
 				"searchIcons": "Αναζήτηση εικονιδίων...",
@@ -74,17 +62,12 @@
 				"keyHint": "Χρησιμοποιείται για IDs αιτημάτων (π.χ. {{example}}-123)",
 				"createButton": "Δημιουργία έργου",
 				"successToast": "Το έργο δημιουργήθηκε με επιτυχία",
-				"errorToast": "Αποτυχία δημιουργίας έργου"
-			},
-			"createWorkspace": {
-				"breadcrumbKaneo": "KANEO",
-				"title": "Δημιουργία νέου χώρου εργασίας",
-				"description": "Δημιουργήστε έναν νέο χώρο εργασίας ορίζοντας ένα όνομα.",
-				"namePlaceholder": "Όνομα χώρου εργασίας",
-				"descriptionPlaceholder": "Προσθήκη περιγραφής...",
-				"createButton": "Δημιουργία χώρου εργασίας",
-				"successToast": "Ο χώρος εργασίας δημιουργήθηκε με επιτυχία",
-				"errorToast": "Αποτυχία δημιουργίας χώρου εργασίας"
+				"errorToast": "Αποτυχία δημιουργίας έργου",
+				"manageTeams": "Go to team management",
+				"noTeams": "You don't have any teams yet. Create or join a team before creating a project.",
+				"teamLabel": "Team",
+				"teamPlaceholder": "Select a team",
+				"teamFallback": "ΧΩΡΟΣ ΕΡΓΑΣΙΑΣ"
 			},
 			"createTask": {
 				"breadcrumbTask": "ΕΡΓΑΣΙΑ",
@@ -99,7 +82,6 @@
 				"successUpdated": "Η εργασία ενημερώθηκε με επιτυχία",
 				"createError": "Αποτυχία δημιουργίας εργασίας",
 				"priority": "Προτεραιότητα",
-				"statusFallback": "Σε εξέλιξη",
 				"startDate": "Ημερομηνία έναρξης",
 				"dueDate": "Ημερομηνία λήξης",
 				"clearStartDate": "Εκκαθάριση ημερομηνίας έναρξης",
@@ -128,7 +110,19 @@
 					"rose": "Ροζ",
 					"crimson": "Βυσσινί"
 				}
+			},
+			"createTeam": {
+				"breadcrumbKaneo": "KANEO",
+				"createButton": "Create Team",
+				"description": "Create a new team by providing a name for your team.",
+				"errorToast": "Failed to create team",
+				"namePlaceholder": "Team name",
+				"successToast": "Team created successfully",
+				"title": "Create a new team"
 			}
+		},
+		"states": {
+			"loading": "Loading…"
 		}
 	},
 	"auth": {
@@ -136,43 +130,17 @@
 			"pageTitle": "Σύνδεση",
 			"title": "Καλώς ήρθατε ξανά",
 			"subtitle": "Εισάγετε τα στοιχεία σας για να αποκτήσετε πρόσβαση στον χώρο εργασίας σας",
-			"invitationSubtitle": "Συνδεθείτε για να αποδεχτείτε την πρόσκλησή σας",
-			"invitationAlert": "Μετά τη σύνδεση, θα μπορείτε να αποδεχτείτε την πρόσκληση για τον χώρο εργασίας σας.",
-			"signingIn": "Γίνεται σύνδεση...",
-			"continueWithGoogle": "Συνέχεια με Google",
-			"continueWithGithub": "Συνέχεια με GitHub",
-			"continueWithDiscord": "Συνέχεια με Discord",
-			"continueWithOidc": "Συνέχεια με OIDC",
-			"lastUsed": "Τελευταία χρήση",
-			"registrationDisabled": "Η δημόσια εγγραφή είναι απενεργοποιημένη. Χρησιμοποιήστε μια πρόσκληση για να δημιουργήσετε λογαριασμό.",
-			"passwordRegistrationDisabled": "Η εγγραφή με κωδικό είναι απενεργοποιημένη. Χρησιμοποιήστε μια διαθέσιμη μέθοδο σύνδεσης μέσω social ή OIDC για να δημιουργήσετε λογαριασμό.",
-			"toggleMessage": "Δεν έχετε λογαριασμό;",
-			"toggleLink": "Δημιουργία λογαριασμού",
-			"guestSuccess": "Συνδεθήκατε ως επισκέπτης",
-			"guestError": "Αποτυχία σύνδεσης ως επισκέπτης",
-			"oidcError": "Αποτυχία σύνδεσης με OIDC",
-			"googleError": "Αποτυχία σύνδεσης με Google",
-			"githubError": "Αποτυχία σύνδεσης με GitHub",
-			"discordError": "Αποτυχία σύνδεσης με Discord",
-			"errors": {
-				"account_not_linked": "Αυτή η ταυτότητα δεν ήταν δυνατό να συνδεθεί με τον υπάρχοντα λογαριασμό. Συνδεθείτε με email για να επαληθεύσετε τον λογαριασμό και έπειτα δοκιμάστε ξανά το SSO. Αν η σύνδεση με email δεν είναι διαθέσιμη, επικοινωνήστε με τον διαχειριστή σας.",
-				"oauth_code_verification_failed": "Η επαλήθευση OAuth απέτυχε. Δοκιμάστε ξανά.",
-				"registration_is_currently_disabled_you_need_a_valid_invitation_to_create_an_account_": "Η εγγραφή είναι προς το παρόν απενεργοποιημένη. Χρειάζεστε έγκυρη πρόσκληση για να δημιουργήσετε λογαριασμό."
-			},
+			"registrationDisabled": "Public registration is disabled. Ask an administrator to create your account.",
 			"instanceStatusError": "Δεν ήταν δυνατή η επικοινωνία με τον διακομιστή. Δοκιμάστε ξανά σε λίγο."
-		},
-		"providers": {
-			"google": "Google",
-			"discord": "Discord"
 		},
 		"forms": {
 			"or": "ή",
-			"email": "Email",
 			"password": "Κωδικός πρόσβασης",
-			"emailPlaceholder": "me@example.com",
 			"passwordPlaceholder": "••••••••",
 			"showPassword": "Εμφάνιση κωδικού",
-			"hidePassword": "Απόκρυψη κωδικού"
+			"hidePassword": "Απόκρυψη κωδικού",
+			"username": "Username",
+			"usernamePlaceholder": "Enter your username"
 		},
 		"checkEmail": {
 			"pageTitle": "Ελέγξτε το email σας",
@@ -181,114 +149,11 @@
 			"emailFallback": "τη διεύθυνση email σας",
 			"backToLogin": "Επιστροφή στη σύνδεση"
 		},
-		"signUp": {
-			"pageTitle": "Δημιουργία λογαριασμού",
-			"title": "Δημιουργία λογαριασμού",
-			"subtitleInvitation": "Δημιουργήστε λογαριασμό για να αποδεχτείτε την πρόσκλησή σας",
-			"subtitleRegistrationDisabled": "Η εγγραφή απαιτεί πρόσκληση",
-			"subtitlePasswordDisabled": "Χρησιμοποιήστε social ή OIDC σύνδεση για να δημιουργήσετε λογαριασμό",
-			"subtitleDefault": "Ξεκινήστε με τον χώρο εργασίας σας",
-			"invitationAlert": "Μετά τη δημιουργία του λογαριασμού σας, θα μπορείτε να αποδεχτείτε την πρόσκληση για τον χώρο εργασίας σας.",
-			"registrationDisabledAlert": "Η εγγραφή είναι προσωρινά απενεργοποιημένη. Αν έχετε προσκληθεί, εισάγετε τη διεύθυνση email που έλαβε την πρόσκληση για να δημιουργήσετε λογαριασμό.",
-			"passwordDisabledAlert": "Η δημιουργία λογαριασμού με κωδικό είναι απενεργοποιημένη. Χρησιμοποιήστε μια διαθέσιμη μέθοδο social ή OIDC από τη σελίδα σύνδεσης.",
-			"signingIn": "Γίνεται σύνδεση...",
-			"continueAsGuest": "Συνέχεια ως επισκέπτης",
-			"toggleMessage": "Έχετε ήδη λογαριασμό;",
-			"toggleLink": "Σύνδεση",
-			"instanceStatusError": "Δεν ήταν δυνατή η επικοινωνία με τον διακομιστή. Δοκιμάστε ξανά σε λίγο.",
-			"instanceAdminTitle": "Ρυθμίστε την εγκατάσταση Kaneo σας",
-			"instanceAdminSubtitle": "Αυτός ο λογαριασμός γίνεται ο διαχειριστής της εγκατάστασης με πλήρη πρόσβαση."
-		},
-		"verifyOtp": {
-			"pageTitle": "Επαλήθευση κωδικού",
-			"title": "Εισαγάγετε τον κωδικό επαλήθευσης",
-			"subtitle": "Χρησιμοποιήστε τον 6ψήφιο κωδικό που στάλθηκε στο email σας για να συνεχίσετε",
-			"codeSentTo": "Ο κωδικός στάλθηκε στο {{email}}",
-			"verificationCodeLabel": "Κωδικός επαλήθευσης",
-			"verifying": "Γίνεται επαλήθευση...",
-			"verifyAndSignIn": "Επαλήθευση & Σύνδεση",
-			"changeEmail": "Αλλαγή email",
-			"resend": "Επανάληψη αποστολής",
-			"validation": {
-				"codeLength": "Ο κωδικός πρέπει να αποτελείται από 6 ψηφία"
-			},
-			"toast": {
-				"invalidCode": "Μη έγκυρος κωδικός επαλήθευσης",
-				"signedInSuccess": "Η σύνδεση ολοκληρώθηκε με επιτυχία!",
-				"verifyFailed": "Αποτυχία επαλήθευσης κωδικού",
-				"resendFailed": "Αποτυχία επαναποστολής κωδικού",
-				"resendSuccess": "Στάλθηκε νέος κωδικός επαλήθευσης!"
-			}
-		},
-		"otpSignIn": {
-			"sendFailed": "Αποτυχία αποστολής κωδικού επαλήθευσης",
-			"codeSent": "Ο κωδικός επαλήθευσης στάλθηκε! Ελέγξτε το email σας.",
-			"sending": "Γίνεται αποστολή...",
-			"sendVerificationCode": "Αποστολή κωδικού επαλήθευσης"
-		},
 		"signInForm": {
 			"failedSignIn": "Αποτυχία σύνδεσης",
 			"signedInSuccess": "Η σύνδεση ολοκληρώθηκε με επιτυχία",
 			"signingIn": "Γίνεται σύνδεση...",
 			"signIn": "Σύνδεση"
-		},
-		"signUpForm": {
-			"fullName": "Ονοματεπώνυμο",
-			"namePlaceholder": "John Doe",
-			"failedSignUp": "Αποτυχία εγγραφής",
-			"accountCreated": "Ο λογαριασμός δημιουργήθηκε με επιτυχία",
-			"passwordTooShort": "Ο κωδικός είναι πολύ σύντομος",
-			"creatingAccount": "Γίνεται δημιουργία λογαριασμού...",
-			"createAccount": "Δημιουργία λογαριασμού"
-		},
-		"invitation": {
-			"pageTitleAccept": "Αποδοχή πρόσκλησης",
-			"pageTitleError": "Σφάλμα πρόσκλησης",
-			"pageTitleInvalid": "Μη έγκυρη πρόσκληση",
-			"loadingTitle": "Φόρτωση πρόσκλησης...",
-			"errorTitle": "Σφάλμα πρόσκλησης",
-			"invalidTitle": "Μη έγκυρη πρόσκληση",
-			"invitationExpired": "Η πρόσκληση έληξε",
-			"errorLoadDescription": "Αποτυχία φόρτωσης των στοιχείων της πρόσκλησης. Η πρόσκληση ενδέχεται να είναι μη έγκυρη ή να έχει λήξει.",
-			"goToSignIn": "Μετάβαση στη σύνδεση",
-			"workspaceLabel": "Χώρος εργασίας: {{workspaceName}}",
-			"joinWorkspace": "Συμμετοχή στο {{workspaceName}}",
-			"inviteBodySignedIn": "Ο/Η <inviter>{{inviterName}}</inviter> σας προσκάλεσε να συμμετάσχετε στον χώρο εργασίας του/της.",
-			"inviteBodySignedOut": "Ο/Η <inviter>{{inviterName}}</inviter> σας προσκάλεσε να συμμετάσχετε στον χώρο εργασίας του/της στο Kaneo.",
-			"createAccountOrSignIn": "Δημιουργήστε λογαριασμό για να αποδεχτείτε αυτήν την πρόσκληση ή συνδεθείτε αν έχετε ήδη.",
-			"createAccount": "Δημιουργία λογαριασμού",
-			"accepting": "Γίνεται αποδοχή...",
-			"acceptInvitation": "Αποδοχή πρόσκλησης",
-			"goToDashboard": "Μετάβαση στον πίνακα ελέγχου",
-			"signedInAs": "Συνδεδεμένος ως <email>{{email}}</email>",
-			"youveBeenInvited": "Έχετε προσκληθεί!",
-			"invitationFor": "Πρόσκληση για: <email>{{email}}</email>",
-			"signIn": "Σύνδεση",
-			"toast": {
-				"acceptFailed": "Αποτυχία αποδοχής πρόσκλησης",
-				"acceptSuccess": "Η πρόσκληση έγινε αποδεκτή! Καλώς ήρθατε στην ομάδα."
-			}
-		},
-		"onboarding": {
-			"pageTitle": "Καλώς ήρθατε στο Kaneo",
-			"workspacePageTitle": "Δημιουργία χώρου εργασίας",
-			"createWorkspaceTitle": "Δημιουργία χώρου εργασίας",
-			"createWorkspaceSubtitle": "Ρυθμίστε τον χώρο εργασίας σας για να ξεκινήσετε τη διαχείριση έργων",
-			"workspaceName": "Όνομα χώρου εργασίας",
-			"workspaceNamePlaceholder": "π.χ. Acme Inc, My Team",
-			"descriptionOptional": "Περιγραφή (προαιρετικό)",
-			"descriptionPlaceholder": "Με τι ασχολείται η ομάδα σας;",
-			"creating": "Γίνεται δημιουργία...",
-			"createWorkspace": "Δημιουργία χώρου εργασίας",
-			"workspaceCreatedTitle": "Ο χώρος εργασίας δημιουργήθηκε",
-			"redirectingToWorkspace": "Μεταφορά στο <name>{{name}}</name>...",
-			"toast": {
-				"workspaceCreated": "Ο χώρος εργασίας δημιουργήθηκε με επιτυχία",
-				"createFailed": "Αποτυχία δημιουργίας χώρου εργασίας"
-			},
-			"validation": {
-				"workspaceNameRequired": "Το όνομα χώρου εργασίας είναι υποχρεωτικό"
-			}
 		},
 		"profileSetup": {
 			"pageTitle": "Ολοκλήρωση προφίλ",
@@ -348,7 +213,7 @@
 			"deleteAccount": {
 				"confirm": "Delete account",
 				"confirmLabel": "Confirm your email address",
-				"description": "Workspaces only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
+				"description": "Teams only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
 				"error": "Failed to delete account",
 				"modalDescription": "This cannot be undone. Type {{email}} to confirm.",
 				"modalTitle": "Delete your account?",
@@ -400,13 +265,6 @@
 			"webhookSecretHintConfigured": "Ένα μυστικό υπογραφής έχει ήδη ρυθμιστεί ({{masked}}). Εισαγάγετε νέο για να το αντικαταστήσετε.",
 			"webhookSecretHintOptional": "Προαιρετικό. Το Kaneo υπογράφει το σώμα του αιτήματος όταν έχει οριστεί μυστικό.",
 			"connectWebhook": "Σύνδεση webhook",
-			"workspaceRulesTitle": "Κανόνες παράδοσης χώρων εργασίας",
-			"workspaceRulesDescription": "Επαναχρησιμοποιήστε τα καθολικά σας κανάλια και έπειτα αποφασίστε ποιοι χώροι εργασίας και ποια έργα επιτρέπεται να στέλνουν ειδοποιήσεις λογαριασμού.",
-			"workspaceCardHint": "Επιλέξτε ποια κανάλια μπορεί να χρησιμοποιεί αυτός ο χώρος εργασίας για ειδοποιήσεις λογαριασμού.",
-			"workspaceCardLabelEmail": "Email",
-			"workspaceCardLabelNtfy": "ntfy",
-			"workspaceCardLabelGotify": "Gotify",
-			"workspaceCardLabelWebhook": "Προσαρμοσμένο webhook",
 			"emailChannelHintEnabled": "Αποστολή των αντίστοιχων ειδοποιήσεων χώρου εργασίας μέσω email.",
 			"emailChannelHintDisabled": "Ρυθμίστε και ενεργοποιήστε πρώτα το email καθολικά.",
 			"ntfyChannelHintEnabled": "Αποστολή των αντίστοιχων ειδοποιήσεων χώρου εργασίας στο ntfy.",
@@ -421,32 +279,14 @@
 			"allProjectsDescription": "Παράδοση ειδοποιήσεων από κάθε έργο αυτού του χώρου εργασίας.",
 			"selectedProjects": "Επιλεγμένα έργα",
 			"selectedProjectsDescription": "Παράδοση ειδοποιήσεων μόνο από τα επιλεγμένα έργα.",
-			"noProjectsInWorkspace": "Δεν υπάρχουν ακόμα διαθέσιμα έργα για αυτόν τον χώρο εργασίας.",
 			"createRule": "Create rule",
 			"removeRule": "Remove rule",
-			"toastEmailSaved": "Οι ρυθμίσεις ειδοποιήσεων email αποθηκεύτηκαν",
-			"toastEmailSaveFailed": "Αποτυχία αποθήκευσης ρυθμίσεων email",
-			"toastNtfySaved": "Οι ρυθμίσεις ntfy αποθηκεύτηκαν",
-			"toastNtfySaveFailed": "Αποτυχία αποθήκευσης ρυθμίσεων ntfy",
-			"toastNtfyDisconnected": "Το ntfy αποσυνδέθηκε",
-			"toastNtfyDisconnectFailed": "Αποτυχία αποσύνδεσης ntfy",
-			"toastGotifySaved": "Οι ρυθμίσεις Gotify αποθηκεύτηκαν",
-			"toastGotifySaveFailed": "Αποτυχία αποθήκευσης ρυθμίσεων Gotify",
-			"toastGotifyDisconnected": "Το Gotify αποσυνδέθηκε",
-			"toastGotifyDisconnectFailed": "Αποτυχία αποσύνδεσης Gotify",
-			"toastWebhookSaved": "Οι ρυθμίσεις webhook αποθηκεύτηκαν",
-			"toastWebhookSaveFailed": "Αποτυχία αποθήκευσης ρυθμίσεων webhook",
-			"toastWebhookDisconnected": "Το webhook αποσυνδέθηκε",
-			"toastWebhookDisconnectFailed": "Αποτυχία αποσύνδεσης webhook",
-			"toastRuleSaved": "Ο κανόνας ειδοποιήσεων για το {{workspaceName}} αποθηκεύτηκε",
 			"toastRuleSaveFailed": "Αποτυχία αποθήκευσης κανόνα ειδοποιήσεων χώρου εργασίας",
-			"toastRuleRemoved": "Ο κανόνας ειδοποιήσεων για το {{workspaceName}} αφαιρέθηκε",
 			"toastRuleRemoveFailed": "Αποτυχία αφαίρεσης κανόνα ειδοποιήσεων χώρου εργασίας",
 			"toastPreferencesSaved": "Οι προτιμήσεις ειδοποιήσεων αποθηκεύτηκαν",
 			"toastPreferencesSaveFailed": "Αποτυχία αποθήκευσης προτιμήσεων ειδοποιήσεων",
 			"toastRuleSavedGeneric": "Ο κανόνας ειδοποιήσεων χώρου εργασίας αποθηκεύτηκε",
 			"toastRuleRemovedGeneric": "Ο κανόνας ειδοποιήσεων χώρου εργασίας αφαιρέθηκε",
-			"workspaceEnabledLabel": "Ενεργοποίηση ειδοποιήσεων για {{workspaceName}}",
 			"eventPreferencesTitle": "Να ειδοποιούμαι για",
 			"eventPreferencesDescription": "Επιλέξτε ποια γεγονότα εργασιών δημιουργούν ειδοποιήσεις εντός εφαρμογής και μπορούν να παραδίδονται στα συνδεδεμένα κανάλια σας.",
 			"eventTaskAssignments": "Αναθέσεις εργασιών",
@@ -459,7 +299,16 @@
 			"reminderLeadTimeUnitHours": "Ώρες",
 			"reminderLeadTimeUnitDays": "Ημέρες",
 			"reminderLeadTimeInvalid": "Εισαγάγετε ακέραιο αριθμό μεταξύ 1 και {{max}}.",
-			"saveEventPreferences": "Αποθήκευση τύπων ειδοποιήσεων"
+			"saveEventPreferences": "Αποθήκευση τύπων ειδοποιήσεων",
+			"noProjectsInTeam": "No projects available for this team yet.",
+			"teamCardHint": "Choose which channels this team can use for account notifications.",
+			"teamCardLabelEmail": "Email",
+			"teamCardLabelGotify": "Gotify",
+			"teamCardLabelNtfy": "ntfy",
+			"teamCardLabelWebhook": "Custom webhook",
+			"teamEnabledLabel": "Enable notifications for {{teamName}}",
+			"teamRulesDescription": "Reuse your global channels, then decide which teams and projects are allowed to send account notifications.",
+			"teamRulesTitle": "Team delivery rules"
 		},
 		"preferencesPage": {
 			"title": "Προτιμήσεις",
@@ -486,7 +335,6 @@
 			"selectViewMode": "Επιλέξτε τρόπο προβολής",
 			"board": "Πίνακας",
 			"list": "Λίστα",
-			"gantt": "Gantt",
 			"sidebarDefault": "Προεπιλογή πλαϊνής μπάρας",
 			"sidebarDefaultDescription": "Διατήρηση της πλαϊνής μπάρας ανεπτυγμένης κατά την εκκίνηση",
 			"displayOptions": "Επιλογές εμφάνισης",
@@ -566,49 +414,6 @@
 					"nameShort": "Το όνομα πρέπει να έχει τουλάχιστον 3 χαρακτήρες",
 					"expirationRequired": "Η λήξη είναι υποχρεωτική"
 				}
-			}
-		},
-		"workspaceGeneral": {
-			"pageTitle": "Γενικές ρυθμίσεις",
-			"title": "Γενικές ρυθμίσεις",
-			"subtitle": "Διαχειριστείτε το όνομα και την περιγραφή του χώρου εργασίας σας.",
-			"workspaceInfoTitle": "Πληροφορίες χώρου εργασίας",
-			"workspaceInfoSubtitle": "Ρυθμίστε τα στοιχεία και τις προτιμήσεις του χώρου εργασίας σας.",
-			"nameLabel": "Όνομα χώρου εργασίας",
-			"nameHint": "Το όνομα του χώρου εργασίας σας",
-			"namePlaceholder": "Εισαγάγετε όνομα χώρου εργασίας",
-			"descriptionLabel": "Περιγραφή",
-			"descriptionHint": "Μια σύντομη περιγραφή του χώρου εργασίας σας",
-			"descriptionPlaceholder": "Εισαγάγετε περιγραφή χώρου εργασίας",
-			"dangerZone": "Ζώνη κινδύνου",
-			"dangerZoneSubtitle": "Μη αναστρέψιμες και καταστροφικές ενέργειες.",
-			"deleteWorkspace": "Διαγραφή χώρου εργασίας",
-			"deleteWorkspaceDescription": "Προγραμματισμός οριστικής διαγραφής του χώρου εργασίας",
-			"deleteModalTitle": "Διαγραφή χώρου εργασίας;",
-			"deleteModalDescription": "Αυτό θα διαγράψει οριστικά τον χώρο εργασίας \"{{name}}\" και όλα τα δεδομένα του. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
-			"deleteModalConfirm": "Διαγραφή χώρου εργασίας",
-			"toastUpdated": "Ο χώρος εργασίας ενημερώθηκε με επιτυχία",
-			"toastUpdateError": "Αποτυχία ενημέρωσης χώρου εργασίας",
-			"toastDeleted": "Ο χώρος εργασίας διαγράφηκε με επιτυχία",
-			"toastDeleteError": "Αποτυχία διαγραφής χώρου εργασίας",
-			"validation": {
-				"nameRequired": "Το όνομα χώρου εργασίας είναι υποχρεωτικό",
-				"nameShort": "Το όνομα χώρου εργασίας πρέπει να έχει τουλάχιστον 2 χαρακτήρες"
-			},
-			"transferOwnership": {
-				"toastSuccess": "Η ιδιοκτησία μεταβιβάστηκε",
-				"toastError": "Αποτυχία μεταβίβασης ιδιοκτησίας",
-				"title": "Μεταβίβαση ιδιοκτησίας",
-				"subtitle": "Παραδώστε αυτόν τον χώρο εργασίας σε άλλο μέλος. Θα υποβιβαστείτε σε διαχειριστή και θα χάσετε τις δυνατότητες που έχει μόνο ο ιδιοκτήτης.",
-				"pickerLabel": "Νέος ιδιοκτήτης",
-				"noEligibleMembers": "Προσκαλέστε τουλάχιστον ένα ακόμα μέλος πριν μπορέσετε να μεταβιβάσετε την ιδιοκτησία.",
-				"pickerHint": "Θα γίνει ο μοναδικός ιδιοκτήτης αυτού του χώρου εργασίας.",
-				"pickerPlaceholder": "Επιλέξτε μέλος",
-				"button": "Μεταβίβαση",
-				"dialogTitle": "Μεταβίβαση ιδιοκτησίας;",
-				"dialogDescription": "Ο/Η {{name}} θα γίνει ο μοναδικός ιδιοκτήτης του {{workspace}}. Θα διατηρήσετε πρόσβαση διαχειριστή αλλά θα χάσετε τις δυνατότητες ιδιοκτήτη, όπως τη διαγραφή του χώρου εργασίας ή τη νέα μεταβίβασή του.",
-				"transferring": "Γίνεται μεταβίβαση…",
-				"confirm": "Μεταβίβαση ιδιοκτησίας"
 			}
 		},
 		"projectGeneral": {
@@ -884,7 +689,6 @@
 				"saveError": "Αποτυχία αποθήκευσης της ενσωμάτωσης Slack",
 				"updateError": "Αποτυχία ενημέρωσης της ενσωμάτωσης Slack"
 			},
-			"update": "Ενημέρωση Slack",
 			"validation": {
 				"webhookInvalid": "Εισαγάγετε ένα έγκυρο URL webhook Slack"
 			},
@@ -922,7 +726,6 @@
 				"saveError": "Αποτυχία αποθήκευσης της ενσωμάτωσης Discord",
 				"updateError": "Αποτυχία ενημέρωσης της ενσωμάτωσης Discord"
 			},
-			"update": "Ενημέρωση Discord",
 			"validation": {
 				"webhookInvalid": "Εισαγάγετε ένα έγκυρο URL webhook Discord"
 			},
@@ -1085,144 +888,7 @@
 			"draft": "Πρόχειρο",
 			"open": "Ανοιχτό"
 		},
-		"workspaceRoles": {
-			"pageTitle": "Ρόλοι",
-			"title": "Ρόλοι",
-			"subtitle": "Ορίστε ποιες ενέργειες μπορούν να εκτελούν τα μέλη στο {{workspaceName}}.",
-			"thisWorkspace": "αυτόν τον χώρο εργασίας",
-			"noAccess": "Χρειάζεστε δικαιώματα διαχειριστή ή ιδιοκτήτη για να διαχειριστείτε τους ρόλους του χώρου εργασίας.",
-			"sectionTitle": "Ρόλοι χώρου εργασίας",
-			"sectionSubtitle": "Επεξεργαστείτε τους προεπιλεγμένους ρόλους ή προσθέστε έναν προσαρμοσμένο. Τα μέλη διατηρούν το όνομα του ρόλου που τους έχει ανατεθεί μετά τις αλλαγές.",
-			"newRole": "Νέος ρόλος",
-			"loading": "Φόρτωση…",
-			"loadError": "Αποτυχία φόρτωσης ρόλων.",
-			"emptyTitle": "Δεν υπάρχουν ακόμα ρόλοι",
-			"emptyDescription": "Οι προεπιλεγμένοι ρόλοι θα εμφανιστούν εδώ μόλις δημιουργηθούν για αυτόν τον χώρο εργασίας.",
-			"defaultBadge": "Προεπιλογή",
-			"permissionCount_one": "{{count}} δικαίωμα",
-			"permissionCount_other": "{{count}} δικαιώματα",
-			"nameLabel": "Όνομα",
-			"nameHint": "Πεζά γράμματα. Δεν μπορεί να αλλάξει αργότερα.",
-			"namePlaceholder": "π.χ. reviewer",
-			"discard": "Απόρριψη",
-			"createRole": "Δημιουργία ρόλου",
-			"deleteRole": "Διαγραφή ρόλου",
-			"defaultRoleHelp": "Προεπιλεγμένος ρόλος: το όνομα είναι δεσμευμένο και η γραμμή δεν μπορεί να διαγραφεί.",
-			"unsavedChanges": "Έχετε μη αποθηκευμένες αλλαγές",
-			"allChangesSaved": "Όλες οι αλλαγές αποθηκεύτηκαν",
-			"saveChanges": "Αποθήκευση αλλαγών",
-			"defaultRoleDescriptions": {
-				"viewer": "Μπορεί να βλέπει και να σχολιάζει εργασίες.",
-				"member": "Μπορεί να δημιουργεί και να διαχειρίζεται εργασίες και έργα.",
-				"admin": "Έχει πλήρη πρόσβαση στον χώρο εργασίας."
-			},
-			"resources": {
-				"project": "Έργα",
-				"task": "Εργασίες",
-				"label": "Ετικέτες",
-				"workspace": "Χώρος εργασίας"
-			},
-			"permissions": {
-				"project": {
-					"create": {
-						"label": "Δημιουργία",
-						"description": "Μπορεί να δημιουργεί νέα έργα"
-					},
-					"read": {
-						"label": "Ανάγνωση",
-						"description": "Μπορεί να βλέπει έργα"
-					},
-					"update": {
-						"label": "Ενημέρωση",
-						"description": "Μπορεί να επεξεργάζεται τις ρυθμίσεις έργου"
-					},
-					"delete": {
-						"label": "Διαγραφή",
-						"description": "Μπορεί να διαγράφει έργα"
-					},
-					"share": {
-						"label": "Κοινοποίηση",
-						"description": "Μπορεί να κοινοποιεί έργα"
-					}
-				},
-				"task": {
-					"create": {
-						"label": "Δημιουργία",
-						"description": "Μπορεί να δημιουργεί εργασίες"
-					},
-					"read": {
-						"label": "Ανάγνωση",
-						"description": "Μπορεί να βλέπει εργασίες"
-					},
-					"update": {
-						"label": "Ενημέρωση",
-						"description": "Μπορεί να επεξεργάζεται εργασίες"
-					},
-					"delete": {
-						"label": "Διαγραφή",
-						"description": "Μπορεί να διαγράφει εργασίες"
-					},
-					"assign": {
-						"label": "Ανάθεση",
-						"description": "Μπορεί να αναθέτει εργασίες σε μέλη"
-					}
-				},
-				"label": {
-					"create": {
-						"label": "Δημιουργία",
-						"description": "Μπορεί να δημιουργεί ετικέτες"
-					},
-					"read": {
-						"label": "Ανάγνωση",
-						"description": "Μπορεί να βλέπει ετικέτες"
-					},
-					"update": {
-						"label": "Ενημέρωση",
-						"description": "Μπορεί να επεξεργάζεται ετικέτες"
-					},
-					"delete": {
-						"label": "Διαγραφή",
-						"description": "Μπορεί να διαγράφει ετικέτες"
-					}
-				},
-				"workspace": {
-					"read": {
-						"label": "Ανάγνωση",
-						"description": "Μπορεί να βλέπει τις ρυθμίσεις του χώρου εργασίας"
-					},
-					"update": {
-						"label": "Ενημέρωση",
-						"description": "Μπορεί να ενημερώνει τις ρυθμίσεις του χώρου εργασίας"
-					},
-					"delete": {
-						"label": "Διαγραφή",
-						"description": "Μπορεί να διαγράφει τον χώρο εργασίας"
-					},
-					"manage_settings": {
-						"label": "Διαχείριση ρυθμίσεων",
-						"description": "Μπορεί να διαχειρίζεται τις ρυθμίσεις του χώρου εργασίας"
-					}
-				}
-			},
-			"validation": {
-				"nameRequired": "Το όνομα ρόλου είναι υποχρεωτικό",
-				"nameExists": "Υπάρχει ήδη ρόλος με αυτό το όνομα",
-				"permissionRequired": "Πρέπει να επιλεγεί τουλάχιστον ένα δικαίωμα"
-			},
-			"toast": {
-				"created": "Ο ρόλος δημιουργήθηκε",
-				"createError": "Αποτυχία δημιουργίας ρόλου",
-				"updated": "Ο ρόλος ενημερώθηκε",
-				"updateError": "Αποτυχία ενημέρωσης ρόλου",
-				"deleted": "Ο ρόλος διαγράφηκε",
-				"deleteError": "Αποτυχία διαγραφής ρόλου"
-			},
-			"deleteDialog": {
-				"title": "Διαγραφή ρόλου",
-				"description": "Αυτό θα διαγράψει οριστικά τον ρόλο \"{{role}}\". Τα μέλη με αυτόν τον ρόλο θα χάσουν τα δικαιώματά του."
-			}
-		},
-		"workspaceLabels": {
+		"teamLabels": {
 			"pageTitle": "Ρυθμίσεις ετικετών",
 			"title": "Ετικέτες",
 			"subtitle": "Δημιουργήστε, επεξεργαστείτε και διαγράψτε ετικέτες σε επίπεδο χώρου εργασίας.",
@@ -1257,7 +923,6 @@
 			"members": "Μέλη",
 			"createTask": "Δημιουργία εργασίας",
 			"createProject": "Δημιουργία έργου",
-			"createWorkspace": "Δημιουργία χώρου εργασίας",
 			"lightTheme": "Ανοιχτό θέμα",
 			"darkTheme": "Σκούρο θέμα",
 			"systemTheme": "Θέμα συστήματος",
@@ -1268,14 +933,14 @@
 				"navigate": "Πλοήγηση",
 				"open": "Άνοιγμα",
 				"close": "Κλείσιμο"
-			}
+			},
+			"createTeam": "Create team"
 		},
 		"notifications": "Ειδοποιήσεις",
 		"sidebar": {
 			"overview": "Επισκόπηση",
 			"projects": "Έργα",
 			"members": "Μέλη",
-			"invitations": "Προσκλήσεις",
 			"more": "Περισσότερα",
 			"backToBoard": "Επιστροφή στον πίνακα"
 		},
@@ -1296,10 +961,10 @@
 			"groups": {
 				"task": "Εργασίες",
 				"project": "Έργα",
-				"workspace": "Χώροι εργασίας",
 				"comment": "Σχόλια",
 				"activity": "Δραστηριότητες",
-				"fallback": "Αποτελέσματα"
+				"fallback": "Αποτελέσματα",
+				"team": "Teams"
 			}
 		},
 		"settingsLayout": {
@@ -1314,17 +979,10 @@
 			"signingOut": "Γίνεται αποσύνδεση...",
 			"logOut": "Αποσύνδεση"
 		},
-		"workspaceSwitcher": {
-			"workspaces": "Χώροι εργασίας",
-			"switching": "Γίνεται εναλλαγή...",
-			"addWorkspace": "Προσθήκη χώρου εργασίας",
-			"selectWorkspace": "Επιλέξτε χώρο εργασίας"
-		},
 		"page": {
 			"projectsTitle": "Έργα",
 			"settingsTitle": "Ρυθμίσεις",
-			"backToWorkspace": "Επιστροφή στον χώρο εργασίας",
-			"settingsWorkspaceTab": "Χώρος εργασίας"
+			"backToTeam": "Επιστροφή στον χώρο εργασίας"
 		},
 		"projectSettings": {
 			"projectLabel": "Έργο"
@@ -1349,21 +1007,25 @@
 				"closeModal": "Κλείσιμο modal/popover",
 				"createTask": "Δημιουργία εργασίας",
 				"createProject": "Δημιουργία έργου",
-				"createWorkspace": "Δημιουργία χώρου εργασίας",
 				"boardView": "Μετάβαση σε προβολή πίνακα",
 				"listView": "Μετάβαση σε προβολή λίστας",
 				"backlogView": "Μετάβαση σε προβολή backlog",
 				"nextTask": "Επόμενη εργασία",
 				"prevTask": "Προηγούμενη εργασία",
 				"openTask": "Άνοιγμα επιλεγμένης εργασίας",
-				"quickSelectNumber": "Επιλογή επιλογής με αριθμό"
+				"quickSelectNumber": "Επιλογή επιλογής με αριθμό",
+				"createTeam": "Create team"
 			}
+		},
+		"teamSwitcher": {
+			"addTeam": "Add team",
+			"selectTeam": "Select a team",
+			"switching": "Switching...",
+			"teams": "Teams"
 		}
 	},
 	"notifications": {
 		"title": "Ειδοποιήσεις",
-		"newCount_one": "{{count}} νέα",
-		"newCount_other": "{{count}} νέα",
 		"emptyTitle": "Δεν υπάρχουν ακόμα ειδοποιήσεις",
 		"emptySubtitle": "Θα βλέπετε εδώ ενημερώσεις και δραστηριότητα.",
 		"clearAll": "Εκκαθάριση όλων των ειδοποιήσεων",
@@ -1376,10 +1038,6 @@
 			"task_created": {
 				"title": "Δημιουργήθηκε νέα εργασία",
 				"content": "Η εργασία \"{{taskTitle}}\" δημιουργήθηκε"
-			},
-			"workspace_created": {
-				"title": "Ο χώρος εργασίας δημιουργήθηκε",
-				"content": "Ο χώρος εργασίας σας \"{{workspaceName}}\" δημιουργήθηκε με επιτυχία"
 			},
 			"task_status_changed": {
 				"title": "Η κατάσταση της εργασίας άλλαξε",
@@ -1662,9 +1320,6 @@
 						"onlyYoutube": "Μόνο σύνδεσμοι YouTube μπορούν να ενσωματωθούν."
 					},
 					"onlyYoutubeInline": "Μόνο URLs YouTube μπορούν να ενσωματωθούν. Χρησιμοποιήστε λειτουργία συνδέσμου."
-				},
-				"mermaid": {
-					"renderFailed": "Δεν ήταν δυνατή η απόδοση του διαγράμματος Mermaid"
 				}
 			}
 		},
@@ -1942,37 +1597,34 @@
 			}
 		}
 	},
-	"invitations": {
-		"email": {
-			"subject": "Ο/Η {{inviterName}} σας προσκάλεσε να συμμετάσχετε στο {{workspaceName}} στο Kaneo",
-			"preview": "Έχετε πρόσκληση για το {{workspaceName}} στο Kaneo",
-			"title": "Συμμετοχή στο {{workspaceName}}",
-			"subtitle": "Ο/Η {{inviterName}} ({{inviterEmail}}) σας προσκάλεσε να συνεργαστείτε στο Kaneo.",
-			"cta": "Αποδοχή πρόσκλησης",
-			"sameEmail": "Μπορείτε να αποδεχτείτε την πρόσκληση με το ίδιο email που έλαβε αυτό το μήνυμα.",
-			"ignore": "Αν δεν το περιμένατε, μπορείτε να αγνοήσετε με ασφάλεια αυτό το email.",
-			"footer": "Πρόσκληση χώρου εργασίας Kaneo"
+	"team": {
+		"roles": {
+			"owner": "Ιδιοκτήτης",
+			"admin": "Διαχειριστής",
+			"member": "Μέλος",
+			"viewer": "Θεατής"
 		},
-		"pageTitle": "Προσκλήσεις",
-		"pendingInvitations": "Εκκρεμείς προσκλήσεις",
-		"acceptSubtitle": "Αποδεχτείτε προσκλήσεις για να συμμετάσχετε σε χώρους εργασίας",
-		"noPendingTitle": "Δεν υπάρχουν εκκρεμείς προσκλήσεις",
-		"noPendingDescription": "Δεν έχετε καμία εκκρεμή πρόσκληση για χώρο εργασίας αυτή τη στιγμή.",
-		"continueToSetup": "Συνέχεια στη ρύθμιση",
-		"skipForNow": "Παράλειψη για τώρα",
-		"table": {
-			"workspace": "Χώρος εργασίας",
-			"invitedBy": "Προσκλήθηκε από",
-			"expires": "Λήγει"
+		"members": {
+			"pageTitle": "Μέλη",
+			"you": "Εσείς"
 		},
-		"toast": {
-			"acceptError": "Αποτυχία αποδοχής πρόσκλησης",
-			"acceptSuccess": "Η πρόσκληση έγινε αποδεκτή! Καλώς ήρθατε στην ομάδα.",
-			"rejectError": "Αποτυχία απόρριψης πρόσκλησης",
-			"rejectSuccess": "Η πρόσκληση απορρίφθηκε"
-		}
-	},
-	"workspace": {
+		"membersTable": {
+			"emptyTitle": "Δεν υπάρχουν ακόμα μέλη ομάδας",
+			"emptyDescription": "Ask an admin to add members to this team.",
+			"columns": {
+				"name": "Όνομα",
+				"role": "Ρόλος",
+				"joined": "Εντάχθηκε"
+			},
+			"ariaRemoveMember": "Αφαίρεση μέλους",
+			"removeDialogTitle": "Αφαίρεση μέλους ομάδας;",
+			"removeDialogDescription": "Είστε βέβαιοι ότι θέλετε να αφαιρέσετε τον/την {{name}} από τον χώρο εργασίας; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+			"removeMember": "Αφαίρεση μέλους",
+			"removeSuccess": "Το μέλος της ομάδας αφαιρέθηκε με επιτυχία",
+			"removeError": "Αποτυχία αφαίρεσης μέλους ομάδας",
+			"roleUpdateSuccess": "Ο ρόλος ενημερώθηκε",
+			"roleUpdateError": "Αποτυχία ενημέρωσης ρόλου"
+		},
 		"projects": {
 			"pageTitle": "Έργα",
 			"createProject": "Δημιουργία έργου",
@@ -1989,7 +1641,6 @@
 				"inProgress": "Σε εξέλιξη"
 			},
 			"noDueDate": "Χωρίς ημερομηνία λήξης",
-			"reorderHandle": "Αναδιάταξη έργου",
 			"reorderError": "Η αναδιάταξη των έργων απέτυχε",
 			"emptyDescriptionReadOnly": "Δεν υπάρχουν ακόμα έργα σε αυτόν τον χώρο εργασίας. Ζητήστε από έναν διαχειριστή να δημιουργήσει ένα."
 		},
@@ -2016,73 +1667,13 @@
 			"pageTitle": "Δημιουργία χώρου εργασίας",
 			"heading": "Δημιουργία νέου χώρου εργασίας",
 			"subtitle": "Οι χώροι εργασίας είναι κοινόχρηστα περιβάλλοντα όπου οι ομάδες μπορούν να εργάζονται σε έργα, κύκλους και ζητήματα.",
-			"nameLabel": "Όνομα χώρου εργασίας",
 			"namePlaceholder": "Εισαγάγετε όνομα χώρου εργασίας",
-			"descriptionLabel": "Περιγραφή (προαιρετικό)",
-			"descriptionPlaceholder": "Προσθέστε μια περιγραφή για τον χώρο εργασίας σας",
 			"required": "Υποχρεωτικό",
 			"creating": "Γίνεται δημιουργία...",
 			"submit": "Δημιουργία χώρου εργασίας",
 			"success": "Ο χώρος εργασίας δημιουργήθηκε με επιτυχία",
-			"error": "Αποτυχία δημιουργίας χώρου εργασίας"
-		}
-	},
-	"team": {
-		"roles": {
-			"owner": "Ιδιοκτήτης",
-			"admin": "Διαχειριστής",
-			"member": "Μέλος",
-			"viewer": "Θεατής"
-		},
-		"members": {
-			"pageTitle": "Μέλη",
-			"inviteMember": "Πρόσκληση μέλους",
-			"you": "Εσείς"
-		},
-		"invitations": {
-			"linkLabel": "Σύνδεσμος πρόσκλησης",
-			"copyLink": "Αντιγραφή συνδέσμου",
-			"linkCopied": "Ο σύνδεσμος της πρόσκλησης αντιγράφηκε",
-			"copyFailed": "Δεν ήταν δυνατή η αυτόματη αντιγραφή. Επιλέξτε τον σύνδεσμο και πατήστε Ctrl+C.",
-			"pendingBadge": "σε εκκρεμότητα",
-			"expires": "Λήγει {{date}}"
-		},
-		"inviteModal": {
-			"title": "Πρόσκληση μέλους ομάδας",
-			"emailLabel": "Email",
-			"emailPlaceholder": "colleague@company.com",
-			"sendInvitation": "Αποστολή πρόσκλησης",
-			"success": "Η πρόσκληση στάλθηκε με επιτυχία",
-			"error": "Αποτυχία πρόσκλησης μέλους ομάδας",
-			"createdTitle": "Η πρόσκληση δημιουργήθηκε",
-			"shareLinkDescription": "Μοιραστείτε αυτόν τον σύνδεσμο με τον/την {{email}} για να συμμετάσχει στον χώρο εργασίας.",
-			"done": "Ολοκλήρωση"
-		},
-		"membersTable": {
-			"emptyTitle": "Δεν υπάρχουν ακόμα μέλη ομάδας",
-			"emptyDescription": "Προσκαλέστε το πρώτο μέλος της ομάδας σας για να ξεκινήσετε.",
-			"columns": {
-				"name": "Όνομα",
-				"role": "Ρόλος",
-				"joined": "Εντάχθηκε",
-				"actions": "Ενέργειες"
-			},
-			"memberRolePending": "{{role}} (Σε εκκρεμότητα)",
-			"ariaCancelInvitation": "Ακύρωση πρόσκλησης",
-			"ariaRemoveMember": "Αφαίρεση μέλους",
-			"removeDialogTitle": "Αφαίρεση μέλους ομάδας;",
-			"removeDialogDescription": "Είστε βέβαιοι ότι θέλετε να αφαιρέσετε τον/την {{name}} από τον χώρο εργασίας; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
-			"cancelDialogTitle": "Ακύρωση πρόσκλησης;",
-			"cancelDialogDescription": "Είστε βέβαιοι ότι θέλετε να ακυρώσετε την πρόσκληση για το {{email}}; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
-			"removeMember": "Αφαίρεση μέλους",
-			"cancelInvitation": "Ακύρωση πρόσκλησης",
-			"removeSuccess": "Το μέλος της ομάδας αφαιρέθηκε με επιτυχία",
-			"removeError": "Αποτυχία αφαίρεσης μέλους ομάδας",
-			"cancelInviteSuccess": "Η πρόσκληση ακυρώθηκε με επιτυχία",
-			"cancelInviteError": "Αποτυχία ακύρωσης πρόσκλησης",
-			"ariaInvitationActions": "Ενέργειες πρόσκλησης",
-			"roleUpdateSuccess": "Ο ρόλος ενημερώθηκε",
-			"roleUpdateError": "Αποτυχία ενημέρωσης ρόλου"
+			"error": "Αποτυχία δημιουργίας χώρου εργασίας",
+			"nameLabel": "Team Name"
 		}
 	},
 	"publicProject": {
@@ -2099,7 +1690,6 @@
 		"taskDetail": {
 			"labels": "Ετικέτες",
 			"externalLinks": "Εξωτερικοί σύνδεσμοι",
-			"pullRequestFallback": "Pull Request",
 			"issueFallback": "Issue",
 			"prStatusMerged": "Συγχωνευμένο",
 			"prStatusDraft": "Πρόχειρο",
@@ -2121,5 +1711,169 @@
 		"branding": {
 			"poweredBy": "Υποστηρίζεται από"
 		}
+	},
+	"admin": {
+		"actions": {
+			"delete": "Delete user",
+			"demote": "Demote to user",
+			"disable": "Disable account",
+			"enable": "Enable account",
+			"error": "Action failed",
+			"promote": "Promote to admin",
+			"resetPassword": "Reset password",
+			"successRole": "Role updated",
+			"successStatus": "Account status updated",
+			"manageTeams": "Manage teams"
+		},
+		"columns": {
+			"created": "Created",
+			"role": "Role",
+			"status": "Status",
+			"user": "User"
+		},
+		"create": {
+			"description": "Create a new account. The user can sign in with the username and password.",
+			"email": "Email (optional)",
+			"emailPlaceholder": "e.g. jane@example.com",
+			"error": "Failed to create user",
+			"name": "Name",
+			"namePlaceholder": "e.g. Jane Doe",
+			"password": "Password",
+			"passwordPlaceholder": "At least 8 characters",
+			"role": "Role",
+			"submit": "Create user",
+			"success": "User created",
+			"title": "Create user",
+			"username": "Username",
+			"usernamePlaceholder": "e.g. jane",
+			"validation": {
+				"nameRequired": "Name is required",
+				"passwordShort": "Password must be at least 8 characters",
+				"usernameInvalid": "Only lowercase letters, numbers and underscores (1-30 characters)",
+				"usernameRequired": "Username is required"
+			},
+			"team": "Team (optional)",
+			"teamNone": "No team",
+			"teamPlaceholder": "Choose a team…"
+		},
+		"deleteDialog": {
+			"confirm": "Delete",
+			"description": "Delete {{name}} ({{username}})? This cannot be undone.",
+			"success": "User deleted",
+			"title": "Delete user"
+		},
+		"page": {
+			"createUser": "Create user",
+			"currentUserBadge": "you",
+			"description": "Create and manage user accounts.",
+			"emptyDescription": "Create the first user account to get started.",
+			"emptyTitle": "No users",
+			"title": "User Management"
+		},
+		"resetPassword": {
+			"description": "Set a new password for {{username}}.",
+			"password": "New password",
+			"submit": "Reset password",
+			"success": "Password updated",
+			"title": "Reset password"
+		},
+		"role": {
+			"admin": "Admin",
+			"user": "User"
+		},
+		"status": {
+			"active": "Active",
+			"disabled": "Disabled"
+		},
+		"tab": "System",
+		"teams": {
+			"columns": {
+				"actions": "Actions",
+				"members": "Members",
+				"name": "Name",
+				"role": "Your role"
+			},
+			"create": "Create team",
+			"createDialogDescription": "Teams group users who collaborate on shared projects.",
+			"createDialogTitle": "Create a team",
+			"delete": "Delete team",
+			"deleteDialogDescription": "The team, its projects, and its memberships will be permanently deleted.",
+			"deleteDialogTitle": "Delete this team?",
+			"description": "Create and manage teams. Users join teams via invitation.",
+			"empty": "No teams yet. Create the first one to get started.",
+			"enter": "Enter team",
+			"hint": "As a system administrator, create the teams your users will join.",
+			"nameLabel": "Team name",
+			"namePlaceholder": "e.g. Acme",
+			"pageTitle": "Team management",
+			"tab": "Teams",
+			"title": "Teams",
+			"toast": {
+				"created": "Team \"{{name}}\" created",
+				"createError": "Failed to create team",
+				"deleted": "Team deleted",
+				"deleteError": "Failed to delete team",
+				"renamed": "Team renamed",
+				"renameError": "Failed to rename team"
+			},
+			"labels": "Labels",
+			"rename": "Rename",
+			"renameDialogDescription": "Change the name of this team.",
+			"renameDialogTitle": "Rename team",
+			"userTeamsAdd": "Add to team",
+			"userTeamsAddButton": "Add",
+			"userTeamsChoose": "Choose a team…",
+			"userTeamsCurrent": "Current teams",
+			"userTeamsDescription": "Manage which teams this user belongs to.",
+			"userTeamsEmpty": "This user is not a member of any team.",
+			"userTeamsNoAvailable": "This user is already in every team.",
+			"userTeamsRemove": "Remove from team",
+			"userTeamsTitle": "Teams of {{name}}",
+			"manageMembers": "Manage members",
+			"membersAdd": "Add user to team",
+			"membersAddButton": "Add",
+			"membersChooseUser": "Choose a user…",
+			"membersCurrent": "Current members",
+			"membersDescription": "Manage which users belong to this team.",
+			"membersEmpty": "This team has no members yet.",
+			"membersNoAvailable": "All users are already in this team.",
+			"membersRemove": "Remove from team",
+			"membersTitle": "Members of {{name}}"
+		},
+		"users": {
+			"tab": "Users"
+		},
+		"ai": {
+			"apiKeyHelp": "Stored encrypted. Sent as Bearer token. Never returned in responses.",
+			"apiKeyLabel": "API key",
+			"baseUrlHelp": "OpenAI-compatible endpoint. The client appends /v1/chat/completions.",
+			"baseUrlLabel": "API base URL",
+			"enableDescription": "When disabled, the Chat tab shows a placeholder and the API returns 503.",
+			"enableLabel": "Enable AI assistant",
+			"modelHelp": "Any model name accepted by your API. Default: gpt-4o.",
+			"modelLabel": "Model",
+			"pageDescription": "Configure the AI assistant used by project chat. Kaneo uses an OpenAI-compatible API.",
+			"pageTitle": "AI Assistant",
+			"save": "Save",
+			"saving": "Saving…",
+			"tab": "AI",
+			"toast": {
+				"error": "Failed to save settings",
+				"saved": "AI settings saved"
+			}
+		}
+	},
+	"chat": {
+		"errorFailed": "Failed to send message",
+		"errorTimeout": "Request timed out. Please try again.",
+		"notEnabledDescription": "The pi-agent AI assistant has not been configured for this instance. Please contact an administrator to enable it.",
+		"notEnabledTitle": "AI assistant not enabled",
+		"pageTitle": "Chat",
+		"placeholder": "Send a message to pi-agent…",
+		"send": "Send",
+		"streaming": "pi-agent is typing…",
+		"welcomeDescription": "Ask me to create tasks, check project status, or analyze progress. I'm your AI project management assistant.",
+		"welcomeTitle": "Chat with pi-agent",
+		"you": "You"
 	}
 }

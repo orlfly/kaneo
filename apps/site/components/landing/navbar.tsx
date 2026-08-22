@@ -47,9 +47,9 @@ const navigationLinks: NavigationLink[] = [
       },
       {
         description:
-          "Set up your workspace structure and initial project configuration.",
-        href: "/docs/core/functional/create-workspace-and-project",
-        label: "Create Workspace & Project",
+          "Set up your team structure and initial project configuration.",
+        href: "/docs/core/functional/create-team-and-project",
+        label: "Create Team & Project",
       },
       {
         description:

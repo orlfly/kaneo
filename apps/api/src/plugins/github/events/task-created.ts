@@ -85,7 +85,7 @@ export async function handleTaskCreated(
       if (project) {
         const clientUrl =
           process.env.KANEO_CLIENT_URL || "http://localhost:5173";
-        const taskUrl = `${clientUrl}/dashboard/workspace/${project.workspaceId}/project/${event.projectId}/task/${event.taskId}`;
+        const taskUrl = `${clientUrl}/dashboard/team/${project.teamId}/project/${event.projectId}/task/${event.taskId}`;
         const taskIdentifier = `${project.slug.toUpperCase()}-${event.number}`;
 
         await octokit.rest.issues.createComment({

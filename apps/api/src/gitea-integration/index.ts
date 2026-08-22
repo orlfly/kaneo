@@ -60,7 +60,7 @@ const nullableGiteaIntegrationSchema = v.nullable(giteaIntegrationSchema);
 const giteaIntegration = new Hono<{
   Variables: {
     userId: string;
-    workspaceId: string;
+    teamId: string;
     apiKey?: {
       id: string;
       userId: string;
@@ -159,7 +159,8 @@ const giteaIntegration = new Hono<{
     }),
     validator("param", v.object({ projectId: v.string() })),
     workspaceAccessMiddleware({
-      sources: [{ type: "lookup", resource: "project", idKey: "projectId" }],
+      source: "project",
+      key: "projectId",
     }),
     async (c) => {
       const { projectId } = c.req.valid("param");
@@ -372,7 +373,7 @@ const giteaIntegration = new Hono<{
       const { projectId } = c.req.valid("json");
 
       const [project] = await db
-        .select({ workspaceId: projectTable.workspaceId })
+        .select({ teamId: projectTable.teamId })
         .from(projectTable)
         .where(eq(projectTable.id, projectId))
         .limit(1);
@@ -384,8 +385,8 @@ const giteaIntegration = new Hono<{
       const apiKey = c.get("apiKey");
       const apiKeyId = apiKey?.id;
 
-      await validateWorkspaceAccess(userId, project.workspaceId, apiKeyId);
-      c.set("workspaceId", project.workspaceId);
+      await validateWorkspaceAccess(userId, project.teamId, apiKeyId);
+      c.set("teamId", project.teamId);
 
       return next();
     },

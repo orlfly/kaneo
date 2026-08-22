@@ -11,7 +11,8 @@
 			"remove": "Прибрати",
 			"reset": "Скинути",
 			"filter": "Фільтр",
-			"clearAllFilters": "Очистити всі фільтри"
+			"clearAllFilters": "Очистити всі фільтри",
+			"adding": "Adding…"
 		},
 		"a11y": {
 			"toggleSidebar": "Перемикач бічної панелі"
@@ -35,18 +36,6 @@
 			"label": "Навігаційна стежка",
 			"more": "Більше"
 		},
-		"language": {
-			"english": "Англійська",
-			"german": "Німецька",
-			"greek": "Грецька",
-			"macedonian": "Македонська",
-			"french": "Французька",
-			"spanish": "Іспанська",
-			"dutch": "Нідерландська",
-			"korean": "Корейська",
-			"chinese": "Китайська",
-			"italian": "Італійська"
-		},
 		"people": {
 			"someone": "Хтось",
 			"unknown": "Невідомо"
@@ -65,7 +54,6 @@
 			"createProject": {
 				"title": "Створити новий проєкт",
 				"breadcrumbNew": "Створити новий проєкт",
-				"workspaceFallback": "РОБОЧИЙ ПРОСТІР",
 				"description": "Створіть новий проєкт у вашому робочому просторі, вказавши назву, ключ та обравши іконку.",
 				"pickIcon": "Обрати іконку",
 				"searchIcons": "Пошук іконок...",
@@ -74,17 +62,12 @@
 				"keyHint": "Використовується для ID тікетів (напр., {{example}}-123)",
 				"createButton": "Створити проєкт",
 				"successToast": "Проєкт успішно створено",
-				"errorToast": "Не вдалося створити проєкт"
-			},
-			"createWorkspace": {
-				"breadcrumbKaneo": "KANEO",
-				"title": "Створити новий робочий простір",
-				"description": "Створіть новий робочий простір, вказавши його назву.",
-				"namePlaceholder": "Назва робочого простору",
-				"descriptionPlaceholder": "Додати опис...",
-				"createButton": "Створити робочий простір",
-				"successToast": "Робочий простір успішно створено",
-				"errorToast": "Не вдалося створити робочий простір"
+				"errorToast": "Не вдалося створити проєкт",
+				"manageTeams": "Go to team management",
+				"noTeams": "You don't have any teams yet. Create or join a team before creating a project.",
+				"teamLabel": "Team",
+				"teamPlaceholder": "Select a team",
+				"teamFallback": "РОБОЧИЙ ПРОСТІР"
 			},
 			"createTask": {
 				"breadcrumbTask": "ЗАВДАННЯ",
@@ -99,7 +82,6 @@
 				"successUpdated": "Завдання успішно оновлено",
 				"createError": "Не вдалося створити завдання",
 				"priority": "Пріоритет",
-				"statusFallback": "В роботі",
 				"startDate": "Дата початку",
 				"dueDate": "Дата завершення",
 				"clearStartDate": "Очистити дату початку",
@@ -128,7 +110,19 @@
 					"rose": "Троянда",
 					"crimson": "Багряний"
 				}
+			},
+			"createTeam": {
+				"breadcrumbKaneo": "KANEO",
+				"createButton": "Create Team",
+				"description": "Create a new team by providing a name for your team.",
+				"errorToast": "Failed to create team",
+				"namePlaceholder": "Team name",
+				"successToast": "Team created successfully",
+				"title": "Create a new team"
 			}
+		},
+		"states": {
+			"loading": "Loading…"
 		}
 	},
 	"auth": {
@@ -136,43 +130,17 @@
 			"pageTitle": "Вхід",
 			"title": "З поверненням",
 			"subtitle": "Введіть ваші облікові дані для доступу до робочого простору",
-			"invitationSubtitle": "Увійдіть, щоб прийняти запрошення",
-			"invitationAlert": "Після входу ви зможете прийняти запрошення до робочого простору.",
-			"signingIn": "Вхід...",
-			"continueWithGoogle": "Продовжити з Google",
-			"continueWithGithub": "Продовжити з GitHub",
-			"continueWithDiscord": "Продовжити з Discord",
-			"continueWithOidc": "Продовжити з OIDC",
-			"lastUsed": "Останній використаний",
-			"registrationDisabled": "Публічну реєстрацію вимкнено. Використовуйте запрошення для створення облікового запису.",
-			"passwordRegistrationDisabled": "Реєстрацію за допомогою пароля вимкнено. Використовуйте налаштований метод входу через соціальну мережу або OIDC.",
-			"toggleMessage": "Не маєте облікового запису?",
-			"toggleLink": "Створити обліковий запис",
-			"guestSuccess": "Вхід як гість виконано",
-			"guestError": "Не вдалося увійти як гість",
-			"oidcError": "Не вдалося увійти через OIDC",
-			"googleError": "Не вдалося увійти через Google",
-			"githubError": "Не вдалося увійти через GitHub",
-			"discordError": "Не вдалося увійти через Discord",
-			"errors": {
-				"account_not_linked": "Не вдалося пов'язати цей ідентифікатор з наявним обліковим записом. Увійдіть за допомогою електронної пошти, щоб підтвердити обліковий запис, а потім спробуйте SSO знову. Якщо вхід через пошту недоступний, зверніться до свого адміністратора.",
-				"oauth_code_verification_failed": "Не вдалося пройти перевірку OAuth. Спробуйте ще раз.",
-				"registration_is_currently_disabled_you_need_a_valid_invitation_to_create_an_account_": "Реєстрацію наразі вимкнено. Для створення облікового запису потрібне дійсне запрошення."
-			},
+			"registrationDisabled": "Public registration is disabled. Ask an administrator to create your account.",
 			"instanceStatusError": "Не вдалося зв'язатися із сервером. Повторіть спробу за мить."
-		},
-		"providers": {
-			"google": "Google",
-			"discord": "Discord"
 		},
 		"forms": {
 			"or": "або",
-			"email": "Електронна пошта",
 			"password": "Пароль",
-			"emailPlaceholder": "me@example.com",
 			"passwordPlaceholder": "••••••••",
 			"showPassword": "Показати пароль",
-			"hidePassword": "Сховати пароль"
+			"hidePassword": "Сховати пароль",
+			"username": "Username",
+			"usernamePlaceholder": "Enter your username"
 		},
 		"checkEmail": {
 			"pageTitle": "Перевірте пошту",
@@ -181,114 +149,11 @@
 			"emailFallback": "вашу адресу електронної пошти",
 			"backToLogin": "Повернутися до входу"
 		},
-		"signUp": {
-			"pageTitle": "Створення облікового запису",
-			"title": "Створити обліковий запис",
-			"subtitleInvitation": "Створіть обліковий запис, щоб прийняти запрошення",
-			"subtitleRegistrationDisabled": "Для реєстрації потрібне запрошення",
-			"subtitlePasswordDisabled": "Використовуйте вхід через соціальну мережу або OIDC для створення облікового запису",
-			"subtitleDefault": "Почніть роботу з вашим робочим простором",
-			"invitationAlert": "Після створення облікового запису ви зможете прийняти запрошення до робочого простору.",
-			"registrationDisabledAlert": "Реєстрацію наразі вимкнено. Якщо вас запросили, введіть адресу електронної пошти, на яку було надіслано запрошення.",
-			"passwordDisabledAlert": "Створення облікового запису за допомогою пароля вимкнено. Використовуйте налаштований метод входу через соціальну мережу або OIDC на сторінці входу.",
-			"signingIn": "Вхід...",
-			"continueAsGuest": "Продовжити як гість",
-			"toggleMessage": "Вже маєте обліковий запис?",
-			"toggleLink": "Увійти",
-			"instanceStatusError": "Не вдалося зв'язатися із сервером. Повторіть спробу за мить.",
-			"instanceAdminTitle": "Налаштуйте ваш інстанс Kaneo",
-			"instanceAdminSubtitle": "Цей обліковий запис стане адміністратором інстансу з повним доступом."
-		},
-		"verifyOtp": {
-			"pageTitle": "Підтвердження коду",
-			"title": "Введіть код підтвердження",
-			"subtitle": "Використовуйте 6-значний код, надісланий на вашу пошту, щоб продовжити",
-			"codeSentTo": "Код надіслано на {{email}}",
-			"verificationCodeLabel": "Код підтвердження",
-			"verifying": "Перевірка...",
-			"verifyAndSignIn": "Підтвердити та увійти",
-			"changeEmail": "Змінити пошту",
-			"resend": "Надіслати повторно",
-			"validation": {
-				"codeLength": "Код має містити 6 цифр"
-			},
-			"toast": {
-				"invalidCode": "Невірний код підтвердження",
-				"signedInSuccess": "Вхід виконано успішно!",
-				"verifyFailed": "Не вдалося підтвердити код",
-				"resendFailed": "Не вдалося надіслати код повторно",
-				"resendSuccess": "Новий код підтвердження надіслано!"
-			}
-		},
-		"otpSignIn": {
-			"sendFailed": "Не вдалося надіслати код підтвердження",
-			"codeSent": "Код підтвердження надіслано! Перевірте вашу пошту.",
-			"sending": "Надсилання...",
-			"sendVerificationCode": "Надіслати код підтвердження"
-		},
 		"signInForm": {
 			"failedSignIn": "Не вдалося увійти",
 			"signedInSuccess": "Вхід виконано успішно",
 			"signingIn": "Вхід...",
 			"signIn": "Увійти"
-		},
-		"signUpForm": {
-			"fullName": "Повне ім'я",
-			"namePlaceholder": "Іван Петренко",
-			"failedSignUp": "Не вдалося зареєструватися",
-			"accountCreated": "Обліковий запис успішно створено",
-			"passwordTooShort": "Пароль занадто короткий",
-			"creatingAccount": "Створення облікового запису...",
-			"createAccount": "Створити обліковий запис"
-		},
-		"invitation": {
-			"pageTitleAccept": "Прийняти запрошення",
-			"pageTitleError": "Помилка запрошення",
-			"pageTitleInvalid": "Недійсне запрошення",
-			"loadingTitle": "Завантаження запрошення...",
-			"errorTitle": "Помилка запрошення",
-			"invalidTitle": "Недійсне запрошення",
-			"invitationExpired": "Запрошення прострочено",
-			"errorLoadDescription": "Не вдалося завантажити деталі запрошення. Запрошення може бути недійсним або простроченим.",
-			"goToSignIn": "Перейти до входу",
-			"workspaceLabel": "Робочий простір: {{workspaceName}}",
-			"joinWorkspace": "Приєднатися до {{workspaceName}}",
-			"inviteBodySignedIn": "<inviter>{{inviterName}}</inviter> запросив вас приєднатися до свого робочого простору.",
-			"inviteBodySignedOut": "<inviter>{{inviterName}}</inviter> запросив вас приєднатися до свого робочого простору в Kaneo.",
-			"createAccountOrSignIn": "Створіть обліковий запис, щоб прийняти це запрошення, або увійдіть, якщо він у вас вже є.",
-			"createAccount": "Створити обліковий запис",
-			"accepting": "Приймається...",
-			"acceptInvitation": "Прийняти запрошення",
-			"goToDashboard": "Перейти до панелі керування",
-			"signedInAs": "Ви увійшли як <email>{{email}}</email>",
-			"youveBeenInvited": "Вас запрошено!",
-			"invitationFor": "Запрошення для: <email>{{email}}</email>",
-			"signIn": "Увійти",
-			"toast": {
-				"acceptFailed": "Не вдалося прийняти запрошення",
-				"acceptSuccess": "Запрошення прийнято! Ласкаво просимо до команди."
-			}
-		},
-		"onboarding": {
-			"pageTitle": "Ласкаво просимо до Kaneo",
-			"workspacePageTitle": "Створення робочого простору",
-			"createWorkspaceTitle": "Створити робочий простір",
-			"createWorkspaceSubtitle": "Налаштуйте робочий простір, щоб почати керувати проєктами",
-			"workspaceName": "Назва робочого простору",
-			"workspaceNamePlaceholder": "напр. Acme Inc, Моя команда",
-			"descriptionOptional": "Опис (необов'язково)",
-			"descriptionPlaceholder": "Над чим працює ваша команда?",
-			"creating": "Створення...",
-			"createWorkspace": "Створити робочий простір",
-			"workspaceCreatedTitle": "Робочий простір створено",
-			"redirectingToWorkspace": "Переходимо до <name>{{name}}</name>...",
-			"toast": {
-				"workspaceCreated": "Робочий простір успішно створено",
-				"createFailed": "Не вдалося створити робочий простір"
-			},
-			"validation": {
-				"workspaceNameRequired": "Назва робочого простору є обов'язковою"
-			}
 		},
 		"profileSetup": {
 			"pageTitle": "Заповнення профілю",
@@ -348,7 +213,7 @@
 			"deleteAccount": {
 				"confirm": "Delete account",
 				"confirmLabel": "Confirm your email address",
-				"description": "Workspaces only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
+				"description": "Teams only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
 				"error": "Failed to delete account",
 				"modalDescription": "This cannot be undone. Type {{email}} to confirm.",
 				"modalTitle": "Delete your account?",
@@ -400,13 +265,6 @@
 			"webhookSecretHintConfigured": "Секрет підпису вже налаштовано ({{masked}}). Введіть новий, щоб замінити його.",
 			"webhookSecretHintOptional": "Необов'язково. Kaneo підписує тіло запиту, коли секрет встановлено.",
 			"connectWebhook": "Підключити вебхук",
-			"workspaceRulesTitle": "Правила доставки по робочих просторах",
-			"workspaceRulesDescription": "Використовуйте ваші глобальні канали, а потім визначте, які робочі простори та проєкти можуть надсилати сповіщення облікового запису.",
-			"workspaceCardHint": "Оберіть, які канали цей робочий простір може використовувати для сповіщень облікового запису.",
-			"workspaceCardLabelEmail": "Пошта",
-			"workspaceCardLabelNtfy": "ntfy",
-			"workspaceCardLabelGotify": "Gotify",
-			"workspaceCardLabelWebhook": "Власний вебхук",
 			"emailChannelHintEnabled": "Надсилати відповідні сповіщення робочого простору електронною поштою.",
 			"emailChannelHintDisabled": "Спочатку налаштуйте та увімкніть пошту глобально.",
 			"ntfyChannelHintEnabled": "Надсилати відповідні сповіщення робочого простору в ntfy.",
@@ -421,32 +279,14 @@
 			"allProjectsDescription": "Доставляти сповіщення з кожного проєкту в цьому робочому просторі.",
 			"selectedProjects": "Обрані проєкти",
 			"selectedProjectsDescription": "Доставляти сповіщення лише з обраних проєктів.",
-			"noProjectsInWorkspace": "У цьому робочому просторі ще немає доступних проєктів.",
 			"createRule": "Створити правило",
 			"removeRule": "Видалити правило",
-			"toastEmailSaved": "Налаштування сповіщень електронною поштою збережено",
-			"toastEmailSaveFailed": "Не вдалося зберегти налаштування пошти",
-			"toastNtfySaved": "Налаштування ntfy збережено",
-			"toastNtfySaveFailed": "Не вдалося зберегти налаштування ntfy",
-			"toastNtfyDisconnected": "ntfy від'єднано",
-			"toastNtfyDisconnectFailed": "Не вдалося від'єднати ntfy",
-			"toastGotifySaved": "Налаштування Gotify збережено",
-			"toastGotifySaveFailed": "Не вдалося зберегти налаштування Gotify",
-			"toastGotifyDisconnected": "Gotify від'єднано",
-			"toastGotifyDisconnectFailed": "Не вдалося від'єднати Gotify",
-			"toastWebhookSaved": "Налаштування вебхука збережено",
-			"toastWebhookSaveFailed": "Не вдалося зберегти налаштування вебхука",
-			"toastWebhookDisconnected": "Вебхук від'єднано",
-			"toastWebhookDisconnectFailed": "Не вдалося від'єднати вебхук",
-			"toastRuleSaved": "Правило сповіщень для {{workspaceName}} збережено",
 			"toastRuleSaveFailed": "Не вдалося зберегти правило сповіщень робочого простору",
-			"toastRuleRemoved": "Правило сповіщень для {{workspaceName}} видалено",
 			"toastRuleRemoveFailed": "Не вдалося видалити правило сповіщень робочого простору",
 			"toastPreferencesSaved": "Налаштування сповіщень збережено",
 			"toastPreferencesSaveFailed": "Не вдалося зберегти налаштування сповіщень",
 			"toastRuleSavedGeneric": "Правило сповіщень робочого простору збережено",
 			"toastRuleRemovedGeneric": "Правило сповіщень робочого простору видалено",
-			"workspaceEnabledLabel": "Увімкнути сповіщення для {{workspaceName}}",
 			"eventPreferencesTitle": "Сповіщати мене про",
 			"eventPreferencesDescription": "Оберіть, які події завдань створюють сповіщення в застосунку та можуть надсилатися на підключені канали.",
 			"eventTaskAssignments": "Призначення завдань",
@@ -459,7 +299,16 @@
 			"reminderLeadTimeUnitHours": "Години",
 			"reminderLeadTimeUnitDays": "Дні",
 			"reminderLeadTimeInvalid": "Введіть ціле число від 1 до {{max}}.",
-			"saveEventPreferences": "Зберегти типи сповіщень"
+			"saveEventPreferences": "Зберегти типи сповіщень",
+			"noProjectsInTeam": "No projects available for this team yet.",
+			"teamCardHint": "Choose which channels this team can use for account notifications.",
+			"teamCardLabelEmail": "Email",
+			"teamCardLabelGotify": "Gotify",
+			"teamCardLabelNtfy": "ntfy",
+			"teamCardLabelWebhook": "Custom webhook",
+			"teamEnabledLabel": "Enable notifications for {{teamName}}",
+			"teamRulesDescription": "Reuse your global channels, then decide which teams and projects are allowed to send account notifications.",
+			"teamRulesTitle": "Team delivery rules"
 		},
 		"preferencesPage": {
 			"title": "Налаштування",
@@ -486,7 +335,6 @@
 			"selectViewMode": "Обрати режим перегляду",
 			"board": "Дошка",
 			"list": "Список",
-			"gantt": "Ґант",
 			"sidebarDefault": "Бічна панель за замовчуванням",
 			"sidebarDefaultDescription": "Тримати бічну панель розгорнутою при запуску",
 			"displayOptions": "Параметри відображення",
@@ -566,49 +414,6 @@
 					"nameShort": "Назва має містити щонайменше 3 символи",
 					"expirationRequired": "Термін дії є обов'язковим"
 				}
-			}
-		},
-		"workspaceGeneral": {
-			"pageTitle": "Загальні налаштування",
-			"title": "Загальні налаштування",
-			"subtitle": "Керуйте назвою та описом вашого робочого простору.",
-			"workspaceInfoTitle": "Інформація про робочий простір",
-			"workspaceInfoSubtitle": "Налаштуйте деталі та параметри вашого робочого простору.",
-			"nameLabel": "Назва робочого простору",
-			"nameHint": "Назва вашого робочого простору",
-			"namePlaceholder": "Введіть назву робочого простору",
-			"descriptionLabel": "Опис",
-			"descriptionHint": "Короткий опис вашого робочого простору",
-			"descriptionPlaceholder": "Введіть опис робочого простору",
-			"dangerZone": "Небезпечна зона",
-			"dangerZoneSubtitle": "Незворотні та руйнівні дії.",
-			"deleteWorkspace": "Видалити робочий простір",
-			"deleteWorkspaceDescription": "Запланувати остаточне видалення робочого простору",
-			"deleteModalTitle": "Видалити робочий простір?",
-			"deleteModalDescription": "Це назавжди видалить робочий простір «{{name}}» та всі його дані. Цю дію неможливо скасувати.",
-			"deleteModalConfirm": "Видалити робочий простір",
-			"toastUpdated": "Робочий простір успішно оновлено",
-			"toastUpdateError": "Не вдалося оновити робочий простір",
-			"toastDeleted": "Робочий простір успішно видалено",
-			"toastDeleteError": "Не вдалося видалити робочий простір",
-			"validation": {
-				"nameRequired": "Назва робочого простору є обов'язковою",
-				"nameShort": "Назва робочого простору має містити щонайменше 2 символи"
-			},
-			"transferOwnership": {
-				"toastSuccess": "Право власності передано",
-				"toastError": "Не вдалося передати право власності",
-				"title": "Передати право власності",
-				"subtitle": "Передайте цей робочий простір іншому учаснику. Вас буде понижено до адміністратора, і ви втратите можливості, доступні лише власнику.",
-				"pickerLabel": "Новий власник",
-				"noEligibleMembers": "Запросіть принаймні ще одного учасника, перш ніж передавати право власності.",
-				"pickerHint": "Цей учасник стане єдиним власником цього робочого простору.",
-				"pickerPlaceholder": "Оберіть учасника",
-				"button": "Передати",
-				"dialogTitle": "Передати право власності?",
-				"dialogDescription": "{{name}} стане єдиним власником робочого простору {{workspace}}. Ви збережете доступ адміністратора, але втратите можливості власника, як-от видалення робочого простору чи повторну передачу.",
-				"transferring": "Передача…",
-				"confirm": "Передати право власності"
 			}
 		},
 		"projectGeneral": {
@@ -889,7 +694,6 @@
 			},
 			"connect": "Підключити Slack",
 			"saveChanges": "Зберегти зміни",
-			"update": "Оновити Slack",
 			"disconnect": "Від'єднати"
 		},
 		"discordIntegration": {
@@ -927,7 +731,6 @@
 			},
 			"connect": "Підключити Discord",
 			"saveChanges": "Зберегти зміни",
-			"update": "Оновити Discord",
 			"disconnect": "Від'єднати"
 		},
 		"genericWebhookIntegration": {
@@ -1085,146 +888,7 @@
 			"draft": "Чернетка",
 			"open": "Відкрито"
 		},
-		"workspaceRoles": {
-			"pageTitle": "Ролі",
-			"title": "Ролі",
-			"subtitle": "Визначте, які дії можуть виконувати учасники в {{workspaceName}}.",
-			"thisWorkspace": "цьому робочому просторі",
-			"noAccess": "Для керування ролями робочого простору потрібні права адміністратора або власника.",
-			"sectionTitle": "Ролі робочого простору",
-			"sectionSubtitle": "Редагуйте стандартні ролі або додайте власну. Учасники зберігають призначену назву ролі після редагувань.",
-			"newRole": "Нова роль",
-			"loading": "Завантаження…",
-			"loadError": "Не вдалося завантажити ролі.",
-			"emptyTitle": "Ролей ще немає",
-			"emptyDescription": "Стандартні ролі з'являться тут після їх створення для цього робочого простору.",
-			"defaultBadge": "Стандартна",
-			"permissionCount_one": "{{count}} дозвіл",
-			"permissionCount_few": "{{count}} дозволи",
-			"permissionCount_many": "{{count}} дозволів",
-			"permissionCount_other": "{{count}} дозволів",
-			"nameLabel": "Назва",
-			"nameHint": "Малими літерами. Не можна змінити пізніше.",
-			"namePlaceholder": "напр., reviewer",
-			"discard": "Відхилити",
-			"createRole": "Створити роль",
-			"deleteRole": "Видалити роль",
-			"defaultRoleHelp": "Стандартна роль: назва зарезервована, і цей рядок не можна видалити.",
-			"unsavedChanges": "У вас є незбережені зміни",
-			"allChangesSaved": "Усі зміни збережено",
-			"saveChanges": "Зберегти зміни",
-			"defaultRoleDescriptions": {
-				"viewer": "Може переглядати та коментувати завдання.",
-				"member": "Може створювати завдання і проєкти та керувати ними.",
-				"admin": "Має повний доступ до робочого простору."
-			},
-			"resources": {
-				"project": "Проєкти",
-				"task": "Завдання",
-				"label": "Мітки",
-				"workspace": "Робочий простір"
-			},
-			"permissions": {
-				"project": {
-					"create": {
-						"label": "Створення",
-						"description": "Може створювати нові проєкти"
-					},
-					"read": {
-						"label": "Перегляд",
-						"description": "Може переглядати проєкти"
-					},
-					"update": {
-						"label": "Редагування",
-						"description": "Може редагувати налаштування проєкту"
-					},
-					"delete": {
-						"label": "Видалення",
-						"description": "Може видаляти проєкти"
-					},
-					"share": {
-						"label": "Поширення",
-						"description": "Може ділитися проєктами"
-					}
-				},
-				"task": {
-					"create": {
-						"label": "Створення",
-						"description": "Може створювати завдання"
-					},
-					"read": {
-						"label": "Перегляд",
-						"description": "Може переглядати завдання"
-					},
-					"update": {
-						"label": "Редагування",
-						"description": "Може редагувати завдання"
-					},
-					"delete": {
-						"label": "Видалення",
-						"description": "Може видаляти завдання"
-					},
-					"assign": {
-						"label": "Призначення",
-						"description": "Може призначати завдання учасникам"
-					}
-				},
-				"label": {
-					"create": {
-						"label": "Створення",
-						"description": "Може створювати мітки"
-					},
-					"read": {
-						"label": "Перегляд",
-						"description": "Може переглядати мітки"
-					},
-					"update": {
-						"label": "Редагування",
-						"description": "Може редагувати мітки"
-					},
-					"delete": {
-						"label": "Видалення",
-						"description": "Може видаляти мітки"
-					}
-				},
-				"workspace": {
-					"read": {
-						"label": "Перегляд",
-						"description": "Може переглядати налаштування робочого простору"
-					},
-					"update": {
-						"label": "Оновлення",
-						"description": "Може оновлювати налаштування робочого простору"
-					},
-					"delete": {
-						"label": "Видалення",
-						"description": "Може видаляти робочий простір"
-					},
-					"manage_settings": {
-						"label": "Керування налаштуваннями",
-						"description": "Може керувати налаштуваннями робочого простору"
-					}
-				}
-			},
-			"validation": {
-				"nameRequired": "Назва ролі є обов'язковою",
-				"nameExists": "Роль із такою назвою вже існує",
-				"permissionRequired": "Потрібно обрати щонайменше один дозвіл"
-			},
-			"toast": {
-				"created": "Роль створено",
-				"createError": "Не вдалося створити роль",
-				"updated": "Роль оновлено",
-				"updateError": "Не вдалося оновити роль",
-				"deleted": "Роль видалено",
-				"deleteError": "Не вдалося видалити роль"
-			},
-			"deleteDialog": {
-				"title": "Видалити роль",
-				"description": "Це назавжди видалить роль «{{role}}». Учасники з цією роллю втратять її дозволи."
-			}
-		},
-		"workspaceLabels": {
+		"teamLabels": {
 			"pageTitle": "Налаштування міток",
 			"title": "Мітки",
 			"subtitle": "Створюйте, редагуйте та видаляйте мітки рівня робочого простору.",
@@ -1259,7 +923,6 @@
 			"members": "Учасники",
 			"createTask": "Створити завдання",
 			"createProject": "Створити проєкт",
-			"createWorkspace": "Створити робочий простір",
 			"lightTheme": "Світла тема",
 			"darkTheme": "Темна тема",
 			"systemTheme": "Системна тема",
@@ -1270,14 +933,14 @@
 				"navigate": "Навігація",
 				"open": "Відкрити",
 				"close": "Закрити"
-			}
+			},
+			"createTeam": "Create team"
 		},
 		"notifications": "Сповіщення",
 		"sidebar": {
 			"overview": "Огляд",
 			"projects": "Проєкти",
 			"members": "Учасники",
-			"invitations": "Запрошення",
 			"more": "Більше",
 			"backToBoard": "Назад до дошки"
 		},
@@ -1298,10 +961,10 @@
 			"groups": {
 				"task": "Завдання",
 				"project": "Проєкти",
-				"workspace": "Робочі простори",
 				"comment": "Коментарі",
 				"activity": "Активність",
-				"fallback": "Результати"
+				"fallback": "Результати",
+				"team": "Teams"
 			}
 		},
 		"settingsLayout": {
@@ -1316,17 +979,10 @@
 			"signingOut": "Вихід...",
 			"logOut": "Вийти"
 		},
-		"workspaceSwitcher": {
-			"workspaces": "Робочі простори",
-			"switching": "Перемикання...",
-			"addWorkspace": "Додати робочий простір",
-			"selectWorkspace": "Обрати робочий простір"
-		},
 		"page": {
 			"projectsTitle": "Проєкти",
 			"settingsTitle": "Налаштування",
-			"backToWorkspace": "Повернутися до робочого простору",
-			"settingsWorkspaceTab": "Робочий простір"
+			"backToTeam": "Повернутися до робочого простору"
 		},
 		"projectSettings": {
 			"projectLabel": "Проєкт"
@@ -1351,23 +1007,25 @@
 				"closeModal": "Закрити модальне/спливаюче вікно",
 				"createTask": "Створити завдання",
 				"createProject": "Створити проєкт",
-				"createWorkspace": "Створити робочий простір",
 				"boardView": "Перемкнути на вигляд дошки",
 				"listView": "Перемкнути на вигляд списку",
 				"backlogView": "Перемкнути на вигляд беклогу",
 				"nextTask": "Наступне завдання",
 				"prevTask": "Попереднє завдання",
 				"openTask": "Відкрити обране завдання",
-				"quickSelectNumber": "Обрати варіант за номером"
+				"quickSelectNumber": "Обрати варіант за номером",
+				"createTeam": "Create team"
 			}
+		},
+		"teamSwitcher": {
+			"addTeam": "Add team",
+			"selectTeam": "Select a team",
+			"switching": "Switching...",
+			"teams": "Teams"
 		}
 	},
 	"notifications": {
 		"title": "Сповіщення",
-		"newCount_one": "{{count}} нове",
-		"newCount_few": "{{count}} нових",
-		"newCount_many": "{{count}} нових",
-		"newCount_other": "{{count}} нових",
 		"emptyTitle": "Сповіщень ще немає",
 		"emptySubtitle": "Тут з'являтимуться оновлення та активність.",
 		"clearAll": "Очистити всі сповіщення",
@@ -1380,10 +1038,6 @@
 			"task_created": {
 				"title": "Створено нове завдання",
 				"content": "Завдання «{{taskTitle}}» створено"
-			},
-			"workspace_created": {
-				"title": "Робочий простір створено",
-				"content": "Ваш робочий простір «{{workspaceName}}» успішно створено"
 			},
 			"task_status_changed": {
 				"title": "Статус завдання змінено",
@@ -1417,16 +1071,10 @@
 		},
 		"reminderLeadTime": {
 			"minutes_one": "{{count}} хвилина",
-			"minutes_few": "{{count}} хвилини",
-			"minutes_many": "{{count}} хвилин",
 			"minutes_other": "{{count}} хвилин",
 			"hours_one": "{{count}} година",
-			"hours_few": "{{count}} години",
-			"hours_many": "{{count}} годин",
 			"hours_other": "{{count}} годин",
 			"days_one": "{{count}} день",
-			"days_few": "{{count}} дні",
-			"days_many": "{{count}} днів",
 			"days_other": "{{count}} днів"
 		}
 	},
@@ -1672,9 +1320,6 @@
 						"onlyYoutube": "Можна вбудовувати лише посилання YouTube."
 					},
 					"onlyYoutubeInline": "Можна вбудовувати лише URL-адреси YouTube. Натомість використовуйте режим посилання."
-				},
-				"mermaid": {
-					"renderFailed": "Не вдалося відобразити діаграму Mermaid"
 				}
 			}
 		},
@@ -1877,8 +1522,6 @@
 			"open": "Відкрито",
 			"label": "Pull Request",
 			"count_one": "{{count}} PR",
-			"count_few": "{{count}} PR",
-			"count_many": "{{count}} PR",
 			"count_other": "{{count}} PR"
 		},
 		"assignee": {
@@ -1954,37 +1597,34 @@
 			}
 		}
 	},
-	"invitations": {
-		"email": {
-			"subject": "{{inviterName}} запрошує вас приєднатися до {{workspaceName}} у Kaneo",
-			"preview": "Вас запрошено до {{workspaceName}} у Kaneo",
-			"title": "Приєднуйтесь до {{workspaceName}}",
-			"subtitle": "{{inviterName}} ({{inviterEmail}}) запрошує вас до співпраці в Kaneo.",
-			"cta": "Прийняти запрошення",
-			"sameEmail": "Ви можете прийняти запрошення з тієї самої адреси електронної пошти, на яку надійшов цей лист.",
-			"ignore": "Якщо ви не очікували цього листа, просто проігноруйте його.",
-			"footer": "Запрошення до робочого простору Kaneo"
+	"team": {
+		"roles": {
+			"owner": "Власник",
+			"admin": "Адміністратор",
+			"member": "Учасник",
+			"viewer": "Спостерігач"
 		},
-		"pageTitle": "Запрошення",
-		"pendingInvitations": "Очікуючі запрошення",
-		"acceptSubtitle": "Прийміть запрошення, щоб приєднатися до робочих просторів",
-		"noPendingTitle": "Немає очікуючих запрошень",
-		"noPendingDescription": "Наразі у вас немає жодних очікуючих запрошень до робочих просторів.",
-		"continueToSetup": "Продовжити налаштування",
-		"skipForNow": "Пропустити поки що",
-		"table": {
-			"workspace": "Робочий простір",
-			"invitedBy": "Запросив",
-			"expires": "Закінчується"
+		"members": {
+			"pageTitle": "Учасники",
+			"you": "Ви"
 		},
-		"toast": {
-			"acceptError": "Не вдалося прийняти запрошення",
-			"acceptSuccess": "Запрошення прийнято! Ласкаво просимо до команди.",
-			"rejectError": "Не вдалося відхилити запрошення",
-			"rejectSuccess": "Запрошення відхилено"
-		}
-	},
-	"workspace": {
+		"membersTable": {
+			"emptyTitle": "Учасників команди ще немає",
+			"emptyDescription": "Ask an admin to add members to this team.",
+			"columns": {
+				"name": "Ім'я",
+				"role": "Роль",
+				"joined": "Приєднався"
+			},
+			"ariaRemoveMember": "Видалити учасника",
+			"removeDialogTitle": "Видалити учасника команди?",
+			"removeDialogDescription": "Ви впевнені, що хочете видалити {{name}} з робочого простору? Цю дію неможливо скасувати.",
+			"removeMember": "Видалити учасника",
+			"removeSuccess": "Учасника команди успішно видалено",
+			"removeError": "Не вдалося видалити учасника команди",
+			"roleUpdateSuccess": "Роль оновлено",
+			"roleUpdateError": "Не вдалося оновити роль"
+		},
 		"projects": {
 			"pageTitle": "Проєкти",
 			"createProject": "Створити проєкт",
@@ -2001,7 +1641,6 @@
 				"inProgress": "В роботі"
 			},
 			"noDueDate": "Без дати завершення",
-			"reorderHandle": "Змінити порядок проєкту",
 			"reorderError": "Не вдалося змінити порядок проєктів",
 			"emptyDescriptionReadOnly": "У цьому робочому просторі ще немає проєктів. Попросіть адміністратора створити проєкт."
 		},
@@ -2012,8 +1651,6 @@
 			"hint": "Пошук по всіх проєктах у цьому робочому просторі. Використовуйте короткі ID, як DEP-23, щоб знайти конкретні завдання.",
 			"searching": "Пошук...",
 			"resultsFound_one": "{{count}} результат знайдено",
-			"resultsFound_few": "{{count}} результати знайдено",
-			"resultsFound_many": "{{count}} результатів знайдено",
 			"resultsFound_other": "{{count}} результатів знайдено",
 			"noResultsTitle": "Результатів не знайдено",
 			"noResultsDescription": "Спробуйте змінити пошукові терміни або пошукати щось інше",
@@ -2030,73 +1667,13 @@
 			"pageTitle": "Створення робочого простору",
 			"heading": "Створити новий робочий простір",
 			"subtitle": "Робочі простори є спільними середовищами, де команди можуть працювати над проєктами, циклами та завданнями.",
-			"nameLabel": "Назва робочого простору",
 			"namePlaceholder": "Введіть назву робочого простору",
-			"descriptionLabel": "Опис (необов'язково)",
-			"descriptionPlaceholder": "Додайте опис для вашого робочого простору",
 			"required": "Обов'язково",
 			"creating": "Створення...",
 			"submit": "Створити робочий простір",
 			"success": "Робочий простір успішно створено",
-			"error": "Не вдалося створити робочий простір"
-		}
-	},
-	"team": {
-		"roles": {
-			"owner": "Власник",
-			"admin": "Адміністратор",
-			"member": "Учасник",
-			"viewer": "Спостерігач"
-		},
-		"members": {
-			"pageTitle": "Учасники",
-			"inviteMember": "Запросити учасника",
-			"you": "Ви"
-		},
-		"invitations": {
-			"linkLabel": "Посилання на запрошення",
-			"copyLink": "Копіювати посилання",
-			"linkCopied": "Посилання на запрошення скопійовано",
-			"copyFailed": "Не вдалося скопіювати автоматично. Виділіть посилання та натисніть Ctrl+C.",
-			"pendingBadge": "очікує",
-			"expires": "Закінчується {{date}}"
-		},
-		"inviteModal": {
-			"title": "Запросити учасника команди",
-			"emailLabel": "Електронна пошта",
-			"emailPlaceholder": "colleague@company.com",
-			"sendInvitation": "Надіслати запрошення",
-			"success": "Запрошення успішно надіслано",
-			"error": "Не вдалося запросити учасника команди",
-			"createdTitle": "Запрошення створено",
-			"shareLinkDescription": "Поділіться цим посиланням з {{email}}, щоб вони могли приєднатися до робочого простору.",
-			"done": "Готово"
-		},
-		"membersTable": {
-			"emptyTitle": "Учасників команди ще немає",
-			"emptyDescription": "Запросіть першого учасника команди, щоб почати.",
-			"columns": {
-				"name": "Ім'я",
-				"role": "Роль",
-				"joined": "Приєднався",
-				"actions": "Дії"
-			},
-			"memberRolePending": "{{role}} (Очікує)",
-			"ariaCancelInvitation": "Скасувати запрошення",
-			"ariaRemoveMember": "Видалити учасника",
-			"removeDialogTitle": "Видалити учасника команди?",
-			"removeDialogDescription": "Ви впевнені, що хочете видалити {{name}} з робочого простору? Цю дію неможливо скасувати.",
-			"cancelDialogTitle": "Скасувати запрошення?",
-			"cancelDialogDescription": "Ви впевнені, що хочете скасувати запрошення для {{email}}? Цю дію неможливо скасувати.",
-			"removeMember": "Видалити учасника",
-			"cancelInvitation": "Скасувати запрошення",
-			"removeSuccess": "Учасника команди успішно видалено",
-			"removeError": "Не вдалося видалити учасника команди",
-			"cancelInviteSuccess": "Запрошення успішно скасовано",
-			"cancelInviteError": "Не вдалося скасувати запрошення",
-			"ariaInvitationActions": "Дії із запрошенням",
-			"roleUpdateSuccess": "Роль оновлено",
-			"roleUpdateError": "Не вдалося оновити роль"
+			"error": "Не вдалося створити робочий простір",
+			"nameLabel": "Team Name"
 		}
 	},
 	"publicProject": {
@@ -2113,7 +1690,6 @@
 		"taskDetail": {
 			"labels": "Мітки",
 			"externalLinks": "Зовнішні посилання",
-			"pullRequestFallback": "Pull Request",
 			"issueFallback": "Issue",
 			"prStatusMerged": "Змерджено",
 			"prStatusDraft": "Чернетка",
@@ -2135,5 +1711,169 @@
 		"branding": {
 			"poweredBy": "Працює на"
 		}
+	},
+	"admin": {
+		"actions": {
+			"delete": "Delete user",
+			"demote": "Demote to user",
+			"disable": "Disable account",
+			"enable": "Enable account",
+			"error": "Action failed",
+			"promote": "Promote to admin",
+			"resetPassword": "Reset password",
+			"successRole": "Role updated",
+			"successStatus": "Account status updated",
+			"manageTeams": "Manage teams"
+		},
+		"columns": {
+			"created": "Created",
+			"role": "Role",
+			"status": "Status",
+			"user": "User"
+		},
+		"create": {
+			"description": "Create a new account. The user can sign in with the username and password.",
+			"email": "Email (optional)",
+			"emailPlaceholder": "e.g. jane@example.com",
+			"error": "Failed to create user",
+			"name": "Name",
+			"namePlaceholder": "e.g. Jane Doe",
+			"password": "Password",
+			"passwordPlaceholder": "At least 8 characters",
+			"role": "Role",
+			"submit": "Create user",
+			"success": "User created",
+			"title": "Create user",
+			"username": "Username",
+			"usernamePlaceholder": "e.g. jane",
+			"validation": {
+				"nameRequired": "Name is required",
+				"passwordShort": "Password must be at least 8 characters",
+				"usernameInvalid": "Only lowercase letters, numbers and underscores (1-30 characters)",
+				"usernameRequired": "Username is required"
+			},
+			"team": "Team (optional)",
+			"teamNone": "No team",
+			"teamPlaceholder": "Choose a team…"
+		},
+		"deleteDialog": {
+			"confirm": "Delete",
+			"description": "Delete {{name}} ({{username}})? This cannot be undone.",
+			"success": "User deleted",
+			"title": "Delete user"
+		},
+		"page": {
+			"createUser": "Create user",
+			"currentUserBadge": "you",
+			"description": "Create and manage user accounts.",
+			"emptyDescription": "Create the first user account to get started.",
+			"emptyTitle": "No users",
+			"title": "User Management"
+		},
+		"resetPassword": {
+			"description": "Set a new password for {{username}}.",
+			"password": "New password",
+			"submit": "Reset password",
+			"success": "Password updated",
+			"title": "Reset password"
+		},
+		"role": {
+			"admin": "Admin",
+			"user": "User"
+		},
+		"status": {
+			"active": "Active",
+			"disabled": "Disabled"
+		},
+		"tab": "System",
+		"teams": {
+			"columns": {
+				"actions": "Actions",
+				"members": "Members",
+				"name": "Name",
+				"role": "Your role"
+			},
+			"create": "Create team",
+			"createDialogDescription": "Teams group users who collaborate on shared projects.",
+			"createDialogTitle": "Create a team",
+			"delete": "Delete team",
+			"deleteDialogDescription": "The team, its projects, and its memberships will be permanently deleted.",
+			"deleteDialogTitle": "Delete this team?",
+			"description": "Create and manage teams. Users join teams via invitation.",
+			"empty": "No teams yet. Create the first one to get started.",
+			"enter": "Enter team",
+			"hint": "As a system administrator, create the teams your users will join.",
+			"nameLabel": "Team name",
+			"namePlaceholder": "e.g. Acme",
+			"pageTitle": "Team management",
+			"tab": "Teams",
+			"title": "Teams",
+			"toast": {
+				"created": "Team \"{{name}}\" created",
+				"createError": "Failed to create team",
+				"deleted": "Team deleted",
+				"deleteError": "Failed to delete team",
+				"renamed": "Team renamed",
+				"renameError": "Failed to rename team"
+			},
+			"labels": "Labels",
+			"rename": "Rename",
+			"renameDialogDescription": "Change the name of this team.",
+			"renameDialogTitle": "Rename team",
+			"userTeamsAdd": "Add to team",
+			"userTeamsAddButton": "Add",
+			"userTeamsChoose": "Choose a team…",
+			"userTeamsCurrent": "Current teams",
+			"userTeamsDescription": "Manage which teams this user belongs to.",
+			"userTeamsEmpty": "This user is not a member of any team.",
+			"userTeamsNoAvailable": "This user is already in every team.",
+			"userTeamsRemove": "Remove from team",
+			"userTeamsTitle": "Teams of {{name}}",
+			"manageMembers": "Manage members",
+			"membersAdd": "Add user to team",
+			"membersAddButton": "Add",
+			"membersChooseUser": "Choose a user…",
+			"membersCurrent": "Current members",
+			"membersDescription": "Manage which users belong to this team.",
+			"membersEmpty": "This team has no members yet.",
+			"membersNoAvailable": "All users are already in this team.",
+			"membersRemove": "Remove from team",
+			"membersTitle": "Members of {{name}}"
+		},
+		"users": {
+			"tab": "Users"
+		},
+		"ai": {
+			"apiKeyHelp": "Stored encrypted. Sent as Bearer token. Never returned in responses.",
+			"apiKeyLabel": "API key",
+			"baseUrlHelp": "OpenAI-compatible endpoint. The client appends /v1/chat/completions.",
+			"baseUrlLabel": "API base URL",
+			"enableDescription": "When disabled, the Chat tab shows a placeholder and the API returns 503.",
+			"enableLabel": "Enable AI assistant",
+			"modelHelp": "Any model name accepted by your API. Default: gpt-4o.",
+			"modelLabel": "Model",
+			"pageDescription": "Configure the AI assistant used by project chat. Kaneo uses an OpenAI-compatible API.",
+			"pageTitle": "AI Assistant",
+			"save": "Save",
+			"saving": "Saving…",
+			"tab": "AI",
+			"toast": {
+				"error": "Failed to save settings",
+				"saved": "AI settings saved"
+			}
+		}
+	},
+	"chat": {
+		"errorFailed": "Failed to send message",
+		"errorTimeout": "Request timed out. Please try again.",
+		"notEnabledDescription": "The pi-agent AI assistant has not been configured for this instance. Please contact an administrator to enable it.",
+		"notEnabledTitle": "AI assistant not enabled",
+		"pageTitle": "Chat",
+		"placeholder": "Send a message to pi-agent…",
+		"send": "Send",
+		"streaming": "pi-agent is typing…",
+		"welcomeDescription": "Ask me to create tasks, check project status, or analyze progress. I'm your AI project management assistant.",
+		"welcomeTitle": "Chat with pi-agent",
+		"you": "You"
 	}
 }

@@ -26,7 +26,7 @@ async function unassignLabelFromTask(id: string, userId: string) {
     .select({
       id: taskTable.id,
       projectId: taskTable.projectId,
-      workspaceId: projectTable.workspaceId,
+      teamId: projectTable.teamId,
     })
     .from(taskTable)
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))

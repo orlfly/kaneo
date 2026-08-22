@@ -41,13 +41,13 @@ vi.mock("@/hooks/queries/column/use-get-columns", () => ({
 vi.mock("@/hooks/queries/task-relation/use-get-task-relations", () => ({
   default: () => ({ data: [] }),
 }));
-vi.mock("@/hooks/queries/workspace/use-active-workspace", () => ({
+vi.mock("@/hooks/queries/team/use-active-team", () => ({
   default: () => ({ data: { id: "workspace-1" } }),
 }));
 vi.mock(
-  "@/hooks/queries/workspace-users/use-get-active-workspace-users",
+  "@/hooks/queries/team-member/use-get-active-team-members",
   () => ({
-    useGetActiveWorkspaceUsers: () => ({ data: { members: [] } }),
+    useGetActiveTeamMembers: () => ({ data: [] }),
   }),
 );
 vi.mock("@/hooks/use-workspace-permission", () => ({
@@ -84,7 +84,7 @@ describe("TaskSubtasks", () => {
       <TaskSubtasks
         taskId="parent-1"
         projectId="project-1"
-        workspaceId="workspace-1"
+        teamId="workspace-1"
         parentStatus="planned"
       />,
     );
@@ -116,7 +116,7 @@ describe("TaskSubtasks", () => {
       <TaskSubtasks
         taskId="parent-2"
         projectId="project-1"
-        workspaceId="workspace-1"
+        teamId="workspace-1"
         parentStatus="in-progress"
       />,
     );
@@ -147,7 +147,7 @@ describe("TaskSubtasks", () => {
       <TaskSubtasks
         taskId="parent-3"
         projectId="project-1"
-        workspaceId="workspace-1"
+        teamId="workspace-1"
         parentStatus="in-progress"
       />,
     );
@@ -166,7 +166,7 @@ describe("TaskSubtasks", () => {
       <TaskSubtasks
         taskId="parent-4"
         projectId="project-1"
-        workspaceId="workspace-1"
+        teamId="workspace-1"
         parentStatus="planned"
       />,
     );

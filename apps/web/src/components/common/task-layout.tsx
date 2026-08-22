@@ -19,7 +19,7 @@ import { useProjectWebSocket } from "@/hooks/use-project-websocket";
 type TaskLayoutProps = {
   taskId: string;
   projectId: string;
-  workspaceId: string;
+  teamId: string;
   headerActions?: ReactNode;
   children: ReactNode;
   rightSidebar?: ReactNode;
@@ -28,14 +28,14 @@ type TaskLayoutProps = {
 export default function TaskLayout({
   taskId,
   projectId,
-  workspaceId,
+  teamId,
   headerActions,
   children,
   rightSidebar,
 }: TaskLayoutProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data: project } = useGetProject({ id: projectId, workspaceId });
+  const { data: project } = useGetProject({ id: projectId, teamId });
   const { data: task } = useGetTask(taskId);
 
   useProjectWebSocket(projectId);
@@ -47,8 +47,8 @@ export default function TaskLayout({
 
   const handleTaskSwitch = (nextTaskId: string) => {
     navigate({
-      to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
-      params: { workspaceId, projectId, taskId: nextTaskId },
+      to: "/dashboard/team/$teamId/project/$projectId/task/$taskId",
+      params: { teamId, projectId, taskId: nextTaskId },
     });
   };
 
@@ -84,8 +84,8 @@ export default function TaskLayout({
                   type="button"
                   onClick={() =>
                     navigate({
-                      to: "/dashboard/workspace/$workspaceId/project/$projectId/board",
-                      params: { workspaceId, projectId },
+                      to: "/dashboard/team/$teamId/project/$projectId/board",
+                      params: { teamId, projectId },
                     })
                   }
                   className="max-w-40 truncate text-left text-xs text-foreground hover:underline"

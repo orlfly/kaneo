@@ -23,7 +23,7 @@ async function deleteLabel(id: string, userId: string) {
       .select({
         id: taskTable.id,
         projectId: taskTable.projectId,
-        workspaceId: projectTable.workspaceId,
+        teamId: projectTable.teamId,
       })
       .from(taskTable)
       .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
@@ -67,7 +67,7 @@ async function deleteLabel(id: string, userId: string) {
     return deletedLabel;
   }
 
-  // Workspace-level label: delete the label and cascade to all task-level copies
+  // Team-level label: delete the label and cascade to all task-level copies
   const [deletedLabel] = await db
     .delete(labelTable)
     .where(eq(labelTable.id, id))
@@ -79,8 +79,8 @@ async function deleteLabel(id: string, userId: string) {
     });
   }
 
-  // Label without a workspace: the cascade filter below could never match
-  if (label.workspaceId === null) {
+  // Label without a team: the cascade filter below could never match
+  if (label.teamId === null) {
     return deletedLabel;
   }
 
@@ -91,14 +91,14 @@ async function deleteLabel(id: string, userId: string) {
       label: labelTable,
       taskId: taskTable.id,
       projectId: projectTable.id,
-      workspaceId: projectTable.workspaceId,
+      teamId: projectTable.teamId,
     })
     .from(labelTable)
     .innerJoin(taskTable, eq(labelTable.taskId, taskTable.id))
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
     .where(
       and(
-        eq(labelTable.workspaceId, label.workspaceId),
+        eq(labelTable.teamId, label.teamId),
         eq(labelTable.name, label.name),
         isNotNull(labelTable.taskId),
       ),
@@ -109,7 +109,7 @@ async function deleteLabel(id: string, userId: string) {
     .delete(labelTable)
     .where(
       and(
-        eq(labelTable.workspaceId, label.workspaceId),
+        eq(labelTable.teamId, label.teamId),
         eq(labelTable.name, label.name),
         isNotNull(labelTable.taskId),
       ),

@@ -41,18 +41,18 @@ vi.mock("@/hooks/mutations/task/use-update-task", () => ({
   useUpdateTask: () => ({ mutateAsync: vi.fn() }),
 }));
 
-vi.mock("@/hooks/queries/label/use-get-labels-by-workspace", () => ({
+vi.mock("@/hooks/queries/label/use-get-labels-by-team", () => ({
   default: () => ({ data: [] }),
 }));
 
-vi.mock("@/hooks/queries/workspace/use-active-workspace", () => ({
+vi.mock("@/hooks/queries/team/use-active-team", () => ({
   default: () => ({ data: { id: "workspace-1", name: "WS" } }),
 }));
 
 vi.mock(
-  "@/hooks/queries/workspace-users/use-get-active-workspace-users",
+  "@/hooks/queries/team-member/use-get-active-team-members",
   () => ({
-    useGetActiveWorkspaceUsers: () => ({ data: { members: [] } }),
+    useGetActiveTeamMembers: () => ({ data: [] }),
   }),
 );
 
@@ -88,7 +88,7 @@ vi.mock("react-i18next", () => ({
 describe("CreateTaskModal project picker", () => {
   it("shows a project picker and creates the task in the chosen project", async () => {
     useLocation.mockReturnValue({
-      pathname: "/dashboard/workspace/workspace-1",
+      pathname: "/dashboard/team/workspace-1",
     });
 
     render(<CreateTaskModal open onClose={vi.fn()} />);
@@ -119,7 +119,7 @@ describe("CreateTaskModal project picker", () => {
 
   it("hides the picker when a project is in scope from the route", () => {
     useLocation.mockReturnValue({
-      pathname: "/dashboard/workspace/workspace-1/project/project-1/board",
+      pathname: "/dashboard/team/workspace-1/project/project-1/board",
     });
 
     render(<CreateTaskModal open onClose={vi.fn()} />);

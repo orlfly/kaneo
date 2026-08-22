@@ -62,7 +62,7 @@ export default function PrivacyPage() {
                 <strong className="font-medium text-foreground">
                   Content you create.
                 </strong>{" "}
-                Workspaces, projects, tasks, comments, and file attachments you
+                Teams, projects, tasks, comments, and file attachments you
                 upload are stored so the service can function. This content
                 belongs to you.
               </p>

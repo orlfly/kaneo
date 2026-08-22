@@ -11,7 +11,8 @@
 			"remove": "Verwijderen",
 			"reset": "Herstellen",
 			"filter": "Filteren",
-			"clearAllFilters": "Alle filters wissen"
+			"clearAllFilters": "Alle filters wissen",
+			"adding": "Adding…"
 		},
 		"a11y": {
 			"toggleSidebar": "Zijbalk in-/uitschakelen"
@@ -35,18 +36,6 @@
 			"label": "Broodkruimelpad",
 			"more": "Meer"
 		},
-		"language": {
-			"dutch": "Nederlands",
-			"english": "Engels",
-			"german": "Duits",
-			"greek": "Grieks",
-			"macedonian": "Macedonisch",
-			"french": "Frans",
-			"korean": "Koreaans",
-			"chinese": "Chinees",
-			"italian": "Italiaans",
-			"spanish": "Spaans"
-		},
 		"people": {
 			"someone": "Iemand",
 			"unknown": "Onbekend"
@@ -65,7 +54,6 @@
 			"createProject": {
 				"title": "Een nieuw project aanmaken",
 				"breadcrumbNew": "Een nieuw project aanmaken",
-				"workspaceFallback": "WERKRUIMTE",
 				"description": "Maak een nieuw project aan in uw werkruimte door een naam en sleutel op te geven en een pictogram te kiezen.",
 				"pickIcon": "Pictogram kiezen",
 				"searchIcons": "Pictogrammen zoeken...",
@@ -74,17 +62,12 @@
 				"keyHint": "Gebruikt voor ticket-ID's (bijv. {{example}}-123)",
 				"createButton": "Project aanmaken",
 				"successToast": "Project succesvol aangemaakt",
-				"errorToast": "Aanmaken van project mislukt"
-			},
-			"createWorkspace": {
-				"breadcrumbKaneo": "KANEO",
-				"title": "Een nieuwe werkruimte aanmaken",
-				"description": "Maak een nieuwe werkruimte aan door een naam op te geven.",
-				"namePlaceholder": "Naam werkruimte",
-				"descriptionPlaceholder": "Beschrijving toevoegen...",
-				"createButton": "Werkruimte aanmaken",
-				"successToast": "Werkruimte succesvol aangemaakt",
-				"errorToast": "Aanmaken van werkruimte mislukt"
+				"errorToast": "Aanmaken van project mislukt",
+				"manageTeams": "Go to team management",
+				"noTeams": "You don't have any teams yet. Create or join a team before creating a project.",
+				"teamLabel": "Team",
+				"teamPlaceholder": "Select a team",
+				"teamFallback": "WERKRUIMTE"
 			},
 			"createTask": {
 				"breadcrumbTask": "TAAK",
@@ -99,7 +82,6 @@
 				"successUpdated": "Taak succesvol bijgewerkt",
 				"createError": "Aanmaken van taak mislukt",
 				"priority": "Prioriteit",
-				"statusFallback": "In uitvoering",
 				"startDate": "Startdatum",
 				"dueDate": "Einddatum",
 				"clearStartDate": "Startdatum wissen",
@@ -128,7 +110,19 @@
 					"rose": "Roos",
 					"crimson": "Karmozijn"
 				}
+			},
+			"createTeam": {
+				"breadcrumbKaneo": "KANEO",
+				"createButton": "Create Team",
+				"description": "Create a new team by providing a name for your team.",
+				"errorToast": "Failed to create team",
+				"namePlaceholder": "Team name",
+				"successToast": "Team created successfully",
+				"title": "Create a new team"
 			}
+		},
+		"states": {
+			"loading": "Loading…"
 		}
 	},
 	"auth": {
@@ -136,43 +130,17 @@
 			"pageTitle": "Inloggen",
 			"title": "Welkom terug",
 			"subtitle": "Voer je gegevens in om toegang te krijgen tot je werkruimte",
-			"invitationSubtitle": "Log in om je uitnodiging te accepteren",
-			"invitationAlert": "Na het inloggen kun je de uitnodiging voor de werkruimte accepteren.",
-			"signingIn": "Inloggen...",
-			"continueWithGoogle": "Doorgaan met Google",
-			"continueWithGithub": "Doorgaan met GitHub",
-			"continueWithDiscord": "Doorgaan met Discord",
-			"continueWithOidc": "Doorgaan met OIDC",
-			"lastUsed": "Laatst gebruikt",
-			"registrationDisabled": "Publieke registratie is uitgeschakeld. Gebruik een uitnodiging om een account aan te maken.",
-			"passwordRegistrationDisabled": "Registratie met wachtwoord is uitgeschakeld. Gebruik een geconfigureerde sociale of OIDC-aanmeldmethode om een account aan te maken.",
-			"toggleMessage": "Nog geen account?",
-			"toggleLink": "Account aanmaken",
-			"guestSuccess": "Ingelogd als gast",
-			"guestError": "Inloggen als gast mislukt",
-			"oidcError": "Inloggen met OIDC mislukt",
-			"googleError": "Inloggen met Google mislukt",
-			"githubError": "Inloggen met GitHub mislukt",
-			"discordError": "Inloggen met Discord mislukt",
-			"errors": {
-				"account_not_linked": "Deze identiteit kon niet aan het bestaande account worden gekoppeld. Log in met e-mail om het account te verifiëren en probeer SSO daarna opnieuw. Als inloggen met e-mail niet beschikbaar is, neem dan contact op met je beheerder.",
-				"oauth_code_verification_failed": "OAuth-verificatie mislukt. Probeer het opnieuw.",
-				"registration_is_currently_disabled_you_need_a_valid_invitation_to_create_an_account_": "Registratie is momenteel uitgeschakeld. Je hebt een geldige uitnodiging nodig om een account aan te maken."
-			},
+			"registrationDisabled": "Public registration is disabled. Ask an administrator to create your account.",
 			"instanceStatusError": "Kan de server niet bereiken. Probeer het over een moment opnieuw."
-		},
-		"providers": {
-			"google": "Google",
-			"discord": "Discord"
 		},
 		"forms": {
 			"or": "of",
-			"email": "E-mailadres",
 			"password": "Wachtwoord",
-			"emailPlaceholder": "naam@voorbeeld.nl",
 			"passwordPlaceholder": "••••••••",
 			"showPassword": "Wachtwoord weergeven",
-			"hidePassword": "Wachtwoord verbergen"
+			"hidePassword": "Wachtwoord verbergen",
+			"username": "Username",
+			"usernamePlaceholder": "Enter your username"
 		},
 		"checkEmail": {
 			"pageTitle": "Controleer je e-mail",
@@ -181,114 +149,11 @@
 			"emailFallback": "je e-mailadres",
 			"backToLogin": "Terug naar inloggen"
 		},
-		"signUp": {
-			"pageTitle": "Account aanmaken",
-			"title": "Maak account aan",
-			"subtitleInvitation": "Maak een account aan om je uitnodiging te accepteren",
-			"subtitleRegistrationDisabled": "Registratie vereist een uitnodiging",
-			"subtitlePasswordDisabled": "Gebruik sociale media of OIDC om een account aan te maken",
-			"subtitleDefault": "Aan de slag met je werkruimte",
-			"invitationAlert": "Na het aanmaken van je account kun je de uitnodiging accepteren.",
-			"registrationDisabledAlert": "Registratie is momenteel uitgeschakeld. Als je bent uitgenodigd, voer dan het e-mailadres in waarop je de uitnodiging hebt ontvangen.",
-			"passwordDisabledAlert": "Account aanmaken met wachtwoord is uitgeschakeld. Gebruik een sociale of OIDC-methode.",
-			"signingIn": "Inloggen...",
-			"continueAsGuest": "Doorgaan als gast",
-			"toggleMessage": "Heb je al een account?",
-			"toggleLink": "Inloggen",
-			"instanceStatusError": "Kan de server niet bereiken. Probeer het over een moment opnieuw.",
-			"instanceAdminTitle": "Stel je Kaneo-instantie in",
-			"instanceAdminSubtitle": "Dit account wordt de instantiebeheerder met volledige toegang."
-		},
-		"verifyOtp": {
-			"pageTitle": "Code verifiëren",
-			"title": "Voer verificatiecode in",
-			"subtitle": "Gebruik de 6-cijferige code die naar je e-mail is gestuurd om door te gaan",
-			"codeSentTo": "Code gestuurd naar {{email}}",
-			"verificationCodeLabel": "Verificatiecode",
-			"verifying": "Verifiëren...",
-			"verifyAndSignIn": "Verifiëren & Inloggen",
-			"changeEmail": "E-mail wijzigen",
-			"resend": "Opnieuw versturen",
-			"validation": {
-				"codeLength": "Code moet uit 6 cijfers bestaan"
-			},
-			"toast": {
-				"invalidCode": "Ongeldige verificatiecode",
-				"signedInSuccess": "Succesvol ingelogd!",
-				"verifyFailed": "Verificatie mislukt",
-				"resendFailed": "Opnieuw versturen mislukt",
-				"resendSuccess": "Nieuwe verificatiecode verzonden!"
-			}
-		},
-		"otpSignIn": {
-			"sendFailed": "Versturen verificatiecode mislukt",
-			"codeSent": "Verificatiecode verzonden! Check je e-mail.",
-			"sending": "Versturen...",
-			"sendVerificationCode": "Verstuur verificatiecode"
-		},
 		"signInForm": {
 			"failedSignIn": "Inloggen mislukt",
 			"signedInSuccess": "Succesvol ingelogd",
 			"signingIn": "Inloggen...",
 			"signIn": "Inloggen"
-		},
-		"signUpForm": {
-			"fullName": "Volledige naam",
-			"namePlaceholder": "Jan Janssen",
-			"failedSignUp": "Registratie mislukt",
-			"accountCreated": "Account succesvol aangemaakt",
-			"passwordTooShort": "Wachtwoord is te kort",
-			"creatingAccount": "Account aanmaken...",
-			"createAccount": "Account aanmaken"
-		},
-		"invitation": {
-			"pageTitleAccept": "Uitnodiging accepteren",
-			"pageTitleError": "Uitnodigingsfout",
-			"pageTitleInvalid": "Ongeldige uitnodiging",
-			"loadingTitle": "Uitnodiging laden...",
-			"errorTitle": "Fout bij uitnodiging",
-			"invalidTitle": "Ongeldige uitnodiging",
-			"invitationExpired": "Uitnodiging verlopen",
-			"errorLoadDescription": "Laden van uitnodigingsgegevens mislukt. De uitnodiging is mogelijk ongeldig of verlopen.",
-			"goToSignIn": "Ga naar inloggen",
-			"workspaceLabel": "Werkruimte: {{workspaceName}}",
-			"joinWorkspace": "Deelnemen aan {{workspaceName}}",
-			"inviteBodySignedIn": "<inviter>{{inviterName}}</inviter> heeft je uitgenodigd voor hun werkruimte.",
-			"inviteBodySignedOut": "<inviter>{{inviterName}}</inviter> heeft je uitgenodigd om deel te nemen aan hun werkruimte op Kaneo.",
-			"createAccountOrSignIn": "Maak een account aan om deze uitnodiging te accepteren, of log in als je er al een hebt.",
-			"createAccount": "Account aanmaken",
-			"accepting": "Accepteren...",
-			"acceptInvitation": "Uitnodiging accepteren",
-			"goToDashboard": "Naar dashboard",
-			"signedInAs": "Ingelogd als <email>{{email}}</email>",
-			"youveBeenInvited": "Je bent uitgenodigd!",
-			"invitationFor": "Uitnodiging voor: <email>{{email}}</email>",
-			"signIn": "Inloggen",
-			"toast": {
-				"acceptFailed": "Accepteren van uitnodiging mislukt",
-				"acceptSuccess": "Uitnodiging geaccepteerd! Welkom bij het team."
-			}
-		},
-		"onboarding": {
-			"pageTitle": "Welkom bij Kaneo",
-			"workspacePageTitle": "Werkruimte maken",
-			"createWorkspaceTitle": "Werkruimte maken",
-			"createWorkspaceSubtitle": "Stel je werkruimte in om projecten te beheren",
-			"workspaceName": "Werkruimtenaam",
-			"workspaceNamePlaceholder": "bijv. Acme Inc, Mijn Team",
-			"descriptionOptional": "Beschrijving (optioneel)",
-			"descriptionPlaceholder": "Waar werkt je team aan?",
-			"creating": "Aanmaken...",
-			"createWorkspace": "Werkruimte maken",
-			"workspaceCreatedTitle": "Werkruimte aangemaakt",
-			"redirectingToWorkspace": "Je wordt doorverbonden naar <name>{{name}}</name>...",
-			"toast": {
-				"workspaceCreated": "Werkruimte succesvol aangemaakt",
-				"createFailed": "Aanmaken werkruimte mislukt"
-			},
-			"validation": {
-				"workspaceNameRequired": "Werkruimtenaam is verplicht"
-			}
 		},
 		"profileSetup": {
 			"pageTitle": "Profiel Voltooien",
@@ -347,7 +212,7 @@
 			"deleteAccount": {
 				"confirm": "Delete account",
 				"confirmLabel": "Confirm your email address",
-				"description": "Workspaces only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
+				"description": "Teams only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
 				"error": "Failed to delete account",
 				"modalDescription": "This cannot be undone. Type {{email}} to confirm.",
 				"modalTitle": "Delete your account?",
@@ -383,7 +248,6 @@
 			"selectViewMode": "Selecteer een weergavemodus",
 			"board": "Bord",
 			"list": "Lijst",
-			"gantt": "Gantt",
 			"sidebarDefault": "Zijbalk standaard",
 			"sidebarDefaultDescription": "Houd de zijbalk uitgeklapt bij het opstarten",
 			"displayOptions": "Weergaveopties",
@@ -463,49 +327,6 @@
 					"nameShort": "Naam moet minimaal 3 tekens bevatten",
 					"expirationRequired": "Vervaldatum is verplicht"
 				}
-			}
-		},
-		"workspaceGeneral": {
-			"pageTitle": "Algemene instellingen",
-			"title": "Algemene instellingen",
-			"subtitle": "Beheer de naam en beschrijving van je werkruimte.",
-			"workspaceInfoTitle": "Werkruimte-informatie",
-			"workspaceInfoSubtitle": "Configureer de details en voorkeuren van je werkruimte.",
-			"nameLabel": "Werkruimtenaam",
-			"nameHint": "De naam van je werkruimte",
-			"namePlaceholder": "Voer werkruimtenaam in",
-			"descriptionLabel": "Beschrijving",
-			"descriptionHint": "Een korte beschrijving van je werkruimte",
-			"descriptionPlaceholder": "Voer beschrijving in",
-			"dangerZone": "Gevarenzone",
-			"dangerZoneSubtitle": "Onomkeerbare en destructieve acties.",
-			"deleteWorkspace": "Werkruimte verwijderen",
-			"deleteWorkspaceDescription": "Plan de werkruimte in om permanent te worden verwijderd",
-			"deleteModalTitle": "Werkruimte verwijderen?",
-			"deleteModalDescription": "Dit zal de werkruimte \"{{name}}\" en alle bijbehorende data permanent verwijderen. Dit kan niet ongedaan worden gemaakt.",
-			"deleteModalConfirm": "Werkruimte verwijderen",
-			"toastUpdated": "Werkruimte succesvol bijgewerkt",
-			"toastUpdateError": "Bijwerken werkruimte mislukt",
-			"toastDeleted": "Werkruimte verwijderd",
-			"toastDeleteError": "Verwijderen werkruimte mislukt",
-			"validation": {
-				"nameRequired": "Werkruimtenaam is verplicht",
-				"nameShort": "Werkruimtenaam moet minimaal 2 tekens bevatten"
-			},
-			"transferOwnership": {
-				"toastSuccess": "Eigendom overgedragen",
-				"toastError": "Overdragen eigendom mislukt",
-				"title": "Eigendom overdragen",
-				"subtitle": "Draag deze werkruimte over aan een ander lid. Je wordt teruggezet naar beheerder en verliest rechten die alleen eigenaren hebben.",
-				"pickerLabel": "Nieuwe eigenaar",
-				"noEligibleMembers": "Nodig eerst minstens één ander lid uit voordat je het eigendom kunt overdragen.",
-				"pickerHint": "Diegene wordt de enige eigenaar van deze werkruimte.",
-				"pickerPlaceholder": "Selecteer een lid",
-				"button": "Overdragen",
-				"dialogTitle": "Eigendom overdragen?",
-				"dialogDescription": "{{name}} wordt de enige eigenaar van {{workspace}}. Je behoudt beheerderstoegang, maar verliest rechten die alleen eigenaren hebben, zoals het verwijderen of opnieuw overdragen van de werkruimte.",
-				"transferring": "Overdragen…",
-				"confirm": "Eigendom overdragen"
 			}
 		},
 		"projectGeneral": {
@@ -710,7 +531,6 @@
 			},
 			"connect": "Verbind Slack",
 			"saveChanges": "Wijzigingen opslaan",
-			"update": "Slack bijwerken",
 			"disconnect": "Ontkoppelen"
 		},
 		"discordIntegration": {
@@ -748,7 +568,6 @@
 			},
 			"connect": "Verbind Discord",
 			"saveChanges": "Wijzigingen opslaan",
-			"update": "Discord bijwerken",
 			"disconnect": "Ontkoppelen"
 		},
 		"genericWebhookIntegration": {
@@ -902,10 +721,6 @@
 			"webhookSecretHintConfigured": "Er is al een ondertekeningsgeheim geconfigureerd ({{masked}}). Voer een nieuwe in om deze te vervangen.",
 			"webhookSecretHintOptional": "Optioneel. Kaneo ondertekent de verzoektekst wanneer er een geheim is ingesteld.",
 			"connectWebhook": "Webhook verbinden",
-			"workspaceRulesTitle": "Bezorgingsregels per werkruimte",
-			"workspaceRulesDescription": "Hergebruik je globale kanalen en bepaal vervolgens welke werkruimtes en projecten accountmeldingen mogen versturen.",
-			"workspaceCardHint": "Kies welke kanalen deze werkruimte mag gebruiken voor accountmeldingen.",
-			"workspaceEnabledLabel": "Meldingen inschakelen voor {{workspaceName}}",
 			"eventPreferencesTitle": "Stuur mij meldingen over",
 			"eventPreferencesDescription": "Kies welke taakgebeurtenissen in-app meldingen aanmaken en naar je verbonden kanalen bezorgd kunnen worden.",
 			"eventTaskAssignments": "Taaktoewijzingen",
@@ -919,10 +734,6 @@
 			"reminderLeadTimeUnitDays": "Dagen",
 			"reminderLeadTimeInvalid": "Voer een geheel getal in tussen 1 en {{max}}.",
 			"saveEventPreferences": "Meldingstypen opslaan",
-			"workspaceCardLabelEmail": "E-mail",
-			"workspaceCardLabelNtfy": "ntfy",
-			"workspaceCardLabelGotify": "Gotify",
-			"workspaceCardLabelWebhook": "Aangepaste webhook",
 			"emailChannelHintEnabled": "Verstuur overeenkomende werkruimtemeldingen per e-mail.",
 			"emailChannelHintDisabled": "Configureer en schakel e-mail eerst globaal in.",
 			"ntfyChannelHintEnabled": "Verstuur overeenkomende werkruimtemeldingen naar ntfy.",
@@ -937,193 +748,23 @@
 			"allProjectsDescription": "Bezorg meldingen van elk project in deze werkruimte.",
 			"selectedProjects": "Geselecteerde projecten",
 			"selectedProjectsDescription": "Bezorg alleen meldingen van gekozen projecten.",
-			"noProjectsInWorkspace": "Nog geen projecten beschikbaar voor deze werkruimte.",
 			"createRule": "Regel aanmaken",
 			"removeRule": "Regel verwijderen",
-			"toastEmailSaved": "E-mailmeldingsinstellingen opgeslagen",
-			"toastEmailSaveFailed": "Opslaan e-mailinstellingen mislukt",
-			"toastNtfySaved": "ntfy-instellingen opgeslagen",
-			"toastNtfySaveFailed": "Opslaan ntfy-instellingen mislukt",
-			"toastNtfyDisconnected": "ntfy ontkoppeld",
-			"toastNtfyDisconnectFailed": "Ontkoppelen ntfy mislukt",
-			"toastGotifySaved": "Gotify-instellingen opgeslagen",
-			"toastGotifySaveFailed": "Opslaan Gotify-instellingen mislukt",
-			"toastGotifyDisconnected": "Gotify ontkoppeld",
-			"toastGotifyDisconnectFailed": "Ontkoppelen Gotify mislukt",
-			"toastWebhookSaved": "Webhook-instellingen opgeslagen",
-			"toastWebhookSaveFailed": "Opslaan webhook-instellingen mislukt",
-			"toastWebhookDisconnected": "Webhook ontkoppeld",
-			"toastWebhookDisconnectFailed": "Ontkoppelen webhook mislukt",
-			"toastRuleSaved": "Meldingsregel opgeslagen voor {{workspaceName}}",
 			"toastRuleSaveFailed": "Opslaan werkruimte-meldingsregel mislukt",
-			"toastRuleRemoved": "Meldingsregel verwijderd voor {{workspaceName}}",
 			"toastRuleRemoveFailed": "Verwijderen werkruimte-meldingsregel mislukt",
 			"toastPreferencesSaved": "Meldingsvoorkeuren opgeslagen",
 			"toastPreferencesSaveFailed": "Opslaan meldingsvoorkeuren mislukt",
 			"toastRuleSavedGeneric": "Werkruimte-meldingsregel opgeslagen",
-			"toastRuleRemovedGeneric": "Werkruimte-meldingsregel verwijderd"
-		},
-		"workspaceRoles": {
-			"pageTitle": "Rollen",
-			"title": "Rollen",
-			"subtitle": "Bepaal welke acties leden mogen uitvoeren in {{workspaceName}}.",
-			"thisWorkspace": "deze werkruimte",
-			"noAccess": "Je hebt beheerder- of eigenaarrechten nodig om werkruimterollen te beheren.",
-			"sectionTitle": "Werkruimterollen",
-			"sectionSubtitle": "Bewerk de standaardrollen of voeg een eigen rol toe. Leden behouden hun toegewezen rolnaam bij wijzigingen.",
-			"newRole": "Nieuwe rol",
-			"loading": "Laden…",
-			"loadError": "Laden van rollen mislukt.",
-			"emptyTitle": "Nog geen rollen",
-			"emptyDescription": "Standaardrollen verschijnen hier zodra ze voor deze werkruimte zijn aangemaakt.",
-			"defaultBadge": "Standaard",
-			"permissionCount_one": "{{count}} permissie",
-			"permissionCount_other": "{{count}} permissies",
-			"nameLabel": "Naam",
-			"nameHint": "Kleine letters. Kan later niet worden gewijzigd.",
-			"namePlaceholder": "bijv. reviewer",
-			"discard": "Verwerpen",
-			"createRole": "Rol aanmaken",
-			"deleteRole": "Rol verwijderen",
-			"defaultRoleHelp": "Standaardrol: de naam is gereserveerd en de rij kan niet worden verwijderd.",
-			"unsavedChanges": "Je hebt niet-opgeslagen wijzigingen",
-			"allChangesSaved": "Alle wijzigingen opgeslagen",
-			"saveChanges": "Wijzigingen opslaan",
-			"defaultRoleDescriptions": {
-				"viewer": "Kan taken bekijken en erop reageren.",
-				"member": "Kan taken en projecten aanmaken en beheren.",
-				"admin": "Heeft volledige toegang tot de werkruimte."
-			},
-			"resources": {
-				"project": "Projecten",
-				"task": "Taken",
-				"label": "Labels",
-				"workspace": "Werkruimte"
-			},
-			"permissions": {
-				"project": {
-					"create": {
-						"label": "Aanmaken",
-						"description": "Kan nieuwe projecten aanmaken"
-					},
-					"read": {
-						"label": "Lezen",
-						"description": "Kan projecten bekijken"
-					},
-					"update": {
-						"label": "Bijwerken",
-						"description": "Kan projectinstellingen bewerken"
-					},
-					"delete": {
-						"label": "Verwijderen",
-						"description": "Kan projecten verwijderen"
-					},
-					"share": {
-						"label": "Delen",
-						"description": "Kan projecten delen"
-					}
-				},
-				"task": {
-					"create": {
-						"label": "Aanmaken",
-						"description": "Kan taken aanmaken"
-					},
-					"read": {
-						"label": "Lezen",
-						"description": "Kan taken bekijken"
-					},
-					"update": {
-						"label": "Bijwerken",
-						"description": "Kan taken bewerken"
-					},
-					"delete": {
-						"label": "Verwijderen",
-						"description": "Kan taken verwijderen"
-					},
-					"assign": {
-						"label": "Toewijzen",
-						"description": "Kan taken toewijzen aan leden"
-					}
-				},
-				"label": {
-					"create": {
-						"label": "Aanmaken",
-						"description": "Kan labels aanmaken"
-					},
-					"read": {
-						"label": "Lezen",
-						"description": "Kan labels bekijken"
-					},
-					"update": {
-						"label": "Bijwerken",
-						"description": "Kan labels bewerken"
-					},
-					"delete": {
-						"label": "Verwijderen",
-						"description": "Kan labels verwijderen"
-					}
-				},
-				"workspace": {
-					"read": {
-						"label": "Lezen",
-						"description": "Kan werkruimte-instellingen bekijken"
-					},
-					"update": {
-						"label": "Bijwerken",
-						"description": "Kan werkruimte-instellingen bijwerken"
-					},
-					"delete": {
-						"label": "Verwijderen",
-						"description": "Kan werkruimte verwijderen"
-					},
-					"manage_settings": {
-						"label": "Instellingen beheren",
-						"description": "Kan werkruimte-instellingen beheren"
-					}
-				}
-			},
-			"validation": {
-				"nameRequired": "Rolnaam is verplicht",
-				"nameExists": "Er bestaat al een rol met deze naam",
-				"permissionRequired": "Er moet minimaal één permissie geselecteerd zijn"
-			},
-			"toast": {
-				"created": "Rol aangemaakt",
-				"createError": "Aanmaken rol mislukt",
-				"updated": "Rol bijgewerkt",
-				"updateError": "Bijwerken rol mislukt",
-				"deleted": "Rol verwijderd",
-				"deleteError": "Verwijderen rol mislukt"
-			},
-			"deleteDialog": {
-				"title": "Rol verwijderen",
-				"description": "Dit zal de rol \"{{role}}\" permanent verwijderen. Leden met deze rol verliezen de bijbehorende permissies."
-			}
-		},
-		"workspaceLabels": {
-			"pageTitle": "Labelinstellingen",
-			"title": "Labels",
-			"subtitle": "Maak, bewerk en verwijder labels op werkruimteniveau.",
-			"cardDescription": "Beheer labels die aan taken kunnen worden toegewezen.",
-			"createLabel": "Label aanmaken",
-			"editLabel": "Label bewerken",
-			"deleteLabel": "Verwijderen",
-			"saveLabel": "Opslaan",
-			"nameLabel": "Labelnaam",
-			"namePlaceholder": "Voer labelnaam in",
-			"colorLabel": "Kleur",
-			"createDescription": "Maak een nieuw label aan dat gebruikt kan worden voor taken in deze werkruimte.",
-			"editDescription": "Werk de naam of kleur van dit label bij.",
-			"deleteConfirmTitle": "Dit label verwijderen?",
-			"deleteConfirmDescription": "Dit zal dit label permanent van alle taken verwijderen. Dit kan niet ongedaan worden gemaakt.",
-			"empty": "Nog geen labels. Maak je eerste label aan om te beginnen.",
-			"createSuccess": "Label aangemaakt",
-			"updateSuccess": "Label bijgewerkt",
-			"deleteSuccess": "Label verwijderd",
-			"createError": "Aanmaken label mislukt",
-			"updateError": "Bijwerken label mislukt",
-			"deleteError": "Verwijderen label mislukt",
-			"nameRequired": "Labelnaam is verplicht"
+			"toastRuleRemovedGeneric": "Werkruimte-meldingsregel verwijderd",
+			"noProjectsInTeam": "No projects available for this team yet.",
+			"teamCardHint": "Choose which channels this team can use for account notifications.",
+			"teamCardLabelEmail": "Email",
+			"teamCardLabelGotify": "Gotify",
+			"teamCardLabelNtfy": "ntfy",
+			"teamCardLabelWebhook": "Custom webhook",
+			"teamEnabledLabel": "Enable notifications for {{teamName}}",
+			"teamRulesDescription": "Reuse your global channels, then decide which teams and projects are allowed to send account notifications.",
+			"teamRulesTitle": "Team delivery rules"
 		},
 		"giteaIntegration": {
 			"validation": {
@@ -1246,6 +887,31 @@
 			"connect": "Verbind Telegram",
 			"saveChanges": "Wijzigingen opslaan",
 			"disconnect": "Ontkoppelen"
+		},
+		"teamLabels": {
+			"pageTitle": "Labelinstellingen",
+			"title": "Labels",
+			"subtitle": "Maak, bewerk en verwijder labels op werkruimteniveau.",
+			"cardDescription": "Beheer labels die aan taken kunnen worden toegewezen.",
+			"createLabel": "Label aanmaken",
+			"editLabel": "Label bewerken",
+			"deleteLabel": "Verwijderen",
+			"saveLabel": "Opslaan",
+			"nameLabel": "Labelnaam",
+			"namePlaceholder": "Voer labelnaam in",
+			"colorLabel": "Kleur",
+			"createDescription": "Maak een nieuw label aan dat gebruikt kan worden voor taken in deze werkruimte.",
+			"editDescription": "Werk de naam of kleur van dit label bij.",
+			"deleteConfirmTitle": "Dit label verwijderen?",
+			"deleteConfirmDescription": "Dit zal dit label permanent van alle taken verwijderen. Dit kan niet ongedaan worden gemaakt.",
+			"empty": "Nog geen labels. Maak je eerste label aan om te beginnen.",
+			"createSuccess": "Label aangemaakt",
+			"updateSuccess": "Label bijgewerkt",
+			"deleteSuccess": "Label verwijderd",
+			"createError": "Aanmaken label mislukt",
+			"updateError": "Bijwerken label mislukt",
+			"deleteError": "Verwijderen label mislukt",
+			"nameRequired": "Labelnaam is verplicht"
 		}
 	},
 	"navigation": {
@@ -1257,7 +923,6 @@
 			"members": "Leden",
 			"createTask": "Taak aanmaken",
 			"createProject": "Project aanmaken",
-			"createWorkspace": "Werkruimte aanmaken",
 			"lightTheme": "Licht thema",
 			"darkTheme": "Donker thema",
 			"systemTheme": "Systeemthema",
@@ -1268,14 +933,14 @@
 				"navigate": "Navigeren",
 				"open": "Openen",
 				"close": "Sluiten"
-			}
+			},
+			"createTeam": "Create team"
 		},
 		"notifications": "Meldingen",
 		"sidebar": {
 			"overview": "Overzicht",
 			"projects": "Projecten",
 			"members": "Leden",
-			"invitations": "Uitnodigingen",
 			"more": "Meer",
 			"backToBoard": "Terug naar bord"
 		},
@@ -1296,10 +961,10 @@
 			"groups": {
 				"task": "Taken",
 				"project": "Projecten",
-				"workspace": "Werkruimtes",
 				"comment": "Reacties",
 				"activity": "Activiteiten",
-				"fallback": "Resultaten"
+				"fallback": "Resultaten",
+				"team": "Teams"
 			}
 		},
 		"settingsLayout": {
@@ -1314,17 +979,10 @@
 			"signingOut": "Uitloggen...",
 			"logOut": "Uitloggen"
 		},
-		"workspaceSwitcher": {
-			"workspaces": "Werkruimtes",
-			"switching": "Wisselen...",
-			"addWorkspace": "Werkruimte toevoegen",
-			"selectWorkspace": "Werkruimte selecteren"
-		},
 		"page": {
 			"projectsTitle": "Projecten",
 			"settingsTitle": "Instellingen",
-			"backToWorkspace": "Terug naar werkruimte",
-			"settingsWorkspaceTab": "Werkruimte"
+			"backToTeam": "Terug naar werkruimte"
 		},
 		"projectSettings": {
 			"projectLabel": "Project"
@@ -1349,21 +1007,25 @@
 				"closeModal": "Venster/popover sluiten",
 				"createTask": "Taak aanmaken",
 				"createProject": "Project aanmaken",
-				"createWorkspace": "Werkruimte aanmaken",
 				"boardView": "Wissel naar bordweergave",
 				"listView": "Wissel naar lijstweergave",
 				"backlogView": "Wissel naar backlog-weergave",
 				"nextTask": "Volgende taak",
 				"prevTask": "Vorige taak",
 				"openTask": "Geselecteerde taak openen",
-				"quickSelectNumber": "Selecteer optie via nummer"
+				"quickSelectNumber": "Selecteer optie via nummer",
+				"createTeam": "Create team"
 			}
+		},
+		"teamSwitcher": {
+			"addTeam": "Add team",
+			"selectTeam": "Select a team",
+			"switching": "Switching...",
+			"teams": "Teams"
 		}
 	},
 	"notifications": {
 		"title": "Meldingen",
-		"newCount_one": "{{count}} nieuw",
-		"newCount_other": "{{count}} nieuw",
 		"emptyTitle": "Nog geen meldingen",
 		"emptySubtitle": "Updates en activiteiten verschijnen hier.",
 		"clearAll": "Alle meldingen wissen",
@@ -1376,10 +1038,6 @@
 			"task_created": {
 				"title": "Nieuwe taak aangemaakt",
 				"content": "Taak \"{{taskTitle}}\" is aangemaakt"
-			},
-			"workspace_created": {
-				"title": "Werkruimte aangemaakt",
-				"content": "Je werkruimte \"{{workspaceName}}\" is succesvol aangemaakt"
 			},
 			"task_status_changed": {
 				"title": "Taakstatus gewijzigd",
@@ -1662,9 +1320,6 @@
 						"onlyYoutube": "Alleen YouTube-links kunnen worden ingesloten."
 					},
 					"onlyYoutubeInline": "Alleen YouTube URL's kunnen worden ingesloten. Gebruik link-modus."
-				},
-				"mermaid": {
-					"renderFailed": "Mermaid-diagram kon niet worden weergegeven"
 				}
 			}
 		},
@@ -1942,37 +1597,34 @@
 			}
 		}
 	},
-	"invitations": {
-		"email": {
-			"subject": "{{inviterName}} heeft je uitgenodigd voor {{workspaceName}} op Kaneo",
-			"preview": "Je bent uitgenodigd voor {{workspaceName}} op Kaneo",
-			"title": "Word lid van {{workspaceName}}",
-			"subtitle": "{{inviterName}} ({{inviterEmail}}) heeft je uitgenodigd om samen te werken in Kaneo.",
-			"cta": "Uitnodiging accepteren",
-			"sameEmail": "Je kunt accepteren met hetzelfde e-mailadres waarop dit bericht is ontvangen.",
-			"ignore": "Verwachtte je deze e-mail niet, dan kun je deze veilig negeren.",
-			"footer": "Kaneo werkruimte-uitnodiging"
+	"team": {
+		"roles": {
+			"owner": "Eigenaar",
+			"admin": "Beheerder",
+			"member": "Lid",
+			"viewer": "Kijker"
 		},
-		"pageTitle": "Uitnodigingen",
-		"pendingInvitations": "Openstaande uitnodigingen",
-		"acceptSubtitle": "Accepteer uitnodigingen voor werkruimtes",
-		"noPendingTitle": "Geen openstaande uitnodigingen",
-		"noPendingDescription": "Je hebt momenteel geen uitnodigingen voor werkruimtes.",
-		"continueToSetup": "Doorgaan naar configuratie",
-		"skipForNow": "Nu overslaan",
-		"table": {
-			"workspace": "Werkruimte",
-			"invitedBy": "Uitgenodigd door",
-			"expires": "Verloopt op"
+		"members": {
+			"pageTitle": "Leden",
+			"you": "Jij"
 		},
-		"toast": {
-			"acceptError": "Accepteren van uitnodiging mislukt",
-			"acceptSuccess": "Uitnodiging geaccepteerd! Welkom bij het team.",
-			"rejectError": "Weigeren van uitnodiging mislukt",
-			"rejectSuccess": "Uitnodiging geweigerd"
-		}
-	},
-	"workspace": {
+		"membersTable": {
+			"emptyTitle": "Nog geen teamleden",
+			"emptyDescription": "Ask an admin to add members to this team.",
+			"columns": {
+				"name": "Naam",
+				"role": "Rol",
+				"joined": "Lid sinds"
+			},
+			"ariaRemoveMember": "Lid verwijderen",
+			"removeDialogTitle": "Teamlid verwijderen?",
+			"removeDialogDescription": "Weet je zeker dat je {{name}} wilt verwijderen uit de werkruimte? Dit kan niet ongedaan worden gemaakt.",
+			"removeMember": "Lid verwijderen",
+			"removeSuccess": "Teamlid succesvol verwijderd",
+			"removeError": "Verwijderen teamlid mislukt",
+			"roleUpdateSuccess": "Rol bijgewerkt",
+			"roleUpdateError": "Bijwerken rol mislukt"
+		},
 		"projects": {
 			"pageTitle": "Projecten",
 			"createProject": "Project aanmaken",
@@ -1989,7 +1641,6 @@
 				"inProgress": "In behandeling"
 			},
 			"noDueDate": "Geen einddatum",
-			"reorderHandle": "Project opnieuw ordenen",
 			"reorderError": "Projecten opnieuw ordenen mislukt",
 			"emptyDescriptionReadOnly": "Er zijn nog geen projecten in deze werkruimte. Vraag een beheerder om er een aan te maken."
 		},
@@ -2016,73 +1667,13 @@
 			"pageTitle": "Werkruimte maken",
 			"heading": "Maak een nieuwe werkruimte",
 			"subtitle": "Werkruimtes zijn gedeelde omgevingen waar teams samenwerken aan projecten en taken.",
-			"nameLabel": "Werkruimtenaam",
 			"namePlaceholder": "Voer naam in",
-			"descriptionLabel": "Beschrijving (optioneel)",
-			"descriptionPlaceholder": "Voeg een beschrijving toe",
 			"required": "Verplicht",
 			"creating": "Aanmaken...",
 			"submit": "Werkruimte maken",
 			"success": "Werkruimte succesvol aangemaakt",
-			"error": "Aanmaken werkruimte mislukt"
-		}
-	},
-	"team": {
-		"roles": {
-			"owner": "Eigenaar",
-			"admin": "Beheerder",
-			"member": "Lid",
-			"viewer": "Kijker"
-		},
-		"members": {
-			"pageTitle": "Leden",
-			"inviteMember": "Lid uitnodigen",
-			"you": "Jij"
-		},
-		"invitations": {
-			"linkLabel": "Uitnodigingslink",
-			"copyLink": "Link kopiëren",
-			"linkCopied": "Uitnodigingslink gekopieerd",
-			"copyFailed": "Automatisch kopiëren mislukt. Selecteer de link en druk op Ctrl+C.",
-			"pendingBadge": "in afwachting",
-			"expires": "Verloopt op {{date}}"
-		},
-		"inviteModal": {
-			"title": "Teamlid uitnodigen",
-			"emailLabel": "E-mailadres",
-			"emailPlaceholder": "collega@bedrijf.nl",
-			"sendInvitation": "Uitnodiging versturen",
-			"success": "Uitnodiging succesvol verzonden",
-			"error": "Uitnodigen teamlid mislukt",
-			"createdTitle": "Uitnodiging aangemaakt",
-			"shareLinkDescription": "Deel deze link met {{email}} zodat diegene lid kan worden van de werkruimte.",
-			"done": "Klaar"
-		},
-		"membersTable": {
-			"emptyTitle": "Nog geen teamleden",
-			"emptyDescription": "Nodig je eerste teamlid uit om te beginnen.",
-			"columns": {
-				"name": "Naam",
-				"role": "Rol",
-				"joined": "Lid sinds",
-				"actions": "Acties"
-			},
-			"memberRolePending": "{{role}} (In afwachting)",
-			"ariaCancelInvitation": "Uitnodiging annuleren",
-			"ariaRemoveMember": "Lid verwijderen",
-			"removeDialogTitle": "Teamlid verwijderen?",
-			"removeDialogDescription": "Weet je zeker dat je {{name}} wilt verwijderen uit de werkruimte? Dit kan niet ongedaan worden gemaakt.",
-			"cancelDialogTitle": "Uitnodiging annuleren?",
-			"cancelDialogDescription": "Weet je zeker dat je de uitnodiging voor {{email}} wilt annuleren?",
-			"removeMember": "Lid verwijderen",
-			"cancelInvitation": "Uitnodiging annuleren",
-			"removeSuccess": "Teamlid succesvol verwijderd",
-			"removeError": "Verwijderen teamlid mislukt",
-			"cancelInviteSuccess": "Uitnodiging succesvol geannuleerd",
-			"cancelInviteError": "Annuleren uitnodiging mislukt",
-			"ariaInvitationActions": "Uitnodigingsacties",
-			"roleUpdateSuccess": "Rol bijgewerkt",
-			"roleUpdateError": "Bijwerken rol mislukt"
+			"error": "Aanmaken werkruimte mislukt",
+			"nameLabel": "Team Name"
 		}
 	},
 	"publicProject": {
@@ -2099,7 +1690,6 @@
 		"taskDetail": {
 			"labels": "Labels",
 			"externalLinks": "Externe links",
-			"pullRequestFallback": "Pull Request",
 			"issueFallback": "Issue",
 			"prStatusMerged": "Samengevoegd",
 			"prStatusDraft": "Concept",
@@ -2121,5 +1711,169 @@
 		"branding": {
 			"poweredBy": "Mogelijk gemaakt door"
 		}
+	},
+	"admin": {
+		"actions": {
+			"delete": "Delete user",
+			"demote": "Demote to user",
+			"disable": "Disable account",
+			"enable": "Enable account",
+			"error": "Action failed",
+			"promote": "Promote to admin",
+			"resetPassword": "Reset password",
+			"successRole": "Role updated",
+			"successStatus": "Account status updated",
+			"manageTeams": "Manage teams"
+		},
+		"columns": {
+			"created": "Created",
+			"role": "Role",
+			"status": "Status",
+			"user": "User"
+		},
+		"create": {
+			"description": "Create a new account. The user can sign in with the username and password.",
+			"email": "Email (optional)",
+			"emailPlaceholder": "e.g. jane@example.com",
+			"error": "Failed to create user",
+			"name": "Name",
+			"namePlaceholder": "e.g. Jane Doe",
+			"password": "Password",
+			"passwordPlaceholder": "At least 8 characters",
+			"role": "Role",
+			"submit": "Create user",
+			"success": "User created",
+			"title": "Create user",
+			"username": "Username",
+			"usernamePlaceholder": "e.g. jane",
+			"validation": {
+				"nameRequired": "Name is required",
+				"passwordShort": "Password must be at least 8 characters",
+				"usernameInvalid": "Only lowercase letters, numbers and underscores (1-30 characters)",
+				"usernameRequired": "Username is required"
+			},
+			"team": "Team (optional)",
+			"teamNone": "No team",
+			"teamPlaceholder": "Choose a team…"
+		},
+		"deleteDialog": {
+			"confirm": "Delete",
+			"description": "Delete {{name}} ({{username}})? This cannot be undone.",
+			"success": "User deleted",
+			"title": "Delete user"
+		},
+		"page": {
+			"createUser": "Create user",
+			"currentUserBadge": "you",
+			"description": "Create and manage user accounts.",
+			"emptyDescription": "Create the first user account to get started.",
+			"emptyTitle": "No users",
+			"title": "User Management"
+		},
+		"resetPassword": {
+			"description": "Set a new password for {{username}}.",
+			"password": "New password",
+			"submit": "Reset password",
+			"success": "Password updated",
+			"title": "Reset password"
+		},
+		"role": {
+			"admin": "Admin",
+			"user": "User"
+		},
+		"status": {
+			"active": "Active",
+			"disabled": "Disabled"
+		},
+		"tab": "System",
+		"teams": {
+			"columns": {
+				"actions": "Actions",
+				"members": "Members",
+				"name": "Name",
+				"role": "Your role"
+			},
+			"create": "Create team",
+			"createDialogDescription": "Teams group users who collaborate on shared projects.",
+			"createDialogTitle": "Create a team",
+			"delete": "Delete team",
+			"deleteDialogDescription": "The team, its projects, and its memberships will be permanently deleted.",
+			"deleteDialogTitle": "Delete this team?",
+			"description": "Create and manage teams. Users join teams via invitation.",
+			"empty": "No teams yet. Create the first one to get started.",
+			"enter": "Enter team",
+			"hint": "As a system administrator, create the teams your users will join.",
+			"nameLabel": "Team name",
+			"namePlaceholder": "e.g. Acme",
+			"pageTitle": "Team management",
+			"tab": "Teams",
+			"title": "Teams",
+			"toast": {
+				"created": "Team \"{{name}}\" created",
+				"createError": "Failed to create team",
+				"deleted": "Team deleted",
+				"deleteError": "Failed to delete team",
+				"renamed": "Team renamed",
+				"renameError": "Failed to rename team"
+			},
+			"labels": "Labels",
+			"rename": "Rename",
+			"renameDialogDescription": "Change the name of this team.",
+			"renameDialogTitle": "Rename team",
+			"userTeamsAdd": "Add to team",
+			"userTeamsAddButton": "Add",
+			"userTeamsChoose": "Choose a team…",
+			"userTeamsCurrent": "Current teams",
+			"userTeamsDescription": "Manage which teams this user belongs to.",
+			"userTeamsEmpty": "This user is not a member of any team.",
+			"userTeamsNoAvailable": "This user is already in every team.",
+			"userTeamsRemove": "Remove from team",
+			"userTeamsTitle": "Teams of {{name}}",
+			"manageMembers": "Manage members",
+			"membersAdd": "Add user to team",
+			"membersAddButton": "Add",
+			"membersChooseUser": "Choose a user…",
+			"membersCurrent": "Current members",
+			"membersDescription": "Manage which users belong to this team.",
+			"membersEmpty": "This team has no members yet.",
+			"membersNoAvailable": "All users are already in this team.",
+			"membersRemove": "Remove from team",
+			"membersTitle": "Members of {{name}}"
+		},
+		"users": {
+			"tab": "Users"
+		},
+		"ai": {
+			"apiKeyHelp": "Stored encrypted. Sent as Bearer token. Never returned in responses.",
+			"apiKeyLabel": "API key",
+			"baseUrlHelp": "OpenAI-compatible endpoint. The client appends /v1/chat/completions.",
+			"baseUrlLabel": "API base URL",
+			"enableDescription": "When disabled, the Chat tab shows a placeholder and the API returns 503.",
+			"enableLabel": "Enable AI assistant",
+			"modelHelp": "Any model name accepted by your API. Default: gpt-4o.",
+			"modelLabel": "Model",
+			"pageDescription": "Configure the AI assistant used by project chat. Kaneo uses an OpenAI-compatible API.",
+			"pageTitle": "AI Assistant",
+			"save": "Save",
+			"saving": "Saving…",
+			"tab": "AI",
+			"toast": {
+				"error": "Failed to save settings",
+				"saved": "AI settings saved"
+			}
+		}
+	},
+	"chat": {
+		"errorFailed": "Failed to send message",
+		"errorTimeout": "Request timed out. Please try again.",
+		"notEnabledDescription": "The pi-agent AI assistant has not been configured for this instance. Please contact an administrator to enable it.",
+		"notEnabledTitle": "AI assistant not enabled",
+		"pageTitle": "Chat",
+		"placeholder": "Send a message to pi-agent…",
+		"send": "Send",
+		"streaming": "pi-agent is typing…",
+		"welcomeDescription": "Ask me to create tasks, check project status, or analyze progress. I'm your AI project management assistant.",
+		"welcomeTitle": "Chat with pi-agent",
+		"you": "You"
 	}
 }

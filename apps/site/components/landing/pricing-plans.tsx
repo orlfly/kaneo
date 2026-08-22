@@ -63,7 +63,7 @@ const plans: Plan[] = [
     features: [
       "Unlimited team members",
       "Unlimited projects and tasks",
-      "Workspace roles and permissions",
+      "Team roles and permissions",
       "Automatic backups and updates",
       "Priority email support",
     ],

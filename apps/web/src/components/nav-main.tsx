@@ -14,40 +14,28 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { usePendingInvitations } from "@/hooks/queries/invitation/use-pending-invitations";
-import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
+import useActiveTeam from "@/hooks/queries/team/use-active-team";
 
 export function NavMain() {
   const { t } = useTranslation();
-  const { data: workspace } = useActiveWorkspace();
+  const { data: team } = useActiveTeam();
   const navigate = useNavigate();
-  const { data: invitations = [] } = usePendingInvitations();
 
-  if (!workspace) return null;
-
-  const pendingCount = invitations.length;
+  if (!team) return null;
 
   const navItems = [
     {
       title: t("navigation:sidebar.projects"),
-      url: `/dashboard/workspace/${workspace.id}`,
-      isActive:
-        window.location.pathname === `/dashboard/workspace/${workspace.id}`,
+      url: `/dashboard/team/${team.id}`,
+      isActive: window.location.pathname === `/dashboard/team/${team.id}`,
       badge: null,
     },
     {
       title: t("navigation:sidebar.members"),
-      url: `/dashboard/workspace/${workspace.id}/members`,
+      url: `/dashboard/team/${team.id}/members`,
       isActive:
-        window.location.pathname ===
-        `/dashboard/workspace/${workspace.id}/members`,
+        window.location.pathname === `/dashboard/team/${team.id}/members`,
       badge: null,
-    },
-    {
-      title: t("navigation:sidebar.invitations"),
-      url: "/dashboard/invitations",
-      isActive: window.location.pathname === "/dashboard/invitations",
-      badge: pendingCount > 0 ? pendingCount : null,
     },
   ];
 

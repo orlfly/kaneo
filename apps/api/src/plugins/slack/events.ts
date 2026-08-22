@@ -4,7 +4,7 @@ import {
   projectTable,
   taskTable,
   userTable,
-  workspaceTable,
+  teamTable,
 } from "../../database/schema";
 import type {
   PluginContext,
@@ -68,11 +68,11 @@ async function getSlackEventData(
       priority: taskTable.priority,
       projectName: projectTable.name,
       projectId: projectTable.id,
-      workspaceId: workspaceTable.id,
+      teamId: teamTable.id,
     })
     .from(taskTable)
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-    .innerJoin(workspaceTable, eq(projectTable.workspaceId, workspaceTable.id))
+    .innerJoin(teamTable, eq(projectTable.teamId, teamTable.id))
     .where(and(eq(taskTable.id, taskId), eq(projectTable.id, projectId)))
     .limit(1);
 
@@ -89,7 +89,7 @@ async function getSlackEventData(
     : [];
 
   const clientUrl = process.env.KANEO_CLIENT_URL || "http://localhost:5173";
-  const taskUrl = `${clientUrl}/dashboard/workspace/${taskRow.workspaceId}/project/${taskRow.projectId}/task/${taskId}`;
+  const taskUrl = `${clientUrl}/dashboard/team/${taskRow.teamId}/project/${taskRow.projectId}/task/${taskId}`;
 
   return {
     taskTitle: taskRow.title,

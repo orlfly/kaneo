@@ -4,6 +4,11 @@ import db from "../database";
 /**
  * Repairs notification preference tables for instances where migration state
  * drift left the schema partially applied.
+ *
+ * NOTE: This utility targets the current `team`-based naming. Prior to the
+ * workspace -> team migration it created `user_notification_workspace_*`
+ * tables and referenced the deleted `workspace` table; those names no longer
+ * exist after migration 0044, so this helper must not recreate them.
  */
 export async function migrateNotificationPreferencesSchema() {
   console.log("🔄 Checking notification preference schema...");
@@ -57,10 +62,10 @@ export async function migrateNotificationPreferencesSchema() {
     `);
 
     await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS "user_notification_workspace_rule" (
+      CREATE TABLE IF NOT EXISTS "user_notification_team_rule" (
         "id" text PRIMARY KEY NOT NULL,
         "user_id" text NOT NULL,
-        "workspace_id" text NOT NULL,
+        "team_id" text NOT NULL,
         "is_active" boolean DEFAULT true NOT NULL,
         "email_enabled" boolean DEFAULT false NOT NULL,
         "ntfy_enabled" boolean DEFAULT false NOT NULL,
@@ -73,7 +78,7 @@ export async function migrateNotificationPreferencesSchema() {
     `);
 
     await db.execute(sql`
-      ALTER TABLE "user_notification_workspace_rule"
+      ALTER TABLE "user_notification_team_rule"
       ADD COLUMN IF NOT EXISTS "is_active" boolean DEFAULT true NOT NULL,
       ADD COLUMN IF NOT EXISTS "email_enabled" boolean DEFAULT false NOT NULL,
       ADD COLUMN IF NOT EXISTS "ntfy_enabled" boolean DEFAULT false NOT NULL,
@@ -85,10 +90,10 @@ export async function migrateNotificationPreferencesSchema() {
     `);
 
     await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS "user_notification_workspace_project" (
+      CREATE TABLE IF NOT EXISTS "user_notification_team_project" (
         "id" text PRIMARY KEY NOT NULL,
-        "workspace_id" text NOT NULL,
-        "workspace_rule_id" text NOT NULL,
+        "team_id" text NOT NULL,
+        "team_rule_id" text NOT NULL,
         "project_id" text NOT NULL,
         "created_at" timestamp DEFAULT now() NOT NULL,
         "updated_at" timestamp DEFAULT now() NOT NULL
@@ -96,7 +101,7 @@ export async function migrateNotificationPreferencesSchema() {
     `);
 
     await db.execute(sql`
-      ALTER TABLE "user_notification_workspace_project"
+      ALTER TABLE "user_notification_team_project"
       ADD COLUMN IF NOT EXISTS "created_at" timestamp DEFAULT now() NOT NULL,
       ADD COLUMN IF NOT EXISTS "updated_at" timestamp DEFAULT now() NOT NULL;
     `);
@@ -106,32 +111,32 @@ export async function migrateNotificationPreferencesSchema() {
       ON "user_notification_preference" ("user_id");
     `);
     await db.execute(sql`
-      CREATE UNIQUE INDEX IF NOT EXISTS "user_notification_workspace_rule_user_workspace_unique"
-      ON "user_notification_workspace_rule" ("user_id", "workspace_id");
+      CREATE UNIQUE INDEX IF NOT EXISTS "user_notification_team_rule_user_team_unique"
+      ON "user_notification_team_rule" ("user_id", "team_id");
     `);
     await db.execute(sql`
-      CREATE UNIQUE INDEX IF NOT EXISTS "user_notification_workspace_rule_workspace_id_id_unique"
-      ON "user_notification_workspace_rule" ("workspace_id", "id");
+      CREATE UNIQUE INDEX IF NOT EXISTS "user_notification_team_rule_team_id_id_unique"
+      ON "user_notification_team_rule" ("team_id", "id");
     `);
     await db.execute(sql`
-      CREATE UNIQUE INDEX IF NOT EXISTS "user_notification_workspace_project_rule_project_unique"
-      ON "user_notification_workspace_project" ("workspace_rule_id", "project_id");
+      CREATE UNIQUE INDEX IF NOT EXISTS "user_notification_team_project_rule_project_unique"
+      ON "user_notification_team_project" ("team_rule_id", "project_id");
     `);
     await db.execute(sql`
-      CREATE INDEX IF NOT EXISTS "user_notification_workspace_rule_userId_idx"
-      ON "user_notification_workspace_rule" ("user_id");
+      CREATE INDEX IF NOT EXISTS "user_notification_team_rule_userId_idx"
+      ON "user_notification_team_rule" ("user_id");
     `);
     await db.execute(sql`
-      CREATE INDEX IF NOT EXISTS "user_notification_workspace_rule_workspaceId_idx"
-      ON "user_notification_workspace_rule" ("workspace_id");
+      CREATE INDEX IF NOT EXISTS "user_notification_team_rule_teamId_idx"
+      ON "user_notification_team_rule" ("team_id");
     `);
     await db.execute(sql`
-      CREATE INDEX IF NOT EXISTS "user_notification_workspace_project_ruleId_idx"
-      ON "user_notification_workspace_project" ("workspace_rule_id");
+      CREATE INDEX IF NOT EXISTS "user_notification_team_project_ruleId_idx"
+      ON "user_notification_team_project" ("team_rule_id");
     `);
     await db.execute(sql`
-      CREATE INDEX IF NOT EXISTS "user_notification_workspace_project_projectId_idx"
-      ON "user_notification_workspace_project" ("project_id");
+      CREATE INDEX IF NOT EXISTS "user_notification_team_project_projectId_idx"
+      ON "user_notification_team_project" ("project_id");
     `);
 
     await db.execute(sql`
@@ -154,10 +159,10 @@ export async function migrateNotificationPreferencesSchema() {
       BEGIN
         IF NOT EXISTS (
           SELECT 1 FROM pg_constraint
-          WHERE conname = 'user_notification_workspace_rule_user_id_user_id_fk'
+          WHERE conname = 'user_notification_team_rule_user_id_user_id_fk'
         ) THEN
-          ALTER TABLE "user_notification_workspace_rule"
-          ADD CONSTRAINT "user_notification_workspace_rule_user_id_user_id_fk"
+          ALTER TABLE "user_notification_team_rule"
+          ADD CONSTRAINT "user_notification_team_rule_user_id_user_id_fk"
           FOREIGN KEY ("user_id") REFERENCES "public"."user"("id")
           ON DELETE cascade ON UPDATE cascade;
         END IF;
@@ -169,11 +174,11 @@ export async function migrateNotificationPreferencesSchema() {
       BEGIN
         IF NOT EXISTS (
           SELECT 1 FROM pg_constraint
-          WHERE conname = 'user_notification_workspace_rule_workspace_id_workspace_id_fk'
+          WHERE conname = 'user_notification_team_rule_team_id_team_id_fk'
         ) THEN
-          ALTER TABLE "user_notification_workspace_rule"
-          ADD CONSTRAINT "user_notification_workspace_rule_workspace_id_workspace_id_fk"
-          FOREIGN KEY ("workspace_id") REFERENCES "public"."workspace"("id")
+          ALTER TABLE "user_notification_team_rule"
+          ADD CONSTRAINT "user_notification_team_rule_team_id_team_id_fk"
+          FOREIGN KEY ("team_id") REFERENCES "public"."team"("id")
           ON DELETE cascade ON UPDATE cascade;
         END IF;
       END $$;
@@ -184,11 +189,11 @@ export async function migrateNotificationPreferencesSchema() {
       BEGIN
         IF NOT EXISTS (
           SELECT 1 FROM pg_constraint
-          WHERE conname = 'user_notification_workspace_project_workspace_id_workspace_id_fk'
+          WHERE conname = 'user_notification_team_project_team_id_team_id_fk'
         ) THEN
-          ALTER TABLE "user_notification_workspace_project"
-          ADD CONSTRAINT "user_notification_workspace_project_workspace_id_workspace_id_fk"
-          FOREIGN KEY ("workspace_id") REFERENCES "public"."workspace"("id")
+          ALTER TABLE "user_notification_team_project"
+          ADD CONSTRAINT "user_notification_team_project_team_id_team_id_fk"
+          FOREIGN KEY ("team_id") REFERENCES "public"."team"("id")
           ON DELETE cascade ON UPDATE cascade;
         END IF;
       END $$;

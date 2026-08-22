@@ -1,6 +1,5 @@
 import { isSmtpConfigured } from "@kaneo/email";
 import { config } from "dotenv-mono";
-import { isBillingEnabled } from "../billing/config";
 import { isGithubSsoConfigured } from "./github-sso-env";
 
 config();
@@ -27,7 +26,10 @@ function getSettings() {
     disableLoginForm: process.env.DISABLE_LOGIN_FORM === "true",
     customOAuthAutoLogin: process.env.CUSTOM_OAUTH_AUTO_LOGIN === "true",
     customOAuthLogoutUrl: process.env.CUSTOM_OAUTH_LOGOUT_URL || null,
-    billingEnabled: isBillingEnabled(),
+    // Billing was removed alongside the workspace concept. Hardcode to false
+    // so existing consumers don't read a stale value. See change
+    // "introduce-teams-remove-workspaces".
+    billingEnabled: false,
   };
 }
 

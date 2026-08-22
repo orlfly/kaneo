@@ -11,7 +11,8 @@
 			"remove": "Retirer",
 			"reset": "Réinitialiser",
 			"filter": "Filtrer",
-			"clearAllFilters": "Effacer tous les filtres"
+			"clearAllFilters": "Effacer tous les filtres",
+			"adding": "Adding…"
 		},
 		"a11y": {
 			"toggleSidebar": "Basculer la barre latérale"
@@ -35,18 +36,6 @@
 			"label": "Fil d'Ariane",
 			"more": "Plus"
 		},
-		"language": {
-			"english": "Anglais",
-			"german": "Allemand",
-			"greek": "Grec",
-			"macedonian": "Macédonien",
-			"french": "Français",
-			"spanish": "Espagnol",
-			"dutch": "Néerlandais",
-			"korean": "Coréen",
-			"chinese": "Chinois",
-			"italian": "Italien"
-		},
 		"people": {
 			"someone": "Quelqu'un",
 			"unknown": "Inconnu"
@@ -65,7 +54,6 @@
 			"createProject": {
 				"title": "Créer un nouveau projet",
 				"breadcrumbNew": "Créer un nouveau projet",
-				"workspaceFallback": "ESPACE DE TRAVAIL",
 				"description": "Créez un nouveau projet dans votre espace de travail en fournissant un nom, une clé et en sélectionnant une icône.",
 				"pickIcon": "Choisir une icône",
 				"searchIcons": "Rechercher des icônes...",
@@ -74,17 +62,12 @@
 				"keyHint": "Utilisée pour les ID de tickets (par ex. {{example}}-123)",
 				"createButton": "Créer le projet",
 				"successToast": "Projet créé avec succès",
-				"errorToast": "Échec de la création du projet"
-			},
-			"createWorkspace": {
-				"breadcrumbKaneo": "KANEO",
-				"title": "Créer un nouvel espace de travail",
-				"description": "Créez un nouvel espace de travail en lui donnant un nom.",
-				"namePlaceholder": "Nom de l'espace de travail",
-				"descriptionPlaceholder": "Ajouter une description...",
-				"createButton": "Créer l'espace de travail",
-				"successToast": "Espace de travail créé avec succès",
-				"errorToast": "Échec de la création de l'espace de travail"
+				"errorToast": "Échec de la création du projet",
+				"manageTeams": "Go to team management",
+				"noTeams": "You don't have any teams yet. Create or join a team before creating a project.",
+				"teamLabel": "Team",
+				"teamPlaceholder": "Select a team",
+				"teamFallback": "ESPACE DE TRAVAIL"
 			},
 			"createTask": {
 				"breadcrumbTask": "TÂCHE",
@@ -99,7 +82,6 @@
 				"successUpdated": "Tâche mise à jour avec succès",
 				"createError": "Échec de la création de la tâche",
 				"priority": "Priorité",
-				"statusFallback": "En cours",
 				"startDate": "Date de début",
 				"dueDate": "Date d'échéance",
 				"clearStartDate": "Supprimer la date de début",
@@ -128,7 +110,19 @@
 					"rose": "Rose",
 					"crimson": "Cramoisi"
 				}
+			},
+			"createTeam": {
+				"breadcrumbKaneo": "KANEO",
+				"createButton": "Create Team",
+				"description": "Create a new team by providing a name for your team.",
+				"errorToast": "Failed to create team",
+				"namePlaceholder": "Team name",
+				"successToast": "Team created successfully",
+				"title": "Create a new team"
 			}
+		},
+		"states": {
+			"loading": "Loading…"
 		}
 	},
 	"auth": {
@@ -136,43 +130,17 @@
 			"pageTitle": "Connexion",
 			"title": "Content de te revoir",
 			"subtitle": "Entrez vos identifiants pour accéder à votre espace de travail",
-			"invitationSubtitle": "Connectez-vous pour accepter votre invitation",
-			"invitationAlert": "Après vous être connecté, vous pourrez accepter votre invitation à l'espace de travail.",
-			"signingIn": "Connexion...",
-			"continueWithGoogle": "Continuer avec Google",
-			"continueWithGithub": "Continuer avec GitHub",
-			"continueWithDiscord": "Continuer avec Discord",
-			"continueWithOidc": "Continuer avec OIDC",
-			"lastUsed": "Dernière utilisation",
-			"registrationDisabled": "Inscription publique désactivée. Utilisez une invitation pour créer un compte.",
-			"passwordRegistrationDisabled": "Inscription par mot de passe désactivée. Utilisez une méthode de connexion sociale ou OIDC configurée pour créer un compte.",
-			"toggleMessage": "Vous n'avez pas de compte ?",
-			"toggleLink": "Créer un compte",
-			"guestSuccess": "Connecté en tant qu'invité",
-			"guestError": "Échec de la connexion en tant qu'invité",
-			"oidcError": "Échec de la connexion avec OIDC",
-			"googleError": "Échec de la connexion avec Google",
-			"githubError": "Échec de la connexion avec GitHub",
-			"discordError": "Échec de la connexion avec Discord",
-			"errors": {
-				"oauth_code_verification_failed": "La vérification d'OAuth a échoué. Veuillez réessayer.",
-				"registration_is_currently_disabled_you_need_a_valid_invitation_to_create_an_account_": "L'inscription est actuellement désactivée. Vous avez besoin d'une invitation valide pour créer un compte.",
-				"account_not_linked": "Cette identité n'a pas pu être associée au compte existant. Connectez-vous par e-mail pour vérifier le compte, puis réessayez la connexion SSO. Si la connexion par e-mail n'est pas disponible, contactez votre administrateur."
-			},
+			"registrationDisabled": "Public registration is disabled. Ask an administrator to create your account.",
 			"instanceStatusError": "Impossible de joindre le serveur. Veuillez réessayer dans un instant."
-		},
-		"providers": {
-			"google": "Google",
-			"discord": "Discord"
 		},
 		"forms": {
 			"or": "ou",
-			"email": "Email",
 			"password": "Mot de passe",
-			"emailPlaceholder": "moi@exemple.fr",
 			"passwordPlaceholder": "••••••••",
 			"showPassword": "Afficher le mot de passe",
-			"hidePassword": "Masquer le mot de passe"
+			"hidePassword": "Masquer le mot de passe",
+			"username": "Username",
+			"usernamePlaceholder": "Enter your username"
 		},
 		"checkEmail": {
 			"pageTitle": "Vérifier vos mails",
@@ -181,114 +149,11 @@
 			"emailFallback": "votre adresse email",
 			"backToLogin": "Retour à la connexion"
 		},
-		"signUp": {
-			"pageTitle": "Créer un compte",
-			"title": "Créer un compte",
-			"subtitleInvitation": "Créer un compte pour accepter votre invitation",
-			"subtitleRegistrationDisabled": "L'inscription nécessite une invitation",
-			"subtitlePasswordDisabled": "Utilisez la connexion sociale ou OIDC pour créer un compte",
-			"subtitleDefault": "Commencez avec votre espace de travail",
-			"invitationAlert": "Après avoir créé votre compte, vous pourrez accepter votre invitation à l'espace de travail.",
-			"registrationDisabledAlert": "L'inscription est actuellement désactivée. Si vous avez été invité, entrez l'adresse e-mail qui a reçu l'invitation pour créer votre compte.",
-			"passwordDisabledAlert": "La création de compte par mot de passe est désactivée. Utilisez une méthode de connexion sociale ou OIDC configurée depuis la page de connexion.",
-			"signingIn": "Connexion...",
-			"continueAsGuest": "Continuer en tant qu'invité",
-			"toggleMessage": "Vous avez déjà un compte?",
-			"toggleLink": "Se connecter",
-			"instanceStatusError": "Impossible de joindre le serveur. Veuillez réessayer dans un instant.",
-			"instanceAdminTitle": "Configurez votre instance Kaneo",
-			"instanceAdminSubtitle": "Ce compte devient l'administrateur de l'instance avec un accès complet."
-		},
-		"verifyOtp": {
-			"pageTitle": "Vérifier le code",
-			"title": "Entrez le code de vérification",
-			"subtitle": "Utilisez le code à 6 chiffres envoyé à votre e-mail pour continuer",
-			"codeSentTo": "Code envoyé à {{email}}",
-			"verificationCodeLabel": "Code de vérification",
-			"verifying": "Vérification...",
-			"verifyAndSignIn": "Vérifier et se connecter",
-			"changeEmail": "Changer l'email",
-			"resend": "Renvoyer",
-			"validation": {
-				"codeLength": "Le code doit contenir 6 chiffres"
-			},
-			"toast": {
-				"invalidCode": "Code de vérification invalide",
-				"signedInSuccess": "Connecté avec succès!",
-				"verifyFailed": "Échec de la vérification du code",
-				"resendFailed": "Échec de l'envoi du code",
-				"resendSuccess": "Nouveau code de vérification envoyé!"
-			}
-		},
-		"otpSignIn": {
-			"sendFailed": "Échec de l'envoi du code de vérification",
-			"codeSent": "Code de vérification envoyé! Vérifiez votre e-mail.",
-			"sending": "Envoi...",
-			"sendVerificationCode": "Envoyer le code de vérification"
-		},
 		"signInForm": {
 			"failedSignIn": "Échec de la connexion",
 			"signedInSuccess": "Connexion réussie",
 			"signingIn": "Connexion...",
 			"signIn": "Se connecter"
-		},
-		"signUpForm": {
-			"fullName": "Nom complet",
-			"namePlaceholder": "John Doe",
-			"failedSignUp": "Échec de l'inscription",
-			"accountCreated": "Compte créé avec succès",
-			"passwordTooShort": "Le mot de passe est trop court",
-			"creatingAccount": "Création du compte...",
-			"createAccount": "Créer un compte"
-		},
-		"invitation": {
-			"pageTitleAccept": "Accepter l'invitation",
-			"pageTitleError": "Erreur d'invitation",
-			"pageTitleInvalid": "Invitation invalide",
-			"loadingTitle": "Chargement de l'invitation...",
-			"errorTitle": "Erreur d'invitation",
-			"invalidTitle": "Invitation invalide",
-			"invitationExpired": "Invitation expirée",
-			"errorLoadDescription": "Échec du chargement des détails de l'invitation. L'invitation peut être invalide ou expirée.",
-			"goToSignIn": "Aller à la connexion",
-			"workspaceLabel": "Espace de travail: {{workspaceName}}",
-			"joinWorkspace": "Rejoindre {{workspaceName}}",
-			"inviteBodySignedIn": "<inviter>{{inviterName}}</inviter> vous a invité à rejoindre son espace de travail.",
-			"inviteBodySignedOut": "<inviter>{{inviterName}}</inviter> vous a invité à rejoindre son espace de travail sur Kaneo.",
-			"createAccountOrSignIn": "Créez un compte pour accepter cette invitation, ou connectez-vous si vous en avez déjà un.",
-			"createAccount": "Créer un compte",
-			"accepting": "Acceptation...",
-			"acceptInvitation": "Accepter l'invitation",
-			"goToDashboard": "Aller au tableau de bord",
-			"signedInAs": "Connecté en tant que <email>{{email}}</email>",
-			"youveBeenInvited": "Vous avez été invité!",
-			"invitationFor": "Invitation pour: <email>{{email}}</email>",
-			"signIn": "Se connecter",
-			"toast": {
-				"acceptFailed": "Échec de l'acceptation de l'invitation",
-				"acceptSuccess": "Invitation acceptée! Bienvenue dans l'équipe."
-			}
-		},
-		"onboarding": {
-			"pageTitle": "Bienvenue sur Kaneo",
-			"workspacePageTitle": "Créer un espace de travail",
-			"createWorkspaceTitle": "Créer un espace de travail",
-			"createWorkspaceSubtitle": "Configurez votre espace de travail pour commencer à gérer des projets",
-			"workspaceName": "Nom de l'espace de travail",
-			"workspaceNamePlaceholder": "ex: Acme Inc, Mon équipe",
-			"descriptionOptional": "Description (optionnelle)",
-			"descriptionPlaceholder": "Sur quoi travaille votre équipe?",
-			"creating": "Création...",
-			"createWorkspace": "Créer un espace de travail",
-			"workspaceCreatedTitle": "Espace de travail créé",
-			"redirectingToWorkspace": "Redirection vers <name>{{name}}</name>...",
-			"toast": {
-				"workspaceCreated": "Espace de travail créé avec succès",
-				"createFailed": "Échec de la création de l'espace de travail"
-			},
-			"validation": {
-				"workspaceNameRequired": "Le nom de l'espace de travail est requis"
-			}
 		},
 		"profileSetup": {
 			"pageTitle": "Compléter le profil",
@@ -348,7 +213,7 @@
 			"deleteAccount": {
 				"confirm": "Delete account",
 				"confirmLabel": "Confirm your email address",
-				"description": "Workspaces only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
+				"description": "Teams only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
 				"error": "Failed to delete account",
 				"modalDescription": "This cannot be undone. Type {{email}} to confirm.",
 				"modalTitle": "Delete your account?",
@@ -400,13 +265,6 @@
 			"webhookSecretHintConfigured": "Un secret de signature est déjà configuré ({{masked}}). Saisissez-en un nouveau pour le remplacer.",
 			"webhookSecretHintOptional": "Facultatif. Kaneo signe le corps de la requête lorsqu'un secret est défini.",
 			"connectWebhook": "Connecter le webhook",
-			"workspaceRulesTitle": "Règles d'envoi par espace de travail",
-			"workspaceRulesDescription": "Réutilisez vos canaux globaux, puis choisissez quels espaces de travail et projets sont autorisés à envoyer des notifications de compte.",
-			"workspaceCardHint": "Choisissez quels canaux cet espace de travail peut utiliser pour les notifications du compte.",
-			"workspaceCardLabelEmail": "Email",
-			"workspaceCardLabelNtfy": "ntfy",
-			"workspaceCardLabelGotify": "Gotify",
-			"workspaceCardLabelWebhook": "Webhook",
 			"emailChannelHintEnabled": "Envoyer les notifications correspondantes de cet espace de travail par email.",
 			"emailChannelHintDisabled": "Configurez et activez d'abord l'email au niveau global.",
 			"ntfyChannelHintEnabled": "Envoyer les notifications correspondantes de cet espace de travail vers ntfy.",
@@ -421,32 +279,14 @@
 			"allProjectsDescription": "Envoyer les notifications de tous les projets de cet espace de travail.",
 			"selectedProjects": "Projets sélectionnés",
 			"selectedProjectsDescription": "N'envoyer les notifications que pour les projets choisis.",
-			"noProjectsInWorkspace": "Aucun projet n'est encore disponible dans cet espace de travail.",
 			"createRule": "Créer une règle",
 			"removeRule": "Supprimer la règle",
-			"toastEmailSaved": "Paramètres des notifications par email enregistrés",
-			"toastEmailSaveFailed": "Échec de l'enregistrement des paramètres email",
-			"toastNtfySaved": "Paramètres ntfy enregistrés",
-			"toastNtfySaveFailed": "Échec de l'enregistrement des paramètres ntfy",
-			"toastNtfyDisconnected": "ntfy déconnecté",
-			"toastNtfyDisconnectFailed": "Échec de la déconnexion de ntfy",
-			"toastGotifySaved": "Paramètres Gotify enregistrés",
-			"toastGotifySaveFailed": "Échec de l'enregistrement des paramètres Gotify",
-			"toastGotifyDisconnected": "Gotify déconnecté",
-			"toastGotifyDisconnectFailed": "Échec de la déconnexion de Gotify",
-			"toastWebhookSaved": "Paramètres du webhook enregistrés",
-			"toastWebhookSaveFailed": "Échec de l'enregistrement des paramètres du webhook",
-			"toastWebhookDisconnected": "Webhook déconnecté",
-			"toastWebhookDisconnectFailed": "Échec de la déconnexion du webhook",
-			"toastRuleSaved": "Règle de notification enregistrée pour {{workspaceName}}",
 			"toastRuleSaveFailed": "Échec de l'enregistrement de la règle de notification de l'espace de travail",
-			"toastRuleRemoved": "Règle de notification supprimée pour {{workspaceName}}",
 			"toastRuleRemoveFailed": "Échec de la suppression de la règle de notification de l'espace de travail",
 			"toastPreferencesSaved": "Préférences de notification enregistrées",
 			"toastPreferencesSaveFailed": "Échec de l'enregistrement des préférences de notification",
 			"toastRuleSavedGeneric": "Règle de notification de l'espace de travail enregistrée",
 			"toastRuleRemovedGeneric": "Règle de notification de l'espace de travail supprimée",
-			"workspaceEnabledLabel": "Activer les notifications pour {{workspaceName}}",
 			"eventPreferencesTitle": "Me notifier pour",
 			"eventPreferencesDescription": "Choisissez quels événements de tâche créent des notifications dans l'application et peuvent être envoyés à vos canaux connectés.",
 			"eventTaskAssignments": "Assignations de tâches",
@@ -459,7 +299,16 @@
 			"reminderLeadTimeUnitHours": "Heures",
 			"reminderLeadTimeUnitDays": "Jours",
 			"reminderLeadTimeInvalid": "Entrez un nombre entier entre 1 et {{max}}.",
-			"saveEventPreferences": "Enregistrer les types de notification"
+			"saveEventPreferences": "Enregistrer les types de notification",
+			"noProjectsInTeam": "No projects available for this team yet.",
+			"teamCardHint": "Choose which channels this team can use for account notifications.",
+			"teamCardLabelEmail": "Email",
+			"teamCardLabelGotify": "Gotify",
+			"teamCardLabelNtfy": "ntfy",
+			"teamCardLabelWebhook": "Custom webhook",
+			"teamEnabledLabel": "Enable notifications for {{teamName}}",
+			"teamRulesDescription": "Reuse your global channels, then decide which teams and projects are allowed to send account notifications.",
+			"teamRulesTitle": "Team delivery rules"
 		},
 		"preferencesPage": {
 			"title": "Préférences",
@@ -486,7 +335,6 @@
 			"selectViewMode": "Sélectionnez un mode d'affichage",
 			"board": "Tableau",
 			"list": "Liste",
-			"gantt": "Gantt",
 			"sidebarDefault": "Barre latérale par défaut",
 			"sidebarDefaultDescription": "Garder la barre latérale ouverte au démarrage",
 			"displayOptions": "Options d'affichage",
@@ -566,49 +414,6 @@
 					"nameShort": "Le nom doit contenir au moins 3 caractères",
 					"expirationRequired": "Une date d'expiration est requise"
 				}
-			}
-		},
-		"workspaceGeneral": {
-			"pageTitle": "Paramètres Généraux",
-			"title": "Paramètres Généraux",
-			"subtitle": "Gérez le nom et la description de votre espace de travail.",
-			"workspaceInfoTitle": "Informations sur l'espace de travail",
-			"workspaceInfoSubtitle": "Configurez les détails et les préférences de votre espace de travail.",
-			"nameLabel": "Nom de l'espace de travail",
-			"nameHint": "Le nom de votre espace de travail",
-			"namePlaceholder": "Entrez le nom de l'espace de travail",
-			"descriptionLabel": "Description",
-			"descriptionHint": "Une brève description de votre espace de travail",
-			"descriptionPlaceholder": "Entrez la description de l'espace de travail",
-			"dangerZone": "Zone dangereuse",
-			"dangerZoneSubtitle": "Actions irréversibles et destructrices.",
-			"deleteWorkspace": "Supprimer l'espace de travail",
-			"deleteWorkspaceDescription": "Planifier la suppression définitive de l'espace de travail",
-			"deleteModalTitle": "Supprimer l'espace de travail?",
-			"deleteModalDescription": "Cela supprimera définitivement l'espace de travail \"{{name}}\" et toutes ses données. Cette action ne peut pas être annulée.",
-			"deleteModalConfirm": "Supprimer l'espace de travail",
-			"toastUpdated": "Espace de travail mis à jour avec succès",
-			"toastUpdateError": "Échec de la mise à jour de l'espace de travail",
-			"toastDeleted": "Espace de travail supprimé avec succès",
-			"toastDeleteError": "Échec de la suppression de l'espace de travail",
-			"validation": {
-				"nameRequired": "Le nom de l'espace de travail est requis",
-				"nameShort": "Le nom de l'espace de travail doit contenir au moins 2 caractères"
-			},
-			"transferOwnership": {
-				"toastSuccess": "Propriété transférée",
-				"toastError": "Échec du transfert de propriété",
-				"title": "Transférer la propriété",
-				"subtitle": "Confiez cet espace de travail à un autre membre. Vous serez rétrogradé au rôle d'admin et perdrez les capacités réservées au propriétaire.",
-				"pickerLabel": "Nouveau propriétaire",
-				"noEligibleMembers": "Invitez au moins un autre membre avant de pouvoir transférer la propriété.",
-				"pickerHint": "Il deviendra l'unique propriétaire de cet espace de travail.",
-				"pickerPlaceholder": "Sélectionnez un membre",
-				"button": "Transférer",
-				"dialogTitle": "Transférer la propriété ?",
-				"dialogDescription": "{{name}} deviendra l'unique propriétaire de {{workspace}}. Vous conserverez l'accès admin mais perdrez les capacités réservées au propriétaire, comme supprimer l'espace de travail ou le transférer à nouveau.",
-				"transferring": "Transfert…",
-				"confirm": "Transférer la propriété"
 			}
 		},
 		"projectGeneral": {
@@ -889,7 +694,6 @@
 			},
 			"connect": "Connecter Slack",
 			"saveChanges": "Enregistrer les modifications",
-			"update": "Mettre à jour Slack",
 			"disconnect": "Déconnecter"
 		},
 		"discordIntegration": {
@@ -927,7 +731,6 @@
 			},
 			"connect": "Connecter Discord",
 			"saveChanges": "Enregistrer les modifications",
-			"update": "Mettre à jour Discord",
 			"disconnect": "Déconnecter"
 		},
 		"genericWebhookIntegration": {
@@ -1085,144 +888,7 @@
 			"draft": "Brouillon",
 			"open": "Ouvert"
 		},
-		"workspaceRoles": {
-			"pageTitle": "Rôles",
-			"title": "Rôles",
-			"subtitle": "Définissez les actions que les membres peuvent effectuer dans {{workspaceName}}.",
-			"thisWorkspace": "cet espace de travail",
-			"noAccess": "Vous devez disposer de permissions admin ou propriétaire pour gérer les rôles de l'espace de travail.",
-			"sectionTitle": "Rôles de l'espace de travail",
-			"sectionSubtitle": "Modifiez les rôles par défaut ou ajoutez-en un sur mesure. Les membres conservent le nom de leur rôle assigné après modification.",
-			"newRole": "Nouveau rôle",
-			"loading": "Chargement…",
-			"loadError": "Échec du chargement des rôles.",
-			"emptyTitle": "Aucun rôle pour le moment",
-			"emptyDescription": "Les rôles par défaut apparaîtront ici une fois initialisés pour cet espace de travail.",
-			"defaultBadge": "Par défaut",
-			"permissionCount_one": "{{count}} permission",
-			"permissionCount_other": "{{count}} permissions",
-			"nameLabel": "Nom",
-			"nameHint": "En minuscules. Ne peut pas être modifié ultérieurement.",
-			"namePlaceholder": "ex. relecteur",
-			"discard": "Abandonner",
-			"createRole": "Créer le rôle",
-			"deleteRole": "Supprimer le rôle",
-			"defaultRoleHelp": "Rôle par défaut : le nom est réservé et la ligne ne peut pas être supprimée.",
-			"unsavedChanges": "Vous avez des modifications non enregistrées",
-			"allChangesSaved": "Toutes les modifications sont enregistrées",
-			"saveChanges": "Enregistrer les modifications",
-			"defaultRoleDescriptions": {
-				"viewer": "Peut voir et commenter les tâches.",
-				"member": "Peut créer et gérer les tâches et les projets.",
-				"admin": "A un accès complet à l'espace de travail."
-			},
-			"resources": {
-				"project": "Projets",
-				"task": "Tâches",
-				"label": "Labels",
-				"workspace": "Espace de travail"
-			},
-			"permissions": {
-				"project": {
-					"create": {
-						"label": "Créer",
-						"description": "Peut créer de nouveaux projets"
-					},
-					"read": {
-						"label": "Lire",
-						"description": "Peut voir les projets"
-					},
-					"update": {
-						"label": "Modifier",
-						"description": "Peut modifier les paramètres du projet"
-					},
-					"delete": {
-						"label": "Supprimer",
-						"description": "Peut supprimer des projets"
-					},
-					"share": {
-						"label": "Partager",
-						"description": "Peut partager des projets"
-					}
-				},
-				"task": {
-					"create": {
-						"label": "Créer",
-						"description": "Peut créer des tâches"
-					},
-					"read": {
-						"label": "Lire",
-						"description": "Peut voir les tâches"
-					},
-					"update": {
-						"label": "Modifier",
-						"description": "Peut modifier les tâches"
-					},
-					"delete": {
-						"label": "Supprimer",
-						"description": "Peut supprimer des tâches"
-					},
-					"assign": {
-						"label": "Assigner",
-						"description": "Peut assigner des tâches aux membres"
-					}
-				},
-				"label": {
-					"create": {
-						"label": "Créer",
-						"description": "Peut créer des labels"
-					},
-					"read": {
-						"label": "Lire",
-						"description": "Peut voir les labels"
-					},
-					"update": {
-						"label": "Modifier",
-						"description": "Peut modifier les labels"
-					},
-					"delete": {
-						"label": "Supprimer",
-						"description": "Peut supprimer des labels"
-					}
-				},
-				"workspace": {
-					"read": {
-						"label": "Lire",
-						"description": "Peut voir les paramètres de l'espace de travail"
-					},
-					"update": {
-						"label": "Modifier",
-						"description": "Peut mettre à jour les paramètres de l'espace de travail"
-					},
-					"delete": {
-						"label": "Supprimer",
-						"description": "Peut supprimer l'espace de travail"
-					},
-					"manage_settings": {
-						"label": "Gérer les paramètres",
-						"description": "Peut gérer les paramètres de l'espace de travail"
-					}
-				}
-			},
-			"validation": {
-				"nameRequired": "Le nom du rôle est requis",
-				"nameExists": "Un rôle avec ce nom existe déjà",
-				"permissionRequired": "Au moins une permission doit être sélectionnée"
-			},
-			"toast": {
-				"created": "Rôle créé",
-				"createError": "Échec de la création du rôle",
-				"updated": "Rôle mis à jour",
-				"updateError": "Échec de la mise à jour du rôle",
-				"deleted": "Rôle supprimé",
-				"deleteError": "Échec de la suppression du rôle"
-			},
-			"deleteDialog": {
-				"title": "Supprimer le rôle",
-				"description": "Cela supprimera définitivement le rôle \"{{role}}\". Les membres assignés à ce rôle perdront ses permissions."
-			}
-		},
-		"workspaceLabels": {
+		"teamLabels": {
 			"pageTitle": "Paramètres des labels",
 			"title": "Labels",
 			"subtitle": "Créez, modifiez et supprimez des labels au niveau de l'espace de travail.",
@@ -1257,7 +923,6 @@
 			"members": "Membres",
 			"createTask": "Créer une tâche",
 			"createProject": "Créer un projet",
-			"createWorkspace": "Créer un espace de travail",
 			"lightTheme": "Thème clair",
 			"darkTheme": "Thème sombre",
 			"systemTheme": "Thème système",
@@ -1268,14 +933,14 @@
 				"navigate": "Naviguer",
 				"open": "Ouvrir",
 				"close": "Fermer"
-			}
+			},
+			"createTeam": "Create team"
 		},
 		"notifications": "Notifications",
 		"sidebar": {
 			"overview": "Vue d'ensemble",
 			"projects": "Projets",
 			"members": "Membres",
-			"invitations": "Invitations",
 			"more": "Plus",
 			"backToBoard": "Retour au tableau"
 		},
@@ -1296,10 +961,10 @@
 			"groups": {
 				"task": "Tâches",
 				"project": "Projets",
-				"workspace": "Espaces de travail",
 				"comment": "Commentaires",
 				"activity": "Activités",
-				"fallback": "Résultats"
+				"fallback": "Résultats",
+				"team": "Teams"
 			}
 		},
 		"settingsLayout": {
@@ -1314,17 +979,10 @@
 			"signingOut": "Déconnexion...",
 			"logOut": "Déconnexion"
 		},
-		"workspaceSwitcher": {
-			"workspaces": "Espaces de travail",
-			"switching": "Changement...",
-			"addWorkspace": "Ajouter un espace de travail",
-			"selectWorkspace": "Sélectionner un espace de travail"
-		},
 		"page": {
 			"projectsTitle": "Projets",
 			"settingsTitle": "Paramètres",
-			"backToWorkspace": "Retour à l'espace de travail",
-			"settingsWorkspaceTab": "Espace de travail"
+			"backToTeam": "Retour à l'espace de travail"
 		},
 		"projectSettings": {
 			"projectLabel": "Projet"
@@ -1349,21 +1007,25 @@
 				"closeModal": "Fermer la modale/popover",
 				"createTask": "Créer une tâche",
 				"createProject": "Créer un projet",
-				"createWorkspace": "Créer un espace de travail",
 				"boardView": "Passer à la vue tableau",
 				"listView": "Passer à la vue de liste",
 				"backlogView": "Passer à la vue backlog",
 				"nextTask": "Tâche suivante",
 				"prevTask": "Tâche précédente",
 				"openTask": "Ouvrir la tâche sélectionnée",
-				"quickSelectNumber": "Sélectionner une option par numéro"
+				"quickSelectNumber": "Sélectionner une option par numéro",
+				"createTeam": "Create team"
 			}
+		},
+		"teamSwitcher": {
+			"addTeam": "Add team",
+			"selectTeam": "Select a team",
+			"switching": "Switching...",
+			"teams": "Teams"
 		}
 	},
 	"notifications": {
 		"title": "Notifications",
-		"newCount_one": "{{count}} nouvelle",
-		"newCount_other": "{{count}} nouvelles",
 		"emptyTitle": "Aucune notification pour le moment",
 		"emptySubtitle": "Vous verrez les mises à jour et l'activité ici.",
 		"clearAll": "Effacer toutes les notifications",
@@ -1376,10 +1038,6 @@
 			"task_created": {
 				"title": "Nouvelle tâche créée",
 				"content": "La tâche \"{{taskTitle}}\" a été créée"
-			},
-			"workspace_created": {
-				"title": "Espace de travail créé",
-				"content": "Votre espace de travail \"{{workspaceName}}\" a été créé avec succès"
 			},
 			"task_status_changed": {
 				"title": "Statut de la tâche modifié",
@@ -1662,9 +1320,6 @@
 						"onlyYoutube": "Seuls les liens YouTube peuvent être intégrés."
 					},
 					"onlyYoutubeInline": "Seuls les liens YouTube peuvent être intégrés. Utilisez le mode lien à la place."
-				},
-				"mermaid": {
-					"renderFailed": "Impossible d'afficher le diagramme Mermaid"
 				}
 			}
 		},
@@ -1942,37 +1597,34 @@
 			}
 		}
 	},
-	"invitations": {
-		"email": {
-			"subject": "{{inviterName}} vous invite à rejoindre {{workspaceName}} sur Kaneo",
-			"preview": "Vous êtes invité à rejoindre {{workspaceName}} sur Kaneo",
-			"title": "Rejoindre {{workspaceName}}",
-			"subtitle": "{{inviterName}} ({{inviterEmail}}) vous invite à collaborer sur Kaneo.",
-			"cta": "Accepter l’invitation",
-			"sameEmail": "Vous pouvez accepter l’invitation avec l’adresse e-mail qui a reçu ce message.",
-			"ignore": "Si vous ne vous attendiez pas à recevoir ce message, vous pouvez l’ignorer.",
-			"footer": "Invitation à un espace de travail Kaneo"
+	"team": {
+		"roles": {
+			"owner": "Propriétaire",
+			"admin": "Admin",
+			"member": "Membre",
+			"viewer": "Observateur"
 		},
-		"pageTitle": "Invitations",
-		"pendingInvitations": "Invitations en attente",
-		"acceptSubtitle": "Acceptez les invitations pour rejoindre les workspaces",
-		"noPendingTitle": "Aucune invitation en attente",
-		"noPendingDescription": "Vous n'avez aucune invitation de workspace en attente pour le moment.",
-		"continueToSetup": "Continuer vers la configuration",
-		"skipForNow": "Ignorer pour l'instant",
-		"table": {
-			"workspace": "Workspace",
-			"invitedBy": "Invité par",
-			"expires": "Expire"
+		"members": {
+			"pageTitle": "Membres",
+			"you": "Vous"
 		},
-		"toast": {
-			"acceptError": "Échec de l'acceptation de l'invitation",
-			"acceptSuccess": "Invitation acceptée ! Bienvenue dans l'équipe.",
-			"rejectError": "Échec du rejet de l'invitation",
-			"rejectSuccess": "Invitation rejetée"
-		}
-	},
-	"workspace": {
+		"membersTable": {
+			"emptyTitle": "Aucun membre de l'équipe pour le moment",
+			"emptyDescription": "Ask an admin to add members to this team.",
+			"columns": {
+				"name": "Nom",
+				"role": "Rôle",
+				"joined": "Rejoint"
+			},
+			"ariaRemoveMember": "Supprimer le membre",
+			"removeDialogTitle": "Supprimer un membre de l'équipe ?",
+			"removeDialogDescription": "Êtes-vous sûr de vouloir supprimer {{name}} de l'équipe ? Cette action ne peut pas être annulée.",
+			"removeMember": "Supprimer le membre",
+			"removeSuccess": "Membre de l'équipe supprimé avec succès",
+			"removeError": "Échec de la suppression du membre de l'équipe",
+			"roleUpdateSuccess": "Rôle mis à jour",
+			"roleUpdateError": "Échec de la mise à jour du rôle"
+		},
 		"projects": {
 			"pageTitle": "Projets",
 			"createProject": "Créer un projet",
@@ -1990,14 +1642,13 @@
 				"inProgress": "En cours"
 			},
 			"noDueDate": "Pas de date d'échéance",
-			"reorderHandle": "Réorganiser le projet",
 			"reorderError": "Échec de la réorganisation des projets"
 		},
 		"search": {
 			"pageTitle": "Rechercher",
 			"backToDashboard": "Retour au tableau de bord",
 			"placeholder": "Rechercher des tâches par titre ou ID court (ex: DEP-23)...",
-			"hint": "Rechercher dans tous les projets de ce workspace. Utilisez des ID courts comme DEP-23 pour trouver des tâches spécifiques.",
+			"hint": "Rechercher dans tous les projets de ce team. Utilisez des ID courts comme DEP-23 pour trouver des tâches spécifiques.",
 			"searching": "Recherche...",
 			"resultsFound_one": "{{count}} résultat trouvé",
 			"resultsFound_other": "{{count}} résultats trouvés",
@@ -2013,76 +1664,16 @@
 			"suggestionCompleted": "Terminé"
 		},
 		"create": {
-			"pageTitle": "Créer un workspace",
-			"heading": "Créer un nouveau workspace",
-			"subtitle": "Les workspaces sont des environnements partagés où les équipes peuvent travailler sur des projets, des cycles et des problèmes.",
-			"nameLabel": "Nom du workspace",
-			"namePlaceholder": "Entrez le nom du workspace",
-			"descriptionLabel": "Description (optionnel)",
-			"descriptionPlaceholder": "Ajoutez une description pour votre workspace",
+			"pageTitle": "Créer un team",
+			"heading": "Créer un nouveau team",
+			"subtitle": "Les teams sont des environnements partagés où les équipes peuvent travailler sur des projets, des cycles et des problèmes.",
+			"namePlaceholder": "Entrez le nom du team",
 			"required": "Obligatoire",
 			"creating": "Création...",
-			"submit": "Créer un workspace",
-			"success": "Workspace créé avec succès",
-			"error": "Échec de la création du workspace"
-		}
-	},
-	"team": {
-		"roles": {
-			"owner": "Propriétaire",
-			"admin": "Admin",
-			"member": "Membre",
-			"viewer": "Observateur"
-		},
-		"members": {
-			"pageTitle": "Membres",
-			"inviteMember": "Inviter un membre",
-			"you": "Vous"
-		},
-		"invitations": {
-			"pendingBadge": "En attente",
-			"expires": "Expire {{date}}",
-			"linkLabel": "Lien d'invitation",
-			"copyLink": "Copier le lien",
-			"linkCopied": "Lien d'invitation copié",
-			"copyFailed": "Impossible de copier automatiquement. Sélectionnez le lien et appuyez sur Ctrl+C."
-		},
-		"inviteModal": {
-			"title": "Inviter un membre de l'équipe",
-			"emailLabel": "Email",
-			"emailPlaceholder": "collegue@entreprise.fr",
-			"sendInvitation": "Envoyer l'invitation",
-			"success": "Invitation envoyée avec succès",
-			"error": "Échec de l'envoi de l'invitation",
-			"createdTitle": "Invitation créée",
-			"shareLinkDescription": "Partagez ce lien avec {{email}} pour qu'il puisse rejoindre l'espace de travail.",
-			"done": "Terminé"
-		},
-		"membersTable": {
-			"emptyTitle": "Aucun membre de l'équipe pour le moment",
-			"emptyDescription": "Invitez votre premier membre dans l'équipe pour commencer.",
-			"columns": {
-				"name": "Nom",
-				"role": "Rôle",
-				"joined": "Rejoint",
-				"actions": "Actions"
-			},
-			"memberRolePending": "{{role}} (En attente)",
-			"ariaCancelInvitation": "Annuler l'invitation",
-			"ariaRemoveMember": "Supprimer le membre",
-			"removeDialogTitle": "Supprimer un membre de l'équipe ?",
-			"removeDialogDescription": "Êtes-vous sûr de vouloir supprimer {{name}} de l'équipe ? Cette action ne peut pas être annulée.",
-			"cancelDialogTitle": "Annuler l'invitation ?",
-			"cancelDialogDescription": "Êtes-vous sûr de vouloir annuler l'invitation pour {{email}} ? Cette action ne peut pas être annulée.",
-			"removeMember": "Supprimer le membre",
-			"cancelInvitation": "Annuler l'invitation",
-			"removeSuccess": "Membre de l'équipe supprimé avec succès",
-			"removeError": "Échec de la suppression du membre de l'équipe",
-			"cancelInviteSuccess": "Invitation annulée avec succès",
-			"cancelInviteError": "Échec de l'annulation de l'invitation",
-			"roleUpdateSuccess": "Rôle mis à jour",
-			"roleUpdateError": "Échec de la mise à jour du rôle",
-			"ariaInvitationActions": "Actions de l'invitation"
+			"submit": "Créer un team",
+			"success": "Team créé avec succès",
+			"error": "Échec de la création du team",
+			"nameLabel": "Team Name"
 		}
 	},
 	"publicProject": {
@@ -2099,7 +1690,6 @@
 		"taskDetail": {
 			"labels": "Labels",
 			"externalLinks": "Liens externes",
-			"pullRequestFallback": "Demande de fusion",
 			"issueFallback": "Problème",
 			"prStatusMerged": "Fusionné",
 			"prStatusDraft": "Brouillon",
@@ -2121,5 +1711,169 @@
 		"branding": {
 			"poweredBy": "Propulsé par"
 		}
+	},
+	"admin": {
+		"actions": {
+			"delete": "Delete user",
+			"demote": "Demote to user",
+			"disable": "Disable account",
+			"enable": "Enable account",
+			"error": "Action failed",
+			"promote": "Promote to admin",
+			"resetPassword": "Reset password",
+			"successRole": "Role updated",
+			"successStatus": "Account status updated",
+			"manageTeams": "Manage teams"
+		},
+		"columns": {
+			"created": "Created",
+			"role": "Role",
+			"status": "Status",
+			"user": "User"
+		},
+		"create": {
+			"description": "Create a new account. The user can sign in with the username and password.",
+			"email": "Email (optional)",
+			"emailPlaceholder": "e.g. jane@example.com",
+			"error": "Failed to create user",
+			"name": "Name",
+			"namePlaceholder": "e.g. Jane Doe",
+			"password": "Password",
+			"passwordPlaceholder": "At least 8 characters",
+			"role": "Role",
+			"submit": "Create user",
+			"success": "User created",
+			"title": "Create user",
+			"username": "Username",
+			"usernamePlaceholder": "e.g. jane",
+			"validation": {
+				"nameRequired": "Name is required",
+				"passwordShort": "Password must be at least 8 characters",
+				"usernameInvalid": "Only lowercase letters, numbers and underscores (1-30 characters)",
+				"usernameRequired": "Username is required"
+			},
+			"team": "Team (optional)",
+			"teamNone": "No team",
+			"teamPlaceholder": "Choose a team…"
+		},
+		"deleteDialog": {
+			"confirm": "Delete",
+			"description": "Delete {{name}} ({{username}})? This cannot be undone.",
+			"success": "User deleted",
+			"title": "Delete user"
+		},
+		"page": {
+			"createUser": "Create user",
+			"currentUserBadge": "you",
+			"description": "Create and manage user accounts.",
+			"emptyDescription": "Create the first user account to get started.",
+			"emptyTitle": "No users",
+			"title": "User Management"
+		},
+		"resetPassword": {
+			"description": "Set a new password for {{username}}.",
+			"password": "New password",
+			"submit": "Reset password",
+			"success": "Password updated",
+			"title": "Reset password"
+		},
+		"role": {
+			"admin": "Admin",
+			"user": "User"
+		},
+		"status": {
+			"active": "Active",
+			"disabled": "Disabled"
+		},
+		"tab": "System",
+		"teams": {
+			"columns": {
+				"actions": "Actions",
+				"members": "Members",
+				"name": "Name",
+				"role": "Your role"
+			},
+			"create": "Create team",
+			"createDialogDescription": "Teams group users who collaborate on shared projects.",
+			"createDialogTitle": "Create a team",
+			"delete": "Delete team",
+			"deleteDialogDescription": "The team, its projects, and its memberships will be permanently deleted.",
+			"deleteDialogTitle": "Delete this team?",
+			"description": "Create and manage teams. Users join teams via invitation.",
+			"empty": "No teams yet. Create the first one to get started.",
+			"enter": "Enter team",
+			"hint": "As a system administrator, create the teams your users will join.",
+			"nameLabel": "Team name",
+			"namePlaceholder": "e.g. Acme",
+			"pageTitle": "Team management",
+			"tab": "Teams",
+			"title": "Teams",
+			"toast": {
+				"created": "Team \"{{name}}\" created",
+				"createError": "Failed to create team",
+				"deleted": "Team deleted",
+				"deleteError": "Failed to delete team",
+				"renamed": "Team renamed",
+				"renameError": "Failed to rename team"
+			},
+			"labels": "Labels",
+			"rename": "Rename",
+			"renameDialogDescription": "Change the name of this team.",
+			"renameDialogTitle": "Rename team",
+			"userTeamsAdd": "Add to team",
+			"userTeamsAddButton": "Add",
+			"userTeamsChoose": "Choose a team…",
+			"userTeamsCurrent": "Current teams",
+			"userTeamsDescription": "Manage which teams this user belongs to.",
+			"userTeamsEmpty": "This user is not a member of any team.",
+			"userTeamsNoAvailable": "This user is already in every team.",
+			"userTeamsRemove": "Remove from team",
+			"userTeamsTitle": "Teams of {{name}}",
+			"manageMembers": "Manage members",
+			"membersAdd": "Add user to team",
+			"membersAddButton": "Add",
+			"membersChooseUser": "Choose a user…",
+			"membersCurrent": "Current members",
+			"membersDescription": "Manage which users belong to this team.",
+			"membersEmpty": "This team has no members yet.",
+			"membersNoAvailable": "All users are already in this team.",
+			"membersRemove": "Remove from team",
+			"membersTitle": "Members of {{name}}"
+		},
+		"users": {
+			"tab": "Users"
+		},
+		"ai": {
+			"apiKeyHelp": "Stored encrypted. Sent as Bearer token. Never returned in responses.",
+			"apiKeyLabel": "API key",
+			"baseUrlHelp": "OpenAI-compatible endpoint. The client appends /v1/chat/completions.",
+			"baseUrlLabel": "API base URL",
+			"enableDescription": "When disabled, the Chat tab shows a placeholder and the API returns 503.",
+			"enableLabel": "Enable AI assistant",
+			"modelHelp": "Any model name accepted by your API. Default: gpt-4o.",
+			"modelLabel": "Model",
+			"pageDescription": "Configure the AI assistant used by project chat. Kaneo uses an OpenAI-compatible API.",
+			"pageTitle": "AI Assistant",
+			"save": "Save",
+			"saving": "Saving…",
+			"tab": "AI",
+			"toast": {
+				"error": "Failed to save settings",
+				"saved": "AI settings saved"
+			}
+		}
+	},
+	"chat": {
+		"errorFailed": "Failed to send message",
+		"errorTimeout": "Request timed out. Please try again.",
+		"notEnabledDescription": "The pi-agent AI assistant has not been configured for this instance. Please contact an administrator to enable it.",
+		"notEnabledTitle": "AI assistant not enabled",
+		"pageTitle": "Chat",
+		"placeholder": "Send a message to pi-agent…",
+		"send": "Send",
+		"streaming": "pi-agent is typing…",
+		"welcomeDescription": "Ask me to create tasks, check project status, or analyze progress. I'm your AI project management assistant.",
+		"welcomeTitle": "Chat with pi-agent",
+		"you": "You"
 	}
 }

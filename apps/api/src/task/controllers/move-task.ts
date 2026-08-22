@@ -121,9 +121,9 @@ async function moveTask({
     });
   }
 
-  if (sourceProject.workspaceId !== destinationProject.workspaceId) {
+  if (sourceProject.teamId !== destinationProject.teamId) {
     throw new HTTPException(400, {
-      message: "Tasks can only be moved within the same workspace",
+      message: "Tasks can only be moved within the same team",
     });
   }
 

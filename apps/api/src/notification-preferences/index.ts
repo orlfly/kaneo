@@ -3,15 +3,15 @@ import { describeRoute, resolver, validator } from "hono-openapi";
 import * as v from "valibot";
 import { notificationPreferenceSchema } from "../schemas";
 import {
-  deleteWorkspaceRule,
+  deleteTeamRule,
   getNotificationPreferences,
   updateNotificationPreferences,
-  upsertWorkspaceRule,
+  upsertTeamRule,
 } from "./service";
 
 const httpErrorSchema = v.object({ message: v.string() });
 
-const workspaceRuleSchema = v.object({
+const teamRuleSchema = v.object({
   isActive: v.boolean(),
   emailEnabled: v.boolean(),
   ntfyEnabled: v.boolean(),
@@ -141,11 +141,11 @@ notificationPreferences
     },
   )
   .put(
-    "/workspaces/:workspaceId",
+    "/teams/:teamId",
     describeRoute({
-      operationId: "upsertNotificationPreferenceWorkspaceRule",
+      operationId: "upsertNotificationPreferenceTeamRule",
       tags: ["Notification Preferences"],
-      description: "Create or update a workspace notification rule",
+      description: "Create or update a team notification rule",
       responses: {
         200: {
           description: "Updated notification preferences",
@@ -175,25 +175,25 @@ notificationPreferences
         },
       },
     }),
-    validator("param", v.object({ workspaceId: v.string() })),
-    validator("json", workspaceRuleSchema),
+    validator("param", v.object({ teamId: v.string() })),
+    validator("json", teamRuleSchema),
     async (c) => {
       const userId = c.get("userId");
       const userEmail = c.get("userEmail");
-      const { workspaceId } = c.req.valid("param");
+      const { teamId } = c.req.valid("param");
       const body = c.req.valid("json");
 
       return c.json(
-        await upsertWorkspaceRule(userId, workspaceId, userEmail || null, body),
+        await upsertTeamRule(userId, teamId, userEmail || null, body),
       );
     },
   )
   .delete(
-    "/workspaces/:workspaceId",
+    "/teams/:teamId",
     describeRoute({
-      operationId: "deleteNotificationPreferenceWorkspaceRule",
+      operationId: "deleteNotificationPreferenceTeamRule",
       tags: ["Notification Preferences"],
-      description: "Delete a workspace notification rule",
+      description: "Delete a team notification rule",
       responses: {
         200: {
           description: "Updated notification preferences",
@@ -222,21 +222,21 @@ notificationPreferences
           },
         },
         404: {
-          description: "Workspace rule not found",
+          description: "Team rule not found",
           content: {
             "application/json": { schema: resolver(httpErrorSchema) },
           },
         },
       },
     }),
-    validator("param", v.object({ workspaceId: v.string() })),
+    validator("param", v.object({ teamId: v.string() })),
     async (c) => {
       const userId = c.get("userId");
       const userEmail = c.get("userEmail");
-      const { workspaceId } = c.req.valid("param");
+      const { teamId } = c.req.valid("param");
 
       return c.json(
-        await deleteWorkspaceRule(userId, workspaceId, userEmail || null),
+        await deleteTeamRule(userId, teamId, userEmail || null),
       );
     },
   );
