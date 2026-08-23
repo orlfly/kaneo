@@ -37,6 +37,9 @@ import giteaIntegration, { handleGiteaWebhookRoute } from "./gitea-integration";
 import githubIntegration, {
   handleGithubWebhookRoute,
 } from "./github-integration";
+import gitlabIntegration, {
+  handleGitLabWebhookRoute,
+} from "./gitlab-integration";
 import getInstanceStatus from "./instance/controllers/get-instance-status";
 import label from "./label";
 import mcpRoutes, { mcpWellKnownRoutes } from "./mcp";
@@ -252,6 +255,11 @@ export function createApp() {
   api.post(
     "/gitea-integration/webhook/:integrationId",
     handleGiteaWebhookRoute,
+  );
+
+  api.post(
+    "/gitlab-integration/webhook/:integrationId",
+    handleGitLabWebhookRoute,
   );
 
   api.get(
@@ -610,6 +618,10 @@ export function createApp() {
     githubIntegration,
   );
   const giteaIntegrationApi = api.route("/gitea-integration", giteaIntegration);
+  const gitlabIntegrationApi = api.route(
+    "/gitlab-integration",
+    gitlabIntegration,
+  );
   const genericWebhookIntegrationApi = api.route(
     "/generic-webhook-integration",
     genericWebhookIntegration,
@@ -785,6 +797,7 @@ export function createApp() {
     genericWebhookIntegrationApi,
     githubIntegrationApi,
     giteaIntegrationApi,
+    gitlabIntegrationApi,
     labelApi,
     notificationApi,
     notificationPreferencesApi,
@@ -903,6 +916,7 @@ const {
   genericWebhookIntegrationApi,
   githubIntegrationApi,
   giteaIntegrationApi,
+  gitlabIntegrationApi,
   labelApi,
   notificationApi,
   notificationPreferencesApi,
@@ -946,6 +960,7 @@ export type AppType =
   | typeof searchApi
   | typeof githubIntegrationApi
   | typeof giteaIntegrationApi
+  | typeof gitlabIntegrationApi
   | typeof genericWebhookIntegrationApi
   | typeof discordIntegrationApi
   | typeof slackIntegrationApi

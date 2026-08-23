@@ -8476,6 +8476,619 @@
         "summary": "Import Gitea Issues"
       }
     },
+    "/gitlab-integration/repositories": {
+      "post": {
+        "operationId": "listGitLabRepositories",
+        "tags": [
+          "GitLab"
+        ],
+        "description": "List repositories accessible with a GitLab token",
+        "responses": {
+          "200": {
+            "description": "Repositories",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "repositories": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "number"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "full_name": {
+                            "type": "string"
+                          },
+                          "owner": {
+                            "type": "object",
+                            "properties": {
+                              "login": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "login"
+                            ]
+                          },
+                          "private": {
+                            "type": "boolean"
+                          },
+                          "html_url": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "full_name",
+                          "owner",
+                          "private",
+                          "html_url"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "repositories"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "projectId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "accessToken": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "projectId",
+                  "baseUrl",
+                  "accessToken"
+                ]
+              }
+            }
+          }
+        },
+        "summary": "List Git Lab Repositories"
+      }
+    },
+    "/gitlab-integration/verify": {
+      "post": {
+        "operationId": "verifyGitLabAccess",
+        "tags": [
+          "GitLab"
+        ],
+        "description": "Verify GitLab token and repository access",
+        "responses": {
+          "200": {
+            "description": "Verification result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "isInstalled": {
+                      "type": "boolean"
+                    },
+                    "hasRequiredPermissions": {
+                      "type": "boolean"
+                    },
+                    "repositoryExists": {
+                      "type": "boolean"
+                    },
+                    "repositoryPrivate": {
+                      "type": "boolean",
+                      "nullable": true
+                    },
+                    "missingPermissions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "failureReason": {
+                      "enum": [
+                        "not_a_gitlab_instance",
+                        "redirected",
+                        "repository_not_found"
+                      ],
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "isInstalled",
+                    "hasRequiredPermissions",
+                    "repositoryExists",
+                    "repositoryPrivate",
+                    "missingPermissions",
+                    "message",
+                    "failureReason"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "projectId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "accessToken": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "repositoryOwner": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "repositoryName": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "projectId",
+                  "baseUrl",
+                  "accessToken",
+                  "repositoryOwner",
+                  "repositoryName"
+                ]
+              }
+            }
+          }
+        },
+        "summary": "Verify Git Lab Access"
+      }
+    },
+    "/gitlab-integration/project/{projectId}": {
+      "get": {
+        "operationId": "getGitLabIntegration",
+        "tags": [
+          "GitLab"
+        ],
+        "description": "Get GitLab integration for a project",
+        "responses": {
+          "200": {
+            "description": "GitLab integration details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "projectId": {
+                      "type": "string"
+                    },
+                    "baseUrl": {
+                      "type": "string"
+                    },
+                    "repositoryOwner": {
+                      "type": "string"
+                    },
+                    "repositoryName": {
+                      "type": "string"
+                    },
+                    "maskedAccessToken": {
+                      "type": "string"
+                    },
+                    "webhookUrl": {
+                      "type": "string"
+                    },
+                    "webhookSecret": {
+                      "type": "string"
+                    },
+                    "branchPattern": {
+                      "type": "string"
+                    },
+                    "commentTaskLinkOnGitLabIssue": {
+                      "type": "boolean"
+                    },
+                    "isActive": {
+                      "type": "boolean",
+                      "nullable": true
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "baseUrl",
+                    "repositoryOwner",
+                    "repositoryName",
+                    "maskedAccessToken",
+                    "isActive",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "nullable": true
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "summary": "Get Git Lab Integration"
+      },
+      "post": {
+        "operationId": "createGitLabIntegration",
+        "tags": [
+          "GitLab"
+        ],
+        "description": "Create or update GitLab integration for a project",
+        "responses": {
+          "200": {
+            "description": "Integration saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "projectId": {
+                      "type": "string"
+                    },
+                    "baseUrl": {
+                      "type": "string"
+                    },
+                    "repositoryOwner": {
+                      "type": "string"
+                    },
+                    "repositoryName": {
+                      "type": "string"
+                    },
+                    "maskedAccessToken": {
+                      "type": "string"
+                    },
+                    "webhookUrl": {
+                      "type": "string"
+                    },
+                    "webhookSecret": {
+                      "type": "string"
+                    },
+                    "branchPattern": {
+                      "type": "string"
+                    },
+                    "commentTaskLinkOnGitLabIssue": {
+                      "type": "boolean"
+                    },
+                    "isActive": {
+                      "type": "boolean",
+                      "nullable": true
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "baseUrl",
+                    "repositoryOwner",
+                    "repositoryName",
+                    "maskedAccessToken",
+                    "isActive",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "baseUrl": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "accessToken": {
+                    "type": "string"
+                  },
+                  "repositoryOwner": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "repositoryName": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "baseUrl",
+                  "repositoryOwner",
+                  "repositoryName"
+                ]
+              }
+            }
+          }
+        },
+        "summary": "Create Git Lab Integration"
+      },
+      "patch": {
+        "operationId": "updateGitLabIntegration",
+        "tags": [
+          "GitLab"
+        ],
+        "description": "Update GitLab integration settings",
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "projectId": {
+                      "type": "string"
+                    },
+                    "baseUrl": {
+                      "type": "string"
+                    },
+                    "repositoryOwner": {
+                      "type": "string"
+                    },
+                    "repositoryName": {
+                      "type": "string"
+                    },
+                    "maskedAccessToken": {
+                      "type": "string"
+                    },
+                    "webhookUrl": {
+                      "type": "string"
+                    },
+                    "webhookSecret": {
+                      "type": "string"
+                    },
+                    "branchPattern": {
+                      "type": "string"
+                    },
+                    "commentTaskLinkOnGitLabIssue": {
+                      "type": "boolean"
+                    },
+                    "isActive": {
+                      "type": "boolean",
+                      "nullable": true
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "baseUrl",
+                    "repositoryOwner",
+                    "repositoryName",
+                    "maskedAccessToken",
+                    "isActive",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "isActive": {
+                    "type": "boolean"
+                  },
+                  "commentTaskLinkOnGitLabIssue": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update Git Lab Integration"
+      },
+      "delete": {
+        "operationId": "deleteGitLabIntegration",
+        "tags": [
+          "GitLab"
+        ],
+        "description": "Delete GitLab integration for a project",
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "summary": "Delete Git Lab Integration"
+      }
+    },
+    "/gitlab-integration/import-issues": {
+      "post": {
+        "operationId": "importGitLabIssues",
+        "tags": [
+          "GitLab"
+        ],
+        "description": "Import GitLab issues as tasks",
+        "responses": {
+          "200": {
+            "description": "Import result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "imported": {
+                      "type": "number"
+                    },
+                    "updated": {
+                      "type": "number"
+                    },
+                    "skipped": {
+                      "type": "number"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "imported",
+                    "updated",
+                    "skipped"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "projectId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "projectId"
+                ]
+              }
+            }
+          }
+        },
+        "summary": "Import Git Lab Issues"
+      }
+    },
     "/generic-webhook-integration/project/{projectId}": {
       "get": {
         "operationId": "getGenericWebhookIntegration",
@@ -10783,269 +11396,6 @@
         "summary": "Delete Workflow Rule"
       }
     },
-    "/invitation/pending": {
-      "get": {
-        "operationId": "getUserPendingInvitations",
-        "tags": [
-          "Invitations"
-        ],
-        "description": "Get all pending invitations for the current user",
-        "responses": {
-          "200": {
-            "description": "List of pending invitations",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "email": {
-                        "type": "string"
-                      },
-                      "teamId": {
-                        "type": "string"
-                      },
-                      "teamName": {
-                        "type": "string"
-                      },
-                      "inviterName": {
-                        "type": "string"
-                      },
-                      "expiresAt": {
-                        "type": "string"
-                      },
-                      "createdAt": {
-                        "type": "string"
-                      },
-                      "status": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "email",
-                      "teamId",
-                      "teamName",
-                      "inviterName",
-                      "expiresAt",
-                      "createdAt",
-                      "status"
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
-        "summary": "Get User Pending Invitations"
-      }
-    },
-    "/invitation/{id}": {
-      "get": {
-        "operationId": "getInvitationDetails",
-        "tags": [
-          "Invitations"
-        ],
-        "description": "Get details of a specific invitation by ID",
-        "responses": {
-          "200": {
-            "description": "Invitation details",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "valid": {
-                      "type": "boolean"
-                    },
-                    "invitation": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "email": {
-                          "type": "string"
-                        },
-                        "teamName": {
-                          "type": "string"
-                        },
-                        "inviterName": {
-                          "type": "string"
-                        },
-                        "expiresAt": {
-                          "type": "string"
-                        },
-                        "status": {
-                          "type": "string"
-                        },
-                        "expired": {
-                          "type": "boolean"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "email",
-                        "teamName",
-                        "inviterName",
-                        "expiresAt",
-                        "status",
-                        "expired"
-                      ]
-                    },
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "valid"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "schema": {
-              "type": "string"
-            },
-            "required": true
-          }
-        ],
-        "summary": "Get Invitation Details"
-      }
-    },
-    "/invitation/{id}/accept": {
-      "post": {
-        "operationId": "acceptInvitation",
-        "tags": [
-          "Invitations"
-        ],
-        "description": "Accept a pending invitation and join the team",
-        "responses": {
-          "200": {
-            "description": "Invitation accepted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "accepted": {
-                      "type": "boolean"
-                    },
-                    "teamId": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "accepted",
-                    "teamId"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "schema": {
-              "type": "string"
-            },
-            "required": true
-          }
-        ],
-        "summary": "Accept Invitation"
-      }
-    },
-    "/invitation/{id}/reject": {
-      "post": {
-        "operationId": "rejectInvitation",
-        "tags": [
-          "Invitations"
-        ],
-        "description": "Reject a pending invitation",
-        "responses": {
-          "200": {
-            "description": "Invitation rejected",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "rejected": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "rejected"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "schema": {
-              "type": "string"
-            },
-            "required": true
-          }
-        ],
-        "summary": "Reject Invitation"
-      }
-    },
-    "/invitation/{id}/cancel": {
-      "post": {
-        "operationId": "cancelInvitation",
-        "tags": [
-          "Invitations"
-        ],
-        "description": "Cancel a pending invitation",
-        "responses": {
-          "200": {
-            "description": "Invitation canceled",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "canceled": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "canceled"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "schema": {
-              "type": "string"
-            },
-            "required": true
-          }
-        ],
-        "summary": "Cancel Invitation"
-      }
-    },
     "/team": {
       "get": {
         "operationId": "listTeams",
@@ -11220,6 +11570,111 @@
           }
         },
         "summary": "Create Team"
+      }
+    },
+    "/team/active": {
+      "get": {
+        "operationId": "getActiveTeam",
+        "tags": [
+          "Teams"
+        ],
+        "description": "Read the caller's persisted active team id.",
+        "responses": {
+          "200": {
+            "description": "Active team id (null when none)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "teamId": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "teamId"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Active Team"
+      },
+      "put": {
+        "operationId": "setActiveTeam",
+        "tags": [
+          "Teams"
+        ],
+        "description": "Mark a team as the caller's active team.",
+        "responses": {
+          "200": {
+            "description": "Active team updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "teamId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "teamId"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "teamId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "teamId"
+                ]
+              }
+            }
+          }
+        },
+        "summary": "Set Active Team"
+      },
+      "delete": {
+        "operationId": "clearActiveTeam",
+        "tags": [
+          "Teams"
+        ],
+        "description": "Clear the caller's active team marker.",
+        "responses": {
+          "200": {
+            "description": "Active team cleared",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cleared": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "cleared"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Clear Active Team"
       }
     },
     "/team/{teamId}": {
@@ -11829,27 +12284,79 @@
         "summary": "Remove Team Member"
       }
     },
-    "/team/active": {
-      "put": {
-        "operationId": "setActiveTeam",
+    "/chat/config": {
+      "get": {
+        "operationId": "getChatConfig",
         "tags": [
-          "Teams"
+          "Chat"
         ],
-        "description": "Mark a team as the caller's active team.",
+        "description": "Get the AI assistant configuration (admin only)",
         "responses": {
           "200": {
-            "description": "Active team updated",
+            "description": "Chat configuration",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "teamId": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "baseUrl": {
+                      "type": "string"
+                    },
+                    "apiKey": {
+                      "type": "string"
+                    },
+                    "model": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "teamId"
+                    "enabled",
+                    "baseUrl",
+                    "apiKey",
+                    "model"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Chat Config"
+      },
+      "put": {
+        "operationId": "updateChatConfig",
+        "tags": [
+          "Chat"
+        ],
+        "description": "Update the AI assistant configuration (admin only)",
+        "responses": {
+          "200": {
+            "description": "Updated chat configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "baseUrl": {
+                      "type": "string"
+                    },
+                    "apiKey": {
+                      "type": "string"
+                    },
+                    "model": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "baseUrl",
+                    "apiKey",
+                    "model"
                   ]
                 }
               }
@@ -11863,28 +12370,148 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "teamId": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "baseUrl": {
+                    "type": "string"
+                  },
+                  "apiKey": {
+                    "type": "string"
+                  },
+                  "model": {
                     "type": "string"
                   }
                 },
                 "required": [
-                  "teamId"
+                  "enabled",
+                  "baseUrl",
+                  "apiKey",
+                  "model"
                 ]
               }
             }
           }
         },
-        "summary": "Set Active Team"
-      },
-      "delete": {
-        "operationId": "clearActiveTeam",
+        "summary": "Update Chat Config"
+      }
+    },
+    "/chat/project/{projectId}": {
+      "get": {
+        "operationId": "listChatMessages",
         "tags": [
-          "Teams"
+          "Chat"
         ],
-        "description": "Clear the caller's active team marker.",
+        "description": "List conversation history for a project",
         "responses": {
           "200": {
-            "description": "Active team cleared",
+            "description": "Chat messages ordered by creation time",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "projectId": {
+                        "type": "string"
+                      },
+                      "role": {
+                        "type": "string"
+                      },
+                      "content": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "projectId",
+                      "role",
+                      "content",
+                      "createdAt"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "projectId",
+            "required": true
+          }
+        ],
+        "summary": "List Chat Messages"
+      },
+      "post": {
+        "operationId": "sendChatMessage",
+        "tags": [
+          "Chat"
+        ],
+        "description": "Send a message and stream the pi-agent response via SSE",
+        "responses": {
+          "200": {
+            "description": "SSE stream of tokens",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "pi-agent not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "projectId",
+            "required": true
+          }
+        ],
+        "summary": "Send Chat Message"
+      },
+      "delete": {
+        "operationId": "clearChatMessages",
+        "tags": [
+          "Chat"
+        ],
+        "description": "Clear the conversation history for a project",
+        "responses": {
+          "200": {
+            "description": "Chat history cleared",
             "content": {
               "application/json": {
                 "schema": {
@@ -11902,7 +12529,17 @@
             }
           }
         },
-        "summary": "Clear Active Team"
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "projectId",
+            "required": true
+          }
+        ],
+        "summary": "Clear Chat Messages"
       }
     },
     "/user/avatar": {
@@ -12312,6 +12949,78 @@
           }
         },
         "summary": "Delete Admin Users By Id Teams By Team Id"
+      }
+    },
+    "/admin/teams/{teamId}/members": {
+      "get": {
+        "operationId": "getAdminTeamsByTeamIdMembers",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "teamId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "type": "object"
+          }
+        },
+        "summary": "Get Admin Teams By Team Id Members"
+      }
+    },
+    "/admin/teams/{teamId}/members/{userId}": {
+      "patch": {
+        "operationId": "patchAdminTeamsByTeamIdMembersByUserId",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "teamId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "userId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "enum": [
+                      "owner",
+                      "member"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "role"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "type": "object"
+          }
+        },
+        "summary": "Patch Admin Teams By Team Id Members By User Id"
       }
     }
   },
