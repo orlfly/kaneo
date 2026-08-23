@@ -23,7 +23,10 @@ function RouteComponent() {
         activeView="chat"
         headerActions={null}
       >
-        <div className="h-[calc(100vh-8rem)]">
+        {/* 100dvh minus sidebar inset margins (1rem), border (2px), and the
+            h-11 header (2.75rem) so the input bar sits flush with the panel
+            bottom instead of leaving a gap under it. */}
+        <div className="h-[calc(100dvh-3.875rem)]">
           <ChatPanel projectId={projectId} />
         </div>
       </ProjectLayout>
