@@ -476,10 +476,8 @@ export function NotificationPreferencesSettings() {
   const { data: teamsData } = useGetTeams();
   const { mutateAsync: updatePreferences, isPending: isSavingPreferences } =
     useUpdateNotificationPreferences();
-  const { mutateAsync: upsertTeamRule } =
-    useUpsertNotificationTeamRule();
-  const { mutateAsync: deleteTeamRule } =
-    useDeleteNotificationTeamRule();
+  const { mutateAsync: upsertTeamRule } = useUpsertNotificationTeamRule();
+  const { mutateAsync: deleteTeamRule } = useDeleteNotificationTeamRule();
 
   const teams = React.useMemo(
     () =>

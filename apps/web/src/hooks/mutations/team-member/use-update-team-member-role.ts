@@ -10,11 +10,7 @@ type UpdateTeamMemberRoleRequest = {
 function useUpdateTeamMemberRole() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      teamId,
-      userId,
-      role,
-    }: UpdateTeamMemberRoleRequest) =>
+    mutationFn: async ({ teamId, userId, role }: UpdateTeamMemberRoleRequest) =>
       updateTeamMemberRole({ teamId, userId, role }),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({

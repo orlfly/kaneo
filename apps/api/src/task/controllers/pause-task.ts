@@ -48,4 +48,5 @@ export async function pauseTask({
   });
 
   return pausedTask;
-}export default pauseTask;
+}
+export default pauseTask;

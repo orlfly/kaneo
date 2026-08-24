@@ -311,9 +311,7 @@ function ChatPanel({ projectId }: Props) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogClose>
-              {t("common:actions.cancel")}
-            </AlertDialogClose>
+            <AlertDialogClose>{t("common:actions.cancel")}</AlertDialogClose>
             <Button variant="destructive" onClick={handleClearHistory}>
               {t("chat:clearHistoryConfirm", {
                 defaultValue: "Clear history",

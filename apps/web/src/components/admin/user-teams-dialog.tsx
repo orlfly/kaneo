@@ -1,10 +1,7 @@
+import { UsersIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { UsersIcon, XIcon } from "lucide-react";
-import useGetTeams from "@/hooks/queries/team/use-get-teams";
-import useAdminUserTeams from "@/hooks/queries/admin/use-admin-user-teams";
-import useAdminAddUserToTeam from "@/hooks/mutations/admin/use-add-user-to-team";
-import useAdminRemoveUserFromTeam from "@/hooks/mutations/admin/use-remove-user-from-team";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,7 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import useAdminAddUserToTeam from "@/hooks/mutations/admin/use-add-user-to-team";
+import useAdminRemoveUserFromTeam from "@/hooks/mutations/admin/use-remove-user-from-team";
+import useAdminUserTeams from "@/hooks/queries/admin/use-admin-user-teams";
+import useGetTeams from "@/hooks/queries/team/use-get-teams";
 
 type UserTeamsDialogProps = {
   userId: string | null;
@@ -106,7 +106,11 @@ function UserTeamsDialog({
             ) : (
               <div className="flex flex-wrap gap-2">
                 {userTeams.map((team) => (
-                  <Badge key={team.id} variant="outline" className="gap-1 p-1.5 pl-2">
+                  <Badge
+                    key={team.id}
+                    variant="outline"
+                    className="gap-1 p-1.5 pl-2"
+                  >
                     <span>{team.name}</span>
                     <button
                       type="button"
@@ -144,7 +148,10 @@ function UserTeamsDialog({
                         defaultValue: "Choose a team…",
                       })}
                     >
-                      {allTeams.find((team) => team.id === selectedTeamId)?.name}
+                      {
+                        allTeams.find((team) => team.id === selectedTeamId)
+                          ?.name
+                      }
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>

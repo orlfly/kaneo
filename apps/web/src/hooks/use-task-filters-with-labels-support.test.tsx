@@ -170,7 +170,7 @@ describe("useTaskFiltersWithLabelsSupport", () => {
           },
         ],
         plannedTasks: [],
-      pausedTasks: [],
+        pausedTasks: [],
         archivedTasks: [],
       };
 

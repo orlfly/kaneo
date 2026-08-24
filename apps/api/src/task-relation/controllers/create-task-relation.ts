@@ -35,12 +35,7 @@ async function createTaskRelation({
     })
     .from(taskTable)
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-    .where(
-      and(
-        eq(taskTable.id, sourceTaskId),
-        eq(projectTable.teamId, teamId),
-      ),
-    )
+    .where(and(eq(taskTable.id, sourceTaskId), eq(projectTable.teamId, teamId)))
     .limit(1);
 
   if (!sourceTask) {
@@ -55,12 +50,7 @@ async function createTaskRelation({
     })
     .from(taskTable)
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-    .where(
-      and(
-        eq(taskTable.id, targetTaskId),
-        eq(projectTable.teamId, teamId),
-      ),
-    )
+    .where(and(eq(taskTable.id, targetTaskId), eq(projectTable.teamId, teamId)))
     .limit(1);
 
   if (!targetTask) {

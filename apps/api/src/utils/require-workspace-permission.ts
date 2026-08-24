@@ -1,7 +1,7 @@
+import { and, eq } from "drizzle-orm";
 import type { Context, Next } from "hono";
 import { HTTPException } from "hono/http-exception";
 import db, { schema } from "../database";
-import { and, eq } from "drizzle-orm";
 import { isInstanceAdmin } from "./is-instance-admin";
 
 // Back-compat shim for the old workspace permission vocabulary. The team

@@ -14,10 +14,7 @@ const EMPTY_STATISTICS: ProjectStatistics = {
   dueDate: null,
 };
 
-async function getProjectStatistics(
-  teamId: string,
-  includeArchived: boolean,
-) {
+async function getProjectStatistics(teamId: string, includeArchived: boolean) {
   const statisticsByProject = new Map<string, ProjectStatistics>();
 
   // Aggregate in the database instead of loading every task row into memory.
@@ -40,10 +37,7 @@ async function getProjectStatistics(
     .where(
       includeArchived
         ? eq(projectTable.teamId, teamId)
-        : and(
-            eq(projectTable.teamId, teamId),
-            isNull(projectTable.archivedAt),
-          ),
+        : and(eq(projectTable.teamId, teamId), isNull(projectTable.archivedAt)),
     )
     .groupBy(taskTable.projectId);
 
@@ -66,10 +60,7 @@ async function getProjects(teamId: string, includeArchived = false) {
   const projects = await db.query.projectTable.findMany({
     where: includeArchived
       ? eq(projectTable.teamId, teamId)
-      : and(
-          eq(projectTable.teamId, teamId),
-          isNull(projectTable.archivedAt),
-        ),
+      : and(eq(projectTable.teamId, teamId), isNull(projectTable.archivedAt)),
     // `id` is the deterministic tie-breaker: without it, rows sharing both a
     // position and a createdAt come back in an unspecified order.
     orderBy: (project, { asc }) => [

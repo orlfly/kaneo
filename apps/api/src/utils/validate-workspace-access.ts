@@ -1,6 +1,6 @@
+import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db, { schema } from "../database";
-import { and, eq } from "drizzle-orm";
 
 // Back-compat shim for the old workspace access validator. Routes still
 // calling `validateWorkspaceAccess(userId, teamId, apiKeyId?)` will be

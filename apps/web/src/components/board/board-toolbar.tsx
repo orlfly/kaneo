@@ -166,10 +166,7 @@ export default function BoardToolbar({
     const member = users?.find((m) => m.id === userId);
     return (
       <Avatar className="h-4 w-4">
-        <AvatarImage
-          src={member?.image ?? ""}
-          alt={member?.name || ""}
-        />
+        <AvatarImage src={member?.image ?? ""} alt={member?.name || ""} />
         <AvatarFallback className="border border-border/30 text-[9px] font-medium">
           {getInitials(member?.name)}
         </AvatarFallback>
@@ -388,9 +385,7 @@ export default function BoardToolbar({
                           type="button"
                         >
                           <CheckSlot
-                            checked={selectedAssigneeIds.includes(
-                              member.id,
-                            )}
+                            checked={selectedAssigneeIds.includes(member.id)}
                           />
                           <span className="inline-flex items-center gap-2">
                             <Avatar className="h-5 w-5">

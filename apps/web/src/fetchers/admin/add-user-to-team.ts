@@ -13,7 +13,8 @@ async function addUserToTeam(input: AddUserToTeamInput) {
   });
 
   if (!response.ok) {
-    const body = (await response.text().catch(() => "")) || "Failed to add user to team";
+    const body =
+      (await response.text().catch(() => "")) || "Failed to add user to team";
     throw new Error(body);
   }
 

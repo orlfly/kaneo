@@ -21,6 +21,8 @@ describe("@kaneo/permissions team roles", () => {
     expect(isTeamRole("viewer")).toBe(false);
     expect(isTeamRole("")).toBe(false);
     expect(isTeamRole(null)).toBe(false);
-    expect(isTeamRole({ role: "owner" } satisfies { role: TeamRole })).toBe(false);
+    expect(isTeamRole({ role: "owner" } satisfies { role: TeamRole })).toBe(
+      false,
+    );
   });
 });

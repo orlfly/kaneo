@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import useAuth from "@/components/providers/auth-provider/hooks/use-auth";
+import listTeamMembers, {
+  type TeamMember,
+} from "@/fetchers/team/list-team-members";
 import useActiveTeam from "@/hooks/queries/team/use-active-team";
-import listTeamMembers, { type TeamMember } from "@/fetchers/team/list-team-members";
 
 function useGetActiveTeamMember() {
   const { user } = useAuth();

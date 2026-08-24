@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   EllipsisIcon,
@@ -8,11 +9,10 @@ import {
   UserRoundPlusIcon,
   UsersIcon,
 } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import PageTitle from "@/components/page-title";
 import UserTeamsDialog from "@/components/admin/user-teams-dialog";
+import PageTitle from "@/components/page-title";
 import useAuth from "@/components/providers/auth-provider/hooks/use-auth";
 import {
   AlertDialog,
@@ -562,18 +562,15 @@ function RouteComponent() {
                 }
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={t("admin:create.teamPlaceholder")}
-                  >
+                  <SelectValue placeholder={t("admin:create.teamPlaceholder")}>
                     {createForm.teamId
-                      ? teams.find((team) => team.id === createForm.teamId)?.name
+                      ? teams.find((team) => team.id === createForm.teamId)
+                          ?.name
                       : t("admin:create.teamNone")}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">
-                    {t("admin:create.teamNone")}
-                  </SelectItem>
+                  <SelectItem value="">{t("admin:create.teamNone")}</SelectItem>
                   {teams.map((team) => (
                     <SelectItem key={team.id} value={team.id}>
                       {team.name}

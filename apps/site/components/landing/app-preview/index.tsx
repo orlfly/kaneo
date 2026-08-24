@@ -61,9 +61,9 @@ import { cn } from "@/lib/utils";
 import type Task from "@/types/task";
 import {
   MOCK_PROJECTS,
+  MOCK_TEAM,
   MOCK_TEAM_LABELS,
   MOCK_USERS,
-  MOCK_TEAM,
 } from "./mock-data";
 
 const PREVIEW_W = 1400;

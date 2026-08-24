@@ -1,15 +1,21 @@
-import { ilike } from "drizzle-orm";
 import * as Sentry from "@sentry/node";
+import { ilike } from "drizzle-orm";
+import {
+  type ChatCompletionMessage,
+  chatCompletion,
+  isPiAgentConfigured,
+} from "../chat/pi-agent-client";
 import db, { schema } from "../database";
 import { taskTable } from "../database/schema";
-import { isPiAgentConfigured, chatCompletion, type ChatCompletionMessage } from "../chat/pi-agent-client";
 
 /**
  * Periodically scan all paused tasks and ask pi-agent to generate a resolution
  * suggestion for each. The suggestion is recorded as an activity row so the
  * team can see the manager's advice in the task timeline.
  */
-export async function checkPausedTaskSuggestions(): Promise<{ degraded?: boolean }> {
+export async function checkPausedTaskSuggestions(): Promise<{
+  degraded?: boolean;
+}> {
   if (!(await isPiAgentConfigured())) {
     return { degraded: true };
   }
@@ -71,7 +77,10 @@ export async function checkPausedTaskSuggestions(): Promise<{ degraded?: boolean
       Sentry.captureException(error, {
         tags: { area: "cron", job: "paused-task-suggestions" },
       });
-      console.error(`Failed to generate suggestion for task ${task.id}:`, error);
+      console.error(
+        `Failed to generate suggestion for task ${task.id}:`,
+        error,
+      );
     }
   }
 

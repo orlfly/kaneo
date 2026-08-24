@@ -7,9 +7,7 @@ async function unarchiveProject(id: string, teamId: string) {
   const [existingProject] = await db
     .select()
     .from(projectTable)
-    .where(
-      and(eq(projectTable.id, id), eq(projectTable.teamId, teamId)),
-    );
+    .where(and(eq(projectTable.id, id), eq(projectTable.teamId, teamId)));
 
   if (!existingProject) {
     throw new HTTPException(404, {

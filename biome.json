@@ -53,6 +53,24 @@
 			}
 		}
 	},
+	"overrides": [
+		{
+			"includes": ["tests/**"],
+			"linter": {
+				"rules": {
+					"suspicious": { "noUndeclaredEnvVars": "off" }
+				}
+			}
+		},
+		{
+			"includes": ["apps/site/components/landing/sponsors.tsx"],
+			"linter": {
+				"rules": {
+					"performance": { "noImgElement": "off" }
+				}
+			}
+		}
+	],
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double",

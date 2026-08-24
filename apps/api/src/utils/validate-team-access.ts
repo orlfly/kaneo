@@ -1,7 +1,7 @@
-import db from "../database";
-import { teamMemberTable } from "../database/schema";
 import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
+import db from "../database";
+import { teamMemberTable } from "../database/schema";
 
 export async function validateTeamAccess(userId: string, teamId: string) {
   const [membership] = await db

@@ -75,10 +75,7 @@ async function assignLabelToTask(id: string, taskId: string, userId: string) {
         });
       }
 
-      if (
-        currentLabel.teamId &&
-        currentLabel.teamId !== task.teamId
-      ) {
+      if (currentLabel.teamId && currentLabel.teamId !== task.teamId) {
         throw new HTTPException(400, {
           message: "Label and task must belong to the same team",
         });

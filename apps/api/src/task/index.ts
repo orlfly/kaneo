@@ -25,8 +25,8 @@ import {
 } from "../utils/validate-dates";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import bulkUpdateTasks from "./controllers/bulk-update-tasks";
-import claimTask from "./controllers/claim-task";
 import { claimNextTask } from "./controllers/claim-next-task";
+import claimTask from "./controllers/claim-task";
 import createTask from "./controllers/create-task";
 import deleteTask from "./controllers/delete-task";
 import exportTasks from "./controllers/export-tasks";
@@ -36,7 +36,11 @@ import importTasks from "./controllers/import-tasks";
 import moveTask from "./controllers/move-task";
 import pauseTask from "./controllers/pause-task";
 import releaseTask from "./controllers/release-task";
-import { requireBulkTaskEntitlement, requireBulkTaskPermission, requireTaskAssigneePermission } from "./controllers/require-task-permission";
+import {
+  requireBulkTaskEntitlement,
+  requireBulkTaskPermission,
+  requireTaskAssigneePermission,
+} from "./controllers/require-task-permission";
 import resumeTask from "./controllers/resume-task";
 import updateTask from "./controllers/update-task";
 import updateTaskAssignee from "./controllers/update-task-assignee";
@@ -530,7 +534,8 @@ const task = new Hono<{
     describeRoute({
       operationId: "claimTask",
       tags: ["Tasks"],
-      description: "Atomically claim an unassigned to-do task for the current user",
+      description:
+        "Atomically claim an unassigned to-do task for the current user",
       responses: {
         200: {
           description: "Task claimed successfully",
@@ -541,7 +546,9 @@ const task = new Hono<{
         409: {
           description: "Task is not available for claiming",
           content: {
-            "application/json": { schema: resolver(v.object({ message: v.string() })) },
+            "application/json": {
+              schema: resolver(v.object({ message: v.string() })),
+            },
           },
         },
       },
@@ -568,7 +575,8 @@ const task = new Hono<{
     describeRoute({
       operationId: "claimNextTask",
       tags: ["Tasks"],
-      description: "Find and atomically claim the best available to-do task across the caller's team projects",
+      description:
+        "Find and atomically claim the best available to-do task across the caller's team projects",
       responses: {
         200: {
           description: "Task claimed successfully",
@@ -579,7 +587,9 @@ const task = new Hono<{
         404: {
           description: "No unclaimed tasks available",
           content: {
-            "application/json": { schema: resolver(v.object({ message: v.string() })) },
+            "application/json": {
+              schema: resolver(v.object({ message: v.string() })),
+            },
           },
         },
       },
@@ -626,7 +636,9 @@ const task = new Hono<{
         403: {
           description: "Task not claimed by you",
           content: {
-            "application/json": { schema: resolver(v.object({ message: v.string() })) },
+            "application/json": {
+              schema: resolver(v.object({ message: v.string() })),
+            },
           },
         },
       },
@@ -684,7 +696,8 @@ const task = new Hono<{
     describeRoute({
       operationId: "releaseTask",
       tags: ["Tasks"],
-      description: "Release a task claimed by the current user back to the to-do pool",
+      description:
+        "Release a task claimed by the current user back to the to-do pool",
       responses: {
         200: {
           description: "Task released successfully",

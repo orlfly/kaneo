@@ -41,4 +41,5 @@ export async function resumeTask({
   });
 
   return resumedTask;
-}export default resumeTask;
+}
+export default resumeTask;

@@ -4,8 +4,8 @@ import {
   columnTable,
   projectTable,
   taskTable,
-  userTable,
   teamTable,
+  userTable,
 } from "../../database/schema";
 import type {
   PluginContext,

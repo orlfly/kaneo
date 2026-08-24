@@ -2,14 +2,7 @@ import { client } from "@kaneo/libs";
 
 type SearchParams = {
   q: string;
-  type?:
-    | "all"
-    | "tasks"
-    | "projects"
-    
-    | "comments"
-    | "teams"
-    | "activities";
+  type?: "all" | "tasks" | "projects" | "comments" | "teams" | "activities";
   teamId?: string;
   projectId?: string;
   limit?: number;

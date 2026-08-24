@@ -235,9 +235,7 @@ notificationPreferences
       const userEmail = c.get("userEmail");
       const { teamId } = c.req.valid("param");
 
-      return c.json(
-        await deleteTeamRule(userId, teamId, userEmail || null),
-      );
+      return c.json(await deleteTeamRule(userId, teamId, userEmail || null));
     },
   );
 

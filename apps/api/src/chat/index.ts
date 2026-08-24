@@ -5,9 +5,9 @@ import { requireAdminHandler } from "../admin/require-admin";
 import { requireTeamRole } from "../utils/require-team-role";
 import { teamAccess } from "../utils/team-access-middleware";
 import { type ChatConfig, loadChatConfig, saveChatConfig } from "./config";
+import clearMessages from "./controllers/clear-messages";
 import listMessages from "./controllers/list-messages";
 import { sendMessage } from "./controllers/send-message";
-import clearMessages from "./controllers/clear-messages";
 
 const chatMessageSchema = v.object({
   id: v.string(),

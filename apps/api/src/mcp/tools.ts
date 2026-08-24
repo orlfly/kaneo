@@ -557,8 +557,12 @@ export function registerMcpTools(
         client.json("/api/task/claim-next", {
           method: "POST",
           body: JSON.stringify({
-            ...(args.projectId !== undefined ? { projectId: args.projectId } : {}),
-            ...(args.priorities !== undefined ? { priorities: args.priorities } : {}),
+            ...(args.projectId !== undefined
+              ? { projectId: args.projectId }
+              : {}),
+            ...(args.priorities !== undefined
+              ? { priorities: args.priorities }
+              : {}),
           }),
         }),
       ),

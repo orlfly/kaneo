@@ -5,8 +5,8 @@ import {
   integrationTable,
   projectTable,
   taskTable,
-  userTable,
   teamTable,
+  userTable,
 } from "../../database/schema";
 import type {
   PluginContext,

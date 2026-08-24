@@ -98,11 +98,7 @@ export default function TaskDetailsContent({
         )}
       </div>
       <div className="mt-2">
-        <TaskRelations
-          taskId={taskId}
-          projectId={projectId}
-          teamId={teamId}
-        />
+        <TaskRelations taskId={taskId} projectId={projectId} teamId={teamId} />
       </div>
       <span className="text-sm font-medium text-muted-foreground h-[1px] bg-border w-full block shrink-0" />
       <div className="flex flex-col gap-4">

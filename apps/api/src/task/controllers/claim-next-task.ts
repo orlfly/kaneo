@@ -1,7 +1,20 @@
-import { and, asc, desc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  inArray,
+  isNull,
+  type SQL,
+  sql,
+} from "drizzle-orm";
 
 import db from "../../database";
-import { projectTable, taskTable, teamMemberTable } from "../../database/schema";
+import {
+  projectTable,
+  taskTable,
+  teamMemberTable,
+} from "../../database/schema";
 import { claimTask } from "./claim-task";
 
 /**
@@ -39,13 +52,7 @@ export async function claimNextTask({
 
   // Find all projects in those teams (or just the specified project).
   const projectQuery = projectId
-    ? and(
-        eq(projectTable.id, projectId),
-        inArray(
-          projectTable.teamId,
-          teamIds,
-        ),
-      )
+    ? and(eq(projectTable.id, projectId), inArray(projectTable.teamId, teamIds))
     : inArray(projectTable.teamId, teamIds);
 
   const projects = await db

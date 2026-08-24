@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import listTeamMembers, { type TeamMember } from "@/fetchers/team/list-team-members";
+import listTeamMembers, {
+  type TeamMember,
+} from "@/fetchers/team/list-team-members";
 
 type GetTeamMembersRequest = {
   teamId?: string;

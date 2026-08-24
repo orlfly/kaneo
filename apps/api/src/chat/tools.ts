@@ -262,7 +262,10 @@ async function listBlockedTasks(projectId: string): Promise<string> {
     })
     .from(taskTable)
     .where(
-      and(eq(taskTable.projectId, projectId), ilike(taskTable.status, "paused")),
+      and(
+        eq(taskTable.projectId, projectId),
+        ilike(taskTable.status, "paused"),
+      ),
     );
 
   return JSON.stringify(blocked, null, 2);

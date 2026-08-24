@@ -5,10 +5,7 @@ import { projectTable } from "../../database/schema";
 
 async function getProject(id: string, teamId: string) {
   const project = await db.query.projectTable.findFirst({
-    where: and(
-      eq(projectTable.id, id),
-      eq(projectTable.teamId, teamId),
-    ),
+    where: and(eq(projectTable.id, id), eq(projectTable.teamId, teamId)),
     with: {
       tasks: true,
     },

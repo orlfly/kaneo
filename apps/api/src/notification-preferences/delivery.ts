@@ -104,10 +104,7 @@ function buildDeliveryContent(notification: {
       };
     }
     case "team_created": {
-      const teamName = getStringValue(
-        notification.eventData,
-        "teamName",
-      );
+      const teamName = getStringValue(notification.eventData, "teamName");
       return {
         title: "Team created",
         body: teamName
@@ -224,10 +221,7 @@ async function resolveNotificationContext(notification: {
       })
       .from(taskTable)
       .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-      .innerJoin(
-        teamTable,
-        eq(projectTable.teamId, teamTable.id),
-      )
+      .innerJoin(teamTable, eq(projectTable.teamId, teamTable.id))
       .where(eq(taskTable.id, notification.resourceId))
       .limit(1);
 

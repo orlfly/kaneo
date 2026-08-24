@@ -4,8 +4,8 @@ import {
   activityTable,
   projectTable,
   taskTable,
-  userTable,
   teamTable,
+  userTable,
   workspaceUserTable,
 } from "../../database/schema";
 import { escapeLikePattern } from "../like-pattern";
@@ -15,13 +15,7 @@ type SearchParams = {
   query: string;
   userEmail?: string;
   userId?: string;
-  type?:
-    | "all"
-    | "tasks"
-    | "projects"
-    | "teams"
-    | "comments"
-    | "activities";
+  type?: "all" | "tasks" | "projects" | "teams" | "comments" | "activities";
   teamId?: string;
   projectId?: string;
   limit?: number;
@@ -133,9 +127,7 @@ async function globalSearch(params: SearchParams): Promise<{
     .from(workspaceUserTable)
     .where(eq(workspaceUserTable.userId, resolvedUserId));
 
-  const accessibleTeamIds = userTeams
-    .map((w) => w.teamId)
-    .filter(Boolean);
+  const accessibleTeamIds = userTeams.map((w) => w.teamId).filter(Boolean);
 
   if (accessibleTeamIds.length === 0) {
     return { results: [], totalCount: 0, searchQuery: query };
@@ -181,10 +173,7 @@ async function globalSearch(params: SearchParams): Promise<{
         })
         .from(taskTable)
         .leftJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-        .leftJoin(
-          teamTable,
-          eq(projectTable.teamId, teamTable.id),
-        )
+        .leftJoin(teamTable, eq(projectTable.teamId, teamTable.id))
         .leftJoin(userTable, eq(taskTable.userId, userTable.id))
         .where(
           and(
@@ -362,10 +351,7 @@ async function globalSearch(params: SearchParams): Promise<{
         relevanceScore: teamRelevanceScore.as("relevanceScore"),
       })
       .from(teamTable)
-      .leftJoin(
-        workspaceUserTable,
-        eq(teamTable.id, workspaceUserTable.teamId),
-      )
+      .leftJoin(workspaceUserTable, eq(teamTable.id, workspaceUserTable.teamId))
       .where(
         and(
           inArray(teamTable.id, accessibleTeamIds),

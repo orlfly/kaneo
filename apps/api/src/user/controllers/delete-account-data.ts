@@ -1,10 +1,7 @@
 import { APIError } from "better-auth/api";
 import { and, eq, inArray } from "drizzle-orm";
 import db from "../../database";
-import {
-  teamMemberTable,
-  teamTable,
-} from "../../database/schema";
+import { teamMemberTable, teamTable } from "../../database/schema";
 import {
   formatBlockedTeamsMessage,
   hasOwnerRole,
@@ -36,10 +33,7 @@ async function collectMemberships(
       role: teamMemberTable.role,
     })
     .from(teamMemberTable)
-    .innerJoin(
-      teamTable,
-      eq(teamMemberTable.teamId, teamTable.id),
-    )
+    .innerJoin(teamTable, eq(teamMemberTable.teamId, teamTable.id))
     .where(inArray(teamMemberTable.teamId, teamIds));
 
   return memberships.map((membership) => {

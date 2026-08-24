@@ -13,5 +13,8 @@ export const TEAM_ROLES: readonly TeamRole[] = ["owner", "member"] as const;
 export const DEFAULT_TEAM_ROLE: TeamRole = "member";
 
 export function isTeamRole(value: unknown): value is TeamRole {
-  return typeof value === "string" && (TEAM_ROLES as readonly string[]).includes(value);
+  return (
+    typeof value === "string" &&
+    (TEAM_ROLES as readonly string[]).includes(value)
+  );
 }

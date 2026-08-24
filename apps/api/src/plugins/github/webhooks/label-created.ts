@@ -39,10 +39,7 @@ export async function handleLabelCreated(payload: LabelCreatedPayload) {
 
     const labelExists = await db.query.labelTable.findFirst({
       where: (table, { and, eq }) =>
-        and(
-          eq(table.teamId, project.teamId),
-          eq(table.name, label.name),
-        ),
+        and(eq(table.teamId, project.teamId), eq(table.name, label.name)),
     });
 
     if (labelExists) {

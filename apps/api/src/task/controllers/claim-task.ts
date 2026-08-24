@@ -44,7 +44,8 @@ export async function claimTask({
 
   if (!claimed) {
     throw new HTTPException(409, {
-      message: "Task is not available for claiming (already assigned or not in to-do status)",
+      message:
+        "Task is not available for claiming (already assigned or not in to-do status)",
     });
   }
 
@@ -84,4 +85,5 @@ export async function claimTask({
     status: claimed.status,
     claimed: true,
   };
-}export default claimTask;
+}
+export default claimTask;

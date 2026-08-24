@@ -3,14 +3,7 @@ import globalSearch from "@/fetchers/search/global-search";
 
 type SearchParams = {
   q: string;
-  type?:
-    | "all"
-    | "tasks"
-    | "projects"
-    
-    | "comments"
-    | "teams"
-    | "activities";
+  type?: "all" | "tasks" | "projects" | "comments" | "teams" | "activities";
   teamId?: string;
   projectId?: string;
   limit?: number;

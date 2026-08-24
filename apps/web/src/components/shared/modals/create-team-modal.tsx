@@ -18,8 +18,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import useCreateTeam from "@/hooks/queries/team/use-create-team";
 import useSetActiveTeam from "@/hooks/mutations/team/use-set-active-team";
+import useCreateTeam from "@/hooks/queries/team/use-create-team";
 import { toast } from "@/lib/toast";
 
 type CreateTeamModalProps = {

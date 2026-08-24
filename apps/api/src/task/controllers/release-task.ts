@@ -54,4 +54,5 @@ export async function releaseTask({
   });
 
   return releasedTask;
-}export default releaseTask;
+}
+export default releaseTask;

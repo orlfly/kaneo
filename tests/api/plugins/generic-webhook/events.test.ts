@@ -89,9 +89,7 @@ describe("generic webhook event handlers", () => {
   it("posts a project-scoped task.deleted envelope when enabled", async () => {
     selectMock
       .mockImplementationOnce(() =>
-        selectChain([
-          { id: "project-1", name: "Roadmap", teamId: "team-1" },
-        ]),
+        selectChain([{ id: "project-1", name: "Roadmap", teamId: "team-1" }]),
       )
       .mockImplementationOnce(() =>
         selectChain([{ id: "user-1", name: "Andrej" }]),

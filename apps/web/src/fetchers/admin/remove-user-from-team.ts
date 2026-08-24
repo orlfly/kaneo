@@ -11,7 +11,9 @@ async function removeUserFromTeam(input: RemoveUserFromTeamInput) {
   });
 
   if (!response.ok) {
-    const body = (await response.text().catch(() => "")) || "Failed to remove user from team";
+    const body =
+      (await response.text().catch(() => "")) ||
+      "Failed to remove user from team";
     throw new Error(body);
   }
 

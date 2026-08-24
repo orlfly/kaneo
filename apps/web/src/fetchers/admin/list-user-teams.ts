@@ -16,7 +16,8 @@ async function listUserTeams(userId: string): Promise<AdminUserTeam[]> {
   });
 
   if (!response.ok) {
-    const body = (await response.text().catch(() => "")) || "Failed to load teams";
+    const body =
+      (await response.text().catch(() => "")) || "Failed to load teams";
     throw new Error(body);
   }
 

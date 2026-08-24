@@ -44,12 +44,9 @@ vi.mock("@/hooks/queries/task-relation/use-get-task-relations", () => ({
 vi.mock("@/hooks/queries/team/use-active-team", () => ({
   default: () => ({ data: { id: "workspace-1" } }),
 }));
-vi.mock(
-  "@/hooks/queries/team-member/use-get-active-team-members",
-  () => ({
-    useGetActiveTeamMembers: () => ({ data: [] }),
-  }),
-);
+vi.mock("@/hooks/queries/team-member/use-get-active-team-members", () => ({
+  useGetActiveTeamMembers: () => ({ data: [] }),
+}));
 vi.mock("@/hooks/use-workspace-permission", () => ({
   useWorkspacePermission: () => ({
     canCreateTasks: mocks.canCreateTasks,

@@ -3,8 +3,8 @@ import db from "../../database";
 import {
   projectTable,
   taskTable,
-  userTable,
   teamTable,
+  userTable,
 } from "../../database/schema";
 import type {
   PluginContext,

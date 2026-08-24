@@ -169,11 +169,7 @@ function RouteComponent() {
   }, [timeline]);
 
   return (
-    <ProjectLayout
-      projectId={projectId}
-      teamId={teamId}
-      activeView="gantt"
-    >
+    <ProjectLayout projectId={projectId} teamId={teamId} activeView="gantt">
       <PageTitle
         title={t("tasks:gantt.pageTitle", { name: project?.name })}
         hideAppName

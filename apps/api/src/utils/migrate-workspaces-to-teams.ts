@@ -29,8 +29,7 @@ export async function migrateWorkspacesToTeams(): Promise<void> {
   `);
 
   const team =
-    teamExists.rows[0]?.exists === true ||
-    teamExists.rows[0]?.exists === "t";
+    teamExists.rows[0]?.exists === true || teamExists.rows[0]?.exists === "t";
   const legacy =
     legacyExists.rows[0]?.exists === true ||
     legacyExists.rows[0]?.exists === "t";

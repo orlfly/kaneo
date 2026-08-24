@@ -1,1 +1,6 @@
-export { DEFAULT_TEAM_ROLE, isTeamRole, TEAM_ROLES, type TeamRole } from "@kaneo/permissions";
+export {
+  DEFAULT_TEAM_ROLE,
+  isTeamRole,
+  TEAM_ROLES,
+  type TeamRole,
+} from "@kaneo/permissions";

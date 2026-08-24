@@ -20,15 +20,15 @@ import {
 } from "@/components/ui/sidebar";
 import { UserAvatar } from "@/components/user-avatar";
 import { shortcuts } from "@/constants/shortcuts";
+import type { ListTeamsResponse } from "@/fetchers/team/list-teams";
+import useSetActiveTeam from "@/hooks/mutations/team/use-set-active-team";
 import useActiveTeam from "@/hooks/queries/team/use-active-team";
 import useGetTeams from "@/hooks/queries/team/use-get-teams";
-import useSetActiveTeam from "@/hooks/mutations/team/use-set-active-team";
 import {
   getModifierKeyText,
   useRegisterShortcuts,
 } from "@/hooks/use-keyboard-shortcuts";
 import { useUserWebSocket } from "@/hooks/use-user-websocket";
-import type { ListTeamsResponse } from "@/fetchers/team/list-teams";
 import CreateTeamModal from "./shared/modals/create-team-modal";
 
 export function TeamSwitcher() {

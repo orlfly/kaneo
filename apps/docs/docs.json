@@ -1,208 +1,190 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
-  "theme": "almond",
-  "name": "Kaneo",
-  "colors": {
-    "primary": "#111111",
-    "light": "#fafafa",
-    "dark": "#1f1f1f"
-  },
-  "appearance": {
-    "default": "dark"
-  },
-  "icons": {
-    "library": "lucide"
-  },
-  "styling": {
-    "codeblocks": {
-      "theme": {
-        "light": "min-light",
-        "dark": "min-dark"
-      }
-    }
-  },
-  "fonts": {
-    "heading": {
-      "family": "Cal Sans Heading",
-      "source": "/fonts/cal-sans-heading.woff2",
-      "format": "woff2"
-    },
-    "body": {
-      "family": "Cal Sans UI",
-      "source": "/fonts/cal-sans-body.woff2",
-      "format": "woff2"
-    }
-  },
-  "favicon": "/favicon.svg",
-  "logo": {
-    "light": "/logo/dark.svg",
-    "dark": "/logo/light.svg"
-  },
-  "redirects": [
-    {
-      "source": "/core/guide/migrating-from-v1",
-      "destination": "/core/installation/environment-variables"
-    }
-  ],
-  "navigation": {
-    "tabs": [
-      {
-        "tab": "Guides",
-        "groups": [
-          {
-            "group": "Overview",
-            "pages": [
-              "index",
-              "core/index"
-            ]
-          },
-          {
-            "group": "Functional Guides",
-            "pages": [
-              "core/functional/index",
-              "core/functional/create-team-and-project",
-              "core/functional/plan-and-execute-tasks",
-              "core/functional/backlog-planning",
-              "core/functional/collaborate-with-team",
-              "core/functional/configure-workflows",
-              "core/functional/account-notifications",
-              "core/functional/manage-your-account",
-              "core/functional/personalize-your-team",
-              "core/functional/manage-team-labels"
-            ]
-          },
-          {
-            "group": "Installation",
-            "pages": [
-              "core/installation/index",
-              "core/installation/drim",
-              "core/installation/drim-migration",
-              "core/installation/docker-compose",
-              "core/installation/object-storage-and-image-uploads",
-              "core/installation/storage-backends",
-              "core/installation/environment-variables",
-              "core/installation/start-services"
-            ]
-          },
-          {
-            "group": "GitHub Integration",
-            "pages": [
-              "core/integrations/github/setup",
-              "core/integrations/github/configuration",
-              "core/integrations/github/troubleshooting"
-            ]
-          },
-          {
-            "group": "Gitea Integration",
-            "pages": [
-              "core/integrations/gitea/setup"
-            ]
-          },
-          {
-            "group": "GitLab Integration",
-            "pages": [
-              "core/integrations/gitlab/setup"
-            ]
-          },
-          {
-            "group": "Integrations",
-            "pages": [
-              "core/integrations/mcp",
-              "core/integrations/mcp-stateless",
-              "core/integrations/discord",
-              "core/integrations/slack",
-              "core/integrations/telegram",
-              "core/integrations/outgoing-webhooks"
-            ]
-          },
-          {
-            "group": "Authentication Providers",
-            "pages": [
-              "core/social-providers/github",
-              "core/social-providers/google",
-              "core/social-providers/discord",
-              "core/social-providers/custom-oauth"
-            ]
-          },
-          {
-            "group": "Deployment & Operations",
-            "pages": [
-              "core/reverse-proxy/nginx",
-              "core/deployments/railway"
-            ]
-          },
-          {
-            "group": "Migration",
-            "pages": [
-              "core/migrations/from-planka"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API Reference",
-        "openapi": "openapi.json"
-      }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Website",
-          "href": "https://kaneo.app",
-          "icon": "globe"
-        },
-        {
-          "anchor": "GitHub",
-          "href": "https://github.com/usekaneo/kaneo",
-          "icon": "github"
-        }
-      ]
-    }
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "GitHub",
-        "href": "https://github.com/usekaneo/kaneo"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Open Kaneo",
-      "href": "https://kaneo.app"
-    }
-  },
-  "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "cursor"
-    ]
-  },
-  "footer": {
-    "socials": {
-      "website": "https://kaneo.app",
-      "github": "https://github.com/usekaneo/kaneo",
-      "x": "https://x.com/usekaneo"
-    }
-  },
-  "seo": {
-    "indexing": "all",
-    "metatags": {
-      "og:site_name": "Kaneo Docs",
-      "og:type": "website",
-      "og:image": "https://kaneo.app/images/hero.png",
-      "twitter:card": "summary_large_image",
-      "twitter:site": "@usekaneo",
-      "twitter:image": "https://kaneo.app/images/hero.png"
-    }
-  },
-  "integrations": {
-    "plausible": {
-      "domain": "kaneo.app",
-      "server": "plausible.kaneo.app"
-    }
-  }
+	"$schema": "https://mintlify.com/docs.json",
+	"theme": "almond",
+	"name": "Kaneo",
+	"colors": {
+		"primary": "#111111",
+		"light": "#fafafa",
+		"dark": "#1f1f1f"
+	},
+	"appearance": {
+		"default": "dark"
+	},
+	"icons": {
+		"library": "lucide"
+	},
+	"styling": {
+		"codeblocks": {
+			"theme": {
+				"light": "min-light",
+				"dark": "min-dark"
+			}
+		}
+	},
+	"fonts": {
+		"heading": {
+			"family": "Cal Sans Heading",
+			"source": "/fonts/cal-sans-heading.woff2",
+			"format": "woff2"
+		},
+		"body": {
+			"family": "Cal Sans UI",
+			"source": "/fonts/cal-sans-body.woff2",
+			"format": "woff2"
+		}
+	},
+	"favicon": "/favicon.svg",
+	"logo": {
+		"light": "/logo/dark.svg",
+		"dark": "/logo/light.svg"
+	},
+	"redirects": [
+		{
+			"source": "/core/guide/migrating-from-v1",
+			"destination": "/core/installation/environment-variables"
+		}
+	],
+	"navigation": {
+		"tabs": [
+			{
+				"tab": "Guides",
+				"groups": [
+					{
+						"group": "Overview",
+						"pages": ["index", "core/index"]
+					},
+					{
+						"group": "Functional Guides",
+						"pages": [
+							"core/functional/index",
+							"core/functional/create-team-and-project",
+							"core/functional/plan-and-execute-tasks",
+							"core/functional/backlog-planning",
+							"core/functional/collaborate-with-team",
+							"core/functional/configure-workflows",
+							"core/functional/account-notifications",
+							"core/functional/manage-your-account",
+							"core/functional/personalize-your-team",
+							"core/functional/manage-team-labels"
+						]
+					},
+					{
+						"group": "Installation",
+						"pages": [
+							"core/installation/index",
+							"core/installation/drim",
+							"core/installation/drim-migration",
+							"core/installation/docker-compose",
+							"core/installation/object-storage-and-image-uploads",
+							"core/installation/storage-backends",
+							"core/installation/environment-variables",
+							"core/installation/start-services"
+						]
+					},
+					{
+						"group": "GitHub Integration",
+						"pages": [
+							"core/integrations/github/setup",
+							"core/integrations/github/configuration",
+							"core/integrations/github/troubleshooting"
+						]
+					},
+					{
+						"group": "Gitea Integration",
+						"pages": ["core/integrations/gitea/setup"]
+					},
+					{
+						"group": "GitLab Integration",
+						"pages": ["core/integrations/gitlab/setup"]
+					},
+					{
+						"group": "Integrations",
+						"pages": [
+							"core/integrations/mcp",
+							"core/integrations/mcp-stateless",
+							"core/integrations/discord",
+							"core/integrations/slack",
+							"core/integrations/telegram",
+							"core/integrations/outgoing-webhooks"
+						]
+					},
+					{
+						"group": "Authentication Providers",
+						"pages": [
+							"core/social-providers/github",
+							"core/social-providers/google",
+							"core/social-providers/discord",
+							"core/social-providers/custom-oauth"
+						]
+					},
+					{
+						"group": "Deployment & Operations",
+						"pages": ["core/reverse-proxy/nginx", "core/deployments/railway"]
+					},
+					{
+						"group": "Migration",
+						"pages": ["core/migrations/from-planka"]
+					}
+				]
+			},
+			{
+				"tab": "API Reference",
+				"openapi": "openapi.json"
+			}
+		],
+		"global": {
+			"anchors": [
+				{
+					"anchor": "Website",
+					"href": "https://kaneo.app",
+					"icon": "globe"
+				},
+				{
+					"anchor": "GitHub",
+					"href": "https://github.com/usekaneo/kaneo",
+					"icon": "github"
+				}
+			]
+		}
+	},
+	"navbar": {
+		"links": [
+			{
+				"label": "GitHub",
+				"href": "https://github.com/usekaneo/kaneo"
+			}
+		],
+		"primary": {
+			"type": "button",
+			"label": "Open Kaneo",
+			"href": "https://kaneo.app"
+		}
+	},
+	"contextual": {
+		"options": ["copy", "view", "chatgpt", "claude", "cursor"]
+	},
+	"footer": {
+		"socials": {
+			"website": "https://kaneo.app",
+			"github": "https://github.com/usekaneo/kaneo",
+			"x": "https://x.com/usekaneo"
+		}
+	},
+	"seo": {
+		"indexing": "all",
+		"metatags": {
+			"og:site_name": "Kaneo Docs",
+			"og:type": "website",
+			"og:image": "https://kaneo.app/images/hero.png",
+			"twitter:card": "summary_large_image",
+			"twitter:site": "@usekaneo",
+			"twitter:image": "https://kaneo.app/images/hero.png"
+		}
+	},
+	"integrations": {
+		"plausible": {
+			"domain": "kaneo.app",
+			"server": "plausible.kaneo.app"
+		}
+	}
 }
