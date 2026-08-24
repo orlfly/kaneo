@@ -20,6 +20,11 @@ describe("API integration: openapi", () => {
     expect(payload.openapi).toBe("3.0.3");
     expect(payload.info?.title).toBe("Kaneo API");
     expect(payload.paths?.["/config"]).toBeTruthy();
+    // Chat and team surfaces introduced by the team migration and pi-agent.
+    expect(payload.paths?.["/chat/config"]).toBeTruthy();
+    expect(payload.paths?.["/chat/status"]).toBeTruthy();
+    expect(payload.paths?.["/chat/project/{projectId}"]).toBeTruthy();
+    expect(payload.paths?.["/team/active"]).toBeTruthy();
     expect(
       Object.keys(payload.paths || {}).some((path) =>
         path.startsWith("/auth/"),

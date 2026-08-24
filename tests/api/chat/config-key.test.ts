@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import { shouldKeepExistingKey } from "../../../apps/api/src/chat/config";
 
 describe("shouldKeepExistingKey", () => {
-  it("preserves the stored key when the UI echoes the mask placeholder", () => {
+  it("keeps the stored key when the UI echoes the mask placeholder", () => {
     expect(shouldKeepExistingKey("********")).toBe(true);
   });
 
-  it("preserves the stored key on empty input", () => {
-    expect(shouldKeepExistingKey("")).toBe(true);
+  it("treats empty input as an explicit clear, not a keep-signal", () => {
+    expect(shouldKeepExistingKey("")).toBe(false);
   });
 
   it("does not preserve on whitespace (caller trims before passing)", () => {

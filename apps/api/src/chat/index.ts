@@ -45,8 +45,9 @@ const chat = new Hono<{
     teamRole: "owner" | "member";
   };
 }>()
-  // Admin-only config endpoints. Auth is enforced inside the handler so
-  // these remain outside the global `authenticateApiRequest` middleware.
+  // Admin-only config endpoints. They sit under /api/chat so the global
+  // authenticateApiRequest middleware runs first; requireAdminHandler is the
+  // second, instance-admin check.
   .get(
     "/config",
     describeRoute({

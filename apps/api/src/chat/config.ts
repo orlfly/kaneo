@@ -65,17 +65,17 @@ export async function saveChatConfig(input: {
 }): Promise<void> {
   const baseUrl = input.baseUrl.trim();
   const model = input.model.trim() || "gpt-4o";
-  const trimmedApiKey = input.apiKey.trim();
+  const apiKey = input.apiKey.trim();
 
   // The UI echoes a masked "********" placeholder for the stored key. Treat
   // that as "unchanged" so saving the form without retyping the secret keeps
-  // the existing encrypted value. An empty string explicitly clears it.
-  const keepExisting = shouldKeepExistingKey(trimmedApiKey);
-  const newEncrypted = keepExisting ? null : encryptedOrNull(trimmedApiKey);
-
-  // If the form kept the placeholder, preserve the stored secret.
-  const resolvedApiKeyEncrypted =
-    newEncrypted ?? (keepExisting ? await readStoredEncrypted() : null);
+  // the existing encrypted value. An empty string explicitly clears it, and
+  // any other value replaces the stored secret.
+  const resolvedApiKeyEncrypted = shouldKeepExistingKey(apiKey)
+    ? await readStoredEncrypted()
+    : apiKey
+      ? encryptSecret(apiKey)
+      : null;
 
   await db
     .insert(chatConfigTable)
@@ -98,14 +98,11 @@ export async function saveChatConfig(input: {
     });
 }
 
-// A masked placeholder (the UI echoes "********" instead of the stored
-// secret) or an empty string means "leave the stored key unchanged".
+// The masked placeholder (the UI echoes "********" instead of the stored
+// secret) means "leave the stored key unchanged". An empty string is a real
+// value here: it explicitly clears the stored secret.
 export function shouldKeepExistingKey(apiKey: string): boolean {
-  return apiKey === "********" || apiKey === "";
-}
-
-function encryptedOrNull(key: string): string | null {
-  return encryptSecret(key) ?? null;
+  return apiKey === "********";
 }
 
 async function readStoredEncrypted(): Promise<string | null> {
