@@ -51,7 +51,7 @@ export async function getChatStatus(): Promise<{ enabled: boolean }> {
   }
 }
 
-function resolveApiBaseUrl(): string {
+export function resolveApiBaseUrl(): string {
   const raw = import.meta.env.VITE_API_URL || "http://localhost:1337";
   const baseUrl = raw.replace(/\/+$/, "");
   return baseUrl.endsWith("/api") ? baseUrl : `${baseUrl}/api`;

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { parseSSELine } from "./chat";
 
 describe("parseSSELine", () => {
@@ -42,5 +42,40 @@ describe("parseSSELine", () => {
       kind: "token",
       text: "null",
     });
+  });
+});
+
+import { resolveApiBaseUrl } from "./chat";
+
+describe("resolveApiBaseUrl", () => {
+  const original = import.meta.env.VITE_API_URL;
+
+  afterEach(() => {
+    // Restore whatever vitest provided (may be undefined).
+    import.meta.env.VITE_API_URL = original;
+  });
+
+  it("appends /api when VITE_API_URL has no path", () => {
+    import.meta.env.VITE_API_URL = "http://localhost:1337";
+    expect(resolveApiBaseUrl()).toBe("http://localhost:1337/api");
+  });
+
+  it("keeps VITE_API_URL unchanged when it already ends with /api", () => {
+    import.meta.env.VITE_API_URL = "http://api.example.com/api";
+    expect(resolveApiBaseUrl()).toBe("http://api.example.com/api");
+  });
+
+  it("strips trailing slashes before appending /api", () => {
+    import.meta.env.VITE_API_URL = "http://localhost:1337/";
+    expect(resolveApiBaseUrl()).toBe("http://localhost:1337/api");
+  });
+
+  it("returns a real API origin (not the web origin) so /chat/status is reachable", () => {
+    // Regression: the old relative fetch('/api/...') hit the Vite dev server
+    // (no proxy) and returned HTML, so the chat panel showed not-enabled.
+    import.meta.env.VITE_API_URL = "http://api.internal:1337";
+    const url = resolveApiBaseUrl();
+    expect(url).toMatch(/^http:\/\/api\.internal:1337\/api$/);
+    expect(url.startsWith("http://localhost:5173")).toBe(false);
   });
 });
