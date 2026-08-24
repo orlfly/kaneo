@@ -56,20 +56,18 @@ export function registerTools(
   server.registerTool(
     "list_workspaces",
     {
-      description:
-        "List workspaces (Better Auth organizations) the signed-in user can access.",
+      description: "List teams the signed-in user can access.",
       inputSchema: z.object({}),
     },
-    async () =>
-      run(() => client.json("/api/auth/organization/list", { method: "GET" })),
+    async () => run(() => client.json("/api/team", { method: "GET" })),
   );
 
   server.registerTool(
     "list_projects",
     {
-      description: "List projects in a workspace.",
+      description: "List projects in a team.",
       inputSchema: z.object({
-        workspaceId: nonEmptyString.describe("Workspace ID"),
+        workspaceId: nonEmptyString.describe("Team ID"),
         includeArchived: z
           .boolean()
           .optional()
@@ -78,7 +76,8 @@ export function registerTools(
     },
     async (args) => {
       const { workspaceId, includeArchived } = args;
-      const qs = new URLSearchParams({ workspaceId });
+      // workspaceId is a back-compat alias for the team id.
+      const qs = new URLSearchParams({ teamId: workspaceId });
       if (includeArchived === true) {
         qs.set("includeArchived", "true");
       }
@@ -101,7 +100,7 @@ export function registerTools(
   server.registerTool(
     "create_project",
     {
-      description: "Create a project in a workspace.",
+      description: "Create a project in a team.",
       inputSchema: z.object({
         name: nonEmptyString,
         workspaceId: nonEmptyString,
@@ -115,7 +114,7 @@ export function registerTools(
           method: "POST",
           body: JSON.stringify({
             name: args.name,
-            workspaceId: args.workspaceId,
+            teamId: args.workspaceId,
             icon: args.icon,
             slug: args.slug,
           }),
@@ -421,23 +420,21 @@ export function registerTools(
   server.registerTool(
     "list_workspace_labels",
     {
-      description: "List labels defined in a workspace.",
+      description: "List labels defined in a team.",
       inputSchema: z.object({ workspaceId: nonEmptyString }),
     },
     async (args) =>
       run(() =>
-        client.json(
-          `/api/label/workspace/${encodeURIComponent(args.workspaceId)}`,
-          { method: "GET" },
-        ),
+        client.json(`/api/label/team/${encodeURIComponent(args.workspaceId)}`, {
+          method: "GET",
+        }),
       ),
   );
 
   server.registerTool(
     "create_label",
     {
-      description:
-        "Create a label in a workspace (optionally attach to a task).",
+      description: "Create a label in a team (optionally attach to a task).",
       inputSchema: z.object({
         name: nonEmptyString,
         color: hexColorSchema,
@@ -452,7 +449,7 @@ export function registerTools(
           body: JSON.stringify({
             name: args.name,
             color: args.color,
-            workspaceId: args.workspaceId,
+            teamId: args.workspaceId,
             ...(args.taskId !== undefined ? { taskId: args.taskId } : {}),
           }),
         }),
@@ -547,38 +544,28 @@ export function registerTools(
   server.registerTool(
     "delete_label",
     {
-      description:
-        "Delete a label by ID. Only task-associated labels can be deleted; workspace-level labels (taskId null) are rejected by the API.",
+      description: "Delete a label by ID (team-level or task-level).",
       inputSchema: z.object({ id: nonEmptyString }),
     },
     async (args) =>
-      run(async () => {
-        const label = (await client.json(
-          `/api/label/${encodeURIComponent(args.id)}`,
-          { method: "GET" },
-        )) as { taskId?: string | null };
-        if (!label?.taskId) {
-          throw new Error(
-            "Label is not associated with a task and cannot be deleted (workspace-level labels are not deletable via this endpoint).",
-          );
-        }
-        return client.json(`/api/label/${encodeURIComponent(args.id)}`, {
+      run(() =>
+        client.json(`/api/label/${encodeURIComponent(args.id)}`, {
           method: "DELETE",
-        });
-      }),
+        }),
+      ),
   );
 
   server.registerTool(
     "list_workspace_members",
     {
       description:
-        "List the members of a workspace. Use this to resolve the user ID an assignee tool expects.",
+        "List the members of a team. Use this to resolve the user ID an assignee tool expects.",
       inputSchema: z.object({ workspaceId: nonEmptyString }),
     },
     async (args) =>
       run(() =>
         client.json(
-          `/api/workspace/${encodeURIComponent(args.workspaceId)}/members`,
+          `/api/team/${encodeURIComponent(args.workspaceId)}/members`,
         ),
       ),
   );
@@ -587,21 +574,14 @@ export function registerTools(
     "search",
     {
       description:
-        "Search across tasks, projects, workspaces, comments, and activities.",
+        "Search across tasks, projects, teams, comments, and activities.",
       inputSchema: z.object({
         q: nonEmptyString.describe("Search query"),
         type: z
-          .enum([
-            "all",
-            "tasks",
-            "projects",
-            "workspaces",
-            "comments",
-            "activities",
-          ])
+          .enum(["all", "tasks", "projects", "teams", "comments", "activities"])
           .optional()
           .describe("Restrict results to one kind. Defaults to all."),
-        workspaceId: optionalNonEmptyString.describe("Limit to one workspace"),
+        workspaceId: optionalNonEmptyString.describe("Limit to one team"),
         projectId: optionalNonEmptyString.describe("Limit to one project"),
         limit: z
           .number()
@@ -615,7 +595,7 @@ export function registerTools(
     async (args) => {
       const qs = new URLSearchParams({ q: args.q });
       if (args.type) qs.set("type", args.type);
-      if (args.workspaceId) qs.set("workspaceId", args.workspaceId);
+      if (args.workspaceId) qs.set("teamId", args.workspaceId);
       if (args.projectId) qs.set("projectId", args.projectId);
       if (args.limit !== undefined) qs.set("limit", String(args.limit));
       return run(() => client.json(`/api/search?${qs.toString()}`));
@@ -653,7 +633,7 @@ export function registerTools(
     "update_task_assignee",
     {
       description:
-        "Assign a task to a workspace member, or pass a null userId to unassign it.",
+        "Assign a task to a team member, or pass a null userId to unassign it.",
       inputSchema: z.object({
         taskId: nonEmptyString,
         userId: nonEmptyString

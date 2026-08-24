@@ -706,7 +706,7 @@ export function registerMcpTools(
     },
     async (args) =>
       run(() =>
-        client.json(`/api/label/workspace/${encodeURIComponent(args.teamId)}`, {
+        client.json(`/api/label/team/${encodeURIComponent(args.teamId)}`, {
           method: "GET",
         }),
       ),
@@ -825,32 +825,22 @@ export function registerMcpTools(
   registerTool(
     "delete_label",
     {
-      description:
-        "Delete a label by ID. Only task-associated labels can be deleted; workspace-level labels (taskId null) are rejected by the API.",
+      description: "Delete a label by ID (team-level or task-level).",
       inputSchema: z.object({ id: nonEmptyString }),
     },
     async (args) =>
-      run(async () => {
-        const label = (await client.json(
-          `/api/label/${encodeURIComponent(args.id)}`,
-          { method: "GET" },
-        )) as { taskId?: string | null };
-        if (!label?.taskId) {
-          throw new Error(
-            "Label is not associated with a task and cannot be deleted (workspace-level labels are not deletable via this endpoint).",
-          );
-        }
-        return client.json(`/api/label/${encodeURIComponent(args.id)}`, {
+      run(() =>
+        client.json(`/api/label/${encodeURIComponent(args.id)}`, {
           method: "DELETE",
-        });
-      }),
+        }),
+      ),
   );
 
   registerTool(
     "list_workspace_members",
     {
       description:
-        "List the members of a workspace (team). Use this to resolve the user ID an assignee tool expects.",
+        "List the members of a team. Use this to resolve the user ID an assignee tool expects.",
       inputSchema: z.object({ teamId: nonEmptyString }),
     },
     async (args) =>
@@ -863,21 +853,14 @@ export function registerMcpTools(
     "search",
     {
       description:
-        "Search across tasks, projects, workspaces, comments, and activities.",
+        "Search across tasks, projects, teams, comments, and activities.",
       inputSchema: z.object({
         q: nonEmptyString.describe("Search query"),
         type: z
-          .enum([
-            "all",
-            "tasks",
-            "projects",
-            "workspaces",
-            "comments",
-            "activities",
-          ])
+          .enum(["all", "tasks", "projects", "teams", "comments", "activities"])
           .optional()
           .describe("Restrict results to one kind. Defaults to all."),
-        teamId: optionalNonEmptyString.describe("Limit to one workspace"),
+        teamId: optionalNonEmptyString.describe("Limit to one team"),
         projectId: optionalNonEmptyString.describe("Limit to one project"),
         limit: z
           .number()
@@ -929,7 +912,7 @@ export function registerMcpTools(
     "update_task_assignee",
     {
       description:
-        "Assign a task to a workspace member, or pass a null userId to unassign it.",
+        "Assign a task to a team member, or pass a null userId to unassign it.",
       inputSchema: z.object({
         taskId: nonEmptyString,
         userId: nonEmptyString
