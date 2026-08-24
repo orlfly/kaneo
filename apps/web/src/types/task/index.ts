@@ -35,6 +35,7 @@ type Task = {
   columnId?: string | null;
   labels?: TaskLabel[];
   externalLinks?: TaskExternalLink[];
+  requiredRole?: string | null;
 };
 
 export default Task;

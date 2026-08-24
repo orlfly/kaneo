@@ -13,6 +13,20 @@ const prioritySchema = z.enum([
   "urgent",
 ]);
 
+const agentRoleSchema = z
+  .enum([
+    "coding",
+    "product-design",
+    "architecture-design",
+    "devops",
+    "ui-design",
+    "testing",
+    "code-review",
+  ])
+  .describe(
+    "Agent role the task should be claimed by. Generic tasks (omit the role) are claimable by any agent.",
+  );
+
 const nonEmptyString = z.string().trim().min(1);
 const optionalNonEmptyString = nonEmptyString.optional();
 const nullableOptionalNonEmptyString = nonEmptyString.nullable().optional();
@@ -247,6 +261,7 @@ export function registerTools(
         startDate: optionalIsoDateTimeSchema,
         dueDate: optionalIsoDateTimeSchema,
         userId: optionalNonEmptyString,
+        requiredRole: agentRoleSchema.optional(),
       }),
     },
     async (args) => {
@@ -264,6 +279,9 @@ export function registerTools(
       }
       if (args.userId !== undefined) {
         body.userId = args.userId;
+      }
+      if (args.requiredRole !== undefined) {
+        body.requiredRole = args.requiredRole;
       }
       return run(() =>
         client.json(`/api/task/${encodeURIComponent(args.projectId)}`, {

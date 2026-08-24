@@ -41,6 +41,7 @@ export const taskSchema = v.object({
   startDate: v.optional(v.date()),
   dueDate: v.optional(v.date()),
   createdAt: v.date(),
+  requiredRole: v.nullable(v.string()),
 });
 
 export const activitySchema = v.object({

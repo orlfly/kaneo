@@ -29,6 +29,7 @@ type GetTasksOptions = {
   page?: number;
   priority?: string;
   unclaimed?: boolean;
+  requiredRole?: string | null;
   sortBy?:
     | "createdAt"
     | "priority"
@@ -97,6 +98,12 @@ async function getTasks(projectId: string, options: GetTasksOptions = {}) {
 
   if (options.unclaimed) {
     conditions.push(isNull(taskTable.userId));
+  }
+
+  if (options.requiredRole !== undefined && options.requiredRole !== null) {
+    // Filter by an exact required role. To also include generic (no-role)
+    // tasks when the caller asked for "any role", they pass null instead.
+    conditions.push(eq(taskTable.requiredRole, options.requiredRole));
   }
 
   if (options.dueBefore) {

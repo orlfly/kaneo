@@ -46,6 +46,7 @@ import { Button } from "../ui/button";
 import { ContextMenu, ContextMenuTrigger } from "../ui/context-menu";
 import TaskCardContextMenuContent from "./task-card-context-menu/task-card-context-menu-content";
 import { TaskLabels } from "./task-labels";
+import { TaskRoleBadge } from "./task-role-badge";
 
 type TaskCardProps = {
   task: Task;
@@ -258,6 +259,8 @@ function TaskCard({ task, disableDragDrop = false }: TaskCardProps) {
                   {getPriorityIcon(task.priority ?? "")}
                 </span>
               )}
+
+              <TaskRoleBadge requiredRole={task.requiredRole ?? null} />
 
               {showDueDates && task.dueDate && (
                 <div

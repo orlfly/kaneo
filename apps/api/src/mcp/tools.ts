@@ -1,3 +1,4 @@
+import { AGENT_ROLES, type AgentRole } from "@kaneo/permissions";
 import { z } from "zod";
 
 type McpToolResult = {
@@ -195,6 +196,12 @@ const prioritySchema = z.enum([
   "high",
   "urgent",
 ]);
+
+const agentRoleSchema = z
+  .enum(AGENT_ROLES as unknown as [AgentRole, ...AgentRole[]])
+  .describe(
+    "Agent role the task should be claimed by. Generic tasks (omit the role) are claimable by any agent.",
+  );
 const nonEmptyString = z.string().trim().min(1);
 const optionalNonEmptyString = nonEmptyString.optional();
 const nullableOptionalNonEmptyString = nonEmptyString.nullable().optional();
@@ -431,6 +438,7 @@ export function registerMcpTools(
         startDate: optionalIsoDateTimeSchema,
         dueDate: optionalIsoDateTimeSchema,
         userId: optionalNonEmptyString,
+        requiredRole: agentRoleSchema.optional(),
       }),
     },
     async (args) => {
@@ -443,6 +451,8 @@ export function registerMcpTools(
       if (args.startDate !== undefined) body.startDate = args.startDate;
       if (args.dueDate !== undefined) body.dueDate = args.dueDate;
       if (args.userId !== undefined) body.userId = args.userId;
+      if (args.requiredRole !== undefined)
+        body.requiredRole = args.requiredRole;
       return run(() =>
         client.json(`/api/task/${encodeURIComponent(args.projectId)}`, {
           method: "POST",
@@ -547,10 +557,15 @@ export function registerMcpTools(
     "claim_next_task",
     {
       description:
-        "Find and atomically claim the best available to-do task across all of the caller's team projects. Ordering: due date (soonest first), priority (urgent first), creation date (oldest first). Returns 404 if no unclaimed tasks are available.",
+        "Find and atomically claim the best available to-do task across the caller's team projects. The agent's declared role is used to filter candidates: tasks assigned to the caller are prioritized, then unassigned tasks whose required role matches the caller's role (or is generic). Ordering: due date (soonest first), priority (urgent first), creation date (oldest first). Returns 404 if no matching tasks are available.",
       inputSchema: z.object({
         projectId: optionalNonEmptyString,
         priorities: z.array(z.string()).optional(),
+        requiredRole: agentRoleSchema
+          .optional()
+          .describe(
+            "Only narrow candidates to this role; the API key's agent role remains the trust source and cannot be expanded.",
+          ),
       }),
     },
     async (args) =>
@@ -563,6 +578,9 @@ export function registerMcpTools(
               : {}),
             ...(args.priorities !== undefined
               ? { priorities: args.priorities }
+              : {}),
+            ...(args.requiredRole !== undefined
+              ? { requiredRole: args.requiredRole }
               : {}),
           }),
         }),
@@ -622,16 +640,24 @@ export function registerMcpTools(
     "list_unclaimed_tasks",
     {
       description:
-        "List all unassigned to-do tasks in a project. These are tasks available for claiming by any team member.",
-      inputSchema: z.object({ projectId: nonEmptyString }),
+        "List all unassigned to-do tasks in a project. Optionally narrow to tasks that need a specific agent role.",
+      inputSchema: z.object({
+        projectId: nonEmptyString,
+        requiredRole: agentRoleSchema.optional(),
+      }),
     },
-    async (args) =>
-      run(() =>
+    async (args) => {
+      const query = new URLSearchParams({ unclaimed: "true" });
+      if (args.requiredRole !== undefined) {
+        query.set("requiredRole", args.requiredRole);
+      }
+      return run(() =>
         client.json(
-          `/api/task/tasks/${encodeURIComponent(args.projectId)}?unclaimed=true`,
+          `/api/task/tasks/${encodeURIComponent(args.projectId)}?${query.toString()}`,
           { method: "GET" },
         ),
-      ),
+      );
+    },
   );
 
   registerTool(

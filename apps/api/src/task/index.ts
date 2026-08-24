@@ -1,3 +1,4 @@
+import { AGENT_ROLES, type AgentRole } from "@kaneo/permissions";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
@@ -58,6 +59,9 @@ const task = new Hono<{
       id: string;
       userId: string;
       enabled: boolean;
+      permissions?: Record<string, string[]> | null;
+      metadata?: Record<string, unknown> | null;
+      agentRole?: AgentRole;
     };
   };
 }>()
@@ -187,6 +191,112 @@ const task = new Hono<{
     },
   )
   .post(
+    "/claim/:id",
+    describeRoute({
+      operationId: "claimTask",
+      tags: ["Tasks"],
+      description:
+        "Atomically claim an unassigned to-do task for the current user",
+      responses: {
+        200: {
+          description: "Task claimed successfully",
+          content: {
+            "application/json": { schema: resolver(v.any()) },
+          },
+        },
+        409: {
+          description: "Task is not available for claiming",
+          content: {
+            "application/json": {
+              schema: resolver(v.object({ message: v.string() })),
+            },
+          },
+        },
+      },
+    }),
+    validator("param", v.object({ id: v.string() })),
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["update"] }),
+    async (c) => {
+      const { id } = c.req.valid("param");
+      const userId = c.get("userId");
+      const apiKey = c.get("apiKey");
+
+      const result = await claimTask({
+        taskId: id,
+        userId,
+        agentKeyId: apiKey?.id,
+        agentRole: apiKey?.agentRole,
+      });
+
+      return c.json(result);
+    },
+  )
+  .post(
+    "/claim-next",
+    describeRoute({
+      operationId: "claimNextTask",
+      tags: ["Tasks"],
+      description:
+        "Find and atomically claim the best available to-do task across the caller's team projects",
+      responses: {
+        200: {
+          description: "Task claimed successfully",
+          content: {
+            "application/json": { schema: resolver(v.any()) },
+          },
+        },
+        404: {
+          description: "No unclaimed tasks available",
+          content: {
+            "application/json": {
+              schema: resolver(v.object({ message: v.string() })),
+            },
+          },
+        },
+      },
+    }),
+    validator(
+      "json",
+      v.object({
+        projectId: v.optional(v.string()),
+        priorities: v.optional(v.array(v.string())),
+      }),
+    ),
+    async (c) => {
+      const userId = c.get("userId");
+      const apiKey = c.get("apiKey");
+      const body = (c.req.valid("json") ?? {}) as {
+        projectId?: string;
+        priorities?: string[];
+        requiredRole?: AgentRole;
+      };
+
+      // The explicit requiredRole parameter may only narrow candidates: a
+      // caller cannot pass a role they themselves do not hold.
+      const requestedRole = body.requiredRole;
+      const agentRole = apiKey?.agentRole;
+      const effectiveRole =
+        requestedRole && (!agentRole || requestedRole === agentRole)
+          ? requestedRole
+          : agentRole;
+
+      const result = await claimNextTask({
+        userId,
+        agentKeyId: apiKey?.id,
+        projectId: body.projectId,
+        priorities: body.priorities,
+        agentRole: effectiveRole,
+      });
+
+      if (!result) {
+        return c.json({ message: "No unclaimed tasks available" }, 404);
+      }
+
+      return c.json(result);
+    },
+  )
+  .post(
     "/:projectId",
     describeRoute({
       operationId: "createTask",
@@ -211,6 +321,7 @@ const task = new Hono<{
         priority: v.picklist(VALID_PRIORITIES),
         status: v.string(),
         userId: v.optional(v.string()),
+        requiredRole: v.optional(v.picklist(AGENT_ROLES)),
       }),
     ),
     workspaceAccess.fromProject("projectId"),
@@ -225,6 +336,7 @@ const task = new Hono<{
         priority,
         status,
         userId,
+        requiredRole,
       } = c.req.valid("json");
 
       const parsedStartDate =
@@ -248,6 +360,7 @@ const task = new Hono<{
         dueDate: parsedDueDate,
         priority,
         status,
+        requiredRole: requiredRole ?? null,
       });
 
       return c.json(task);
@@ -565,6 +678,7 @@ const task = new Hono<{
         taskId: id,
         userId,
         agentKeyId: apiKey?.id,
+        agentRole: apiKey?.agentRole,
       });
 
       return c.json(result);

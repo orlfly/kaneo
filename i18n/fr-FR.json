@@ -113,7 +113,9 @@
 					"terracotta": "Terre cuite",
 					"rose": "Rose",
 					"crimson": "Cramoisi"
-				}
+				},
+				"agentRole": "Required agent role",
+				"agentRoleGeneric": "Any agent"
 			},
 			"createTeam": {
 				"breadcrumbKaneo": "KANEO",
@@ -418,6 +420,18 @@
 					"nameRequired": "Le nom est requis",
 					"nameShort": "Le nom doit contenir au moins 3 caractères",
 					"expirationRequired": "Une date d'expiration est requise"
+				},
+				"roleLabel": "Agent role",
+				"rolePlaceholder": "Choose an agent role",
+				"roleDescription": "Tasks with this role are the ones this key claims.",
+				"roleCoding": "Coding (default)",
+				"role": {
+					"product-design": "Product Design",
+					"architecture-design": "Architecture Design",
+					"devops": "Devops",
+					"ui-design": "UI Design",
+					"testing": "Testing",
+					"code-review": "Code Review"
 				}
 			}
 		},
@@ -1677,6 +1691,29 @@
 				"addRowAfter": "Insérer une ligne en dessous",
 				"deleteRow": "Supprimer la ligne",
 				"deleteTable": "Supprimer le tableau"
+			}
+		},
+		"agentRoles": {
+			"coding": {
+				"name": "Coding"
+			},
+			"product-design": {
+				"name": "Product Design"
+			},
+			"architecture-design": {
+				"name": "Architecture Design"
+			},
+			"devops": {
+				"name": "Devops"
+			},
+			"ui-design": {
+				"name": "UI Design"
+			},
+			"testing": {
+				"name": "Testing"
+			},
+			"code-review": {
+				"name": "Code Review"
 			}
 		}
 	},

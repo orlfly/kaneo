@@ -163,6 +163,7 @@ export const auth = betterAuth({
     bearer(),
     apiKey({
       enableSessionForAPIKeys: true,
+      enableMetadata: true,
       apiKeyHeaders: "x-api-key",
       rateLimit: {
         enabled: true,

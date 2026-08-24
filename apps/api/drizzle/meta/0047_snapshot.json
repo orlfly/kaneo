@@ -1,6 +1,6 @@
 {
-	"id": "agent-collab-snap-0047",
-	"prevId": "bde83bc8-50b5-4a87-832c-b32c7abb2f1d",
+	"id": "c0d4e5f6-0047-4a5b-8c9d-0e1f2a3b4c5f",
+	"prevId": "affca73b-85a9-4d15-80b7-c86c867c3104",
 	"version": "7",
 	"dialect": "postgresql",
 	"tables": {
@@ -204,8 +204,7 @@
 					"name": "agent_key_id",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"default": null
+					"notNull": false
 				}
 			},
 			"indexes": {
@@ -2392,22 +2391,25 @@
 					"name": "paused_reason",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"default": null
+					"notNull": false
 				},
 				"claimed_by": {
 					"name": "claimed_by",
 					"type": "text",
 					"primaryKey": false,
-					"notNull": false,
-					"default": null
+					"notNull": false
 				},
 				"claimed_at": {
 					"name": "claimed_at",
 					"type": "timestamp",
 					"primaryKey": false,
-					"notNull": false,
-					"default": null
+					"notNull": false
+				},
+				"required_role": {
+					"name": "required_role",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
 				}
 			},
 			"indexes": {
@@ -2473,17 +2475,18 @@
 				},
 				"task_claimedBy_idx": {
 					"name": "task_claimedBy_idx",
-					"columns": {
-						"claimed_by": {
-							"name": "claimed_by",
+					"columns": [
+						{
+							"expression": "claimed_by",
+							"isExpression": false,
 							"asc": true,
-							"isNullsFirst": false,
-							"op": null
+							"nulls": "last"
 						}
-					},
+					],
 					"isUnique": false,
+					"concurrently": false,
 					"method": "btree",
-					"concurrently": false
+					"with": {}
 				}
 			},
 			"foreignKeys": {

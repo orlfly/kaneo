@@ -1,4 +1,5 @@
-import { and, eq, isNull } from "drizzle-orm";
+import type { AgentRole } from "@kaneo/permissions";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db, { schema } from "../../database";
 import { publishEvent } from "../../events";
@@ -18,12 +19,65 @@ export async function claimTask({
   taskId,
   userId,
   agentKeyId,
+  agentRole,
 }: {
   taskId: string;
   userId: string;
   agentKeyId?: string;
+  agentRole?: AgentRole;
 }): Promise<ClaimResult> {
   const now = new Date();
+
+  // Verify the task is claimable by this agent before locking on it.
+  // Rule 1 (assigned to me): userId === caller; or
+  // Rule 2 (role match): unassigned AND (requiredRole IS NULL OR equals my role).
+  const [candidate] = await db
+    .select({
+      id: schema.taskTable.id,
+      status: schema.taskTable.status,
+      userId: schema.taskTable.userId,
+      requiredRole: schema.taskTable.requiredRole,
+    })
+    .from(schema.taskTable)
+    .where(eq(schema.taskTable.id, taskId))
+    .limit(1);
+
+  if (candidate?.status !== "to-do") {
+    throw new HTTPException(409, {
+      message:
+        "Task is not available for claiming (already assigned or not in to-do status)",
+    });
+  }
+
+  const assignedToMe = candidate.userId === userId;
+  const roleMatched =
+    candidate.userId === null &&
+    (candidate.requiredRole === null ||
+      (agentRole !== undefined && candidate.requiredRole === agentRole));
+  if (!assignedToMe && !roleMatched) {
+    throw new HTTPException(403, {
+      message:
+        "Task is not claimable by this agent role (assignee mismatch or required role does not match)",
+    });
+  }
+
+  // Re-check under the row lock
+  const whereClauses = [
+    eq(schema.taskTable.id, taskId),
+    eq(schema.taskTable.status, "to-do"),
+  ];
+  if (assignedToMe) {
+    whereClauses.push(eq(schema.taskTable.userId, userId));
+  } else {
+    whereClauses.push(isNull(schema.taskTable.userId));
+    if (agentRole !== undefined) {
+      whereClauses.push(
+        sql<boolean>`(${schema.taskTable.requiredRole} IS NULL OR ${schema.taskTable.requiredRole} = ${agentRole})`,
+      );
+    } else {
+      whereClauses.push(isNull(schema.taskTable.requiredRole));
+    }
+  }
 
   const [claimed] = await db
     .update(schema.taskTable)
@@ -33,13 +87,7 @@ export async function claimTask({
       claimedAt: now,
       status: "in-progress",
     })
-    .where(
-      and(
-        eq(schema.taskTable.id, taskId),
-        isNull(schema.taskTable.userId),
-        eq(schema.taskTable.status, "to-do"),
-      ),
-    )
+    .where(and(...whereClauses))
     .returning();
 
   if (!claimed) {

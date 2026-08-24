@@ -1,6 +1,8 @@
+import { AGENT_ROLES, type AgentRole } from "@kaneo/permissions";
 import { useLocation } from "@tanstack/react-router";
 import { produce } from "immer";
 import {
+  BotIcon,
   CalendarIcon,
   Check,
   FolderKanban,
@@ -181,6 +183,7 @@ function CreateTaskModal({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<Priority>("no-priority");
+  const [requiredRole, setRequiredRole] = useState<AgentRole | null>(null);
   const [assigneeId, setAssigneeId] = useState("");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
@@ -243,6 +246,7 @@ function CreateTaskModal({
     setTitle("");
     setDescription("");
     setPriority("no-priority");
+    setRequiredRole(null);
     setAssigneeId("");
     setStartDate(undefined);
     setDueDate(undefined);
@@ -340,6 +344,7 @@ function CreateTaskModal({
       startDate: startDate ? startDate.toISOString() : undefined,
       dueDate: dueDate ? dueDate.toISOString() : undefined,
       status: draftStatus,
+      requiredRole: requiredRole ?? undefined,
     }).then((task) => normalizeTask(task));
 
     draftCreationPromiseRef.current = draftPromise;
@@ -369,6 +374,7 @@ function CreateTaskModal({
     resolvedProjectId,
     title,
     t,
+    requiredRole,
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -399,6 +405,7 @@ function CreateTaskModal({
               description: description.trim() || "",
               userId: assigneeId,
               priority,
+              requiredRole: requiredRole ?? undefined,
               projectId: resolvedProjectId,
               startDate: startDate ? startDate.toISOString() : undefined,
               dueDate: dueDate ? dueDate.toISOString() : undefined,
@@ -466,7 +473,24 @@ function CreateTaskModal({
     [t],
   );
 
+  const roleOptions = useMemo(
+    () => [
+      {
+        value: null,
+        label: t("common:modals.createTask.agentRoleGeneric", {
+          defaultValue: "Any agent",
+        }),
+      },
+      ...AGENT_ROLES.map((value) => ({
+        value,
+        label: t(`tasks:agentRoles.${value}`, { defaultValue: value }),
+      })),
+    ],
+    [t],
+  );
+
   const selectedPriority = priorityOptions.find((p) => p.value === priority);
+  const selectedRole = roleOptions.find((r) => r.value === requiredRole);
 
   const statusLabel = useMemo(() => {
     if (status) {
@@ -783,6 +807,47 @@ function CreateTaskModal({
                         {getPriorityIcon(option.value)}
                         <span className="text-sm">{option.label}</span>
                         {priority === option.value && (
+                          <Check className="ml-auto h-4 w-4" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors border border-border hover:bg-accent/50",
+                      requiredRole
+                        ? "bg-accent/30 text-foreground"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    <BotIcon className="w-3.5 h-3.5" />
+                    <span>
+                      {selectedRole
+                        ? selectedRole.label
+                        : t("common:modals.createTask.agentRole", {
+                            defaultValue: "Required agent role",
+                          })}
+                    </span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-1" align="start">
+                  <div className="space-y-1">
+                    {roleOptions.map((option) => (
+                      <button
+                        key={option.value ?? "generic"}
+                        type="button"
+                        className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-accent/50 text-left transition-colors h-8"
+                        onClick={() => setRequiredRole(option.value)}
+                      >
+                        <BotIcon className="w-3.5 h-3.5" />
+                        <span className="text-sm">{option.label}</span>
+                        {requiredRole === option.value && (
                           <Check className="ml-auto h-4 w-4" />
                         )}
                       </button>

@@ -334,8 +334,8 @@
 		{
 			"idx": 47,
 			"version": "7",
-			"when": 1787437120000,
-			"tag": "0047_agent_collaboration",
+			"when": 1787579882158,
+			"tag": "0047_add_task_required_role",
 			"breakpoints": true
 		}
 	]

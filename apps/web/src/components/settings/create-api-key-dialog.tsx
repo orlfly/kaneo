@@ -1,4 +1,5 @@
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
+import { AGENT_ROLES } from "@kaneo/permissions";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -43,6 +44,7 @@ const EXPIRATION_SECONDS = {
 type FormValues = {
   name: string;
   expiresIn: string;
+  agentRole: string;
 };
 
 type CreateApiKeyDialogProps = {
@@ -73,6 +75,7 @@ export function CreateApiKeyDialog({
             1,
             t("settings:apiKey.createDialog.validation.expirationRequired"),
           ),
+        agentRole: z.string(),
       }),
     [t],
   );
@@ -104,11 +107,30 @@ export function CreateApiKeyDialog({
     [t],
   );
 
+  const roleOptions = useMemo(
+    () => [
+      {
+        value: "coding",
+        label: t("settings:apiKey.createDialog.roleCoding", {
+          defaultValue: "Coding (default)",
+        }),
+      },
+      ...AGENT_ROLES.filter((r) => r !== "coding").map((value) => ({
+        value,
+        label: t(`settings:apiKey.createDialog.role.${value}`, {
+          defaultValue: value,
+        }),
+      })),
+    ],
+    [t],
+  );
+
   const form = useForm<FormValues>({
     resolver: standardSchemaResolver(createApiKeySchema),
     defaultValues: {
       name: "",
       expiresIn: "30d",
+      agentRole: "coding",
     },
   });
 
@@ -123,6 +145,7 @@ export function CreateApiKeyDialog({
       const result = await createApiKey({
         name: data.name,
         expiresIn: expiresInValue ?? null,
+        metadata: { agentRole: data.agentRole },
       });
 
       form.reset();
@@ -220,6 +243,53 @@ export function CreateApiKeyDialog({
                     </FormControl>
                     <FormDescription>
                       {t("settings:apiKey.createDialog.expirationDescription")}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="agentRole"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {t("settings:apiKey.createDialog.roleLabel", {
+                        defaultValue: "Agent role",
+                      })}
+                    </FormLabel>
+                    <FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={t(
+                              "settings:apiKey.createDialog.rolePlaceholder",
+                              { defaultValue: "Choose an agent role" },
+                            )}
+                          >
+                            {roleOptions.find((o) => o.value === field.value)
+                              ?.label ?? field.value}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {roleOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormDescription>
+                      {t("settings:apiKey.createDialog.roleDescription", {
+                        defaultValue:
+                          "Tasks with this role are the ones this key claims.",
+                      })}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

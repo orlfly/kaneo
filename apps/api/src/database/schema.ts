@@ -314,6 +314,7 @@ export const taskTable = pgTable(
     pausedReason: text("paused_reason"),
     claimedBy: text("claimed_by"),
     claimedAt: timestamp("claimed_at", { mode: "date" }),
+    requiredRole: text("required_role"),
   },
   (table) => [
     index("task_projectId_idx").on(table.projectId),
