@@ -17,7 +17,7 @@ The system SHALL add a "Chat" tab to the project page navigation, after the exis
 
 #### Scenario: Chat tab shows disabled state when pi-agent not configured
 
-- **WHEN** the pi-agent service is not configured (`PI_AGENT_API_KEY` or `PI_AGENT_BASE_URL` not set)
+- **WHEN** the pi-agent service is not configured (AI settings disabled, or base URL/API key missing)
 - **AND** the user opens the Chat tab
 - **THEN** the page shows a notice that the AI assistant is not enabled
 

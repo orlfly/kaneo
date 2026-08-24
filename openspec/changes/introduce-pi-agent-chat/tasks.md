@@ -13,10 +13,10 @@
 - [x] 2.2 Create `apps/api/src/chat/controllers/list-messages.ts` — query `chatMessageTable` by `projectId`, ordered by `createdAt` asc.
 - [x] 2.3 Create `apps/api/src/chat/controllers/send-message.ts` — stores user message, builds conversation context, calls pi-agent API, streams response via SSE, stores assistant response.
 - [x] 2.4 Create `apps/api/src/chat/tools.ts` — define OpenAI function-calling tools: `list_tasks`, `get_task`, `create_task`, `get_project_summary`. Each tool executes against the database using the caller's `userId` and project scope.
-- [x] 2.5 Create `apps/api/src/chat/pi-agent-client.ts` — minimal HTTP client for pi-agent's OpenAI-compatible API (`POST /v1/chat/completions` with `stream: true`). Reads `PI_AGENT_API_KEY` and `PI_AGENT_BASE_URL` from env.
+- [x] 2.5 Create `apps/api/src/chat/pi-agent-client.ts` — minimal HTTP client for pi-agent's OpenAI-compatible API (`POST /v1/chat/completions` with `stream: true`). Reads base URL, API key, model, and enabled flag from the `chat_config` database row (via `config.ts`).
 - [x] 2.6 Build the system prompt in `send-message.ts` that includes project name, team name, and pi-agent role description.
 - [x] 2.7 Handle tool-call loop: if pi-agent returns `tool_calls`, execute tools, append results, re-call pi-agent, repeat until a text response is produced.
-- [x] 2.8 Return 503 with `{ error: "pi-agent not configured" }` when env vars are missing.
+- [x] 2.8 Return 503 with `{ error: "pi-agent not configured" }` when the DB config is disabled or missing base URL/API key.
 
 ## 3. Mount chat routes
 
