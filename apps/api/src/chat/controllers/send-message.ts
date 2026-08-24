@@ -18,7 +18,10 @@ import { executeTool, toolDefinitions } from "../tools";
 
 const MAX_TOOL_ROUNDS = 5;
 
-function buildSystemPrompt(projectName: string, teamName: string): string {
+export function buildSystemPrompt(
+  projectName: string,
+  teamName: string,
+): string {
   return `You are pi-agent, an AI project management assistant for the Kaneo project management platform.
 
 You are currently working in the project "${projectName}" which belongs to the team "${teamName}".
