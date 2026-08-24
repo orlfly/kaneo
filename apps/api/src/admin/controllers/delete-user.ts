@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import db from "../../database";
-import { userTable, workspaceUserTable } from "../../database/schema";
+import { teamMemberTable, userTable } from "../../database/schema";
 
 export async function deleteUser(userId: string) {
   const [target] = await db
@@ -27,12 +27,12 @@ export async function deleteUser(userId: string) {
   // Refuse to delete a user who owns a team: deleting the user would
   // cascade and destroy the team. The admin should transfer ownership first.
   const owned = await db
-    .select({ id: workspaceUserTable.id })
-    .from(workspaceUserTable)
+    .select({ id: teamMemberTable.id })
+    .from(teamMemberTable)
     .where(
       and(
-        eq(workspaceUserTable.userId, userId),
-        eq(workspaceUserTable.role, "owner"),
+        eq(teamMemberTable.userId, userId),
+        eq(teamMemberTable.role, "owner"),
       ),
     )
     .limit(1);

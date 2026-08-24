@@ -947,15 +947,6 @@ export const chatMessageTable = pgTable(
 export const chatMessage = chatMessageTable;
 export const chatConfig = chatConfigTable;
 
-// Back-compat aliases so legacy code paths that still reference the
-// workspace-era table names resolve to the renamed tables. These should be
-// removed as consumer modules are migrated off `workspace*`.
-export const workspaceTable = teamTable;
-export const workspaceUserTable = teamMemberTable;
-export const userNotificationWorkspaceRuleTable = userNotificationTeamRuleTable;
-export const userNotificationWorkspaceProjectTable =
-  userNotificationTeamProjectTable;
-
 // Auth-schema compatible relation exports in schema.ts
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),

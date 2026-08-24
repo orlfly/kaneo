@@ -55,13 +55,9 @@ import {
   userNotificationPreferenceTable,
   userNotificationTeamProjectTable,
   userNotificationTeamRuleTable,
-  userNotificationWorkspaceProjectTable,
-  userNotificationWorkspaceRuleTable,
   userTable,
   verificationTable,
   workflowRuleTable,
-  workspaceTable,
-  workspaceUserTable,
 } from "./schema";
 
 config();
@@ -93,12 +89,8 @@ export const schema = {
   userNotificationPreferenceTable,
   userNotificationTeamProjectTable,
   userNotificationTeamRuleTable,
-  userNotificationWorkspaceProjectTable,
-  userNotificationWorkspaceRuleTable,
   verificationTable,
   workflowRuleTable,
-  workspaceTable,
-  workspaceUserTable,
   accountTableRelations,
   assetTableRelations,
   activityTableRelations,

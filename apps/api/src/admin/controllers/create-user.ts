@@ -3,9 +3,9 @@ import { eq } from "drizzle-orm";
 import db from "../../database";
 import {
   accountTable,
+  teamMemberTable,
   teamTable,
   userTable,
-  workspaceUserTable,
 } from "../../database/schema";
 import { hashPassword, isValidUsername, normalizeUsername } from "../password";
 
@@ -75,7 +75,7 @@ export async function createUser(input: CreateUserInput) {
       if (!workspace) {
         throw new Error("Team not found.");
       }
-      await tx.insert(workspaceUserTable).values({
+      await tx.insert(teamMemberTable).values({
         id: createId(),
         teamId: input.teamId,
         userId,

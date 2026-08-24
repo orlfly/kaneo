@@ -1,6 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
 import db from "../../database";
-import { userTable, workspaceUserTable } from "../../database/schema";
+import { teamMemberTable, userTable } from "../../database/schema";
 
 export type UpdateUserInput = {
   name?: string;
@@ -48,23 +48,23 @@ export async function updateUser(userId: string, input: UpdateUserInput) {
   // (Re)assign workspace membership with a role.
   if (input.teamId) {
     const existing = await db
-      .select({ id: workspaceUserTable.id })
-      .from(workspaceUserTable)
+      .select({ id: teamMemberTable.id })
+      .from(teamMemberTable)
       .where(
         and(
-          eq(workspaceUserTable.teamId, input.teamId),
-          eq(workspaceUserTable.userId, userId),
+          eq(teamMemberTable.teamId, input.teamId),
+          eq(teamMemberTable.userId, userId),
         ),
       )
       .limit(1);
     const existingId = existing[0]?.id;
     if (existingId) {
       await db
-        .update(workspaceUserTable)
+        .update(teamMemberTable)
         .set({ role: input.teamRole || "member" })
-        .where(eq(workspaceUserTable.id, existingId));
+        .where(eq(teamMemberTable.id, existingId));
     } else {
-      await db.insert(workspaceUserTable).values({
+      await db.insert(teamMemberTable).values({
         id: crypto.randomUUID(),
         teamId: input.teamId,
         userId,

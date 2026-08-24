@@ -4,9 +4,9 @@ import {
   activityTable,
   projectTable,
   taskTable,
+  teamMemberTable,
   teamTable,
   userTable,
-  workspaceUserTable,
 } from "../../database/schema";
 import { escapeLikePattern } from "../like-pattern";
 import { TASK_SHORT_ID_PATTERN } from "../task-short-id";
@@ -123,9 +123,9 @@ async function globalSearch(params: SearchParams): Promise<{
   }
 
   const userTeams = await db
-    .select({ teamId: workspaceUserTable.teamId })
-    .from(workspaceUserTable)
-    .where(eq(workspaceUserTable.userId, resolvedUserId));
+    .select({ teamId: teamMemberTable.teamId })
+    .from(teamMemberTable)
+    .where(eq(teamMemberTable.userId, resolvedUserId));
 
   const accessibleTeamIds = userTeams.map((w) => w.teamId).filter(Boolean);
 
@@ -351,7 +351,7 @@ async function globalSearch(params: SearchParams): Promise<{
         relevanceScore: teamRelevanceScore.as("relevanceScore"),
       })
       .from(teamTable)
-      .leftJoin(workspaceUserTable, eq(teamTable.id, workspaceUserTable.teamId))
+      .leftJoin(teamMemberTable, eq(teamTable.id, teamMemberTable.teamId))
       .where(
         and(
           inArray(teamTable.id, accessibleTeamIds),

@@ -6,8 +6,8 @@ import {
   labelTable,
   projectTable,
   taskTable,
+  teamMemberTable,
   userTable,
-  workspaceUserTable,
 } from "../../database/schema";
 import { publishEvent } from "../../events";
 import { removeLabelFromGitea } from "../../plugins/gitea/utils/sync-label-to-gitea";
@@ -73,12 +73,12 @@ async function bulkUpdateTasks({
   }
 
   const [membership] = await db
-    .select({ id: workspaceUserTable.id })
-    .from(workspaceUserTable)
+    .select({ id: teamMemberTable.id })
+    .from(teamMemberTable)
     .where(
       and(
-        eq(workspaceUserTable.userId, userId),
-        eq(workspaceUserTable.teamId, teamId),
+        eq(teamMemberTable.userId, userId),
+        eq(teamMemberTable.teamId, teamId),
       ),
     )
     .limit(1);
