@@ -1,0 +1,57 @@
+---
+title: "Chat with the AI assistant"
+description: "Use the pi-agent AI assistant inside a project to create tasks, check progress, and analyze issues."
+---
+
+# Chat with the AI assistant
+
+Kaneo includes an optional AI assistant (pi-agent) that acts as a project
+management helper. Inside any project, open the **Chat** tab (next to
+Backlog, Tasks, and Gantt) to talk to it.
+
+## What the assistant can do
+
+The assistant is scoped to the current project and can:
+
+- **List tasks**: ask for the project's tasks, optionally filtered by status
+  or priority.
+- **Get task details**: ask about a specific task.
+- **Create tasks**: describe a new task and the assistant creates it in the
+  project.
+- **Summarize the project**: get a breakdown of tasks by status and an
+  overview of progress.
+
+The assistant uses real data from your project via server-side tool calls. It
+cannot delete tasks or modify existing ones.
+
+## Sending a message
+
+1. Open a project and click the **Chat** tab.
+2. Type your message in the input at the bottom and press **Enter** (or click
+   the send button).
+3. The assistant's reply streams in as it is generated.
+
+Conversation history is kept per project, so you can close and come back to
+continue where you left off.
+
+## Enabling the assistant
+
+The AI assistant is disabled by default. A system administrator enables it:
+
+1. Go to **Settings → System → AI**.
+2. Turn on **Enable AI assistant**.
+3. Enter your OpenAI-compatible endpoint under **API base URL**, the API key,
+   and the model name.
+4. Save.
+
+The API key is stored encrypted. When you reopen the settings page it is shown
+masked; saving without changing it keeps the stored key.
+
+When the assistant is not configured, the Chat tab shows a notice instead of
+the conversation.
+
+## Requirements
+
+- The endpoint must be OpenAI-compatible (`/v1/chat/completions`).
+- The model must support function/tool calling for task creation and queries.
+- Users need to be members of the project's team to use the Chat tab.
