@@ -12,7 +12,11 @@
 			"reset": "Скинути",
 			"filter": "Фільтр",
 			"clearAllFilters": "Очистити всі фільтри",
-			"adding": "Adding…"
+			"adding": "Adding…",
+			"claim": "Claim",
+			"release": "Release",
+			"pause": "Pause",
+			"resume": "Resume"
 		},
 		"a11y": {
 			"toggleSidebar": "Перемикач бічної панелі"
@@ -122,7 +126,8 @@
 			}
 		},
 		"states": {
-			"loading": "Loading…"
+			"loading": "Loading…",
+			"paused": "Paused"
 		}
 	},
 	"auth": {

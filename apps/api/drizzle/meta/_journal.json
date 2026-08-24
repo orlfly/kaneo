@@ -330,6 +330,13 @@
       "when": 1787412501186,
       "tag": "0046_add_chat_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1787437120000,
+      "tag": "0047_agent_collaboration",
+      "breakpoints": true
     }
   ]
 }

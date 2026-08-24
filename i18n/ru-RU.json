@@ -12,7 +12,11 @@
 			"reset": "Сбросить",
 			"filter": "Фильтр",
 			"clearAllFilters": "Сбросить все фильтры",
-			"adding": "Adding…"
+			"adding": "Adding…",
+			"claim": "Claim",
+			"release": "Release",
+			"pause": "Pause",
+			"resume": "Resume"
 		},
 		"a11y": {
 			"toggleSidebar": "Переключить боковую панель"
@@ -122,7 +126,8 @@
 			}
 		},
 		"states": {
-			"loading": "Loading…"
+			"loading": "Loading…",
+			"paused": "Paused"
 		}
 	},
 	"auth": {

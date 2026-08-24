@@ -12,7 +12,11 @@
 			"reset": "रीसेट करें",
 			"filter": "फ़िल्टर",
 			"clearAllFilters": "सभी फ़िल्टर साफ़ करें",
-			"adding": "Adding…"
+			"adding": "Adding…",
+			"claim": "Claim",
+			"release": "Release",
+			"pause": "Pause",
+			"resume": "Resume"
 		},
 		"a11y": {
 			"toggleSidebar": "साइडबार टॉगल करें"
@@ -122,7 +126,8 @@
 			}
 		},
 		"states": {
-			"loading": "Loading…"
+			"loading": "Loading…",
+			"paused": "Paused"
 		}
 	},
 	"auth": {

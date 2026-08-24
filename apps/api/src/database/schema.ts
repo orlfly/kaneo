@@ -311,12 +311,16 @@ export const taskTable = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date())
       .notNull(),
+    pausedReason: text("paused_reason"),
+    claimedBy: text("claimed_by"),
+    claimedAt: timestamp("claimed_at", { mode: "date" }),
   },
   (table) => [
     index("task_projectId_idx").on(table.projectId),
     index("task_dueDate_idx").on(table.dueDate),
     index("task_assigneeId_idx").on(table.userId),
     index("task_columnId_idx").on(table.columnId),
+    index("task_claimedBy_idx").on(table.claimedBy),
     unique("task_project_number_unique").on(table.projectId, table.number),
   ],
 );
@@ -409,6 +413,7 @@ export const activityTable = pgTable(
     externalUserAvatar: text("external_user_avatar"),
     externalSource: text("external_source"),
     externalUrl: text("external_url"),
+    agentKeyId: text("agent_key_id"),
   },
   (table) => [
     index("activity_task_id_idx").on(table.taskId),

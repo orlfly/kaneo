@@ -25,6 +25,8 @@ import {
 } from "../utils/validate-dates";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import bulkUpdateTasks from "./controllers/bulk-update-tasks";
+import claimTask from "./controllers/claim-task";
+import { claimNextTask } from "./controllers/claim-next-task";
 import createTask from "./controllers/create-task";
 import deleteTask from "./controllers/delete-task";
 import exportTasks from "./controllers/export-tasks";
@@ -32,11 +34,10 @@ import getTask from "./controllers/get-task";
 import getTasks from "./controllers/get-tasks";
 import importTasks from "./controllers/import-tasks";
 import moveTask from "./controllers/move-task";
-import {
-  requireBulkTaskEntitlement,
-  requireBulkTaskPermission,
-  requireTaskAssigneePermission,
-} from "./controllers/require-task-permission";
+import pauseTask from "./controllers/pause-task";
+import releaseTask from "./controllers/release-task";
+import { requireBulkTaskEntitlement, requireBulkTaskPermission, requireTaskAssigneePermission } from "./controllers/require-task-permission";
+import resumeTask from "./controllers/resume-task";
 import updateTask from "./controllers/update-task";
 import updateTaskAssignee from "./controllers/update-task-assignee";
 import updateTaskDescription from "./controllers/update-task-description";
@@ -49,6 +50,11 @@ import { VALID_PRIORITIES } from "./validate-task-fields";
 const task = new Hono<{
   Variables: {
     userId: string;
+    apiKey?: {
+      id: string;
+      userId: string;
+      enabled: boolean;
+    };
   };
 }>()
   .get(
@@ -89,13 +95,18 @@ const task = new Hono<{
           sortOrder: v.optional(v.picklist(["asc", "desc"])),
           dueBefore: v.optional(v.string()),
           dueAfter: v.optional(v.string()),
+          unclaimed: v.optional(v.string()),
         }),
       ),
     ),
     workspaceAccess.fromProject("projectId"),
     async (c) => {
       const { projectId } = c.req.valid("param");
-      const filters = c.req.valid("query") || {};
+      const rawFilters = c.req.valid("query") || {};
+      const filters = {
+        ...rawFilters,
+        unclaimed: rawFilters.unclaimed === "true",
+      };
 
       const tasks = await getTasks(projectId, filters);
 
@@ -509,6 +520,191 @@ const task = new Hono<{
       const currentUserId = c.get("userId");
 
       const task = await updateTaskStatus({ id, status, currentUserId });
+
+      return c.json(task);
+    },
+  )
+  // --- Agent collaboration endpoints ---
+  .post(
+    "/claim/:id",
+    describeRoute({
+      operationId: "claimTask",
+      tags: ["Tasks"],
+      description: "Atomically claim an unassigned to-do task for the current user",
+      responses: {
+        200: {
+          description: "Task claimed successfully",
+          content: {
+            "application/json": { schema: resolver(v.any()) },
+          },
+        },
+        409: {
+          description: "Task is not available for claiming",
+          content: {
+            "application/json": { schema: resolver(v.object({ message: v.string() })) },
+          },
+        },
+      },
+    }),
+    validator("param", v.object({ id: v.string() })),
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["update"] }),
+    async (c) => {
+      const { id } = c.req.valid("param");
+      const userId = c.get("userId");
+      const apiKey = c.get("apiKey");
+
+      const result = await claimTask({
+        taskId: id,
+        userId,
+        agentKeyId: apiKey?.id,
+      });
+
+      return c.json(result);
+    },
+  )
+  .post(
+    "/claim-next",
+    describeRoute({
+      operationId: "claimNextTask",
+      tags: ["Tasks"],
+      description: "Find and atomically claim the best available to-do task across the caller's team projects",
+      responses: {
+        200: {
+          description: "Task claimed successfully",
+          content: {
+            "application/json": { schema: resolver(v.any()) },
+          },
+        },
+        404: {
+          description: "No unclaimed tasks available",
+          content: {
+            "application/json": { schema: resolver(v.object({ message: v.string() })) },
+          },
+        },
+      },
+    }),
+    validator(
+      "json",
+      v.object({
+        projectId: v.optional(v.string()),
+        priorities: v.optional(v.array(v.string())),
+      }),
+    ),
+    async (c) => {
+      const userId = c.get("userId");
+      const apiKey = c.get("apiKey");
+      const body = c.req.valid("json");
+
+      const result = await claimNextTask({
+        userId,
+        agentKeyId: apiKey?.id,
+        projectId: body.projectId,
+        priorities: body.priorities,
+      });
+
+      if (!result) {
+        return c.json({ message: "No unclaimed tasks available" }, 404);
+      }
+
+      return c.json(result);
+    },
+  )
+  .post(
+    "/pause/:id",
+    describeRoute({
+      operationId: "pauseTask",
+      tags: ["Tasks"],
+      description: "Pause a task claimed by the current user, with a reason",
+      responses: {
+        200: {
+          description: "Task paused successfully",
+          content: {
+            "application/json": { schema: resolver(taskSchema) },
+          },
+        },
+        403: {
+          description: "Task not claimed by you",
+          content: {
+            "application/json": { schema: resolver(v.object({ message: v.string() })) },
+          },
+        },
+      },
+    }),
+    validator("param", v.object({ id: v.string() })),
+    validator("json", v.object({ reason: v.string() })),
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["update"] }),
+    async (c) => {
+      const { id } = c.req.valid("param");
+      const { reason } = c.req.valid("json");
+      const currentUserId = c.get("userId");
+
+      const task = await pauseTask({
+        taskId: id,
+        reason,
+        currentUserId,
+      });
+
+      return c.json(task);
+    },
+  )
+  .post(
+    "/resume/:id",
+    describeRoute({
+      operationId: "resumeTask",
+      tags: ["Tasks"],
+      description: "Resume a paused task claimed by the current user",
+      responses: {
+        200: {
+          description: "Task resumed successfully",
+          content: {
+            "application/json": { schema: resolver(taskSchema) },
+          },
+        },
+      },
+    }),
+    validator("param", v.object({ id: v.string() })),
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["update"] }),
+    async (c) => {
+      const { id } = c.req.valid("param");
+      const currentUserId = c.get("userId");
+
+      const task = await resumeTask({
+        taskId: id,
+        currentUserId,
+      });
+
+      return c.json(task);
+    },
+  )
+  .post(
+    "/release/:id",
+    describeRoute({
+      operationId: "releaseTask",
+      tags: ["Tasks"],
+      description: "Release a task claimed by the current user back to the to-do pool",
+      responses: {
+        200: {
+          description: "Task released successfully",
+          content: {
+            "application/json": { schema: resolver(taskSchema) },
+          },
+        },
+      },
+    }),
+    validator("param", v.object({ id: v.string() })),
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["update"] }),
+    async (c) => {
+      const { id } = c.req.valid("param");
+      const currentUserId = c.get("userId");
+
+      const task = await releaseTask({
+        taskId: id,
+        currentUserId,
+      });
 
       return c.json(task);
     },

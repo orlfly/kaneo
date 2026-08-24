@@ -12,7 +12,11 @@
 			"reset": "重置",
 			"filter": "筛选",
 			"clearAllFilters": "清除全部筛选",
-			"adding": "添加中…"
+			"adding": "添加中…",
+			"claim": "Claim",
+			"release": "Release",
+			"pause": "Pause",
+			"resume": "Resume"
 		},
 		"a11y": {
 			"toggleSidebar": "切换侧边栏"
@@ -122,7 +126,8 @@
 			}
 		},
 		"states": {
-			"loading": "加载中…"
+			"loading": "加载中…",
+			"paused": "Paused"
 		}
 	},
 	"auth": {

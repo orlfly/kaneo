@@ -65,6 +65,7 @@ describe("updateTaskLabelsInProject", () => {
         },
       ],
       plannedTasks: [],
+      pausedTasks: [],
       archivedTasks: [],
     };
 

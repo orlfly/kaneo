@@ -12,7 +12,11 @@
 			"reset": "Ресетирај",
 			"filter": "Филтрирај",
 			"clearAllFilters": "Исчисти ги сите филтри",
-			"adding": "Adding…"
+			"adding": "Adding…",
+			"claim": "Claim",
+			"release": "Release",
+			"pause": "Pause",
+			"resume": "Resume"
 		},
 		"a11y": {
 			"toggleSidebar": "Вклучи/исклучи странична лента"
@@ -122,7 +126,8 @@
 			}
 		},
 		"states": {
-			"loading": "Loading…"
+			"loading": "Loading…",
+			"paused": "Paused"
 		}
 	},
 	"auth": {

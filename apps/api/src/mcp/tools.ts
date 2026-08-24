@@ -525,6 +525,110 @@ export function registerMcpTools(
       ),
   );
 
+  // --- Agent collaboration tools ---
+
+  registerTool(
+    "claim_task",
+    {
+      description:
+        "Atomically claim an unassigned to-do task. Only works if the task has no assignee and is in to-do status. Returns 409 if the task is already claimed.",
+      inputSchema: z.object({ taskId: nonEmptyString }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`/api/task/claim/${encodeURIComponent(args.taskId)}`, {
+          method: "POST",
+        }),
+      ),
+  );
+
+  registerTool(
+    "claim_next_task",
+    {
+      description:
+        "Find and atomically claim the best available to-do task across all of the caller's team projects. Ordering: due date (soonest first), priority (urgent first), creation date (oldest first). Returns 404 if no unclaimed tasks are available.",
+      inputSchema: z.object({
+        projectId: optionalNonEmptyString,
+        priorities: z.array(z.string()).optional(),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json("/api/task/claim-next", {
+          method: "POST",
+          body: JSON.stringify({
+            ...(args.projectId !== undefined ? { projectId: args.projectId } : {}),
+            ...(args.priorities !== undefined ? { priorities: args.priorities } : {}),
+          }),
+        }),
+      ),
+  );
+
+  registerTool(
+    "pause_task",
+    {
+      description:
+        "Pause a task you have claimed. Requires a reason explaining why the task cannot proceed. The task status changes to 'paused'.",
+      inputSchema: z.object({
+        taskId: nonEmptyString,
+        reason: nonEmptyString,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`/api/task/pause/${encodeURIComponent(args.taskId)}`, {
+          method: "POST",
+          body: JSON.stringify({ reason: args.reason }),
+        }),
+      ),
+  );
+
+  registerTool(
+    "resume_task",
+    {
+      description:
+        "Resume a paused task you have claimed. The task status changes back to 'in-progress' and the pause reason is cleared.",
+      inputSchema: z.object({ taskId: nonEmptyString }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`/api/task/resume/${encodeURIComponent(args.taskId)}`, {
+          method: "POST",
+        }),
+      ),
+  );
+
+  registerTool(
+    "release_task",
+    {
+      description:
+        "Release a task you have claimed back to the unassigned to-do pool. Clears assignee, claim metadata, and any pause reason.",
+      inputSchema: z.object({ taskId: nonEmptyString }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`/api/task/release/${encodeURIComponent(args.taskId)}`, {
+          method: "POST",
+        }),
+      ),
+  );
+
+  registerTool(
+    "list_unclaimed_tasks",
+    {
+      description:
+        "List all unassigned to-do tasks in a project. These are tasks available for claiming by any team member.",
+      inputSchema: z.object({ projectId: nonEmptyString }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/task/tasks/${encodeURIComponent(args.projectId)}?unclaimed=true`,
+          { method: "GET" },
+        ),
+      ),
+  );
+
   registerTool(
     "list_task_comments",
     {

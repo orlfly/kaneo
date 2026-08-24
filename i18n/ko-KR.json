@@ -12,7 +12,11 @@
 			"reset": "재설정",
 			"filter": "필터",
 			"clearAllFilters": "모든 필터 지우기",
-			"adding": "Adding…"
+			"adding": "Adding…",
+			"claim": "Claim",
+			"release": "Release",
+			"pause": "Pause",
+			"resume": "Resume"
 		},
 		"a11y": {
 			"toggleSidebar": "사이드바 토글"
@@ -122,7 +126,8 @@
 			}
 		},
 		"states": {
-			"loading": "Loading…"
+			"loading": "Loading…",
+			"paused": "Paused"
 		}
 	},
 	"auth": {

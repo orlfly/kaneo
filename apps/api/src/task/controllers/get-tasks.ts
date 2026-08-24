@@ -5,6 +5,7 @@ import {
   eq,
   gte,
   inArray,
+  isNull,
   lte,
   type SQL,
   sql,
@@ -27,6 +28,7 @@ type GetTasksOptions = {
   limit?: number;
   page?: number;
   priority?: string;
+  unclaimed?: boolean;
   sortBy?:
     | "createdAt"
     | "priority"
@@ -91,6 +93,10 @@ async function getTasks(projectId: string, options: GetTasksOptions = {}) {
 
   if (options.assigneeId) {
     conditions.push(eq(taskTable.userId, options.assigneeId));
+  }
+
+  if (options.unclaimed) {
+    conditions.push(isNull(taskTable.userId));
   }
 
   if (options.dueBefore) {
@@ -252,6 +258,14 @@ async function getTasks(projectId: string, options: GetTasksOptions = {}) {
       externalLinks: taskExternalLinksMap.get(task.id) || [],
     }));
 
+  const pausedTasks = paginatedTasks
+    .filter((task) => task.status === "paused")
+    .map((task) => ({
+      ...task,
+      labels: taskLabelsMap.get(task.id) || [],
+      externalLinks: taskExternalLinksMap.get(task.id) || [],
+    }));
+
   return {
     data: {
       id: project.id,
@@ -264,6 +278,7 @@ async function getTasks(projectId: string, options: GetTasksOptions = {}) {
       columns,
       archivedTasks,
       plannedTasks,
+      pausedTasks,
     },
     pagination: usePagination
       ? {

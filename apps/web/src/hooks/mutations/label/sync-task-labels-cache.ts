@@ -39,6 +39,9 @@ export function updateTaskLabelsInProject(
     archivedTasks: project.archivedTasks.map((task) =>
       updateTaskLabels(task, taskId, updater),
     ),
+    pausedTasks: (project.pausedTasks ?? []).map((task) =>
+      updateTaskLabels(task, taskId, updater),
+    ),
   };
 }
 

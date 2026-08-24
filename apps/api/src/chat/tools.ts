@@ -1,5 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
-import { count, eq, ilike } from "drizzle-orm";
+import { and, count, eq, ilike, sql } from "drizzle-orm";
 import db from "../database";
 import { columnTable, projectTable, taskTable } from "../database/schema";
 import type { ChatCompletionTool } from "./pi-agent-client";
@@ -80,6 +80,15 @@ export const toolDefinitions: ChatCompletionTool[] = [
       parameters: { type: "object", properties: {} },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "list_blocked_tasks",
+      description:
+        "List all tasks in the project that are paused with a reason. As project manager, use this to identify blocked tasks that need attention.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
 ];
 
 export async function executeTool(
@@ -96,6 +105,8 @@ export async function executeTool(
       return createTask(projectId, args);
     case "get_project_summary":
       return getProjectSummary(projectId);
+    case "list_blocked_tasks":
+      return listBlockedTasks(projectId);
     default:
       return JSON.stringify({ error: `Unknown tool: ${toolName}` });
   }
@@ -159,12 +170,25 @@ async function createTask(
     .where(eq(columnTable.projectId, projectId))
     .limit(1);
 
+  // Claim the next task number atomically. `number` is unique per project,
+  // and the project counter can lag behind tasks created outside the claim
+  // flow, so start above both the counter and any existing task number.
+  const [claimed] = await db
+    .update(projectTable)
+    .set({
+      lastTaskNumber: sql`GREATEST(${projectTable.lastTaskNumber}, (SELECT COALESCE(MAX(${taskTable.number}), 0) FROM ${taskTable} WHERE ${taskTable.projectId} = ${projectId})) + 1`,
+    })
+    .where(eq(projectTable.id, projectId))
+    .returning({ lastTaskNumber: projectTable.lastTaskNumber });
+  const number = claimed?.lastTaskNumber ?? 1;
+
   const taskId = createId();
   const now = new Date();
 
   await db.insert(taskTable).values({
     id: taskId,
     projectId,
+    number,
     title,
     description: typeof args.description === "string" ? args.description : null,
     status: typeof args.status === "string" ? args.status : "to-do",
@@ -223,4 +247,23 @@ async function getProjectSummary(projectId: string): Promise<string> {
     null,
     2,
   );
+}
+
+async function listBlockedTasks(projectId: string): Promise<string> {
+  const blocked = await db
+    .select({
+      id: taskTable.id,
+      number: taskTable.number,
+      title: taskTable.title,
+      priority: taskTable.priority,
+      pausedReason: taskTable.pausedReason,
+      assigneeId: taskTable.userId,
+      dueDate: taskTable.dueDate,
+    })
+    .from(taskTable)
+    .where(
+      and(eq(taskTable.projectId, projectId), ilike(taskTable.status, "paused")),
+    );
+
+  return JSON.stringify(blocked, null, 2);
 }
