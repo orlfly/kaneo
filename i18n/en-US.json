@@ -1957,6 +1957,12 @@
 		"notEnabledDescription": "The pi-agent AI assistant has not been configured for this instance. Please contact an administrator to enable it.",
 		"errorFailed": "Failed to send message",
 		"errorTimeout": "Request timed out. Please try again.",
-		"you": "You"
+		"you": "You",
+		"clearHistory": "Clear history",
+		"clearHistoryTitle": "Clear chat history?",
+		"clearHistoryDescription": "This will permanently delete all messages in this project's chat. This cannot be undone.",
+		"clearHistoryConfirm": "Clear history",
+		"historyCleared": "Chat history cleared",
+		"historyClearError": "Failed to clear chat history"
 	}
 }

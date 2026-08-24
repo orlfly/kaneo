@@ -1957,6 +1957,12 @@
 		"notEnabledDescription": "此实例尚未配置 pi-agent AI 助手。请联系管理员启用。",
 		"errorFailed": "发送消息失败",
 		"errorTimeout": "请求超时，请重试。",
-		"you": "你"
+		"you": "你",
+		"clearHistory": "清除历史",
+		"clearHistoryConfirm": "清除历史",
+		"clearHistoryDescription": "这将永久删除该项目聊天中的所有消息，且无法撤销。",
+		"clearHistoryTitle": "清除聊天记录？",
+		"historyCleared": "聊天记录已清除",
+		"historyClearError": "清除聊天记录失败"
 	}
 }

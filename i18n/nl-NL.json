@@ -1957,6 +1957,12 @@
 		"streaming": "pi-agent is typing…",
 		"welcomeDescription": "Ask me to create tasks, check project status, or analyze progress. I'm your AI project management assistant.",
 		"welcomeTitle": "Chat with pi-agent",
-		"you": "You"
+		"you": "You",
+		"clearHistory": "Clear history",
+		"clearHistoryConfirm": "Clear history",
+		"clearHistoryDescription": "This will permanently delete all messages in this project's chat. This cannot be undone.",
+		"clearHistoryTitle": "Clear chat history?",
+		"historyCleared": "Chat history cleared",
+		"historyClearError": "Failed to clear chat history"
 	}
 }
