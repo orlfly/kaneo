@@ -1594,6 +1594,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "in": "query",
+            "name": "unclaimed",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "summary": "List Tasks"
@@ -2512,6 +2519,441 @@
           }
         },
         "summary": "Update Task Status"
+      }
+    },
+    "/task/claim/{id}": {
+      "post": {
+        "operationId": "claimTask",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Atomically claim an unassigned to-do task for the current user",
+        "responses": {
+          "200": {
+            "description": "Task claimed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Task is not available for claiming",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "summary": "Claim Task"
+      }
+    },
+    "/task/claim-next": {
+      "post": {
+        "operationId": "claimNextTask",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Find and atomically claim the best available to-do task across the caller's team projects",
+        "responses": {
+          "200": {
+            "description": "Task claimed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No unclaimed tasks available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "projectId": {
+                    "type": "string"
+                  },
+                  "priorities": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Claim Next Task"
+      }
+    },
+    "/task/pause/{id}": {
+      "post": {
+        "operationId": "pauseTask",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Pause a task claimed by the current user, with a reason",
+        "responses": {
+          "200": {
+            "description": "Task paused successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "projectId": {
+                      "type": "string"
+                    },
+                    "position": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "number": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "userId": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "priority": {
+                      "enum": [
+                        "no-priority",
+                        "low",
+                        "medium",
+                        "high",
+                        "urgent"
+                      ],
+                      "type": "string"
+                    },
+                    "startDate": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "dueDate": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "position",
+                    "number",
+                    "userId",
+                    "title",
+                    "description",
+                    "status",
+                    "priority",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Task not claimed by you",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "summary": "Pause Task"
+      }
+    },
+    "/task/resume/{id}": {
+      "post": {
+        "operationId": "resumeTask",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Resume a paused task claimed by the current user",
+        "responses": {
+          "200": {
+            "description": "Task resumed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "projectId": {
+                      "type": "string"
+                    },
+                    "position": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "number": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "userId": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "priority": {
+                      "enum": [
+                        "no-priority",
+                        "low",
+                        "medium",
+                        "high",
+                        "urgent"
+                      ],
+                      "type": "string"
+                    },
+                    "startDate": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "dueDate": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "position",
+                    "number",
+                    "userId",
+                    "title",
+                    "description",
+                    "status",
+                    "priority",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "summary": "Resume Task"
+      }
+    },
+    "/task/release/{id}": {
+      "post": {
+        "operationId": "releaseTask",
+        "tags": [
+          "Tasks"
+        ],
+        "description": "Release a task claimed by the current user back to the to-do pool",
+        "responses": {
+          "200": {
+            "description": "Task released successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "projectId": {
+                      "type": "string"
+                    },
+                    "position": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "number": {
+                      "type": "number",
+                      "nullable": true
+                    },
+                    "userId": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "priority": {
+                      "enum": [
+                        "no-priority",
+                        "low",
+                        "medium",
+                        "high",
+                        "urgent"
+                      ],
+                      "type": "string"
+                    },
+                    "startDate": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "dueDate": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "position",
+                    "number",
+                    "userId",
+                    "title",
+                    "description",
+                    "status",
+                    "priority",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "summary": "Release Task"
       }
     },
     "/task/priority/{id}": {
@@ -13021,6 +13463,36 @@
           }
         },
         "summary": "Patch Admin Teams By Team Id Members By User Id"
+      }
+    },
+    "/chat/status": {
+      "get": {
+        "operationId": "getChatStatus",
+        "tags": [
+          "Chat"
+        ],
+        "description": "Check if the pi-agent is configured",
+        "responses": {
+          "200": {
+            "description": "Configuration status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "enabled"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Chat Status"
       }
     }
   },

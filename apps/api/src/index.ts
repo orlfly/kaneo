@@ -13,6 +13,7 @@ import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import {
   describeRoute,
+  generateSpecs,
   openAPIRouteHandler,
   resolver,
   validator,
@@ -453,6 +454,27 @@ export function createApp() {
     }
 
     const normalizedAuthSpec = normalizeOrganizationAuthOperations(authSpec);
+
+    // chatPublic routes are mounted on the top-level app at /api/chat (outside
+    // the authenticated `api` router), so they are not captured by the Hono
+    // OpenAPI handler above. Generate their spec explicitly and prefix the
+    // paths with /chat to match the real mount point.
+    const chatPublicSpec = await generateSpecs(chatPublic);
+    const chatPublicPaths = (chatPublicSpec.paths || {}) as Record<
+      string,
+      unknown
+    >;
+    const prefixedChatPaths = Object.fromEntries(
+      Object.entries(chatPublicPaths).map(([path, item]) => [
+        path === "/" ? "/chat" : `/chat${path}`,
+        item,
+      ]),
+    );
+    const chatPublicSpecPrefixed = {
+      ...chatPublicSpec,
+      paths: prefixedChatPaths,
+    };
+
     return c.json(
       ensureOperationSummaries(
         dedupeOperationIds(
@@ -461,7 +483,10 @@ export function createApp() {
               normalizeEmptyAndEnumSchemas(
                 normalizeEmptyRequiredArrays(
                   normalizeMalformedPropertySchemas(
-                    mergeOpenApiSpecs(honoSpec, normalizedAuthSpec),
+                    mergeOpenApiSpecs(
+                      mergeOpenApiSpecs(honoSpec, chatPublicSpecPrefixed),
+                      normalizedAuthSpec,
+                    ),
                   ),
                 ),
               ),
