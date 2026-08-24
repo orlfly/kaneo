@@ -68,7 +68,7 @@ async function bulkUpdateTasks({
 
   if (!teamId) {
     throw new HTTPException(400, {
-      message: "Could not determine workspace",
+      message: "Could not determine team",
     });
   }
 
@@ -85,7 +85,7 @@ async function bulkUpdateTasks({
 
   if (!membership) {
     throw new HTTPException(403, {
-      message: "You don't have access to this workspace",
+      message: "You don't have access to this team",
     });
   }
 
@@ -230,7 +230,7 @@ async function bulkUpdateTasks({
 
       if (label.teamId && label.teamId !== teamId) {
         throw new HTTPException(400, {
-          message: "Label and tasks must belong to the same workspace",
+          message: "Label and tasks must belong to the same team",
         });
       }
 

@@ -240,14 +240,15 @@ export function registerMcpTools(
       run(() => client.json("/api/auth/get-session", { method: "GET" })),
   );
 
+  // Back-compat name kept so existing MCP consumers keep working; the
+  // workspace concept was replaced by teams, so the tool lists teams.
   registerTool(
     "list_workspaces",
     {
-      description: "List workspaces the signed-in user can access.",
+      description: "List teams the signed-in user can access.",
       inputSchema: z.object({}),
     },
-    async () =>
-      run(() => client.json("/api/auth/organization/list", { method: "GET" })),
+    async () => run(() => client.json("/api/team", { method: "GET" })),
   );
 
   registerTool(

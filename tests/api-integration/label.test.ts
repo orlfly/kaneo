@@ -4,10 +4,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 describe("API integration: labels", () => {
   beforeEach(async () => {
@@ -26,7 +23,7 @@ describe("API integration: labels", () => {
       body: JSON.stringify({
         name: "Bug",
         color: "#ff0000",
-        workspaceId: "workspace-missing",
+        teamId: "workspace-missing",
       }),
     });
 
@@ -35,7 +32,7 @@ describe("API integration: labels", () => {
   });
 
   it("creates a label in a workspace for a member", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     mockAuthenticatedSession(member.user);
     const { app } = createApp();
 
@@ -47,7 +44,7 @@ describe("API integration: labels", () => {
       body: JSON.stringify({
         name: "Bug",
         color: "#ef4444",
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
       }),
     });
 
@@ -56,7 +53,7 @@ describe("API integration: labels", () => {
       (await response.json()) as typeof schema.labelTable.$inferSelect;
 
     expect(payload).toMatchObject({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
       name: "Bug",
       color: "#ef4444",
     });
@@ -67,14 +64,14 @@ describe("API integration: labels", () => {
 
     expect(persisted).toMatchObject({
       id: payload.id,
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
       name: "Bug",
       color: "#ef4444",
     });
   });
 
   it("rejects label creation for users outside the workspace", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const outsiderId = "user-label-outsider";
 
     const [outsider] = await db
@@ -98,14 +95,12 @@ describe("API integration: labels", () => {
       body: JSON.stringify({
         name: "Blocked",
         color: "#6b7280",
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
       }),
     });
 
     expect(response.status).toBe(403);
-    await expect(response.text()).resolves.toBe(
-      "You don't have access to this workspace",
-    );
+    await expect(response.text()).resolves.toBe("Not a member of this team");
 
     const persisted = await db.query.labelTable.findFirst({
       where: eq(schema.labelTable.name, "Blocked"),
@@ -116,9 +111,9 @@ describe("API integration: labels", () => {
 
   describe("deletion cascade", () => {
     it("deletes task-level copies when a workspace label is deleted", async () => {
-      const member = await createWorkspaceMember();
+      const member = await createTeamMember();
       const { project, columns } = await createProjectFixture({
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
       });
 
       // Create two tasks to assign labels to
@@ -156,7 +151,7 @@ describe("API integration: labels", () => {
         .values({
           name: "Bug",
           color: "#ef4444",
-          workspaceId: member.workspace.id,
+          teamId: member.team.id,
           taskId: null,
         })
         .returning();
@@ -167,7 +162,7 @@ describe("API integration: labels", () => {
         .values({
           name: "Bug",
           color: "#ef4444",
-          workspaceId: member.workspace.id,
+          teamId: member.team.id,
           taskId: taskA.id,
         })
         .returning();
@@ -177,14 +172,14 @@ describe("API integration: labels", () => {
         .values({
           name: "Bug",
           color: "#ef4444",
-          workspaceId: member.workspace.id,
+          teamId: member.team.id,
           taskId: taskB.id,
         })
         .returning();
 
       // Verify all three labels exist
       const before = await db.query.labelTable.findMany({
-        where: eq(schema.labelTable.workspaceId, member.workspace.id),
+        where: eq(schema.labelTable.teamId, member.team.id),
       });
       expect(before).toHaveLength(3);
 
@@ -200,15 +195,15 @@ describe("API integration: labels", () => {
 
       // Verify the workspace label and task-level copies are all gone
       const remaining = await db.query.labelTable.findMany({
-        where: eq(schema.labelTable.workspaceId, member.workspace.id),
+        where: eq(schema.labelTable.teamId, member.team.id),
       });
       expect(remaining).toHaveLength(0);
     });
 
     it("does not affect unrelated labels when deleting a workspace label", async () => {
-      const member = await createWorkspaceMember();
+      const member = await createTeamMember();
       const { project, columns } = await createProjectFixture({
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
       });
 
       const [task] = await db
@@ -231,7 +226,7 @@ describe("API integration: labels", () => {
         .values({
           name: "Bug",
           color: "#ef4444",
-          workspaceId: member.workspace.id,
+          teamId: member.team.id,
           taskId: null,
         })
         .returning();
@@ -241,7 +236,7 @@ describe("API integration: labels", () => {
         .values({
           name: "Feature",
           color: "#3b82f6",
-          workspaceId: member.workspace.id,
+          teamId: member.team.id,
           taskId: null,
         })
         .returning();
@@ -250,7 +245,7 @@ describe("API integration: labels", () => {
       await db.insert(schema.labelTable).values({
         name: "Bug",
         color: "#ef4444",
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
         taskId: task.id,
       });
 
@@ -259,7 +254,7 @@ describe("API integration: labels", () => {
         .values({
           name: "Feature",
           color: "#3b82f6",
-          workspaceId: member.workspace.id,
+          teamId: member.team.id,
           taskId: task.id,
         })
         .returning();

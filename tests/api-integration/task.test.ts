@@ -5,10 +5,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 describe("API integration: task creation", () => {
   beforeEach(async () => {
@@ -16,9 +13,9 @@ describe("API integration: task creation", () => {
   });
 
   it("rejects unauthenticated task creation requests", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
 
     mockAnonymousSession();
@@ -42,9 +39,9 @@ describe("API integration: task creation", () => {
   });
 
   it("creates a task with the matching column, assignee, and next number", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
       name: "Delivery",
       slug: "delivery",
     });
@@ -126,10 +123,10 @@ describe("API integration: task creation", () => {
   });
 
   it("rejects task creation for users outside the project workspace", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const outsiderId = `user-${randomUUID()}`;
     const { project } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
 
     const [outsider] = await db
@@ -159,9 +156,7 @@ describe("API integration: task creation", () => {
     });
 
     expect(response.status).toBe(403);
-    await expect(response.text()).resolves.toBe(
-      "You don't have access to this workspace",
-    );
+    await expect(response.text()).resolves.toBe("Not a member of this team");
 
     const persistedTask = await db.query.taskTable.findFirst({
       where: and(
@@ -174,9 +169,9 @@ describe("API integration: task creation", () => {
   });
 
   it("creates an unassigned task with parsed dates when optional fields are provided", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
 
     mockAuthenticatedSession(member.user);
@@ -234,9 +229,9 @@ describe("API integration: task creation", () => {
   });
 
   it("creates tasks without a column when the status has no matching project column", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
 
     mockAuthenticatedSession(member.user);
@@ -282,9 +277,9 @@ describe("API integration: task creation", () => {
   });
 
   it("rejects task creation when the assignee userId does not exist", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const missingAssigneeId = `user-${randomUUID()}`;
 
@@ -319,9 +314,9 @@ describe("API integration: task creation", () => {
   });
 
   it("creates a task when the assignee userId is surrounded by whitespace", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const paddedAssigneeId = `  ${member.user.id}  `;
 
@@ -371,9 +366,9 @@ describe("API integration: task creation", () => {
   ])(
     "creates an unassigned task when the assignee userId is %s",
     async (label, userId) => {
-      const member = await createWorkspaceMember();
+      const member = await createTeamMember();
       const { project } = await createProjectFixture({
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
       });
 
       mockAuthenticatedSession(member.user);

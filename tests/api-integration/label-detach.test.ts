@@ -5,10 +5,7 @@ import { subscribeToEvent } from "../../apps/api/src/events";
 import { createApp } from "../../apps/api/src/index";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 type RecordedEvent = {
   type: string;
@@ -52,9 +49,9 @@ describe("API integration: label detach/attach", () => {
   });
 
   it("allows a workspace definition and a task assignment with the same name to coexist", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const [task] = await seedTask(member.user.id, project.id);
 
@@ -63,7 +60,7 @@ describe("API integration: label detach/attach", () => {
       .values({
         name: "Bug",
         color: "#ef4444",
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
         taskId: null,
       })
       .returning();
@@ -73,13 +70,13 @@ describe("API integration: label detach/attach", () => {
       .values({
         name: "Bug",
         color: "#ef4444",
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
         taskId: task.id,
       })
       .returning();
 
     const allLabels = await db.query.labelTable.findMany({
-      where: eq(schema.labelTable.workspaceId, member.workspace.id),
+      where: eq(schema.labelTable.teamId, member.team.id),
     });
     expect(allLabels).toHaveLength(2);
     expect(workspaceLabel.taskId).toBeNull();
@@ -87,9 +84,9 @@ describe("API integration: label detach/attach", () => {
   });
 
   it("attaches a label to a task without mutating the workspace definition", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const [task] = await seedTask(member.user.id, project.id);
 
@@ -102,7 +99,7 @@ describe("API integration: label detach/attach", () => {
       body: JSON.stringify({
         name: "Feature",
         color: "#3b82f6",
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
       }),
     });
     expect(createResponse.status).toBe(200);
@@ -121,7 +118,7 @@ describe("API integration: label detach/attach", () => {
 
     const allLabels = await db.query.labelTable.findMany({
       where: and(
-        eq(schema.labelTable.workspaceId, member.workspace.id),
+        eq(schema.labelTable.teamId, member.team.id),
         eq(schema.labelTable.name, "Feature"),
       ),
     });
@@ -137,9 +134,9 @@ describe("API integration: label detach/attach", () => {
   });
 
   it("makes repeated attachment idempotent without creating duplicates", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const [task] = await seedTask(member.user.id, project.id);
 
@@ -148,7 +145,7 @@ describe("API integration: label detach/attach", () => {
       .values({
         name: "Bug",
         color: "#ef4444",
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
         taskId: null,
       })
       .returning();
@@ -172,7 +169,7 @@ describe("API integration: label detach/attach", () => {
 
     const allLabels = await db.query.labelTable.findMany({
       where: and(
-        eq(schema.labelTable.workspaceId, member.workspace.id),
+        eq(schema.labelTable.teamId, member.team.id),
         eq(schema.labelTable.name, "Bug"),
       ),
     });
@@ -180,10 +177,10 @@ describe("API integration: label detach/attach", () => {
     expect(allLabels.filter((l) => l.taskId === task.id)).toHaveLength(1);
   });
 
-  it("does not republish task.label_assigned when re-attaching the same workspace label", async () => {
-    const member = await createWorkspaceMember();
+  it("does not republish task.label_assigned when re-attaching the same team label", async () => {
+    const member = await createTeamMember();
     const { project } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const [task] = await seedTask(member.user.id, project.id);
 
@@ -192,7 +189,7 @@ describe("API integration: label detach/attach", () => {
       .values({
         name: "Bug",
         color: "#ef4444",
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
         taskId: null,
       })
       .returning();
@@ -223,9 +220,9 @@ describe("API integration: label detach/attach", () => {
   });
 
   it("detaches a label by deleting the task assignment and leaves the workspace definition intact", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const [task] = await seedTask(member.user.id, project.id);
 
@@ -234,7 +231,7 @@ describe("API integration: label detach/attach", () => {
       .values({
         name: "Bug",
         color: "#ef4444",
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
         taskId: null,
       })
       .returning();
@@ -244,7 +241,7 @@ describe("API integration: label detach/attach", () => {
       .values({
         name: "Bug",
         color: "#ef4444",
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
         taskId: task.id,
       })
       .returning();
@@ -258,7 +255,7 @@ describe("API integration: label detach/attach", () => {
     expect(detachResponse.status).toBe(200);
 
     const remaining = await db.query.labelTable.findMany({
-      where: eq(schema.labelTable.workspaceId, member.workspace.id),
+      where: eq(schema.labelTable.teamId, member.team.id),
     });
     expect(remaining).toHaveLength(1);
     expect(remaining[0].id).toBe(workspaceLabel.id);
@@ -266,9 +263,9 @@ describe("API integration: label detach/attach", () => {
   });
 
   it("does not violate label_workspace_name_unique after detachment", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const [task] = await seedTask(member.user.id, project.id);
 
@@ -277,7 +274,7 @@ describe("API integration: label detach/attach", () => {
       .values({
         name: "Bug",
         color: "#ef4444",
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
         taskId: null,
       })
       .returning();
@@ -287,7 +284,7 @@ describe("API integration: label detach/attach", () => {
       .values({
         name: "Bug",
         color: "#ef4444",
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
         taskId: task.id,
       })
       .returning();
@@ -302,7 +299,7 @@ describe("API integration: label detach/attach", () => {
 
     const workspaceRows = await db.query.labelTable.findMany({
       where: and(
-        eq(schema.labelTable.workspaceId, member.workspace.id),
+        eq(schema.labelTable.teamId, member.team.id),
         eq(schema.labelTable.name, "Bug"),
       ),
     });
@@ -313,13 +310,13 @@ describe("API integration: label detach/attach", () => {
     await db.insert(schema.labelTable).values({
       name: "Bug",
       color: "#ef4444",
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
       taskId: task.id,
     });
 
     const reattachedRows = await db.query.labelTable.findMany({
       where: and(
-        eq(schema.labelTable.workspaceId, member.workspace.id),
+        eq(schema.labelTable.teamId, member.team.id),
         eq(schema.labelTable.name, "Bug"),
       ),
     });
@@ -335,9 +332,9 @@ describe("API integration: label detach/attach", () => {
   });
 
   it("emits task.label_assigned and task.label_unassigned events through detach/attach", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const [task] = await seedTask(member.user.id, project.id);
 
@@ -346,7 +343,7 @@ describe("API integration: label detach/attach", () => {
       .values({
         name: "Bug",
         color: "#ef4444",
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
         taskId: null,
       })
       .returning();
@@ -407,9 +404,9 @@ describe("API integration: label detach/attach", () => {
   });
 
   it("bulk removeLabel deletes task-level copies without touching the workspace definition or unrelated labels", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
 
     const [taskA] = await db
@@ -445,7 +442,7 @@ describe("API integration: label detach/attach", () => {
       .values({
         name: "Bug",
         color: "#ef4444",
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
         taskId: null,
       })
       .returning();
@@ -455,7 +452,7 @@ describe("API integration: label detach/attach", () => {
       .values({
         name: "Feature",
         color: "#3b82f6",
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
         taskId: null,
       })
       .returning();
@@ -463,21 +460,21 @@ describe("API integration: label detach/attach", () => {
     await db.insert(schema.labelTable).values({
       name: "Bug",
       color: "#ef4444",
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
       taskId: taskA.id,
     });
 
     await db.insert(schema.labelTable).values({
       name: "Bug",
       color: "#ef4444",
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
       taskId: taskB.id,
     });
 
     await db.insert(schema.labelTable).values({
       name: "Feature",
       color: "#3b82f6",
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
       taskId: taskA.id,
     });
 
@@ -502,7 +499,7 @@ describe("API integration: label detach/attach", () => {
     expect(payload.updatedCount).toBe(2);
 
     const remaining = await db.query.labelTable.findMany({
-      where: eq(schema.labelTable.workspaceId, member.workspace.id),
+      where: eq(schema.labelTable.teamId, member.team.id),
     });
 
     const bugWorkspace = remaining.find(

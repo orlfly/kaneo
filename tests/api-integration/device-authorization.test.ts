@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { resetTestDatabase } from "./helpers/database";
-import { createWorkspaceMember } from "./helpers/fixtures";
+import { createTeamMember } from "./helpers/fixtures";
 
 const origin = "http://localhost:5173";
 
@@ -161,15 +161,15 @@ describe("API integration: device authorization (RFC 8628)", () => {
       throw new Error("expected session user id after sign-in");
     }
 
-    const workspaceId = `ws-${randomUUID()}`;
-    await db.insert(schema.workspaceTable).values({
-      id: workspaceId,
+    const teamId = `ws-${randomUUID()}`;
+    await db.insert(schema.teamTable).values({
+      id: teamId,
       name: "Device test workspace",
       slug: `slug-${randomUUID()}`,
       createdAt: new Date(),
     });
-    await db.insert(schema.workspaceUserTable).values({
-      workspaceId,
+    await db.insert(schema.teamMemberTable).values({
+      teamId,
       userId,
       role: "owner",
       joinedAt: new Date(),
@@ -254,7 +254,7 @@ describe("API integration: device authorization (RFC 8628)", () => {
 
     expect(accessToken).toBeTruthy();
 
-    const organizationsRes = await app.request("/api/auth/organization/list", {
+    const organizationsRes = await app.request("/api/team", {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -264,7 +264,7 @@ describe("API integration: device authorization (RFC 8628)", () => {
     expect(Array.isArray(organizations)).toBe(true);
 
     const projectsRes = await app.request(
-      `/api/project?workspaceId=${encodeURIComponent(workspaceId)}`,
+      `/api/project?teamId=${encodeURIComponent(teamId)}`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -277,7 +277,7 @@ describe("API integration: device authorization (RFC 8628)", () => {
   });
 
   it("still authenticates with a valid API key Bearer", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
 
     const rawKey = `kaneo_test_${randomUUID()}`;
     const hashed = await hashApiKeyForTest(rawKey);
@@ -297,7 +297,7 @@ describe("API integration: device authorization (RFC 8628)", () => {
     const { app } = createApp();
 
     const res = await app.request(
-      `/api/project?workspaceId=${encodeURIComponent(member.workspace.id)}`,
+      `/api/project?teamId=${encodeURIComponent(member.team.id)}`,
       {
         headers: {
           Authorization: `Bearer ${rawKey}`,
@@ -315,7 +315,7 @@ describe("API integration: device authorization (RFC 8628)", () => {
   });
 
   it("accepts a created API key Bearer on auth routes", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const rawKey =
       randomUUID().replace(/-/g, "") + randomUUID().replace(/-/g, "");
     const hashed = await hashApiKeyForTest(rawKey);
@@ -333,7 +333,7 @@ describe("API integration: device authorization (RFC 8628)", () => {
 
     const { app } = createApp();
 
-    const authRouteRes = await app.request("/api/auth/organization/list", {
+    const authRouteRes = await app.request("/api/team", {
       headers: {
         Authorization: `Bearer ${rawKey}`,
       },
@@ -364,22 +364,22 @@ describe("API integration: device authorization (RFC 8628)", () => {
       throw new Error("expected session user id after sign-in");
     }
 
-    const workspaceId = `ws-${randomUUID()}`;
-    await db.insert(schema.workspaceTable).values({
-      id: workspaceId,
+    const teamId = `ws-${randomUUID()}`;
+    await db.insert(schema.teamTable).values({
+      id: teamId,
       name: "Bearer fallback workspace",
       slug: `slug-${randomUUID()}`,
       createdAt: new Date(),
     });
-    await db.insert(schema.workspaceUserTable).values({
-      workspaceId,
+    await db.insert(schema.teamMemberTable).values({
+      teamId,
       userId,
       role: "owner",
       joinedAt: new Date(),
     });
 
     const res = await app.request(
-      `/api/project?workspaceId=${encodeURIComponent(workspaceId)}`,
+      `/api/project?teamId=${encodeURIComponent(teamId)}`,
       {
         headers: {
           Authorization: "Bearer definitely-not-a-real-token",
@@ -392,7 +392,7 @@ describe("API integration: device authorization (RFC 8628)", () => {
     expect(res.status).toBe(401);
 
     const lowercaseSchemeRes = await app.request(
-      `/api/project?workspaceId=${encodeURIComponent(workspaceId)}`,
+      `/api/project?teamId=${encodeURIComponent(teamId)}`,
       {
         headers: {
           authorization: "bearer definitely-not-a-real-token",

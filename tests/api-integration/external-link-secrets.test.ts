@@ -3,10 +3,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 const GITEA_TOKEN = "gitea-pat-should-never-be-exposed";
 const WEBHOOK_SECRET = "gitea-webhook-secret-should-never-be-exposed";
@@ -17,9 +14,9 @@ describe("API integration: external link integration secrets", () => {
   });
 
   it("does not expose integration config to a workspace viewer", async () => {
-    const viewer = await createWorkspaceMember({ role: "viewer" });
+    const viewer = await createTeamMember({ role: "viewer" });
     const { project, columns } = await createProjectFixture({
-      workspaceId: viewer.workspace.id,
+      teamId: viewer.team.id,
     });
 
     const [task] = await db

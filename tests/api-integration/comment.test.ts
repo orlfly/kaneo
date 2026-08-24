@@ -4,10 +4,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 describe("API integration: task comments", () => {
   beforeEach(async () => {
@@ -15,9 +12,9 @@ describe("API integration: task comments", () => {
   });
 
   it("shares comments between the activity UI and comment API", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const [task] = await db
       .insert(schema.taskTable)
@@ -96,9 +93,9 @@ describe("API integration: task comments", () => {
   });
 
   it("records an external author when both name and source are given", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const [task] = await db
       .insert(schema.taskTable)
@@ -136,9 +133,9 @@ describe("API integration: task comments", () => {
   });
 
   it("ignores an external name with no source, so it cannot look like a real user", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const [task] = await db
       .insert(schema.taskTable)
@@ -170,9 +167,9 @@ describe("API integration: task comments", () => {
   });
 
   it("rejects an unknown external source", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const [task] = await db
       .insert(schema.taskTable)

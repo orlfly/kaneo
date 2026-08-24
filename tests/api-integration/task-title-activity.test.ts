@@ -5,15 +5,12 @@ import { createApp } from "../../apps/api/src/index";
 import updateTaskTitle from "../../apps/api/src/task/controllers/update-task-title";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 async function createTaskFixture() {
-  const member = await createWorkspaceMember();
+  const member = await createTeamMember();
   const { project, columns } = await createProjectFixture({
-    workspaceId: member.workspace.id,
+    teamId: member.team.id,
   });
   const [task] = await db
     .insert(schema.taskTable)

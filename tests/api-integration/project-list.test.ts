@@ -3,10 +3,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 type ProjectListEntry = typeof schema.projectTable.$inferSelect & {
   statistics: {
@@ -38,9 +35,9 @@ describe("API integration: project list payload", () => {
   });
 
   it("does not embed task rows in the project list response", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
 
     await seedTasks(project.id, [
@@ -52,9 +49,7 @@ describe("API integration: project list payload", () => {
     mockAuthenticatedSession(member.user);
     const { app } = createApp();
 
-    const response = await app.request(
-      `/api/project?workspaceId=${member.workspace.id}`,
-    );
+    const response = await app.request(`/api/project?teamId=${member.team.id}`);
 
     expect(response.status).toBe(200);
     const payload = (await response.json()) as ProjectListEntry[];
@@ -66,9 +61,9 @@ describe("API integration: project list payload", () => {
   });
 
   it("still reports accurate task statistics without embedding tasks", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
 
     const earliest = new Date("2026-01-10T00:00:00.000Z");
@@ -84,9 +79,7 @@ describe("API integration: project list payload", () => {
     mockAuthenticatedSession(member.user);
     const { app } = createApp();
 
-    const response = await app.request(
-      `/api/project?workspaceId=${member.workspace.id}`,
-    );
+    const response = await app.request(`/api/project?teamId=${member.team.id}`);
     const payload = (await response.json()) as ProjectListEntry[];
 
     // done + archived count as completed: 2 of 4 => 50%
@@ -98,15 +91,13 @@ describe("API integration: project list payload", () => {
   });
 
   it("reports zeroed statistics for a project with no tasks", async () => {
-    const member = await createWorkspaceMember();
-    await createProjectFixture({ workspaceId: member.workspace.id });
+    const member = await createTeamMember();
+    await createProjectFixture({ teamId: member.team.id });
 
     mockAuthenticatedSession(member.user);
     const { app } = createApp();
 
-    const response = await app.request(
-      `/api/project?workspaceId=${member.workspace.id}`,
-    );
+    const response = await app.request(`/api/project?teamId=${member.team.id}`);
     const payload = (await response.json()) as ProjectListEntry[];
 
     expect(payload[0].statistics).toMatchObject({
@@ -118,14 +109,14 @@ describe("API integration: project list payload", () => {
   });
 
   it("keeps statistics isolated per project", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project: alpha } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
       name: "Alpha",
       slug: "alpha",
     });
     const { project: beta } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
       name: "Beta",
       slug: "beta",
     });
@@ -139,9 +130,7 @@ describe("API integration: project list payload", () => {
     mockAuthenticatedSession(member.user);
     const { app } = createApp();
 
-    const response = await app.request(
-      `/api/project?workspaceId=${member.workspace.id}`,
-    );
+    const response = await app.request(`/api/project?teamId=${member.team.id}`);
     const payload = (await response.json()) as ProjectListEntry[];
 
     const byName = new Map(payload.map((p) => [p.name, p]));

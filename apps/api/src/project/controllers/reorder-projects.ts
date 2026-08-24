@@ -45,7 +45,7 @@ async function reorderProjects(
 
     if (foreignId) {
       throw new HTTPException(400, {
-        message: `Project ${foreignId} does not belong to this workspace`,
+        message: `Project ${foreignId} does not belong to this team`,
       });
     }
 
