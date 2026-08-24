@@ -27,8 +27,9 @@ export async function createWorkspaceMember(
     })
     .returning();
 
+  // schema.workspaceTable is a back-compat alias for teamTable.
   const [workspace] = await db
-    .insert(schema.workspaceTable)
+    .insert(schema.teamTable)
     .values({
       id: workspaceId,
       createdAt: new Date(),
@@ -37,8 +38,8 @@ export async function createWorkspaceMember(
     })
     .returning();
 
-  await db.insert(schema.workspaceUserTable).values({
-    workspaceId: workspace.id,
+  await db.insert(schema.teamMemberTable).values({
+    teamId: workspace.id,
     userId: user.id,
     role: overrides?.role ?? "member",
     joinedAt: new Date(),
@@ -61,7 +62,7 @@ export async function createProjectFixture({
   const [project] = await db
     .insert(schema.projectTable)
     .values({
-      workspaceId,
+      teamId: workspaceId,
       name,
       icon,
       slug,

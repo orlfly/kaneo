@@ -14,7 +14,7 @@ Kaneo 当前没有 AI 辅助能力。项目页面有 Board、Backlog、Gantt 三
 - 支持流式响应（SSE），用户能实时看到 pi-agent 的输出
 
 **Non-Goals:**
-- 不实现 pi-agent 的 LLM 推理逻辑（由外部 `PI_AGENT_BASE_URL` 提供）
+- 不实现 pi-agent 的 LLM 推理逻辑（由外部 OpenAI 兼容服务提供，配置于 AI 设置页）
 - 不支持多 agent 编排或复杂工作流
 - 不实现对话的编辑/删除/搜索功能（首版只做创建和列表）
 - 不支持文件上传或富文本输入（首版纯文本对话）
@@ -48,17 +48,17 @@ Kaneo 当前没有 AI 辅助能力。项目页面有 Board、Backlog、Gantt 三
 
 **选择**: 复用 `authenticateApiRequest` + `teamAccess.fromProject()`
 **理由**: 用户必须是项目所属团队的成员才能发起对话。pi-agent 的操作（创建任务等）也在同一个请求上下文中执行，自动继承用户权限。
-**注意**: pi-agent 的服务端 API key (`PI_AGENT_API_KEY`) 不会暴露给前端，仅服务端使用。
+**注意**: pi-agent 的服务端 API key 不会暴露给前端，仅服务端使用（加密存储于数据库）。
 
 ### 5. 前端 Chat UI
 
 **选择**: 自建轻量聊天组件，不引入第三方 chat UI 库
 **理由**: Kaneo 已有 UI 组件体系（Button、Input、Avatar 等），自建可保持一致性且避免额外依赖。布局：消息列表 + 底部输入框，支持 markdown 渲染（复用已有的 markdown 渲染组件）。
 
-### 6. 环境变量配置
+### 6. 配置存储：数据库表而非环境变量
 
-**选择**: `PI_AGENT_API_KEY` 和 `PI_AGENT_BASE_URL`
-**理由**: 与现有 env 配置模式一致。如果未配置，Chat 标签页显示"未启用"占位状态而非报错。
+**选择**: 通过系统管理员的 AI 设置页（Settings → System → AI）配置启用开关、API base URL、API key、模型，加密存入 `chat_config` 单例行表
+**理由**: 配置可运行时修改无需重启服务，多实例部署共享同一配置，沿用通知偏好已用的 `encryptSecret`/`decryptSecret` 加密工具。未配置时 Chat 标签页显示"未启用"占位状态而非报错。
 
 ## Risks / Trade-offs
 

@@ -85,17 +85,18 @@ export async function resetTestDatabase() {
   await db.execute(
     sql.raw(`
       TRUNCATE TABLE
-        "activity",
         "account",
+        "activity",
         "apikey",
         "asset",
-        "billing_event",
+        "chat_config",
+        "chat_message",
         "column",
         "comment",
+        "device_code",
         "external_link",
         "github_integration",
         "integration",
-        "invitation",
         "label",
         "mcp_oauth_state",
         "notification",
@@ -103,14 +104,17 @@ export async function resetTestDatabase() {
         "session",
         "task",
         "task_relation",
+        "task_reminder_sent",
         "team",
         "team_member",
         "time_entry",
+        "user",
+        "user_avatar",
+        "user_notification_preference",
+        "user_notification_team_project",
+        "user_notification_team_rule",
         "verification",
-        "workflow_rule",
-        "workspace",
-        "workspace_member",
-        "user"
+        "workflow_rule"
       RESTART IDENTITY CASCADE
     `),
   );

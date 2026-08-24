@@ -10,7 +10,7 @@ Kaneo 项目管理缺少 AI 辅助能力。团队需要一个能理解项目上�
 - 新增 API 端点 `/api/project/:projectId/chat`，支持 SSE 流式响应
 - pi-agent 通过调用已有 API 端点（task CRUD、project 查询）获取项目数据并执行操作
 - 对话历史按项目维度存储在数据库中
-- 配置通过环境变量 `PI_AGENT_API_KEY` 和 `PI_AGENT_BASE_URL` 实现
+- LLM 配置（启用开关、API base URL、API key、模型）通过系统管理员的 AI 设置页管理，加密存入 `chat_config` 表，而非环境变量
 
 ## Capabilities
 
@@ -25,4 +25,4 @@ Kaneo 项目管理缺少 AI 辅助能力。团队需要一个能理解项目上�
 - `apps/api/src/database/schema.ts`: 新增 `chatMessageTable` 和关系
 - `apps/api/src/index.ts`: 挂载 chat 路由并加入 AppType
 - `i18n`: 新增 `chat` 命名空间
-- 依赖 `PI_AGENT_API_KEY` 和 `PI_AGENT_BASE_URL` 环境变量
+- 新增 `chat_config` 数据库表（含迁移），AI 配置加密存储；实例需配置 `NOTIFICATION_SECRET_ENCRYPTION_KEY` 以支持 API key 加密
