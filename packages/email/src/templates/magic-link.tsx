@@ -14,7 +14,7 @@ const messages = {
   en: {
     preview: "Sign in to Kaneo",
     title: "Your secure sign-in link",
-    subtitle: "Use this link to continue to your Kaneo workspace.",
+    subtitle: "Use this link to continue to your Kaneo team.",
     cta: "Sign in to Kaneo",
     expiry: "This link expires in 5 minutes for your security.",
     ignore: "If you didn't request this, you can ignore this email.",
@@ -23,8 +23,7 @@ const messages = {
   de: {
     preview: "Bei Kaneo anmelden",
     title: "Dein sicherer Anmeldelink",
-    subtitle:
-      "Verwende diesen Link, um mit deinem Kaneo-Workspace fortzufahren.",
+    subtitle: "Verwende diesen Link, um mit deinem Kaneo-Team fortzufahren.",
     cta: "Bei Kaneo anmelden",
     expiry: "Dieser Link laeuft aus Sicherheitsgruenden in 5 Minuten ab.",
     ignore:
@@ -34,7 +33,7 @@ const messages = {
   vi: {
     preview: "Đăng nhập vào Kaneo",
     title: "Liên kết đăng nhập an toàn của bạn",
-    subtitle: "Dùng liên kết này để tiếp tục vào không gian làm việc Kaneo.",
+    subtitle: "Dùng liên kết này để tiếp tục vào nhóm Kaneo của bạn.",
     cta: "Đăng nhập vào Kaneo",
     expiry: "Vì lý do bảo mật, liên kết này sẽ hết hạn sau 5 phút.",
     ignore: "Nếu bạn không yêu cầu điều này, bạn có thể bỏ qua email này.",
