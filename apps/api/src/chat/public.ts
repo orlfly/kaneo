@@ -12,6 +12,7 @@ const chatPublicApi = new Hono().get(
     operationId: "getChatStatus",
     tags: ["Chat"],
     description: "Check if the pi-agent is configured",
+    security: [],
     responses: {
       200: {
         description: "Configuration status",
