@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { parseSSELine } from "./chat";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { parseSSELine, resolveApiBaseUrl } from "./chat";
 
 describe("parseSSELine", () => {
   it("parses a plain-text token", () => {
@@ -45,8 +45,6 @@ describe("parseSSELine", () => {
   });
 });
 
-import { resolveApiBaseUrl } from "./chat";
-
 describe("resolveApiBaseUrl", () => {
   const original = import.meta.env.VITE_API_URL;
 
@@ -77,5 +75,104 @@ describe("resolveApiBaseUrl", () => {
     const url = resolveApiBaseUrl();
     expect(url).toMatch(/^http:\/\/api\.internal:1337\/api$/);
     expect(url.startsWith("http://localhost:5173")).toBe(false);
+  });
+});
+
+import { getChatStatus, streamChatMessage } from "./chat";
+
+function stubFetchResponse(init: {
+  ok: boolean;
+  status?: number;
+  json?: unknown;
+  body?: ReadableStream;
+}) {
+  const bodyStream = init.body ?? null;
+  return {
+    ok: init.ok,
+    status: init.status ?? (init.ok ? 200 : 500),
+    json: async () => init.json,
+    text: async () => JSON.stringify(init.json ?? {}),
+    body: bodyStream,
+  } as unknown as Response;
+}
+
+function sseStream(chunks: string[]): ReadableStream<Uint8Array> {
+  const encoder = new TextEncoder();
+  return new ReadableStream({
+    start(controller) {
+      for (const chunk of chunks) {
+        controller.enqueue(encoder.encode(`data: ${chunk}\n\n`));
+      }
+      controller.close();
+    },
+  });
+}
+
+describe("getChatStatus runtime contract", () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    vi.stubGlobal("fetch", fetchMock);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("returns enabled from a 200 response", async () => {
+    fetchMock.mockResolvedValue(
+      stubFetchResponse({ ok: true, json: { enabled: true } }),
+    );
+    await expect(getChatStatus()).resolves.toEqual({ enabled: true });
+  });
+
+  it("returns disabled on a non-200 response", async () => {
+    fetchMock.mockResolvedValue(stubFetchResponse({ ok: false, status: 503 }));
+    await expect(getChatStatus()).resolves.toEqual({ enabled: false });
+  });
+
+  it("returns disabled when fetch throws (network error)", async () => {
+    fetchMock.mockRejectedValue(new TypeError("Failed to fetch"));
+    await expect(getChatStatus()).resolves.toEqual({ enabled: false });
+  });
+
+  it("requests with no-store cache so the enabled flag is not stale", async () => {
+    fetchMock.mockResolvedValue(
+      stubFetchResponse({ ok: true, json: { enabled: true } }),
+    );
+    await getChatStatus();
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.cache).toBe("no-store");
+  });
+});
+
+describe("streamChatMessage runtime contract", () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    vi.stubGlobal("fetch", fetchMock);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("throws 'not-enabled' on a 503 so the UI can flip the disabled state", async () => {
+    fetchMock.mockResolvedValue(stubFetchResponse({ ok: false, status: 503 }));
+    await expect(streamChatMessage("p1", "hi", vi.fn())).rejects.toThrow(
+      "not-enabled",
+    );
+  });
+
+  it("accumulates tokens from the SSE stream and calls onToken", async () => {
+    fetchMock.mockResolvedValue(
+      stubFetchResponse({
+        ok: true,
+        body: sseStream(["你好", "，我是 pi-agent。", "[DONE]"]),
+      }),
+    );
+    const tokens: string[] = [];
+    const result = await streamChatMessage("p1", "hi", (t) => tokens.push(t));
+    expect(result).toContain("你好");
+    expect(result).toContain("pi-agent");
+    expect(tokens).toEqual(["你好", "，我是 pi-agent。"]);
   });
 });
