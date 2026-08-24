@@ -22,6 +22,16 @@ export async function listChatMessages(
   return response.json() as Promise<ChatMessage[]>;
 }
 
+export async function clearChatHistory(projectId: string): Promise<void> {
+  const response = await client.chat.project[":projectId"].$delete({
+    param: { projectId },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to clear chat history");
+  }
+}
+
 /**
  * Resolves whether the pi-agent is configured. Uses the same API base URL as
  * the typed client, so it works behind Vite dev without a /api proxy.

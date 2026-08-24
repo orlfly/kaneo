@@ -1,0 +1,1 @@
+{"servers":{"emacs":{"command":"emacs","args":["--batch","-Q","-L","/home/xiao/.emacs.d/eagent/","-l","/home/xiao/.emacs.d/eagent/emacs-mcp.el"],"env":{"JCODE_EMACS_CTRL_SOCKET":"/run/user/1000/jcode-emacs-control.sock"},"enabled":"json-true"}}}

@@ -1,13 +1,23 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { BotIcon, SendIcon, UserIcon } from "lucide-react";
+import { BotIcon, SendIcon, Trash2, UserIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MarkdownRenderer } from "@/components/public-project/markdown-renderer";
+import {
+  AlertDialog,
+  AlertDialogClose,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   type ChatMessage,
+  clearChatHistory,
   getChatStatus,
   streamChatMessage,
 } from "@/fetchers/project/chat";
@@ -37,6 +47,7 @@ function ChatPanel({ projectId }: Props) {
   );
   const [enabled, setEnabled] = useState<boolean>(false);
   const [statusLoaded, setStatusLoaded] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const lastScrollKey = useRef<string>("");
@@ -112,6 +123,29 @@ function ChatPanel({ projectId }: Props) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       void handleSend();
+    }
+  };
+
+  const handleClearHistory = async () => {
+    try {
+      await clearChatHistory(projectId);
+      setConfirmClear(false);
+      toast.success(
+        t("chat:historyCleared", {
+          defaultValue: "Chat history cleared",
+        }),
+      );
+      await queryClient.invalidateQueries({
+        queryKey: ["chat-messages", projectId],
+      });
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("chat:historyClearError", {
+              defaultValue: "Failed to clear chat history",
+            }),
+      );
     }
   };
 
@@ -216,8 +250,23 @@ function ChatPanel({ projectId }: Props) {
         )}
       </div>
 
-      <div className="border-t p-3">
+      <div className="border-t px-2.5 py-2">
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-10 shrink-0 rounded-lg text-muted-foreground hover:text-foreground"
+            onClick={() => setConfirmClear(true)}
+            disabled={chatDisabled || allMessages.length === 0}
+            title={t("chat:clearHistory", {
+              defaultValue: "Clear chat history",
+            })}
+            aria-label={t("chat:clearHistory", {
+              defaultValue: "Clear chat history",
+            })}
+          >
+            <Trash2 className="size-4" />
+          </Button>
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -226,18 +275,53 @@ function ChatPanel({ projectId }: Props) {
               defaultValue: "Send a message to pi-agent…",
             })}
             disabled={chatDisabled}
-            className="flex-1"
+            className="h-11 flex-1"
           />
-          <Button size="icon" onClick={handleSend} disabled={sendDisabled}>
-            <SendIcon className="size-4" />
+          <Button
+            size="icon"
+            className="size-11 shrink-0 rounded-lg"
+            onClick={handleSend}
+            disabled={sendDisabled}
+            title={t("chat:send")}
+            aria-label={t("chat:send")}
+          >
+            <SendIcon className="size-5" />
           </Button>
         </div>
         {streaming && (
-          <p className="mt-1.5 text-xs text-muted-foreground">
+          <p className="mt-1 text-xs text-muted-foreground">
             {t("chat:streaming", { defaultValue: "pi-agent is typing…" })}
           </p>
         )}
       </div>
+
+      <AlertDialog open={confirmClear} onOpenChange={setConfirmClear}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("chat:clearHistoryTitle", {
+                defaultValue: "Clear chat history?",
+              })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("chat:clearHistoryDescription", {
+                defaultValue:
+                  "This permanently deletes the conversation with pi-agent for this project. This cannot be undone.",
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogClose>
+              {t("common:actions.cancel")}
+            </AlertDialogClose>
+            <Button variant="destructive" onClick={handleClearHistory}>
+              {t("chat:clearHistoryConfirm", {
+                defaultValue: "Clear history",
+              })}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { teamAccess } from "../utils/team-access-middleware";
 import { type ChatConfig, loadChatConfig, saveChatConfig } from "./config";
 import listMessages from "./controllers/list-messages";
 import { sendMessage } from "./controllers/send-message";
+import clearMessages from "./controllers/clear-messages";
 
 const chatMessageSchema = v.object({
   id: v.string(),
@@ -149,6 +150,31 @@ const chat = new Hono<{
     async (c) => {
       const projectId = c.req.param("projectId");
       return sendMessage(c, projectId);
+    },
+  )
+  .delete(
+    "/project/:projectId",
+    describeRoute({
+      operationId: "clearChatMessages",
+      tags: ["Chat"],
+      description: "Clear the conversation history for a project",
+      responses: {
+        200: {
+          description: "Chat history cleared",
+          content: {
+            "application/json": {
+              schema: resolver(v.object({ cleared: v.boolean() })),
+            },
+          },
+        },
+      },
+    }),
+    teamAccess.fromProject("projectId"),
+    requireTeamRole("member"),
+    async (c) => {
+      const projectId = c.req.param("projectId");
+      await clearMessages(projectId);
+      return c.json({ cleared: true });
     },
   );
 
