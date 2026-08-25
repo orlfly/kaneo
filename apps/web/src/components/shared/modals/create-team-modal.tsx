@@ -99,8 +99,8 @@ function CreateTeamModal({ open, onClose }: CreateTeamModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div key="team-name-row" className="space-y-2 p-6">
+        <form onSubmit={handleSubmit} className="space-y-6" style={{ paddingLeft: 24, paddingRight: 24 }}>
+          <div className="space-y-2">
             <Input
               ref={inputRef}
               unstyled
