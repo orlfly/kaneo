@@ -483,7 +483,7 @@ function CreateTaskModal({
       },
       ...AGENT_ROLES.map((value) => ({
         value,
-        label: t(`tasks:agentRoles.${value}`, { defaultValue: value }),
+        label: t(`tasks:agentRoles.${value}.name`, { defaultValue: value }),
       })),
     ],
     [t],

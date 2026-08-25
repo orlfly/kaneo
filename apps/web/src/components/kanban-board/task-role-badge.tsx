@@ -51,7 +51,7 @@ export function TaskRoleBadge({ requiredRole, className }: TaskRoleBadgeProps) {
       )}
     >
       <BotIcon className="w-3 h-3" />
-      <span>{t(`tasks:agentRoles.${role}`, { defaultValue: role })}</span>
+      <span>{t(`tasks:agentRoles.${role}.name`, { defaultValue: role })}</span>
     </span>
   );
 }
