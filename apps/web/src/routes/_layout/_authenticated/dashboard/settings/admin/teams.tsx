@@ -149,8 +149,12 @@ function AdminTeamsPage() {
               {t("admin:teams.description")}
             </p>
           </div>
-          <Button onClick={() => setCreateOpen(true)} size="sm">
-            <PlusIcon className="size-4" />
+          <Button
+            onClick={() => setCreateOpen(true)}
+            size="xs"
+            className="text-xs"
+          >
+            <PlusIcon className="size-3.5" />
             {t("admin:teams.create")}
           </Button>
         </div>
