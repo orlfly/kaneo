@@ -275,7 +275,7 @@ function AdminTeamsPage() {
               {t("admin:teams.createDialogDescription")}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
+          <div className="space-y-2 px-6">
             <Label htmlFor="admin-team-name">
               {t("admin:teams.nameLabel")}
             </Label>
@@ -355,7 +355,7 @@ function AdminTeamsPage() {
               {t("admin:teams.renameDialogDescription")}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
+          <div className="space-y-2 px-6">
             <Label htmlFor="admin-team-rename">
               {t("admin:teams.nameLabel")}
             </Label>
