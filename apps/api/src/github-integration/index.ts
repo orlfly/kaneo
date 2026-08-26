@@ -15,6 +15,7 @@ import { githubIntegrationSchema } from "../schemas";
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { validateWorkspaceAccess } from "../utils/validate-workspace-access";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
+import { registerVcsRoutes } from "../vcs";
 import createGithubIntegration from "./controllers/create-github-integration";
 import deleteGithubIntegration from "./controllers/delete-github-integration";
 import getGithubIntegration from "./controllers/get-github-integration";
@@ -402,4 +403,5 @@ export async function handleGithubWebhookRoute(c: Context) {
 
   return c.json({ status: "success" });
 }
+registerVcsRoutes(githubIntegration, "github");
 export default githubIntegration;

@@ -18,6 +18,7 @@ import {
   workspaceAccess,
   workspaceAccessMiddleware,
 } from "../utils/workspace-access-middleware";
+import { registerVcsRoutes } from "../vcs";
 import createGiteaIntegration from "./controllers/create-gitea-integration";
 import deleteGiteaIntegration from "./controllers/delete-gitea-integration";
 import getGiteaIntegration from "./controllers/get-gitea-integration";
@@ -428,5 +429,7 @@ export async function handleGiteaWebhookRoute(c: Context) {
 
   return c.json({ status: "success" });
 }
+
+registerVcsRoutes(giteaIntegration, "gitea");
 
 export default giteaIntegration;

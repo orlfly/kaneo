@@ -49,6 +49,37 @@ describe("registerTools", () => {
     );
   });
 
+  it("registers the VCS integration tools", () => {
+    const { server } = createServerMock();
+    const client = { json: vi.fn() };
+
+    registerTools(server as never, { client: client as never });
+
+    const vcsTools = [
+      "vcs_list_repositories",
+      "vcs_list_issues",
+      "vcs_get_issue",
+      "vcs_list_issue_comments",
+      "vcs_list_pull_requests",
+      "vcs_list_labels",
+      "vcs_create_issue",
+      "vcs_update_issue",
+      "vcs_create_issue_comment",
+      "vcs_create_label",
+      "vcs_add_labels_to_issue",
+      "vcs_replace_issue_labels",
+      "vcs_remove_label_from_issue",
+      "vcs_import_issues",
+    ];
+    for (const name of vcsTools) {
+      expect(server.registerTool).toHaveBeenCalledWith(
+        name,
+        expect.any(Object),
+        expect.any(Function),
+      );
+    }
+  });
+
   it("builds the expected query string for list_tasks", async () => {
     const { server, tools } = createServerMock();
     const client = {

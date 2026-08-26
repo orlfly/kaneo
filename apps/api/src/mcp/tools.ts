@@ -1068,4 +1068,323 @@ export function registerMcpTools(
     },
     async () => run(() => client.json("/api/notification")),
   );
+
+  // ---------------------------------------------------------------------------
+  // VCS integration tools (GitHub / GitLab / Gitea)
+  // ---------------------------------------------------------------------------
+  const vcsTypeSchema = z
+    .enum(["github", "gitlab", "gitea"])
+    .describe("The VCS integration type to operate on");
+  const vcsProjectId = nonEmptyString.describe(
+    "Kaneo project ID whose active integration should be used",
+  );
+  const vcsIssueNumber = z
+    .number()
+    .int()
+    .positive()
+    .describe("Issue number in the configured repository");
+  const vcsStateSchema = z
+    .enum(["open", "closed", "all"])
+    .optional()
+    .describe("Issue state filter (defaults to open)");
+
+  const vcsBasePath = (type: string, projectId: string) =>
+    `/api/${type}-integration/vcs/${encodeURIComponent(projectId)}`;
+
+  registerTool(
+    "vcs_list_repositories",
+    {
+      description:
+        "List repositories accessible to the project's active VCS integration.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/repositories`),
+      ),
+  );
+
+  registerTool(
+    "vcs_list_issues",
+    {
+      description:
+        "List issues in the configured repository of the project's active VCS integration.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        state: vcsStateSchema,
+      }),
+    },
+    async (args) => {
+      const qs = args.state ? `?state=${args.state}` : "";
+      return run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/issues${qs}`),
+      );
+    },
+  );
+
+  registerTool(
+    "vcs_get_issue",
+    {
+      description:
+        "Get a single issue by number from the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}`,
+        ),
+      ),
+  );
+
+  registerTool(
+    "vcs_list_issue_comments",
+    {
+      description: "List comments on an issue in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}/comments`,
+        ),
+      ),
+  );
+
+  registerTool(
+    "vcs_list_pull_requests",
+    {
+      description:
+        "List open pull requests in the configured repository of the project's active VCS integration.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/pull-requests`),
+      ),
+  );
+
+  registerTool(
+    "vcs_list_labels",
+    {
+      description: "List labels defined in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/labels`),
+      ),
+  );
+
+  registerTool(
+    "vcs_create_issue",
+    {
+      description: "Create an issue in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        title: nonEmptyString.describe("Issue title"),
+        body: z.string().optional().describe("Issue body"),
+        closed: z.boolean().optional().describe("Create the issue as closed"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/issues`, {
+          method: "POST",
+          body: JSON.stringify({
+            title: args.title,
+            ...(args.body !== undefined ? { body: args.body } : {}),
+            ...(args.closed !== undefined ? { closed: args.closed } : {}),
+          }),
+        }),
+      ),
+  );
+
+  registerTool(
+    "vcs_update_issue",
+    {
+      description:
+        "Update an issue in the configured repository (title, body, or state).",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+        title: z.string().optional().describe("New issue title"),
+        body: z.string().nullable().optional().describe("New issue body"),
+        state: z
+          .enum(["open", "closed"])
+          .optional()
+          .describe("New issue state"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}`,
+          {
+            method: "PATCH",
+            body: JSON.stringify({
+              ...(args.title !== undefined ? { title: args.title } : {}),
+              ...(args.body !== undefined ? { body: args.body } : {}),
+              ...(args.state !== undefined ? { state: args.state } : {}),
+            }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "vcs_create_issue_comment",
+    {
+      description: "Add a comment to an issue in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+        body: nonEmptyString.describe("Comment body"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}/comments`,
+          {
+            method: "POST",
+            body: JSON.stringify({ body: args.body }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "vcs_create_label",
+    {
+      description: "Create a label in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        name: nonEmptyString.describe("Label name"),
+        color: hexColorSchema.describe("Label color as a hex value"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/labels`, {
+          method: "POST",
+          body: JSON.stringify({ name: args.name, color: args.color }),
+        }),
+      ),
+  );
+
+  registerTool(
+    "vcs_add_labels_to_issue",
+    {
+      description: "Add labels to an issue in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+        labelIds: z
+          .array(z.number().int().positive())
+          .describe("Label IDs to add"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}/labels`,
+          {
+            method: "POST",
+            body: JSON.stringify({ labelIds: args.labelIds }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "vcs_replace_issue_labels",
+    {
+      description:
+        "Replace all labels on an issue in the configured repository with the given set.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+        labelIds: z
+          .array(z.number().int().positive())
+          .describe("Label IDs to set on the issue"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}/labels`,
+          {
+            method: "PUT",
+            body: JSON.stringify({ labelIds: args.labelIds }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "vcs_remove_label_from_issue",
+    {
+      description: "Remove a label from an issue in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+        labelId: z.number().int().positive().describe("Label ID to remove"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}/labels`,
+          {
+            method: "DELETE",
+            body: JSON.stringify({ labelId: args.labelId }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "vcs_import_issues",
+    {
+      description:
+        "Import issues from the project's active VCS integration into Kaneo tasks.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`/api/${args.type}-integration/import-issues`, {
+          method: "POST",
+          body: JSON.stringify({ projectId: args.projectId }),
+        }),
+      ),
+  );
 }

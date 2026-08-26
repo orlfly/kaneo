@@ -206,4 +206,194 @@ describe("MCP tool catalog", () => {
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain("Task not found");
   });
+
+  describe("VCS integration tools", () => {
+    it("registers all VCS tools", () => {
+      const vcsTools = [
+        "vcs_list_repositories",
+        "vcs_list_issues",
+        "vcs_get_issue",
+        "vcs_list_issue_comments",
+        "vcs_list_pull_requests",
+        "vcs_list_labels",
+        "vcs_create_issue",
+        "vcs_update_issue",
+        "vcs_create_issue_comment",
+        "vcs_create_label",
+        "vcs_add_labels_to_issue",
+        "vcs_replace_issue_labels",
+        "vcs_remove_label_from_issue",
+        "vcs_import_issues",
+      ];
+      for (const name of vcsTools) {
+        expect(tools.has(name)).toBe(true);
+      }
+    });
+
+    it("lists repositories for a project's active integration", async () => {
+      await call("vcs_list_repositories", {
+        type: "gitlab",
+        projectId: "p1",
+      });
+      expect(lastRequest().url).toBe(
+        "http://api.test/api/gitlab-integration/vcs/p1/repositories",
+      );
+    });
+
+    it("lists issues with an optional state filter", async () => {
+      await call("vcs_list_issues", { type: "github", projectId: "p1" });
+      expect(lastRequest().url).toBe(
+        "http://api.test/api/github-integration/vcs/p1/issues",
+      );
+
+      await call("vcs_list_issues", {
+        type: "gitea",
+        projectId: "p1",
+        state: "closed",
+      });
+      expect(lastRequest().url).toBe(
+        "http://api.test/api/gitea-integration/vcs/p1/issues?state=closed",
+      );
+    });
+
+    it("gets a single issue by number", async () => {
+      await call("vcs_get_issue", {
+        type: "gitlab",
+        projectId: "p1",
+        number: 42,
+      });
+      expect(lastRequest().url).toBe(
+        "http://api.test/api/gitlab-integration/vcs/p1/issues/42",
+      );
+    });
+
+    it("lists issue comments", async () => {
+      await call("vcs_list_issue_comments", {
+        type: "github",
+        projectId: "p1",
+        number: 7,
+      });
+      expect(lastRequest().url).toBe(
+        "http://api.test/api/github-integration/vcs/p1/issues/7/comments",
+      );
+    });
+
+    it("lists pull requests and labels", async () => {
+      await call("vcs_list_pull_requests", {
+        type: "gitea",
+        projectId: "p1",
+      });
+      expect(lastRequest().url).toBe(
+        "http://api.test/api/gitea-integration/vcs/p1/pull-requests",
+      );
+
+      await call("vcs_list_labels", { type: "gitlab", projectId: "p1" });
+      expect(lastRequest().url).toBe(
+        "http://api.test/api/gitlab-integration/vcs/p1/labels",
+      );
+    });
+
+    it("creates an issue", async () => {
+      await call("vcs_create_issue", {
+        type: "github",
+        projectId: "p1",
+        title: "Bug",
+        body: "Details",
+      });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/github-integration/vcs/p1/issues",
+        method: "POST",
+        body: { title: "Bug", body: "Details" },
+      });
+    });
+
+    it("updates an issue", async () => {
+      await call("vcs_update_issue", {
+        type: "gitlab",
+        projectId: "p1",
+        number: 3,
+        state: "closed",
+      });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/gitlab-integration/vcs/p1/issues/3",
+        method: "PATCH",
+        body: { state: "closed" },
+      });
+    });
+
+    it("creates an issue comment", async () => {
+      await call("vcs_create_issue_comment", {
+        type: "gitea",
+        projectId: "p1",
+        number: 5,
+        body: "Thanks",
+      });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/gitea-integration/vcs/p1/issues/5/comments",
+        method: "POST",
+        body: { body: "Thanks" },
+      });
+    });
+
+    it("creates a label", async () => {
+      await call("vcs_create_label", {
+        type: "github",
+        projectId: "p1",
+        name: "bug",
+        color: "#FF0000",
+      });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/github-integration/vcs/p1/labels",
+        method: "POST",
+        body: { name: "bug", color: "#FF0000" },
+      });
+    });
+
+    it("adds, replaces, and removes labels on an issue", async () => {
+      await call("vcs_add_labels_to_issue", {
+        type: "gitlab",
+        projectId: "p1",
+        number: 1,
+        labelIds: [10, 11],
+      });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/gitlab-integration/vcs/p1/issues/1/labels",
+        method: "POST",
+        body: { labelIds: [10, 11] },
+      });
+
+      await call("vcs_replace_issue_labels", {
+        type: "gitea",
+        projectId: "p1",
+        number: 2,
+        labelIds: [20],
+      });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/gitea-integration/vcs/p1/issues/2/labels",
+        method: "PUT",
+        body: { labelIds: [20] },
+      });
+
+      await call("vcs_remove_label_from_issue", {
+        type: "github",
+        projectId: "p1",
+        number: 3,
+        labelId: 30,
+      });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/github-integration/vcs/p1/issues/3/labels",
+        method: "DELETE",
+        body: { labelId: 30 },
+      });
+    });
+
+    it("imports issues into Kaneo tasks", async () => {
+      await call("vcs_import_issues", { type: "gitlab", projectId: "p1" });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/gitlab-integration/import-issues",
+        method: "POST",
+        body: { projectId: "p1" },
+      });
+    });
+  });
 });

@@ -2,6 +2,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { and, count, eq, ilike, sql } from "drizzle-orm";
 import db from "../database";
 import { columnTable, projectTable, taskTable } from "../database/schema";
+import { resolveVcsIntegration, vcsListPullRequests } from "../vcs";
 import type { ChatCompletionTool } from "./pi-agent-client";
 
 export const toolDefinitions: ChatCompletionTool[] = [
@@ -89,6 +90,25 @@ export const toolDefinitions: ChatCompletionTool[] = [
       parameters: { type: "object", properties: {} },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "list_merge_requests",
+      description:
+        "List the open merge/pull requests (MRs) on the project's connected version-control repository (GitHub, GitLab, or Gitea). Use this when asked about the project's MRs, PRs, or merge requests.",
+      parameters: {
+        type: "object",
+        properties: {
+          type: {
+            type: "string",
+            enum: ["github", "gitlab", "gitea"],
+            description:
+              "Which VCS integration to query. The project may have multiple; use the one the user asked about, or try each configured integration.",
+          },
+        },
+      },
+    },
+  },
 ];
 
 export async function executeTool(
@@ -107,6 +127,8 @@ export async function executeTool(
       return getProjectSummary(projectId);
     case "list_blocked_tasks":
       return listBlockedTasks(projectId);
+    case "list_merge_requests":
+      return listMergeRequests(projectId, args);
     default:
       return JSON.stringify({ error: `Unknown tool: ${toolName}` });
   }
@@ -269,4 +291,46 @@ async function listBlockedTasks(projectId: string): Promise<string> {
     );
 
   return JSON.stringify(blocked, null, 2);
+}
+
+async function listMergeRequests(
+  projectId: string,
+  args: Record<string, unknown>,
+): Promise<string> {
+  const requestedType = typeof args.type === "string" ? args.type : undefined;
+  const types = requestedType
+    ? [requestedType]
+    : (["github", "gitlab", "gitea"] as const);
+
+  const results: Record<string, unknown> = {};
+  for (const type of types) {
+    let integration:
+      | Awaited<ReturnType<typeof resolveVcsIntegration>>
+      | undefined;
+    try {
+      integration = await resolveVcsIntegration(projectId, type as never);
+    } catch {
+      // No active integration of this type; skip it.
+      continue;
+    }
+    try {
+      const pulls = await vcsListPullRequests(integration as never);
+      results[type] = pulls;
+    } catch (error) {
+      results[type] = {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to list pull requests",
+      };
+    }
+  }
+
+  if (Object.keys(results).length === 0) {
+    return JSON.stringify({
+      error:
+        "No version-control integration (GitHub, GitLab, or Gitea) is configured for this project.",
+    });
+  }
+  return JSON.stringify(results, null, 2);
 }
