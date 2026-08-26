@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createGitLabClient,
   GitLabApiError,
+  getGitLabTokenInfo,
   verifyGitLabToken,
 } from "../../../apps/api/src/plugins/gitlab/utils/gitlab-api";
 
@@ -242,6 +243,83 @@ describe("GitLab label merge semantics", () => {
     const req = lastRequest();
     expect(req.method).toBe("PUT");
     expect(req.body.labels).toBe("keep");
+  });
+});
+
+describe("GitLab token identity (getGitLabTokenInfo / verifyGitLabToken)", () => {
+  it("returns the authenticated user and parses X-Oauth-Scopes", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({ id: 39, username: "xiaofei", name: "肖飞" }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            "X-Oauth-Scopes": "api, read_api",
+          },
+        },
+      ),
+    );
+
+    const info = await getGitLabTokenInfo("https://gitlab.example.com", "t");
+    expect(info).toEqual({
+      user: { id: 39, username: "xiaofei", name: "肖飞" },
+      scopes: ["api", "read_api"],
+    });
+  });
+
+  it("returns an empty scopes array when the header is absent (PAT)", async () => {
+    fetchMock.mockResolvedValue(
+      makeResponse(200, { id: 1, username: "owner" }),
+    );
+
+    const info = await getGitLabTokenInfo("https://gitlab.example.com", "t");
+    expect(info.user.username).toBe("owner");
+    expect(info.scopes).toEqual([]);
+  });
+
+  it("trims and drops empty entries from the scopes header", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ id: 1, username: "owner" }), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "X-Oauth-Scopes": "  api , read_api ,  ",
+        },
+      }),
+    );
+
+    const info = await getGitLabTokenInfo("https://gitlab.example.com", "t");
+    expect(info.scopes).toEqual(["api", "read_api"]);
+  });
+
+  it("surfaces the bot flag and avatar_url from the user payload", async () => {
+    fetchMock.mockResolvedValue(
+      makeResponse(200, {
+        id: 7,
+        username: "ci-bot",
+        name: "CI Bot",
+        avatar_url: "https://gitlab.example/uploads/avatar.png",
+        bot: true,
+      }),
+    );
+
+    const info = await getGitLabTokenInfo("https://gitlab.example.com", "t");
+    expect(info.user).toMatchObject({
+      id: 7,
+      username: "ci-bot",
+      avatar_url: "https://gitlab.example/uploads/avatar.png",
+      bot: true,
+    });
+  });
+
+  it("verifyGitLabToken returns the bare user object", async () => {
+    fetchMock.mockResolvedValue(
+      makeResponse(200, { id: 1, username: "owner" }),
+    );
+
+    const user = await verifyGitLabToken("https://gitlab.example.com", "t");
+    expect(user).toEqual({ id: 1, username: "owner" });
   });
 });
 

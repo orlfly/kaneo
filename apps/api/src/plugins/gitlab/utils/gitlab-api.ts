@@ -684,18 +684,117 @@ export function createGitLabClient(
   };
 }
 
-export async function verifyGitLabToken(baseUrl: string, token: string) {
-  const user = await gitlabFetch<{ id: number; username: string }>(
-    normalizeGitLabBaseUrl(baseUrl),
-    token,
-    "/user",
-  );
-  if (!user) {
-    throw new GitLabApiError(
-      "GitLab user response was empty",
-      500,
-      "EMPTY_RESPONSE",
-    );
+/** Token scopes returned by GitLab in the X-Oauth-Scopes response header. */
+export type GitLabTokenInfo = {
+  user: {
+    id: number;
+    username: string;
+    name?: string;
+    avatar_url?: string | null;
+    bot?: boolean;
+  };
+  /** OAuth scopes parsed from X-Oauth-Scopes. Empty for personal access tokens. */
+  scopes: string[];
+};
+
+/**
+ * Fetch the authenticated user plus the token scopes advertised by GitLab in
+ * response headers. This is the lowest-impact way to surface "who is this
+ * token" and "what can it do" on the verify screen without needing extra
+ * permissions beyond /user.
+ */
+export async function getGitLabTokenInfo(
+  baseUrl: string,
+  token: string,
+): Promise<GitLabTokenInfo> {
+  const root = normalizeGitLabBaseUrl(baseUrl);
+  const url = `${root}/api/v4/user`;
+
+  await assertPublicDestination(root, "GitLab");
+
+  const controller = new AbortController();
+  let timedOut = false;
+  const timeoutId = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, GITLAB_FETCH_TIMEOUT_MS);
+
+  try {
+    Sentry.addBreadcrumb({
+      category: "integration",
+      level: "info",
+      data: { integration: "gitlab" },
+    });
+    const res = await fetch(url, {
+      signal: controller.signal,
+      redirect: "manual",
+      headers: authHeaders(token),
+    });
+
+    if (res.status >= 300 && res.status < 400) {
+      throw new GitLabApiError(
+        `GitLab request was redirected (HTTP ${res.status})`,
+        res.status,
+        "REDIRECT",
+      );
+    }
+
+    const text = await res.text();
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      throw new GitLabApiError(
+        `GitLab API error ${res.status}`,
+        res.status,
+        "HTTP_ERROR",
+        text,
+      );
+    }
+
+    let user: GitLabTokenInfo["user"];
+    try {
+      user = JSON.parse(text);
+    } catch {
+      throw new GitLabApiError(
+        "GitLab API returned invalid JSON",
+        res.status,
+        "INVALID_JSON",
+        text,
+      );
+    }
+
+    const scopesHeader =
+      res.headers.get("x-oauth-scopes") ??
+      res.headers.get("X-OAuth-Scopes") ??
+      res.headers.get("x-gitlab-scopes");
+    const scopes = scopesHeader
+      ? scopesHeader
+          .split(/[\s,]+/)
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [];
+
+    return { user, scopes };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof GitLabApiError) {
+      throw error;
+    }
+    if (error instanceof Error && error.name === "AbortError") {
+      if (timedOut) {
+        throw new GitLabApiError(
+          `GitLab request timed out after ${GITLAB_FETCH_TIMEOUT_MS}ms`,
+          408,
+          "TIMEOUT",
+        );
+      }
+      throw error;
+    }
+    throw error;
   }
-  return user;
+}
+
+export async function verifyGitLabToken(baseUrl: string, token: string) {
+  const info = await getGitLabTokenInfo(baseUrl, token);
+  return info.user;
 }

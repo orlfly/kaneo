@@ -3,7 +3,7 @@ import { normalizeGitLabBaseUrl } from "../../plugins/gitlab/config";
 import {
   createGitLabClient,
   GitLabApiError,
-  verifyGitLabToken,
+  getGitLabTokenInfo,
 } from "../../plugins/gitlab/utils/gitlab-api";
 
 async function verifyGitLabAccess({
@@ -17,10 +17,11 @@ async function verifyGitLabAccess({
   repositoryOwner: string;
   repositoryName: string;
 }) {
+  let tokenInfo: Awaited<ReturnType<typeof getGitLabTokenInfo>> | null = null;
   try {
     const normalized = normalizeGitLabBaseUrl(baseUrl);
     try {
-      await verifyGitLabToken(normalized, accessToken);
+      tokenInfo = await getGitLabTokenInfo(normalized, accessToken);
     } catch (error) {
       // A 404 from /user means the URL does not point at a GitLab instance
       // (or the token endpoint is misrouted), not a repository lookup
@@ -32,6 +33,8 @@ async function verifyGitLabAccess({
           repositoryExists: false,
           repositoryPrivate: null,
           missingPermissions: [] as string[],
+          authenticatedAs: null,
+          tokenScopes: [] as string[],
           message: "The URL does not point to a GitLab instance.",
           failureReason: "not_a_gitlab_instance",
         };
@@ -49,14 +52,26 @@ async function verifyGitLabAccess({
     const perms = repo.permissions;
     const hasIssuesWrite = perms?.admin === true || perms?.push === true;
 
+    const authenticatedAs = tokenInfo
+      ? {
+          id: tokenInfo.user.id,
+          username: tokenInfo.user.username,
+          name: tokenInfo.user.name ?? null,
+          avatarUrl: tokenInfo.user.avatar_url ?? null,
+          bot: tokenInfo.user.bot ?? false,
+        }
+      : null;
+
     return {
       isInstalled: true,
       hasRequiredPermissions: Boolean(hasIssuesWrite),
       repositoryExists: true,
       repositoryPrivate: repo.private,
       missingPermissions: hasIssuesWrite ? [] : ["issues (write)"],
+      authenticatedAs,
+      tokenScopes: tokenInfo?.scopes ?? [],
       message: hasIssuesWrite
-        ? "Token can access the repository."
+        ? `Token verified${authenticatedAs ? ` as ${authenticatedAs.username}` : ""}.`
         : "Token may not have sufficient permissions to manage issues.",
       failureReason: null,
     };
@@ -71,6 +86,8 @@ async function verifyGitLabAccess({
           repositoryExists: false,
           repositoryPrivate: null,
           missingPermissions: [] as string[],
+          authenticatedAs: null,
+          tokenScopes: [] as string[],
           message: `The GitLab URL redirected (HTTP ${error.status}). This usually means the server forces HTTPS. Please use the final URL directly.`,
           failureReason: "redirected",
         };
@@ -83,6 +100,8 @@ async function verifyGitLabAccess({
           repositoryExists: false,
           repositoryPrivate: null,
           missingPermissions: [] as string[],
+          authenticatedAs: null,
+          tokenScopes: [] as string[],
           message: "The URL does not point to a GitLab instance.",
           failureReason: "not_a_gitlab_instance",
         };
@@ -96,6 +115,16 @@ async function verifyGitLabAccess({
         repositoryExists: false,
         repositoryPrivate: null,
         missingPermissions: [] as string[],
+        authenticatedAs: tokenInfo
+          ? {
+              id: tokenInfo.user.id,
+              username: tokenInfo.user.username,
+              name: tokenInfo.user.name ?? null,
+              avatarUrl: tokenInfo.user.avatar_url ?? null,
+              bot: tokenInfo.user.bot ?? false,
+            }
+          : null,
+        tokenScopes: tokenInfo?.scopes ?? [],
         message: "Repository not found or not accessible with this token.",
         failureReason: "repository_not_found",
       };

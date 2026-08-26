@@ -965,6 +965,12 @@
 				"secretCopied": "Copied",
 				"unableToCopySecret": "Unable to copy secret"
 			},
+			"authedAs": "Authenticated as",
+			"tokenScopes": "Token scopes",
+			"tokenScopesEmpty": "Not advertised by the GitLab instance (common for personal access tokens).",
+			"repoVisibility": "Visibility",
+			"repoPrivate": "Private",
+			"repoPublic": "Public",
 			"webhookShow": "Show",
 			"webhookHide": "Hide",
 			"webhookCopy": "Copy",

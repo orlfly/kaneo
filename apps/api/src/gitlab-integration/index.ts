@@ -21,6 +21,7 @@ import {
   workspaceAccess,
   workspaceAccessMiddleware,
 } from "../utils/workspace-access-middleware";
+import { registerVcsRoutes } from "../vcs";
 import createGitLabIntegration from "./controllers/create-gitlab-integration";
 import deleteGitLabIntegration from "./controllers/delete-gitlab-integration";
 import getGitLabIntegration from "./controllers/get-gitlab-integration";
@@ -39,12 +40,24 @@ const gitlabRepositorySchema = v.object({
   html_url: v.string(),
 });
 
+const authenticatedAsSchema = v.nullable(
+  v.object({
+    id: v.number(),
+    username: v.string(),
+    name: v.nullable(v.string()),
+    avatarUrl: v.nullable(v.string()),
+    bot: v.boolean(),
+  }),
+);
+
 const verificationResultSchema = v.object({
   isInstalled: v.boolean(),
   hasRequiredPermissions: v.boolean(),
   repositoryExists: v.boolean(),
   repositoryPrivate: v.nullable(v.boolean()),
   missingPermissions: v.array(v.string()),
+  authenticatedAs: authenticatedAsSchema,
+  tokenScopes: v.array(v.string()),
   message: v.string(),
   failureReason: v.nullable(
     v.picklist(["not_a_gitlab_instance", "redirected", "repository_not_found"]),
@@ -432,5 +445,7 @@ export async function handleGitLabWebhookRoute(c: Context) {
 
   return c.json({ status: "success" });
 }
+
+registerVcsRoutes(gitlabIntegration, "gitlab");
 
 export default gitlabIntegration;

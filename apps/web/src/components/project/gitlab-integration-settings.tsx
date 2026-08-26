@@ -777,7 +777,10 @@ export function GitLabIntegrationSettings({
                   onClick={() => runVerify(form.getValues())}
                   disabled={
                     isVerifying ||
-                    !form.formState.isValid ||
+                    !baseUrl.trim() ||
+                    !accessToken.trim() ||
+                    !repositoryOwner.trim() ||
+                    !repositoryName.trim() ||
                     (!accessToken.trim() && !integration)
                   }
                   className="gap-2"
@@ -851,6 +854,87 @@ export function GitLabIntegrationSettings({
                 </p>
               </div>
             </div>
+
+            {(verificationResult.result.authenticatedAs ||
+              verificationResult.result.tokenScopes.length > 0 ||
+              verificationResult.result.repositoryPrivate !== null) && (
+              <>
+                <Separator />
+                <div className="space-y-3 text-xs">
+                  {verificationResult.result.authenticatedAs && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-muted-foreground min-w-20">
+                        {t("settings:gitlabIntegration.authedAs")}
+                      </span>
+                      <span className="flex items-center gap-2 font-medium text-foreground">
+                        {verificationResult.result.authenticatedAs.avatarUrl ? (
+                          <img
+                            src={
+                              verificationResult.result.authenticatedAs
+                                .avatarUrl
+                            }
+                            alt=""
+                            className="h-5 w-5 rounded-full"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : null}
+                        <span>
+                          {verificationResult.result.authenticatedAs.username}
+                          {verificationResult.result.authenticatedAs.name
+                            ? ` (${verificationResult.result.authenticatedAs.name})`
+                            : ""}
+                        </span>
+                        {verificationResult.result.authenticatedAs.bot && (
+                          <Badge variant="outline" className="text-[10px]">
+                            bot
+                          </Badge>
+                        )}
+                      </span>
+                    </div>
+                  )}
+
+                  {verificationResult.result.repositoryPrivate !== null && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-muted-foreground min-w-20">
+                        {t("settings:gitlabIntegration.repoVisibility")}
+                      </span>
+                      <span className="font-medium text-foreground">
+                        {verificationResult.result.repositoryPrivate
+                          ? t("settings:gitlabIntegration.repoPrivate")
+                          : t("settings:gitlabIntegration.repoPublic")}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex items-start gap-2">
+                    <span className="text-muted-foreground min-w-20">
+                      {t("settings:gitlabIntegration.tokenScopes")}
+                    </span>
+                    <span className="flex-1">
+                      {verificationResult.result.tokenScopes.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {verificationResult.result.tokenScopes.map(
+                            (scope) => (
+                              <Badge
+                                key={scope}
+                                variant="secondary"
+                                className="text-[10px] font-mono"
+                              >
+                                {scope}
+                              </Badge>
+                            ),
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">
+                          {t("settings:gitlabIntegration.tokenScopesEmpty")}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
           </>
         )}
       </div>

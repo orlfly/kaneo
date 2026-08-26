@@ -31,6 +31,7 @@ vi.mock("../../../apps/api/src/plugins/gitlab/utils/gitlab-api", () => ({
     getRepo: (...args: unknown[]) => mockGitLabFetch(...args),
   }),
   verifyGitLabToken: (...args: unknown[]) => mockGitLabFetch(...args),
+  getGitLabTokenInfo: (...args: unknown[]) => mockGitLabFetch(...args),
 }));
 
 const { default: verifyGitLabAccess } = await import(
@@ -44,7 +45,7 @@ beforeEach(() => {
 describe("verifyGitLabAccess", () => {
   it("returns success when the token can access the repository", async () => {
     mockGitLabFetch
-      .mockResolvedValueOnce({ id: 1, username: "owner" })
+      .mockResolvedValueOnce({ user: { id: 1, username: "owner" }, scopes: [] })
       .mockResolvedValueOnce({
         name: "repo",
         owner: { login: "group/sub" },
@@ -66,7 +67,7 @@ describe("verifyGitLabAccess", () => {
       repositoryExists: true,
       repositoryPrivate: false,
       missingPermissions: [],
-      message: "Token can access the repository.",
+      message: "Token verified as owner.",
       failureReason: null,
     });
   });
@@ -99,7 +100,7 @@ describe("verifyGitLabAccess", () => {
 
   it("returns a redirect-specific message when getRepo redirects after the token check succeeds", async () => {
     mockGitLabFetch
-      .mockResolvedValueOnce({ id: 1, username: "owner" })
+      .mockResolvedValueOnce({ user: { id: 1, username: "owner" }, scopes: [] })
       .mockRejectedValueOnce(
         new GitLabApiError(
           "GitLab request was redirected (HTTP 301)",

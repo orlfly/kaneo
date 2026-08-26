@@ -18,14 +18,16 @@ async function verifyGitLabAccess(
   });
 
   if (!response.ok) {
-    const error = await response
-      .json()
-      .catch(() => ({ message: "Request failed" }));
-    throw new Error(
-      typeof error === "object" && error && "message" in error
-        ? String((error as { message: string }).message)
-        : "Request failed",
-    );
+    const raw = await response.text();
+    let error: { message?: string } | null = null;
+    try {
+      error = JSON.parse(raw);
+    } catch {
+      // Surface the HTTP status so the toast remains actionable when the
+      // server returns an empty or non-JSON body (e.g. proxies, 502 pages).
+      throw new Error(`Request failed (HTTP ${response.status})`);
+    }
+    throw new Error(error?.message ?? "Request failed");
   }
 
   return response.json();

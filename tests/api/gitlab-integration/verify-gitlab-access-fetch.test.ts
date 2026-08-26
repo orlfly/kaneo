@@ -60,13 +60,13 @@ describe("verifyGitLabAccess — fetch integration", () => {
       repositoryName: "repo",
     });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       isInstalled: true,
       hasRequiredPermissions: true,
       repositoryExists: true,
       repositoryPrivate: false,
       missingPermissions: [],
-      message: "Token can access the repository.",
+      message: "Token verified as owner.",
       failureReason: null,
     });
   });
@@ -120,5 +120,95 @@ describe("verifyGitLabAccess — fetch integration", () => {
     expect(result.hasRequiredPermissions).toBe(false);
     expect(result.repositoryPrivate).toBe(true);
     expect(result.missingPermissions).toContain("issues (write)");
+  });
+
+  it("surfaces authenticatedAs and tokenScopes on a successful verify", async () => {
+    const fetchMock = vi.fn();
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ id: 39, username: "xiaofei", name: "肖飞" }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              "X-Oauth-Scopes": "api read_api",
+            },
+          },
+        ),
+      )
+      .mockResolvedValueOnce(
+        makeResponse(200, {
+          id: 7,
+          name: "repo",
+          path_with_namespace: "group/repo",
+          web_url: "https://gitlab.example/group/repo",
+          visibility: "private",
+          namespace: { full_path: "group" },
+          permissions: {
+            project_access: { access_level: 40 },
+            group_access: null,
+          },
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+
+    const result = await verifyGitLabAccess({
+      baseUrl: "https://gitlab.example",
+      accessToken: "token",
+      repositoryOwner: "group",
+      repositoryName: "repo",
+    });
+
+    expect(result.authenticatedAs).toEqual({
+      id: 39,
+      username: "xiaofei",
+      name: "肖飞",
+      avatarUrl: null,
+      bot: false,
+    });
+    expect(result.tokenScopes).toEqual(["api", "read_api"]);
+    expect(result.message).toBe("Token verified as xiaofei.");
+  });
+
+  it("returns repository_not_found when the project API responds 404 after a valid token", async () => {
+    const fetchMock = vi.fn();
+    fetchMock
+      .mockResolvedValueOnce(makeResponse(200, { id: 1, username: "owner" }))
+      .mockResolvedValueOnce(makeResponse(404, { message: "Not Found" }));
+    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+
+    const result = await verifyGitLabAccess({
+      baseUrl: "https://gitlab.example",
+      accessToken: "token",
+      repositoryOwner: "group",
+      repositoryName: "missing",
+    });
+
+    expect(result.isInstalled).toBe(false);
+    expect(result.repositoryExists).toBe(false);
+    expect(result.repositoryPrivate).toBe(null);
+    expect(result.failureReason).toBe("repository_not_found");
+    expect(result.message).toBe(
+      "Repository not found or not accessible with this token.",
+    );
+    // The token was still valid, so identity is preserved.
+    expect(result.authenticatedAs).toMatchObject({ username: "owner" });
+  });
+
+  it("throws HTTP 401 when the token is unauthorized", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(makeResponse(401, { message: "401 Unauthorized" }));
+    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+
+    await expect(
+      verifyGitLabAccess({
+        baseUrl: "https://gitlab.example",
+        accessToken: "bad",
+        repositoryOwner: "group",
+        repositoryName: "repo",
+      }),
+    ).rejects.toMatchObject({ status: 401 });
   });
 });
