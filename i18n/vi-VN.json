@@ -368,58 +368,58 @@
 		},
 		"apiKey": {
 			"createdModal": {
-				"title": "Đã tạo khóa API",
-				"description": "Khóa API \"{{keyName}}\" của bạn đã được tạo thành công.",
-				"yourApiKey": "Khóa API của bạn",
-				"copy": "Sao chép",
-				"copied": "Đã sao chép",
-				"toastCopied": "Đã sao chép khóa API vào clipboard",
-				"alertTitle": "Thành công! Khóa API của bạn đã được tạo",
-				"alertDescription": "Hãy sao chép khóa này ngay. Bạn sẽ không thể xem lại nó nữa.",
-				"done": "Xong",
-				"copyToContinue": "Sao chép khóa để tiếp tục"
+				"title": "API Key Created",
+				"description": "Your API key \"{{keyName}}\" has been created successfully.",
+				"yourApiKey": "Your API Key",
+				"copy": "Copy",
+				"copied": "Copied",
+				"toastCopied": "API key copied to clipboard",
+				"alertTitle": "Success! Your API key has been created",
+				"alertDescription": "Copy this key now. You won't be able to see it again.",
+				"done": "Done",
+				"copyToContinue": "Copy key to continue"
 			},
 			"table": {
-				"loading": "Đang tải khóa API...",
-				"empty": "Chưa có khóa API nào. Hãy tạo một khóa để bắt đầu.",
-				"columnName": "Tên",
-				"columnKey": "Khóa",
-				"columnCreated": "Ngày tạo",
-				"columnExpires": "Hết hạn",
-				"columnActions": "Hành động",
-				"unnamedKey": "Khóa chưa đặt tên",
-				"expiredBadge": "Đã hết hạn {{label}}",
-				"deleteConfirmTitle": "Xóa khóa API?",
-				"deleteConfirmDescription": "Hành động này không thể hoàn tác. Thao tác này sẽ xóa vĩnh viễn {{name}}.",
-				"deleteFallbackName": "khóa API này",
-				"delete": "Xóa",
-				"deleting": "Đang xóa...",
-				"deleteAria": "Xóa {{name}}",
-				"deleteAriaFallback": "Khóa API",
-				"toastDeleted": "Xóa khóa API thành công",
-				"toastDeleteError": "Không thể xóa khóa API"
+				"loading": "Loading API keys...",
+				"empty": "No API keys yet. Create one to get started.",
+				"columnName": "Name",
+				"columnKey": "Key",
+				"columnCreated": "Created",
+				"columnExpires": "Expires",
+				"columnActions": "Actions",
+				"unnamedKey": "Unnamed Key",
+				"expiredBadge": "Expired {{label}}",
+				"deleteConfirmTitle": "Delete API key?",
+				"deleteConfirmDescription": "This action cannot be undone. This will permanently delete {{name}}.",
+				"deleteFallbackName": "this API key",
+				"delete": "Delete",
+				"deleting": "Deleting...",
+				"deleteAria": "Delete {{name}}",
+				"deleteAriaFallback": "API key",
+				"toastDeleted": "API key deleted successfully",
+				"toastDeleteError": "Failed to delete API key"
 			},
 			"createDialog": {
-				"title": "Tạo khóa API",
-				"description": "Tạo một khóa API mới để truy cập Kaneo API bằng chương trình.",
-				"nameLabel": "Tên",
-				"namePlaceholder": "Khóa API của tôi",
-				"nameDescription": "Tên mô tả cho khóa API này",
-				"expirationLabel": "Thời hạn",
-				"expirationPlaceholder": "Chọn thời hạn",
-				"expirationDescription": "Chọn thời gian khóa API này có hiệu lực. Chọn Không bao giờ để tạo khóa không có ngày hết hạn tự động.",
-				"expiration1d": "1 ngày",
-				"expiration7d": "7 ngày",
-				"expiration30d": "30 ngày",
-				"expiration90d": "90 ngày",
-				"expirationNever": "Không bao giờ",
-				"create": "Tạo",
-				"creating": "Đang tạo...",
-				"failedCreate": "Không thể tạo khóa API",
+				"title": "Create API Key",
+				"description": "Create a new API key to access the Kaneo API programmatically.",
+				"nameLabel": "Name",
+				"namePlaceholder": "My API Key",
+				"nameDescription": "A descriptive name for this API key",
+				"expirationLabel": "Expiration",
+				"expirationPlaceholder": "Select expiration",
+				"expirationDescription": "Choose how long this API key should remain valid. Never will create a key without an automatic expiry.",
+				"expiration1d": "1 day",
+				"expiration7d": "7 days",
+				"expiration30d": "30 days",
+				"expiration90d": "90 days",
+				"expirationNever": "Never",
+				"create": "Create",
+				"creating": "Creating...",
+				"failedCreate": "Failed to create API key",
 				"validation": {
-					"nameRequired": "Cần có tên",
-					"nameShort": "Tên phải có ít nhất 3 ký tự",
-					"expirationRequired": "Cần có thời hạn"
+					"nameRequired": "Name is required",
+					"nameShort": "Name must be at least 3 characters",
+					"expirationRequired": "Expiration is required"
 				},
 				"roleLabel": "Agent role",
 				"rolePlaceholder": "Choose an agent role",
@@ -1008,7 +1008,13 @@
 			"searchRepos": "Tìm kiếm…",
 			"browseNeedsCredentials": "Nhập URL và token GitLab để duyệt",
 			"loadingRepos": "Đang tải kho lưu trữ…",
-			"retry": "Thử lại"
+			"retry": "Thử lại",
+			"authedAs": "Authenticated as",
+			"repoPrivate": "Private",
+			"repoPublic": "Public",
+			"repoVisibility": "Visibility",
+			"tokenScopes": "Token scopes",
+			"tokenScopesEmpty": "Not advertised by the GitLab instance (common for personal access tokens)."
 		}
 	},
 	"navigation": {
@@ -1980,7 +1986,13 @@
 			"toast": {
 				"error": "Failed to save settings",
 				"saved": "AI settings saved"
-			}
+			},
+			"commandTimeoutHelp": "Max run time for agent_run_command. Default: 60000ms.",
+			"commandTimeoutLabel": "Command timeout (ms)",
+			"enableCommandDescription": "Allow pi-agent to run shell commands in the project working directory. Enable only if you trust the models and the environment.",
+			"enableCommandLabel": "Enable command execution",
+			"workdirRootHelp": "Server-side directory where pi-agent clones repos and stores uploaded files. Each project is isolated under agent-<projectId>.",
+			"workdirRootLabel": "Agent working directory root"
 		}
 	},
 	"chat": {
@@ -2000,6 +2012,9 @@
 		"clearHistoryDescription": "This will permanently delete all messages in this project's chat. This cannot be undone.",
 		"clearHistoryTitle": "Clear chat history?",
 		"historyCleared": "Chat history cleared",
-		"historyClearError": "Failed to clear chat history"
+		"historyClearError": "Failed to clear chat history",
+		"attachFile": "Upload a file",
+		"fileUploaded": "Uploaded",
+		"uploadError": "Failed to upload file"
 	}
 }

@@ -368,58 +368,58 @@
 		},
 		"apiKey": {
 			"createdModal": {
-				"title": "API 키 생성됨",
-				"description": "API 키 \"{{keyName}}\"이(가) 생성되었습니다.",
-				"yourApiKey": "API 키",
-				"copy": "복사",
-				"copied": "복사됨",
-				"toastCopied": "API 키가 클립보드에 복사되었습니다",
-				"alertTitle": "API 키가 생성되었습니다",
-				"alertDescription": "지금 키를 복사하세요. 다시 볼 수 없습니다.",
-				"done": "완료",
-				"copyToContinue": "계속하려면 키를 복사하세요"
+				"title": "API Key Created",
+				"description": "Your API key \"{{keyName}}\" has been created successfully.",
+				"yourApiKey": "Your API Key",
+				"copy": "Copy",
+				"copied": "Copied",
+				"toastCopied": "API key copied to clipboard",
+				"alertTitle": "Success! Your API key has been created",
+				"alertDescription": "Copy this key now. You won't be able to see it again.",
+				"done": "Done",
+				"copyToContinue": "Copy key to continue"
 			},
 			"table": {
-				"loading": "API 키 로딩 중...",
-				"empty": "아직 API 키가 없습니다. 시작하려면 하나 만드세요.",
-				"columnName": "이름",
-				"columnKey": "키",
-				"columnCreated": "생성일",
-				"columnExpires": "만료일",
-				"columnActions": "작업",
-				"unnamedKey": "이름 없는 키",
-				"expiredBadge": "만료됨 {{label}}",
-				"deleteConfirmTitle": "API 키를 삭제하시겠습니까?",
-				"deleteConfirmDescription": "이 작업은 취소할 수 없습니다. {{name}}이(가) 영구적으로 삭제됩니다.",
-				"deleteFallbackName": "이 API 키",
-				"delete": "삭제",
-				"deleting": "삭제 중...",
-				"deleteAria": "{{name}} 삭제",
-				"deleteAriaFallback": "API 키",
-				"toastDeleted": "API 키가 삭제되었습니다",
-				"toastDeleteError": "API 키 삭제에 실패했습니다"
+				"loading": "Loading API keys...",
+				"empty": "No API keys yet. Create one to get started.",
+				"columnName": "Name",
+				"columnKey": "Key",
+				"columnCreated": "Created",
+				"columnExpires": "Expires",
+				"columnActions": "Actions",
+				"unnamedKey": "Unnamed Key",
+				"expiredBadge": "Expired {{label}}",
+				"deleteConfirmTitle": "Delete API key?",
+				"deleteConfirmDescription": "This action cannot be undone. This will permanently delete {{name}}.",
+				"deleteFallbackName": "this API key",
+				"delete": "Delete",
+				"deleting": "Deleting...",
+				"deleteAria": "Delete {{name}}",
+				"deleteAriaFallback": "API key",
+				"toastDeleted": "API key deleted successfully",
+				"toastDeleteError": "Failed to delete API key"
 			},
 			"createDialog": {
-				"title": "API 키 만들기",
-				"description": "Kaneo API에 프로그래밍 방식으로 접근하기 위한 새 API 키를 만듭니다.",
-				"nameLabel": "이름",
-				"namePlaceholder": "내 API 키",
-				"nameDescription": "이 API 키에 대한 설명적인 이름",
-				"expirationLabel": "만료",
-				"expirationPlaceholder": "만료 선택",
-				"expirationDescription": "이 API 키가 유효하게 유지될 기간을 선택합니다. 안 함을 선택하면 자동 만료 없이 키가 생성됩니다.",
-				"expiration1d": "1일",
-				"expiration7d": "7일",
-				"expiration30d": "30일",
-				"expiration90d": "90일",
-				"expirationNever": "안 함",
-				"create": "만들기",
-				"creating": "생성 중...",
-				"failedCreate": "API 키 생성에 실패했습니다",
+				"title": "Create API Key",
+				"description": "Create a new API key to access the Kaneo API programmatically.",
+				"nameLabel": "Name",
+				"namePlaceholder": "My API Key",
+				"nameDescription": "A descriptive name for this API key",
+				"expirationLabel": "Expiration",
+				"expirationPlaceholder": "Select expiration",
+				"expirationDescription": "Choose how long this API key should remain valid. Never will create a key without an automatic expiry.",
+				"expiration1d": "1 day",
+				"expiration7d": "7 days",
+				"expiration30d": "30 days",
+				"expiration90d": "90 days",
+				"expirationNever": "Never",
+				"create": "Create",
+				"creating": "Creating...",
+				"failedCreate": "Failed to create API key",
 				"validation": {
-					"nameRequired": "이름은 필수입니다",
-					"nameShort": "이름은 3자 이상이어야 합니다",
-					"expirationRequired": "만료는 필수입니다"
+					"nameRequired": "Name is required",
+					"nameShort": "Name must be at least 3 characters",
+					"expirationRequired": "Expiration is required"
 				},
 				"roleLabel": "Agent role",
 				"rolePlaceholder": "Choose an agent role",
@@ -1008,7 +1008,13 @@
 			"searchRepos": "검색…",
 			"browseNeedsCredentials": "찾아보려면 GitLab URL과 토큰을 입력하세요",
 			"loadingRepos": "저장소 로딩 중…",
-			"retry": "재시도"
+			"retry": "재시도",
+			"authedAs": "Authenticated as",
+			"repoPrivate": "Private",
+			"repoPublic": "Public",
+			"repoVisibility": "Visibility",
+			"tokenScopes": "Token scopes",
+			"tokenScopesEmpty": "Not advertised by the GitLab instance (common for personal access tokens)."
 		}
 	},
 	"navigation": {
@@ -1980,7 +1986,13 @@
 			"toast": {
 				"error": "Failed to save settings",
 				"saved": "AI settings saved"
-			}
+			},
+			"commandTimeoutHelp": "Max run time for agent_run_command. Default: 60000ms.",
+			"commandTimeoutLabel": "Command timeout (ms)",
+			"enableCommandDescription": "Allow pi-agent to run shell commands in the project working directory. Enable only if you trust the models and the environment.",
+			"enableCommandLabel": "Enable command execution",
+			"workdirRootHelp": "Server-side directory where pi-agent clones repos and stores uploaded files. Each project is isolated under agent-<projectId>.",
+			"workdirRootLabel": "Agent working directory root"
 		}
 	},
 	"chat": {
@@ -2000,6 +2012,9 @@
 		"clearHistoryDescription": "This will permanently delete all messages in this project's chat. This cannot be undone.",
 		"clearHistoryTitle": "Clear chat history?",
 		"historyCleared": "Chat history cleared",
-		"historyClearError": "Failed to clear chat history"
+		"historyClearError": "Failed to clear chat history",
+		"attachFile": "Upload a file",
+		"fileUploaded": "Uploaded",
+		"uploadError": "Failed to upload file"
 	}
 }

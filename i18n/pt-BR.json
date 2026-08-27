@@ -368,58 +368,58 @@
 		},
 		"apiKey": {
 			"createdModal": {
-				"title": "Chave de API criada",
-				"description": "Sua chave de API \"{{keyName}}\" foi criada com sucesso.",
-				"yourApiKey": "Sua chave de API",
-				"copy": "Copiar",
-				"copied": "Copiado",
-				"toastCopied": "Chave de API copiada para a área de transferência",
-				"alertTitle": "Sucesso! Sua chave de API foi criada",
-				"alertDescription": "Copie esta chave agora. Você não poderá vê-la novamente.",
-				"done": "Concluído",
-				"copyToContinue": "Copie a chave para continuar"
+				"title": "API Key Created",
+				"description": "Your API key \"{{keyName}}\" has been created successfully.",
+				"yourApiKey": "Your API Key",
+				"copy": "Copy",
+				"copied": "Copied",
+				"toastCopied": "API key copied to clipboard",
+				"alertTitle": "Success! Your API key has been created",
+				"alertDescription": "Copy this key now. You won't be able to see it again.",
+				"done": "Done",
+				"copyToContinue": "Copy key to continue"
 			},
 			"table": {
-				"loading": "Carregando chaves de API...",
-				"empty": "Ainda não há chaves de API. Crie uma para começar.",
-				"columnName": "Nome",
-				"columnKey": "Chave",
-				"columnCreated": "Criada",
-				"columnExpires": "Expira",
-				"columnActions": "Ações",
-				"unnamedKey": "Chave sem nome",
-				"expiredBadge": "Expirada {{label}}",
-				"deleteConfirmTitle": "Excluir chave de API?",
-				"deleteConfirmDescription": "Esta ação não pode ser desfeita. Isso excluirá permanentemente {{name}}.",
-				"deleteFallbackName": "esta chave de API",
-				"delete": "Excluir",
-				"deleting": "Excluindo...",
-				"deleteAria": "Excluir {{name}}",
-				"deleteAriaFallback": "chave de API",
-				"toastDeleted": "Chave de API excluída com sucesso",
-				"toastDeleteError": "Falha ao excluir chave de API"
+				"loading": "Loading API keys...",
+				"empty": "No API keys yet. Create one to get started.",
+				"columnName": "Name",
+				"columnKey": "Key",
+				"columnCreated": "Created",
+				"columnExpires": "Expires",
+				"columnActions": "Actions",
+				"unnamedKey": "Unnamed Key",
+				"expiredBadge": "Expired {{label}}",
+				"deleteConfirmTitle": "Delete API key?",
+				"deleteConfirmDescription": "This action cannot be undone. This will permanently delete {{name}}.",
+				"deleteFallbackName": "this API key",
+				"delete": "Delete",
+				"deleting": "Deleting...",
+				"deleteAria": "Delete {{name}}",
+				"deleteAriaFallback": "API key",
+				"toastDeleted": "API key deleted successfully",
+				"toastDeleteError": "Failed to delete API key"
 			},
 			"createDialog": {
-				"title": "Criar chave de API",
-				"description": "Crie uma nova chave de API para acessar a API do Kaneo de forma programática.",
-				"nameLabel": "Nome",
-				"namePlaceholder": "Minha chave de API",
-				"nameDescription": "Um nome descritivo para esta chave de API",
-				"expirationLabel": "Expiração",
-				"expirationPlaceholder": "Selecionar expiração",
-				"expirationDescription": "Escolha por quanto tempo esta chave de API deve permanecer válida. \"Nunca\" criará uma chave sem expiração automática.",
-				"expiration1d": "1 dia",
-				"expiration7d": "7 dias",
-				"expiration30d": "30 dias",
-				"expiration90d": "90 dias",
-				"expirationNever": "Nunca",
-				"create": "Criar",
-				"creating": "Criando...",
-				"failedCreate": "Falha ao criar chave de API",
+				"title": "Create API Key",
+				"description": "Create a new API key to access the Kaneo API programmatically.",
+				"nameLabel": "Name",
+				"namePlaceholder": "My API Key",
+				"nameDescription": "A descriptive name for this API key",
+				"expirationLabel": "Expiration",
+				"expirationPlaceholder": "Select expiration",
+				"expirationDescription": "Choose how long this API key should remain valid. Never will create a key without an automatic expiry.",
+				"expiration1d": "1 day",
+				"expiration7d": "7 days",
+				"expiration30d": "30 days",
+				"expiration90d": "90 days",
+				"expirationNever": "Never",
+				"create": "Create",
+				"creating": "Creating...",
+				"failedCreate": "Failed to create API key",
 				"validation": {
-					"nameRequired": "O nome é obrigatório",
-					"nameShort": "O nome deve ter pelo menos 3 caracteres",
-					"expirationRequired": "A expiração é obrigatória"
+					"nameRequired": "Name is required",
+					"nameShort": "Name must be at least 3 characters",
+					"expirationRequired": "Expiration is required"
 				},
 				"roleLabel": "Agent role",
 				"rolePlaceholder": "Choose an agent role",
@@ -1008,7 +1008,13 @@
 			"searchRepos": "Buscar…",
 			"browseNeedsCredentials": "Digite a URL e o token do GitLab para procurar",
 			"loadingRepos": "Carregando repositórios…",
-			"retry": "Tentar novamente"
+			"retry": "Tentar novamente",
+			"authedAs": "Authenticated as",
+			"repoPrivate": "Private",
+			"repoPublic": "Public",
+			"repoVisibility": "Visibility",
+			"tokenScopes": "Token scopes",
+			"tokenScopesEmpty": "Not advertised by the GitLab instance (common for personal access tokens)."
 		}
 	},
 	"navigation": {
@@ -1980,7 +1986,13 @@
 			"toast": {
 				"error": "Failed to save settings",
 				"saved": "AI settings saved"
-			}
+			},
+			"commandTimeoutHelp": "Max run time for agent_run_command. Default: 60000ms.",
+			"commandTimeoutLabel": "Command timeout (ms)",
+			"enableCommandDescription": "Allow pi-agent to run shell commands in the project working directory. Enable only if you trust the models and the environment.",
+			"enableCommandLabel": "Enable command execution",
+			"workdirRootHelp": "Server-side directory where pi-agent clones repos and stores uploaded files. Each project is isolated under agent-<projectId>.",
+			"workdirRootLabel": "Agent working directory root"
 		}
 	},
 	"chat": {
@@ -2000,6 +2012,9 @@
 		"clearHistoryDescription": "This will permanently delete all messages in this project's chat. This cannot be undone.",
 		"clearHistoryTitle": "Clear chat history?",
 		"historyCleared": "Chat history cleared",
-		"historyClearError": "Failed to clear chat history"
+		"historyClearError": "Failed to clear chat history",
+		"attachFile": "Upload a file",
+		"fileUploaded": "Uploaded",
+		"uploadError": "Failed to upload file"
 	}
 }

@@ -1986,7 +1986,13 @@
 			"toast": {
 				"saved": "AI settings saved",
 				"error": "Failed to save settings"
-			}
+			},
+			"workdirRootLabel": "Agent working directory root",
+			"workdirRootHelp": "Server-side directory where pi-agent clones repos and stores uploaded files. Each project is isolated under agent-<projectId>.",
+			"commandTimeoutLabel": "Command timeout (ms)",
+			"commandTimeoutHelp": "Max run time for agent_run_command. Default: 60000ms.",
+			"enableCommandLabel": "Enable command execution",
+			"enableCommandDescription": "Allow pi-agent to run shell commands in the project working directory. Enable only if you trust the models and the environment."
 		}
 	},
 	"chat": {
@@ -2006,7 +2012,10 @@
 		"clearHistoryDescription": "This will permanently delete all messages in this project's chat. This cannot be undone.",
 		"clearHistoryConfirm": "Clear history",
 		"historyCleared": "Chat history cleared",
-		"historyClearError": "Failed to clear chat history"
+		"historyClearError": "Failed to clear chat history",
+		"attachFile": "Upload a file",
+		"fileUploaded": "Uploaded",
+		"uploadError": "Failed to upload file"
 	},
 	"settings:apiKey": {
 		"createDialog": {

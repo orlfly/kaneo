@@ -20,9 +20,44 @@ The assistant is scoped to the current project and can:
   project.
 - **Summarize the project**: get a breakdown of tasks by status and an
   overview of progress.
+- **Check merge/pull requests**: ask about the project's open MRs or PRs on
+  its connected version-control repository (GitHub, GitLab, or Gitea).
+- **Clone and analyze the repository**: ask the assistant to read, search, or
+  analyze the project's source code and documentation. It clones the connected
+  repository into a per-project working directory and uses file tools
+  (`agent_clone_repo`, `agent_list_files`, `agent_search_files`,
+  `agent_read_file`, `agent_write_file`) to inspect it.
+- **Run commands**: when enabled by an administrator, the assistant can run
+  shell commands inside the project working directory (`agent_run_command`).
 
 The assistant uses real data from your project via server-side tool calls. It
 cannot delete tasks or modify existing ones.
+
+## Uploading files
+
+You can attach a file to a message (paperclip button next to the input). The
+file is stored in the project's working directory under `uploads/`, and the
+assistant can read and analyze it.
+
+## Working directory
+
+Each project has an isolated server-side working directory under the configured
+root (default `data/agent-workdir/agent-<projectId>`). It holds cloned
+repositories and uploaded files. File access is strictly confined to that
+project's directory.
+
+## Security notes
+
+- Command execution (`agent_run_command`) is **disabled by default**. An
+  instance administrator enables it under **Settings → System → AI**.
+  Commands always run with the project working directory as their `cwd`, with a
+  timeout and an output cap. Only enable it if you trust the configured models
+  and the runtime environment.
+- File tools never escape the project's working directory (path traversal is
+  rejected), and credentials are never exposed to the assistant or the client.
+- Cloned repositories and uploaded files live on the API server's filesystem.
+  In containerized deployments, back up or attach persistent storage to the
+  configured working-directory root if you need the files to survive restarts.
 
 ## Sending a message
 

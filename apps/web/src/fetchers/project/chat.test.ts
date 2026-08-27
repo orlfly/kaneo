@@ -43,6 +43,15 @@ describe("parseSSELine", () => {
       text: "null",
     });
   });
+
+  it("parses an error event", () => {
+    expect(
+      parseSSELine('data: {"error":"The AI assistant encountered an error."}'),
+    ).toEqual({
+      kind: "error",
+      message: "The AI assistant encountered an error.",
+    });
+  });
 });
 
 describe("resolveApiBaseUrl", () => {

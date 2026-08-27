@@ -13,6 +13,9 @@ export type ChatConfig = {
   baseUrl: string;
   apiKey: string;
   model: string;
+  workdirRoot: string | null;
+  enableCommandExecution: boolean;
+  commandTimeoutMs: number;
 };
 
 export async function loadChatConfig(): Promise<ChatConfig> {
@@ -22,13 +25,24 @@ export async function loadChatConfig(): Promise<ChatConfig> {
       baseUrl: chatConfigTable.baseUrl,
       apiKeyEncrypted: chatConfigTable.apiKeyEncrypted,
       model: chatConfigTable.model,
+      workdirRoot: chatConfigTable.workdirRoot,
+      enableCommandExecution: chatConfigTable.enableCommandExecution,
+      commandTimeoutMs: chatConfigTable.commandTimeoutMs,
     })
     .from(chatConfigTable)
     .where(eq(chatConfigTable.id, CONFIG_ID))
     .limit(1);
 
   if (!row) {
-    return { enabled: false, baseUrl: "", apiKey: "", model: "" };
+    return {
+      enabled: false,
+      baseUrl: "",
+      apiKey: "",
+      model: "",
+      workdirRoot: null,
+      enableCommandExecution: false,
+      commandTimeoutMs: 60000,
+    };
   }
 
   let apiKey = "";
@@ -47,6 +61,9 @@ export async function loadChatConfig(): Promise<ChatConfig> {
     baseUrl: row.baseUrl,
     apiKey,
     model: row.model,
+    workdirRoot: row.workdirRoot ?? null,
+    enableCommandExecution: row.enableCommandExecution ?? false,
+    commandTimeoutMs: row.commandTimeoutMs ?? 60000,
   };
 }
 
@@ -62,6 +79,9 @@ export async function saveChatConfig(input: {
   baseUrl: string;
   apiKey: string;
   model: string;
+  workdirRoot?: string | null;
+  enableCommandExecution?: boolean;
+  commandTimeoutMs?: number;
 }): Promise<void> {
   const baseUrl = input.baseUrl.trim();
   const model = input.model.trim() || "gpt-4o";
@@ -85,6 +105,9 @@ export async function saveChatConfig(input: {
       baseUrl,
       apiKeyEncrypted: resolvedApiKeyEncrypted,
       model,
+      workdirRoot: input.workdirRoot?.trim() || null,
+      enableCommandExecution: input.enableCommandExecution ?? false,
+      commandTimeoutMs: input.commandTimeoutMs ?? 60000,
     })
     .onConflictDoUpdate({
       target: chatConfigTable.id,
@@ -93,6 +116,9 @@ export async function saveChatConfig(input: {
         baseUrl,
         apiKeyEncrypted: resolvedApiKeyEncrypted,
         model,
+        workdirRoot: input.workdirRoot?.trim() || null,
+        enableCommandExecution: input.enableCommandExecution ?? false,
+        commandTimeoutMs: input.commandTimeoutMs ?? 60000,
         updatedAt: new Date(),
       },
     });

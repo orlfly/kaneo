@@ -28,6 +28,9 @@ function RouteComponent() {
     baseUrl: "",
     apiKey: "",
     model: "",
+    workdirRoot: null,
+    enableCommandExecution: false,
+    commandTimeoutMs: 60000,
   });
 
   useEffect(() => {
@@ -37,6 +40,9 @@ function RouteComponent() {
         baseUrl: config.baseUrl,
         apiKey: config.apiKey,
         model: config.model,
+        workdirRoot: config.workdirRoot ?? null,
+        enableCommandExecution: config.enableCommandExecution ?? false,
+        commandTimeoutMs: config.commandTimeoutMs ?? 60000,
       });
     }
   }, [config]);
@@ -48,6 +54,9 @@ function RouteComponent() {
         baseUrl: form.baseUrl.trim(),
         apiKey: form.apiKey.trim(),
         model: form.model.trim(),
+        workdirRoot: form.workdirRoot,
+        enableCommandExecution: form.enableCommandExecution,
+        commandTimeoutMs: form.commandTimeoutMs,
       });
       toast.success(
         t("admin:ai.toast.saved", { defaultValue: "AI settings saved" }),
@@ -166,6 +175,86 @@ function RouteComponent() {
                   "Any model name accepted by your API. Default: gpt-4o.",
               })}
             </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="ai-workdir-root">
+              {t("admin:ai.workdirRootLabel", {
+                defaultValue: "Agent working directory root",
+              })}
+            </Label>
+            <Input
+              id="ai-workdir-root"
+              value={form.workdirRoot ?? ""}
+              placeholder="Leave empty for the default (data/agent-workdir)"
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  workdirRoot: e.target.value || null,
+                })
+              }
+            />
+            <p className="text-xs text-muted-foreground">
+              {t("admin:ai.workdirRootHelp", {
+                defaultValue:
+                  "Server-side directory where pi-agent clones repos and stores uploaded files. Each project is isolated under agent-<projectId>.",
+              })}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="ai-command-timeout">
+              {t("admin:ai.commandTimeoutLabel", {
+                defaultValue: "Command timeout (ms)",
+              })}
+            </Label>
+            <Input
+              id="ai-command-timeout"
+              type="number"
+              value={String(form.commandTimeoutMs)}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  commandTimeoutMs: Number(e.target.value) || 60000,
+                })
+              }
+            />
+            <p className="text-xs text-muted-foreground">
+              {t("admin:ai.commandTimeoutHelp", {
+                defaultValue:
+                  "Max run time for agent_run_command. Default: 60000ms.",
+              })}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label className="text-base">
+                {t("admin:ai.enableCommandLabel", {
+                  defaultValue: "Enable command execution",
+                })}
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                {t("admin:ai.enableCommandDescription", {
+                  defaultValue:
+                    "Allow pi-agent to run shell commands in the project working directory. Enable only if you trust the models and the environment.",
+                })}
+              </p>
+            </div>
+            <label className="inline-flex cursor-pointer items-center">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={form.enableCommandExecution}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    enableCommandExecution: e.target.checked,
+                  })
+                }
+              />
+              <div className="relative h-6 w-11 rounded-full bg-muted transition-colors peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-ring after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-background after:transition-transform after:content-[''] peer-checked:after:translate-x-5" />
+            </label>
           </div>
         </div>
 

@@ -368,58 +368,58 @@
 		},
 		"apiKey": {
 			"createdModal": {
-				"title": "API Anahtarı Oluşturuldu",
-				"description": "\"{{keyName}}\" API anahtarınız başarıyla oluşturuldu.",
-				"yourApiKey": "API Anahtarınız",
-				"copy": "Kopyala",
-				"copied": "Kopyalandı",
-				"toastCopied": "API anahtarı panoya kopyalandı",
-				"alertTitle": "Başarılı! API anahtarınız oluşturuldu",
-				"alertDescription": "Bu anahtarı hemen kopyalayın. Tekrar göremezsiniz.",
-				"done": "Bitti",
-				"copyToContinue": "Devam etmek için anahtarı kopyalayın"
+				"title": "API Key Created",
+				"description": "Your API key \"{{keyName}}\" has been created successfully.",
+				"yourApiKey": "Your API Key",
+				"copy": "Copy",
+				"copied": "Copied",
+				"toastCopied": "API key copied to clipboard",
+				"alertTitle": "Success! Your API key has been created",
+				"alertDescription": "Copy this key now. You won't be able to see it again.",
+				"done": "Done",
+				"copyToContinue": "Copy key to continue"
 			},
 			"table": {
-				"loading": "API anahtarları yükleniyor...",
-				"empty": "Henüz API anahtarı yok. Başlamak için bir tane oluşturun.",
-				"columnName": "Ad",
-				"columnKey": "Anahtar",
-				"columnCreated": "Oluşturulma",
-				"columnExpires": "Süre Sonu",
-				"columnActions": "İşlemler",
-				"unnamedKey": "İsimsiz Anahtar",
-				"expiredBadge": "Süresi dolmuş {{label}}",
-				"deleteConfirmTitle": "API anahtarı silinsin mi?",
-				"deleteConfirmDescription": "Bu işlem geri alınamaz. {{name}} kalıcı olarak silinecek.",
-				"deleteFallbackName": "bu API anahtarı",
-				"delete": "Sil",
-				"deleting": "Siliniyor...",
-				"deleteAria": "{{name}} anahtarını sil",
-				"deleteAriaFallback": "API anahtarı",
-				"toastDeleted": "API anahtarı başarıyla silindi",
-				"toastDeleteError": "API anahtarı silinemedi"
+				"loading": "Loading API keys...",
+				"empty": "No API keys yet. Create one to get started.",
+				"columnName": "Name",
+				"columnKey": "Key",
+				"columnCreated": "Created",
+				"columnExpires": "Expires",
+				"columnActions": "Actions",
+				"unnamedKey": "Unnamed Key",
+				"expiredBadge": "Expired {{label}}",
+				"deleteConfirmTitle": "Delete API key?",
+				"deleteConfirmDescription": "This action cannot be undone. This will permanently delete {{name}}.",
+				"deleteFallbackName": "this API key",
+				"delete": "Delete",
+				"deleting": "Deleting...",
+				"deleteAria": "Delete {{name}}",
+				"deleteAriaFallback": "API key",
+				"toastDeleted": "API key deleted successfully",
+				"toastDeleteError": "Failed to delete API key"
 			},
 			"createDialog": {
-				"title": "API Anahtarı Oluştur",
-				"description": "Kaneo API'sine programlı erişim için yeni bir API anahtarı oluşturun.",
-				"nameLabel": "Ad",
-				"namePlaceholder": "API Anahtarım",
-				"nameDescription": "Bu API anahtarı için açıklayıcı bir ad",
-				"expirationLabel": "Süre Sonu",
-				"expirationPlaceholder": "Süre sonu seçin",
-				"expirationDescription": "Bu API anahtarının ne kadar süreyle geçerli olacağını seçin. Asla seçeneği, otomatik süre sonu olmayan bir anahtar oluşturur.",
-				"expiration1d": "1 gün",
-				"expiration7d": "7 gün",
-				"expiration30d": "30 gün",
-				"expiration90d": "90 gün",
-				"expirationNever": "Asla",
-				"create": "Oluştur",
-				"creating": "Oluşturuluyor...",
-				"failedCreate": "API anahtarı oluşturulamadı",
+				"title": "Create API Key",
+				"description": "Create a new API key to access the Kaneo API programmatically.",
+				"nameLabel": "Name",
+				"namePlaceholder": "My API Key",
+				"nameDescription": "A descriptive name for this API key",
+				"expirationLabel": "Expiration",
+				"expirationPlaceholder": "Select expiration",
+				"expirationDescription": "Choose how long this API key should remain valid. Never will create a key without an automatic expiry.",
+				"expiration1d": "1 day",
+				"expiration7d": "7 days",
+				"expiration30d": "30 days",
+				"expiration90d": "90 days",
+				"expirationNever": "Never",
+				"create": "Create",
+				"creating": "Creating...",
+				"failedCreate": "Failed to create API key",
 				"validation": {
-					"nameRequired": "Ad gereklidir",
-					"nameShort": "Ad en az 3 karakter olmalıdır",
-					"expirationRequired": "Süre sonu gereklidir"
+					"nameRequired": "Name is required",
+					"nameShort": "Name must be at least 3 characters",
+					"expirationRequired": "Expiration is required"
 				},
 				"roleLabel": "Agent role",
 				"rolePlaceholder": "Choose an agent role",
@@ -1008,7 +1008,13 @@
 			"searchRepos": "Ara…",
 			"browseNeedsCredentials": "Göz atmak için GitLab URL'si ve belirteci girin",
 			"loadingRepos": "Depolar yükleniyor…",
-			"retry": "Tekrar dene"
+			"retry": "Tekrar dene",
+			"authedAs": "Authenticated as",
+			"repoPrivate": "Private",
+			"repoPublic": "Public",
+			"repoVisibility": "Visibility",
+			"tokenScopes": "Token scopes",
+			"tokenScopesEmpty": "Not advertised by the GitLab instance (common for personal access tokens)."
 		}
 	},
 	"navigation": {
@@ -1980,7 +1986,13 @@
 			"toast": {
 				"error": "Failed to save settings",
 				"saved": "AI settings saved"
-			}
+			},
+			"commandTimeoutHelp": "Max run time for agent_run_command. Default: 60000ms.",
+			"commandTimeoutLabel": "Command timeout (ms)",
+			"enableCommandDescription": "Allow pi-agent to run shell commands in the project working directory. Enable only if you trust the models and the environment.",
+			"enableCommandLabel": "Enable command execution",
+			"workdirRootHelp": "Server-side directory where pi-agent clones repos and stores uploaded files. Each project is isolated under agent-<projectId>.",
+			"workdirRootLabel": "Agent working directory root"
 		}
 	},
 	"chat": {
@@ -2000,6 +2012,9 @@
 		"clearHistoryDescription": "This will permanently delete all messages in this project's chat. This cannot be undone.",
 		"clearHistoryTitle": "Clear chat history?",
 		"historyCleared": "Chat history cleared",
-		"historyClearError": "Failed to clear chat history"
+		"historyClearError": "Failed to clear chat history",
+		"attachFile": "Upload a file",
+		"fileUploaded": "Uploaded",
+		"uploadError": "Failed to upload file"
 	}
 }

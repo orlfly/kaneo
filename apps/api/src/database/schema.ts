@@ -213,6 +213,11 @@ export const chatConfigTable = pgTable("chat_config", {
   baseUrl: text("base_url").notNull().default(""),
   apiKeyEncrypted: text("api_key_encrypted"),
   model: text("model").notNull().default(""),
+  workdirRoot: text("workdir_root"),
+  enableCommandExecution: boolean("enable_command_execution")
+    .notNull()
+    .default(false),
+  commandTimeoutMs: integer("command_timeout_ms").notNull().default(60000),
   updatedAt: timestamp("updated_at", { mode: "date" })
     .defaultNow()
     .$onUpdate(() => new Date())

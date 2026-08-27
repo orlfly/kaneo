@@ -368,58 +368,58 @@
 		},
 		"apiKey": {
 			"createdModal": {
-				"title": "API клучот е креиран",
-				"description": "Твојот API клуч \"{{keyName}}\" е успешно креиран.",
-				"yourApiKey": "Твојот API клуч",
-				"copy": "Копирај",
-				"copied": "Копирано",
-				"toastCopied": "API клучот е копиран во клипборд",
-				"alertTitle": "Успешно! Твојот API клуч е креиран",
-				"alertDescription": "Копирај го клучот сега. Нема да можеш да го видиш повторно.",
-				"done": "Готово",
-				"copyToContinue": "Копирај го клучот за да продолжиш"
+				"title": "API Key Created",
+				"description": "Your API key \"{{keyName}}\" has been created successfully.",
+				"yourApiKey": "Your API Key",
+				"copy": "Copy",
+				"copied": "Copied",
+				"toastCopied": "API key copied to clipboard",
+				"alertTitle": "Success! Your API key has been created",
+				"alertDescription": "Copy this key now. You won't be able to see it again.",
+				"done": "Done",
+				"copyToContinue": "Copy key to continue"
 			},
 			"table": {
-				"loading": "Се вчитуваат API клучеви...",
-				"empty": "Нема API клучеви. Креирај еден за да започнеш.",
-				"columnName": "Име",
-				"columnKey": "Клуч",
-				"columnCreated": "Креиран",
-				"columnExpires": "Истекува",
-				"columnActions": "Акции",
-				"unnamedKey": "Неименуван клуч",
-				"expiredBadge": "Истечен {{label}}",
-				"deleteConfirmTitle": "Избриши API клуч?",
-				"deleteConfirmDescription": "Оваа акција не може да се врати. Ова трајно ќе го избрише {{name}}.",
-				"deleteFallbackName": "овој API клуч",
-				"delete": "Избриши",
-				"deleting": "Се брише...",
-				"deleteAria": "Избриши {{name}}",
-				"deleteAriaFallback": "API клуч",
-				"toastDeleted": "API клучот е успешно избришан",
-				"toastDeleteError": "Неуспешно бришење на API клуч"
+				"loading": "Loading API keys...",
+				"empty": "No API keys yet. Create one to get started.",
+				"columnName": "Name",
+				"columnKey": "Key",
+				"columnCreated": "Created",
+				"columnExpires": "Expires",
+				"columnActions": "Actions",
+				"unnamedKey": "Unnamed Key",
+				"expiredBadge": "Expired {{label}}",
+				"deleteConfirmTitle": "Delete API key?",
+				"deleteConfirmDescription": "This action cannot be undone. This will permanently delete {{name}}.",
+				"deleteFallbackName": "this API key",
+				"delete": "Delete",
+				"deleting": "Deleting...",
+				"deleteAria": "Delete {{name}}",
+				"deleteAriaFallback": "API key",
+				"toastDeleted": "API key deleted successfully",
+				"toastDeleteError": "Failed to delete API key"
 			},
 			"createDialog": {
-				"title": "Креирај API клуч",
-				"description": "Креирај нов API клуч за програмски пристап до Kaneo API.",
-				"nameLabel": "Име",
-				"namePlaceholder": "Мојот API клуч",
-				"nameDescription": "Описно име за овој API клуч",
-				"expirationLabel": "Истекување",
-				"expirationPlaceholder": "Избери истекување",
-				"expirationDescription": "Избери колку долго овој API клуч треба да остане валиден. Никогаш ќе креира клуч без автоматско истекување.",
-				"expiration1d": "1 ден",
-				"expiration7d": "7 дена",
-				"expiration30d": "30 дена",
-				"expiration90d": "90 дена",
-				"expirationNever": "Никогаш",
-				"create": "Креирај",
-				"creating": "Се креира...",
-				"failedCreate": "Неуспешно креирање на API клуч",
+				"title": "Create API Key",
+				"description": "Create a new API key to access the Kaneo API programmatically.",
+				"nameLabel": "Name",
+				"namePlaceholder": "My API Key",
+				"nameDescription": "A descriptive name for this API key",
+				"expirationLabel": "Expiration",
+				"expirationPlaceholder": "Select expiration",
+				"expirationDescription": "Choose how long this API key should remain valid. Never will create a key without an automatic expiry.",
+				"expiration1d": "1 day",
+				"expiration7d": "7 days",
+				"expiration30d": "30 days",
+				"expiration90d": "90 days",
+				"expirationNever": "Never",
+				"create": "Create",
+				"creating": "Creating...",
+				"failedCreate": "Failed to create API key",
 				"validation": {
-					"nameRequired": "Името е задолжително",
-					"nameShort": "Името мора да има најмалку 3 знаци",
-					"expirationRequired": "Истекувањето е задолжително"
+					"nameRequired": "Name is required",
+					"nameShort": "Name must be at least 3 characters",
+					"expirationRequired": "Expiration is required"
 				},
 				"roleLabel": "Agent role",
 				"rolePlaceholder": "Choose an agent role",
@@ -1008,7 +1008,13 @@
 			"searchRepos": "Search…",
 			"browseNeedsCredentials": "Внеси GitLab URL и токен за прегледување",
 			"loadingRepos": "Се вчитуваат репозиториуми…",
-			"retry": "Retry"
+			"retry": "Retry",
+			"authedAs": "Authenticated as",
+			"repoPrivate": "Private",
+			"repoPublic": "Public",
+			"repoVisibility": "Visibility",
+			"tokenScopes": "Token scopes",
+			"tokenScopesEmpty": "Not advertised by the GitLab instance (common for personal access tokens)."
 		}
 	},
 	"navigation": {
@@ -1980,7 +1986,13 @@
 			"toast": {
 				"error": "Failed to save settings",
 				"saved": "AI settings saved"
-			}
+			},
+			"commandTimeoutHelp": "Max run time for agent_run_command. Default: 60000ms.",
+			"commandTimeoutLabel": "Command timeout (ms)",
+			"enableCommandDescription": "Allow pi-agent to run shell commands in the project working directory. Enable only if you trust the models and the environment.",
+			"enableCommandLabel": "Enable command execution",
+			"workdirRootHelp": "Server-side directory where pi-agent clones repos and stores uploaded files. Each project is isolated under agent-<projectId>.",
+			"workdirRootLabel": "Agent working directory root"
 		}
 	},
 	"chat": {
@@ -2000,6 +2012,9 @@
 		"clearHistoryDescription": "This will permanently delete all messages in this project's chat. This cannot be undone.",
 		"clearHistoryTitle": "Clear chat history?",
 		"historyCleared": "Chat history cleared",
-		"historyClearError": "Failed to clear chat history"
+		"historyClearError": "Failed to clear chat history",
+		"attachFile": "Upload a file",
+		"fileUploaded": "Uploaded",
+		"uploadError": "Failed to upload file"
 	}
 }

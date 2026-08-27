@@ -368,58 +368,58 @@
 		},
 		"apiKey": {
 			"createdModal": {
-				"title": "API 密钥已创建",
-				"description": "你的 API 密钥 \"{{keyName}}\" 已成功创建。",
-				"yourApiKey": "你的 API 密钥",
-				"copy": "复制",
-				"copied": "已复制",
-				"toastCopied": "API 密钥已复制到剪贴板",
-				"alertTitle": "成功！API 密钥已创建",
-				"alertDescription": "请立即复制此密钥，关闭后将无法再次查看。",
-				"done": "已完成",
-				"copyToContinue": "复制密钥以继续"
+				"title": "API Key Created",
+				"description": "Your API key \"{{keyName}}\" has been created successfully.",
+				"yourApiKey": "Your API Key",
+				"copy": "Copy",
+				"copied": "Copied",
+				"toastCopied": "API key copied to clipboard",
+				"alertTitle": "Success! Your API key has been created",
+				"alertDescription": "Copy this key now. You won't be able to see it again.",
+				"done": "Done",
+				"copyToContinue": "Copy key to continue"
 			},
 			"table": {
-				"loading": "正在加载 API 密钥…",
-				"empty": "暂无 API 密钥，先创建一个吧。",
-				"columnName": "姓名",
-				"columnKey": "标识",
-				"columnCreated": "创建于",
-				"columnExpires": "过期时间",
-				"columnActions": "操作",
-				"unnamedKey": "未命名密钥",
-				"expiredBadge": "{{label}} 已过期",
-				"deleteConfirmTitle": "删除 API 密钥？",
-				"deleteConfirmDescription": "此操作不可撤销，将永久删除 {{name}}。",
-				"deleteFallbackName": "此 API 密钥",
-				"delete": "删除",
-				"deleting": "正在删除…",
-				"deleteAria": "删除 {{name}}",
-				"deleteAriaFallback": "API 密钥",
-				"toastDeleted": "API 密钥已删除",
-				"toastDeleteError": "删除 API 密钥失败"
+				"loading": "Loading API keys...",
+				"empty": "No API keys yet. Create one to get started.",
+				"columnName": "Name",
+				"columnKey": "Key",
+				"columnCreated": "Created",
+				"columnExpires": "Expires",
+				"columnActions": "Actions",
+				"unnamedKey": "Unnamed Key",
+				"expiredBadge": "Expired {{label}}",
+				"deleteConfirmTitle": "Delete API key?",
+				"deleteConfirmDescription": "This action cannot be undone. This will permanently delete {{name}}.",
+				"deleteFallbackName": "this API key",
+				"delete": "Delete",
+				"deleting": "Deleting...",
+				"deleteAria": "Delete {{name}}",
+				"deleteAriaFallback": "API key",
+				"toastDeleted": "API key deleted successfully",
+				"toastDeleteError": "Failed to delete API key"
 			},
 			"createDialog": {
-				"title": "创建 API 密钥",
-				"description": "创建新的 API 密钥以编程方式访问 Kaneo API。",
-				"nameLabel": "姓名",
-				"namePlaceholder": "我的 API 密钥",
-				"nameDescription": "此 API 密钥的描述性名称",
-				"expirationLabel": "有效期",
-				"expirationPlaceholder": "选择有效期",
-				"expirationDescription": "选择此 API 密钥的有效期。选择“永不过期”将创建一个不会自动过期的密钥。",
-				"expiration1d": "1 天",
-				"expiration7d": "7 天",
-				"expiration30d": "30 天",
-				"expiration90d": "90 天",
-				"expirationNever": "永不过期",
-				"create": "创建",
-				"creating": "创建中…",
-				"failedCreate": "创建 API 密钥失败",
+				"title": "Create API Key",
+				"description": "Create a new API key to access the Kaneo API programmatically.",
+				"nameLabel": "Name",
+				"namePlaceholder": "My API Key",
+				"nameDescription": "A descriptive name for this API key",
+				"expirationLabel": "Expiration",
+				"expirationPlaceholder": "Select expiration",
+				"expirationDescription": "Choose how long this API key should remain valid. Never will create a key without an automatic expiry.",
+				"expiration1d": "1 day",
+				"expiration7d": "7 days",
+				"expiration30d": "30 days",
+				"expiration90d": "90 days",
+				"expirationNever": "Never",
+				"create": "Create",
+				"creating": "Creating...",
+				"failedCreate": "Failed to create API key",
 				"validation": {
-					"nameRequired": "名称不能为空",
-					"nameShort": "名称至少需要 3 个字符",
-					"expirationRequired": "请选择有效期"
+					"nameRequired": "Name is required",
+					"nameShort": "Name must be at least 3 characters",
+					"expirationRequired": "Expiration is required"
 				},
 				"roleLabel": "Agent role",
 				"rolePlaceholder": "Choose an agent role",
@@ -1008,7 +1008,13 @@
 			"searchRepos": "搜索…",
 			"browseNeedsCredentials": "输入 GitLab URL 和令牌以浏览",
 			"loadingRepos": "正在加载仓库…",
-			"retry": "重试"
+			"retry": "重试",
+			"authedAs": "Authenticated as",
+			"repoPrivate": "Private",
+			"repoPublic": "Public",
+			"repoVisibility": "Visibility",
+			"tokenScopes": "Token scopes",
+			"tokenScopesEmpty": "Not advertised by the GitLab instance (common for personal access tokens)."
 		}
 	},
 	"navigation": {
@@ -1980,7 +1986,13 @@
 			"toast": {
 				"saved": "AI 设置已保存",
 				"error": "保存设置失败"
-			}
+			},
+			"commandTimeoutHelp": "Max run time for agent_run_command. Default: 60000ms.",
+			"commandTimeoutLabel": "Command timeout (ms)",
+			"enableCommandDescription": "Allow pi-agent to run shell commands in the project working directory. Enable only if you trust the models and the environment.",
+			"enableCommandLabel": "Enable command execution",
+			"workdirRootHelp": "Server-side directory where pi-agent clones repos and stores uploaded files. Each project is isolated under agent-<projectId>.",
+			"workdirRootLabel": "Agent working directory root"
 		}
 	},
 	"chat": {
@@ -2000,6 +2012,9 @@
 		"clearHistoryDescription": "这将永久删除该项目聊天中的所有消息，且无法撤销。",
 		"clearHistoryTitle": "清除聊天记录？",
 		"historyCleared": "聊天记录已清除",
-		"historyClearError": "清除聊天记录失败"
+		"historyClearError": "清除聊天记录失败",
+		"attachFile": "Upload a file",
+		"fileUploaded": "Uploaded",
+		"uploadError": "Failed to upload file"
 	}
 }

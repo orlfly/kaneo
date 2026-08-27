@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { BotIcon, SendIcon, Trash2, UserIcon } from "lucide-react";
+import { BotIcon, Paperclip, SendIcon, Trash2, UserIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MarkdownRenderer } from "@/components/public-project/markdown-renderer";
@@ -20,6 +20,7 @@ import {
   clearChatHistory,
   getChatStatus,
   streamChatMessage,
+  uploadChatFile,
 } from "@/fetchers/project/chat";
 import useChatMessages from "@/hooks/queries/project/use-chat-messages";
 import { cn } from "@/lib/cn";
@@ -50,7 +51,36 @@ function ChatPanel({ projectId }: Props) {
   const [confirmClear, setConfirmClear] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const lastScrollKey = useRef<string>("");
+
+  const handleUpload = async (file: File) => {
+    try {
+      const result = await uploadChatFile(projectId, file);
+      toast.success(
+        t("chat:fileUploaded", {
+          defaultValue: `Uploaded ${file.name} (${result.path})`,
+        }),
+      );
+      setInput((prev) =>
+        prev.trim()
+          ? `${prev}\n\n上传的文件: ${result.path}`
+          : `请分析上传的文件 ${result.path}`,
+      );
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("chat:uploadError", { defaultValue: "Failed to upload file" }),
+      );
+    }
+  };
+
+  const onFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) void handleUpload(file);
+    e.target.value = "";
+  };
 
   useEffect(() => {
     getChatStatus()
@@ -251,7 +281,24 @@ function ChatPanel({ projectId }: Props) {
       </div>
 
       <div className="border-t px-2.5 py-2">
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          onChange={onFileSelected}
+        />
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-10 shrink-0 rounded-lg text-muted-foreground hover:text-foreground"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={chatDisabled}
+            title={t("chat:attachFile", { defaultValue: "Upload a file" })}
+            aria-label={t("chat:attachFile", { defaultValue: "Upload a file" })}
+          >
+            <Paperclip className="size-4" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"

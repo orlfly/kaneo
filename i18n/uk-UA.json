@@ -368,58 +368,58 @@
 		},
 		"apiKey": {
 			"createdModal": {
-				"title": "API-ключ створено",
-				"description": "Ваш API-ключ «{{keyName}}» успішно створено.",
-				"yourApiKey": "Ваш API-ключ",
-				"copy": "Копіювати",
-				"copied": "Скопійовано",
-				"toastCopied": "API-ключ скопійовано до буфера обміну",
-				"alertTitle": "Ваш API-ключ успішно створено",
-				"alertDescription": "Скопіюйте цей ключ зараз. Ви більше не зможете його побачити.",
-				"done": "Готово",
-				"copyToContinue": "Скопіюйте ключ, щоб продовжити"
+				"title": "API Key Created",
+				"description": "Your API key \"{{keyName}}\" has been created successfully.",
+				"yourApiKey": "Your API Key",
+				"copy": "Copy",
+				"copied": "Copied",
+				"toastCopied": "API key copied to clipboard",
+				"alertTitle": "Success! Your API key has been created",
+				"alertDescription": "Copy this key now. You won't be able to see it again.",
+				"done": "Done",
+				"copyToContinue": "Copy key to continue"
 			},
 			"table": {
-				"loading": "Завантаження API-ключів...",
-				"empty": "API-ключів ще немає. Створіть один, щоб почати.",
-				"columnName": "Назва",
-				"columnKey": "Ключ",
-				"columnCreated": "Створено",
-				"columnExpires": "Закінчується",
-				"columnActions": "Дії",
-				"unnamedKey": "Ключ без назви",
-				"expiredBadge": "Закінчився {{label}}",
-				"deleteConfirmTitle": "Видалити API-ключ?",
-				"deleteConfirmDescription": "Цю дію неможливо скасувати. API-ключ {{name}} буде видалено назавжди.",
-				"deleteFallbackName": "цей API-ключ",
-				"delete": "Видалити",
-				"deleting": "Видалення...",
-				"deleteAria": "Видалити {{name}}",
-				"deleteAriaFallback": "API-ключ",
-				"toastDeleted": "API-ключ успішно видалено",
-				"toastDeleteError": "Не вдалося видалити API-ключ"
+				"loading": "Loading API keys...",
+				"empty": "No API keys yet. Create one to get started.",
+				"columnName": "Name",
+				"columnKey": "Key",
+				"columnCreated": "Created",
+				"columnExpires": "Expires",
+				"columnActions": "Actions",
+				"unnamedKey": "Unnamed Key",
+				"expiredBadge": "Expired {{label}}",
+				"deleteConfirmTitle": "Delete API key?",
+				"deleteConfirmDescription": "This action cannot be undone. This will permanently delete {{name}}.",
+				"deleteFallbackName": "this API key",
+				"delete": "Delete",
+				"deleting": "Deleting...",
+				"deleteAria": "Delete {{name}}",
+				"deleteAriaFallback": "API key",
+				"toastDeleted": "API key deleted successfully",
+				"toastDeleteError": "Failed to delete API key"
 			},
 			"createDialog": {
-				"title": "Створити API-ключ",
-				"description": "Створіть новий API-ключ для програмного доступу до Kaneo API.",
-				"nameLabel": "Назва",
-				"namePlaceholder": "Мій API-ключ",
-				"nameDescription": "Описова назва для цього API-ключа",
-				"expirationLabel": "Термін дії",
-				"expirationPlaceholder": "Оберіть термін дії",
-				"expirationDescription": "Оберіть, як довго цей API-ключ буде дійсним. «Безстроково» створить ключ без автоматичного закінчення.",
-				"expiration1d": "1 день",
-				"expiration7d": "7 днів",
-				"expiration30d": "30 днів",
-				"expiration90d": "90 днів",
-				"expirationNever": "Безстроково",
-				"create": "Створити",
-				"creating": "Створення...",
-				"failedCreate": "Не вдалося створити API-ключ",
+				"title": "Create API Key",
+				"description": "Create a new API key to access the Kaneo API programmatically.",
+				"nameLabel": "Name",
+				"namePlaceholder": "My API Key",
+				"nameDescription": "A descriptive name for this API key",
+				"expirationLabel": "Expiration",
+				"expirationPlaceholder": "Select expiration",
+				"expirationDescription": "Choose how long this API key should remain valid. Never will create a key without an automatic expiry.",
+				"expiration1d": "1 day",
+				"expiration7d": "7 days",
+				"expiration30d": "30 days",
+				"expiration90d": "90 days",
+				"expirationNever": "Never",
+				"create": "Create",
+				"creating": "Creating...",
+				"failedCreate": "Failed to create API key",
 				"validation": {
-					"nameRequired": "Назва є обов'язковою",
-					"nameShort": "Назва має містити щонайменше 3 символи",
-					"expirationRequired": "Термін дії є обов'язковим"
+					"nameRequired": "Name is required",
+					"nameShort": "Name must be at least 3 characters",
+					"expirationRequired": "Expiration is required"
 				},
 				"roleLabel": "Agent role",
 				"rolePlaceholder": "Choose an agent role",
@@ -1008,7 +1008,13 @@
 			"searchRepos": "Пошук...",
 			"browseNeedsCredentials": "Введіть URL GitLab та токен для перегляду",
 			"loadingRepos": "Завантаження репозиторіїв...",
-			"retry": "Повторити"
+			"retry": "Повторити",
+			"authedAs": "Authenticated as",
+			"repoPrivate": "Private",
+			"repoPublic": "Public",
+			"repoVisibility": "Visibility",
+			"tokenScopes": "Token scopes",
+			"tokenScopesEmpty": "Not advertised by the GitLab instance (common for personal access tokens)."
 		}
 	},
 	"navigation": {
@@ -1980,7 +1986,13 @@
 			"toast": {
 				"error": "Failed to save settings",
 				"saved": "AI settings saved"
-			}
+			},
+			"commandTimeoutHelp": "Max run time for agent_run_command. Default: 60000ms.",
+			"commandTimeoutLabel": "Command timeout (ms)",
+			"enableCommandDescription": "Allow pi-agent to run shell commands in the project working directory. Enable only if you trust the models and the environment.",
+			"enableCommandLabel": "Enable command execution",
+			"workdirRootHelp": "Server-side directory where pi-agent clones repos and stores uploaded files. Each project is isolated under agent-<projectId>.",
+			"workdirRootLabel": "Agent working directory root"
 		}
 	},
 	"chat": {
@@ -2000,6 +2012,9 @@
 		"clearHistoryDescription": "This will permanently delete all messages in this project's chat. This cannot be undone.",
 		"clearHistoryTitle": "Clear chat history?",
 		"historyCleared": "Chat history cleared",
-		"historyClearError": "Failed to clear chat history"
+		"historyClearError": "Failed to clear chat history",
+		"attachFile": "Upload a file",
+		"fileUploaded": "Uploaded",
+		"uploadError": "Failed to upload file"
 	}
 }

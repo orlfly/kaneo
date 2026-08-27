@@ -5,6 +5,9 @@ export type ChatConfig = {
   baseUrl: string;
   apiKey: string;
   model: string;
+  workdirRoot: string | null;
+  enableCommandExecution: boolean;
+  commandTimeoutMs: number;
 };
 
 async function listChatConfig(): Promise<ChatConfig> {

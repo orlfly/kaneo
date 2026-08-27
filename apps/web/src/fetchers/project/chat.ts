@@ -33,6 +33,46 @@ export async function clearChatHistory(projectId: string): Promise<void> {
 }
 
 /**
+ * Upload a file to the project's agent working directory. Returns the stored
+ * relative path that pi-agent can read via agent_read_file.
+ */
+export async function uploadChatFile(
+  projectId: string,
+  file: File,
+): Promise<{ path: string; bytes: number }> {
+  const dataUrl = await fileToBase64(file);
+  const response = await fetch(
+    `${resolveApiBaseUrl()}/chat/project/${projectId}/upload`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        fileName: file.name,
+        contentType: file.type || "application/octet-stream",
+        data: dataUrl,
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "");
+    throw new Error(errorText || "Failed to upload file");
+  }
+
+  return response.json();
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
  * Resolves whether the pi-agent is configured. Uses the same API base URL as
  * the typed client, so it works behind Vite dev without a /api proxy.
  * Always bypasses the HTTP cache: this flips at runtime when an admin saves
@@ -65,7 +105,11 @@ export function resolveApiBaseUrl(): string {
  */
 export function parseSSELine(
   trimmed: string,
-): { kind: "token"; text: string } | { kind: "done" } | null {
+):
+  | { kind: "token"; text: string }
+  | { kind: "done" }
+  | { kind: "error"; message: string }
+  | null {
   if (!trimmed.startsWith("data: ")) return null;
   const data = trimmed.slice(6);
   if (data === "[DONE]") return null;
@@ -75,6 +119,9 @@ export function parseSSELine(
     if (typeof parsed === "string") return { kind: "token", text: parsed };
     if (parsed && typeof parsed.messageId === "string") {
       return { kind: "done" };
+    }
+    if (parsed?.error && typeof parsed.error === "string") {
+      return { kind: "error", message: parsed.error };
     }
   } catch {
     // Not valid JSON: raw text token.
@@ -136,6 +183,8 @@ export async function streamChatMessage(
       if (parsed.kind === "token") {
         fullContent += parsed.text;
         onToken(parsed.text);
+      } else if (parsed.kind === "error") {
+        throw new Error(parsed.message);
       }
     }
   }

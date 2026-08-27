@@ -8,6 +8,7 @@ import { type ChatConfig, loadChatConfig, saveChatConfig } from "./config";
 import clearMessages from "./controllers/clear-messages";
 import listMessages from "./controllers/list-messages";
 import { sendMessage } from "./controllers/send-message";
+import { uploadFile } from "./controllers/upload-file";
 
 const chatMessageSchema = v.object({
   id: v.string(),
@@ -22,6 +23,9 @@ const chatConfigResponseSchema = v.object({
   baseUrl: v.string(),
   apiKey: v.string(),
   model: v.string(),
+  workdirRoot: v.nullable(v.string()),
+  enableCommandExecution: v.boolean(),
+  commandTimeoutMs: v.number(),
 });
 
 const chatConfigRequestSchema = v.object({
@@ -29,6 +33,9 @@ const chatConfigRequestSchema = v.object({
   baseUrl: v.string(),
   apiKey: v.string(),
   model: v.string(),
+  workdirRoot: v.optional(v.nullable(v.string())),
+  enableCommandExecution: v.optional(v.boolean()),
+  commandTimeoutMs: v.optional(v.number()),
 });
 
 // Internal helpers strip the secret before sending it to the wire.
@@ -151,6 +158,52 @@ const chat = new Hono<{
     async (c) => {
       const projectId = c.req.param("projectId");
       return sendMessage(c, projectId);
+    },
+  )
+  .post(
+    "/project/:projectId/upload",
+    describeRoute({
+      operationId: "uploadChatFile",
+      tags: ["Chat"],
+      description:
+        "Upload a file to the project's agent working directory so pi-agent can read and analyze it",
+      responses: {
+        200: {
+          description: "File uploaded",
+          content: {
+            "application/json": {
+              schema: resolver(
+                v.object({ path: v.string(), bytes: v.number() }),
+              ),
+            },
+          },
+        },
+        400: {
+          description: "Validation error",
+          content: {
+            "application/json": {
+              schema: resolver(v.object({ error: v.string() })),
+            },
+          },
+        },
+      },
+    }),
+    validator(
+      "json",
+      v.object({
+        fileName: v.string(),
+        contentType: v.string(),
+        data: v.string(),
+      }),
+    ),
+    teamAccess.fromProject("projectId"),
+    requireTeamRole("member"),
+    async (c) => {
+      const projectId = c.req.param("projectId");
+      const { fileName, contentType, data } = c.req.valid("json");
+      return c.json(
+        await uploadFile({ projectId, fileName, contentType, data }),
+      );
     },
   )
   .delete(

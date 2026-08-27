@@ -1,8 +1,27 @@
 import { createId } from "@paralleldrive/cuid2";
 import { and, count, eq, ilike, sql } from "drizzle-orm";
+import {
+  agentCloneRepo,
+  agentDeleteFile,
+  agentListFiles,
+  agentReadFile,
+  agentRunCommand,
+  agentSearchFiles,
+  agentWriteFile,
+  defaultWorkdirRoot,
+  ensureProjectWorkdir,
+  projectWorkdir,
+} from "../agent";
 import db from "../database";
-import { columnTable, projectTable, taskTable } from "../database/schema";
-import { resolveVcsIntegration, vcsListPullRequests } from "../vcs";
+import {
+  columnTable,
+  integrationTable,
+  projectTable,
+  taskTable,
+} from "../database/schema";
+import { vcsListPullRequests } from "../vcs";
+import { resolveVcsIntegration, type VcsType } from "../vcs/resolve";
+import { loadChatConfig } from "./config";
 import type { ChatCompletionTool } from "./pi-agent-client";
 
 export const toolDefinitions: ChatCompletionTool[] = [
@@ -95,17 +114,132 @@ export const toolDefinitions: ChatCompletionTool[] = [
     function: {
       name: "list_merge_requests",
       description:
-        "List the open merge/pull requests (MRs) on the project's connected version-control repository (GitHub, GitLab, or Gitea). Use this when asked about the project's MRs, PRs, or merge requests.",
+        "List the open merge/pull requests (MRs) from the project's connected version-control repository. The project is already wired to one VCS (GitHub, GitLab, or Gitea); this queries whichever is configured. Use this when asked about the project's MRs, PRs, or merge requests.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "agent_clone_repo",
+      description:
+        "Clone the project's connected version-control repository into the agent working directory. If a clone already exists it is updated (pulled). Use this when asked to read, search, or analyze the project's source code or documentation.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "agent_list_files",
+      description:
+        "List files and directories inside the agent working directory (which holds cloned repos and uploaded files).",
       parameters: {
         type: "object",
         properties: {
-          type: {
+          path: {
             type: "string",
-            enum: ["github", "gitlab", "gitea"],
             description:
-              "Which VCS integration to query. The project may have multiple; use the one the user asked about, or try each configured integration.",
+              "Relative path inside the working directory (default: root).",
           },
         },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "agent_read_file",
+      description:
+        "Read a text file inside the agent working directory. Optionally pass offset/limit to page large files.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description: "Relative file path inside the working directory.",
+          },
+          offset: {
+            type: "number",
+            description: "Line offset (0-based) for paging.",
+          },
+          limit: {
+            type: "number",
+            description: "Max lines to read from the offset.",
+          },
+        },
+        required: ["path"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "agent_write_file",
+      description:
+        "Write or overwrite a text file inside the agent working directory, creating parent directories as needed.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description: "Relative file path inside the working directory.",
+          },
+          content: { type: "string", description: "File content." },
+        },
+        required: ["path", "content"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "agent_search_files",
+      description:
+        "Recursively search the agent working directory by filename and/or content keyword. Returns matching files with line numbers for content matches.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: "Filename substring to match (optional).",
+          },
+          content: {
+            type: "string",
+            description: "Content keyword to search for (optional).",
+          },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "agent_delete_file",
+      description: "Delete a file inside the agent working directory.",
+      parameters: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description: "Relative file path inside the working directory.",
+          },
+        },
+        required: ["path"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "agent_run_command",
+      description:
+        "Run a shell command with the agent working directory as the working directory. Captures stdout/stderr and exit code. Only available when command execution is enabled.",
+      parameters: {
+        type: "object",
+        properties: {
+          command: { type: "string", description: "The shell command to run." },
+        },
+        required: ["command"],
       },
     },
   },
@@ -129,6 +263,20 @@ export async function executeTool(
       return listBlockedTasks(projectId);
     case "list_merge_requests":
       return listMergeRequests(projectId, args);
+    case "agent_clone_repo":
+      return agentClone(projectId, args);
+    case "agent_list_files":
+      return agentList(projectId, args);
+    case "agent_read_file":
+      return agentRead(projectId, args);
+    case "agent_write_file":
+      return agentWrite(projectId, args);
+    case "agent_search_files":
+      return agentSearch(projectId, args);
+    case "agent_delete_file":
+      return agentDelete(projectId, args);
+    case "agent_run_command":
+      return agentRun(projectId, args);
     default:
       return JSON.stringify({ error: `Unknown tool: ${toolName}` });
   }
@@ -295,26 +443,38 @@ async function listBlockedTasks(projectId: string): Promise<string> {
 
 async function listMergeRequests(
   projectId: string,
-  args: Record<string, unknown>,
+  _args: Record<string, unknown>,
 ): Promise<string> {
-  const requestedType = typeof args.type === "string" ? args.type : undefined;
-  const types = requestedType
-    ? [requestedType]
-    : (["github", "gitlab", "gitea"] as const);
+  // The project is wired to at most one active VCS integration. Find it from
+  // the DB and query only that one, rather than probing each platform's
+  // connection state.
+  const connectedTypes = ["github", "gitlab", "gitea"] as const;
+  const activeTypes: VcsType[] = [];
+  for (const type of connectedTypes) {
+    const integration = await db.query.integrationTable.findFirst({
+      where: and(
+        eq(integrationTable.projectId, projectId),
+        eq(integrationTable.type, type),
+        eq(integrationTable.isActive, true),
+      ),
+    });
+    if (integration) {
+      activeTypes.push(type);
+    }
+  }
+
+  if (activeTypes.length === 0) {
+    return JSON.stringify({
+      error:
+        "This project has no connected version-control repository (GitHub, GitLab, or Gitea). Configure one in project settings to query merge requests.",
+    });
+  }
 
   const results: Record<string, unknown> = {};
-  for (const type of types) {
-    let integration:
-      | Awaited<ReturnType<typeof resolveVcsIntegration>>
-      | undefined;
+  for (const type of activeTypes) {
     try {
-      integration = await resolveVcsIntegration(projectId, type as never);
-    } catch {
-      // No active integration of this type; skip it.
-      continue;
-    }
-    try {
-      const pulls = await vcsListPullRequests(integration as never);
+      const integration = await resolveVcsIntegration(projectId, type);
+      const pulls = await vcsListPullRequests(integration);
       results[type] = pulls;
     } catch (error) {
       results[type] = {
@@ -326,11 +486,125 @@ async function listMergeRequests(
     }
   }
 
-  if (Object.keys(results).length === 0) {
+  return JSON.stringify(results, null, 2);
+}
+
+async function projectRoot(projectId: string): Promise<string> {
+  const config = await loadChatConfig();
+  const root = config.workdirRoot || defaultWorkdirRoot();
+  const rootDir = projectWorkdir(root, projectId);
+  await ensureProjectWorkdir(rootDir);
+  return rootDir;
+}
+
+function relPath(_projectRoot: string, value: unknown): string {
+  return String(value ?? ".");
+}
+
+async function agentClone(
+  projectId: string,
+  _args: Record<string, unknown>,
+): Promise<string> {
+  const activeTypes = ["github", "gitlab", "gitea"] as const;
+  let found: VcsType | null = null;
+  for (const type of activeTypes) {
+    const integration = await db.query.integrationTable.findFirst({
+      where: and(
+        eq(integrationTable.projectId, projectId),
+        eq(integrationTable.type, type),
+        eq(integrationTable.isActive, true),
+      ),
+    });
+    if (integration) {
+      found = type;
+      break;
+    }
+  }
+
+  if (!found) {
     return JSON.stringify({
       error:
-        "No version-control integration (GitHub, GitLab, or Gitea) is configured for this project.",
+        "This project has no connected version-control repository (GitHub, GitLab, or Gitea). Configure one in project settings to clone source code.",
     });
   }
-  return JSON.stringify(results, null, 2);
+
+  const root = await projectRoot(projectId);
+  const integration = await resolveVcsIntegration(projectId, found);
+  const result = await agentCloneRepo(root, integration);
+  return JSON.stringify({ ok: true, ...result });
+}
+
+async function agentList(
+  projectId: string,
+  args: Record<string, unknown>,
+): Promise<string> {
+  const root = await projectRoot(projectId);
+  const result = await agentListFiles(root, relPath(root, args.path));
+  return JSON.stringify(result, null, 2);
+}
+
+async function agentRead(
+  projectId: string,
+  args: Record<string, unknown>,
+): Promise<string> {
+  const root = await projectRoot(projectId);
+  const result = await agentReadFile(root, String(args.path), {
+    offset: typeof args.offset === "number" ? args.offset : undefined,
+    limit: typeof args.limit === "number" ? args.limit : undefined,
+  });
+  return JSON.stringify(result, null, 2);
+}
+
+async function agentWrite(
+  projectId: string,
+  args: Record<string, unknown>,
+): Promise<string> {
+  const root = await projectRoot(projectId);
+  const result = await agentWriteFile(
+    root,
+    String(args.path),
+    String(args.content),
+  );
+  return JSON.stringify({ ok: true, ...result }, null, 2);
+}
+
+async function agentSearch(
+  projectId: string,
+  args: Record<string, unknown>,
+): Promise<string> {
+  const root = await projectRoot(projectId);
+  const result = await agentSearchFiles(root, {
+    query: typeof args.query === "string" ? args.query : undefined,
+    content: typeof args.content === "string" ? args.content : undefined,
+  });
+  return JSON.stringify(result, null, 2);
+}
+
+async function agentDelete(
+  projectId: string,
+  args: Record<string, unknown>,
+): Promise<string> {
+  const root = await projectRoot(projectId);
+  const result = await agentDeleteFile(root, String(args.path));
+  return JSON.stringify({ ok: true, ...result }, null, 2);
+}
+
+async function agentRun(
+  projectId: string,
+  args: Record<string, unknown>,
+): Promise<string> {
+  const config = await loadChatConfig();
+  if (!config.enableCommandExecution) {
+    return JSON.stringify({
+      error:
+        "Command execution is not enabled on this instance. An admin can enable it in AI settings.",
+    });
+  }
+  const root = await projectRoot(projectId);
+  const command = String(args.command ?? "");
+  if (!command.trim()) {
+    return JSON.stringify({ error: "Command is required" });
+  }
+  const result = await agentRunCommand(root, command, config.commandTimeoutMs);
+  return JSON.stringify(result, null, 2);
 }

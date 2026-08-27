@@ -368,58 +368,58 @@
 		},
 		"apiKey": {
 			"createdModal": {
-				"title": "API कुंजी बनाई गई",
-				"description": "आपकी API कुंजी \"{{keyName}}\" सफलतापूर्वक बनाई गई है।",
-				"yourApiKey": "आपकी API कुंजी",
-				"copy": "कॉपी करें",
-				"copied": "कॉपी किया",
-				"toastCopied": "API कुंजी क्लिपबोर्ड पर कॉपी की गई",
-				"alertTitle": "सफल! आपकी API कुंजी बनाई गई है",
-				"alertDescription": "इस कुंजी को अभी कॉपी करें। आप इसे दोबारा नहीं देख पाएँगे।",
-				"done": "हो गया",
-				"copyToContinue": "जारी रखने के लिए कुंजी कॉपी करें"
+				"title": "API Key Created",
+				"description": "Your API key \"{{keyName}}\" has been created successfully.",
+				"yourApiKey": "Your API Key",
+				"copy": "Copy",
+				"copied": "Copied",
+				"toastCopied": "API key copied to clipboard",
+				"alertTitle": "Success! Your API key has been created",
+				"alertDescription": "Copy this key now. You won't be able to see it again.",
+				"done": "Done",
+				"copyToContinue": "Copy key to continue"
 			},
 			"table": {
-				"loading": "API कुंजियाँ लोड हो रही हैं...",
-				"empty": "अभी तक कोई API कुंजी नहीं। शुरू करने के लिए एक बनाएँ।",
-				"columnName": "नाम",
-				"columnKey": "कुंजी",
-				"columnCreated": "बनाया गया",
-				"columnExpires": "समाप्ति",
-				"columnActions": "कार्रवाइयाँ",
-				"unnamedKey": "अनाम कुंजी",
-				"expiredBadge": "समाप्त {{label}}",
-				"deleteConfirmTitle": "API कुंजी हटाएँ?",
-				"deleteConfirmDescription": "यह कार्रवाई पूर्ववत नहीं की जा सकती। यह {{name}} को स्थायी रूप से हटा देगी।",
-				"deleteFallbackName": "यह API कुंजी",
-				"delete": "हटाएँ",
-				"deleting": "हटा रहे हैं...",
-				"deleteAria": "{{name}} हटाएँ",
-				"deleteAriaFallback": "API कुंजी",
-				"toastDeleted": "API कुंजी सफलतापूर्वक हटाई गई",
-				"toastDeleteError": "API कुंजी हटाने में विफल"
+				"loading": "Loading API keys...",
+				"empty": "No API keys yet. Create one to get started.",
+				"columnName": "Name",
+				"columnKey": "Key",
+				"columnCreated": "Created",
+				"columnExpires": "Expires",
+				"columnActions": "Actions",
+				"unnamedKey": "Unnamed Key",
+				"expiredBadge": "Expired {{label}}",
+				"deleteConfirmTitle": "Delete API key?",
+				"deleteConfirmDescription": "This action cannot be undone. This will permanently delete {{name}}.",
+				"deleteFallbackName": "this API key",
+				"delete": "Delete",
+				"deleting": "Deleting...",
+				"deleteAria": "Delete {{name}}",
+				"deleteAriaFallback": "API key",
+				"toastDeleted": "API key deleted successfully",
+				"toastDeleteError": "Failed to delete API key"
 			},
 			"createDialog": {
-				"title": "API कुंजी बनाएँ",
-				"description": "Kaneo API को प्रोग्रामेटिक रूप से एक्सेस करने के लिए नई API कुंजी बनाएँ।",
-				"nameLabel": "नाम",
-				"namePlaceholder": "मेरी API कुंजी",
-				"nameDescription": "इस API कुंजी के लिए विवरणात्मक नाम",
-				"expirationLabel": "समाप्ति",
-				"expirationPlaceholder": "समाप्ति चुनें",
-				"expirationDescription": "चुनें कि यह API कुंजी कितने समय तक वैध रहे। कभी नहीं एक बिना स्वचालित समाप्ति की कुंजी बनाएगा।",
-				"expiration1d": "1 दिन",
-				"expiration7d": "7 दिन",
-				"expiration30d": "30 दिन",
-				"expiration90d": "90 दिन",
-				"expirationNever": "कभी नहीं",
-				"create": "बनाएँ",
-				"creating": "बना रहे हैं...",
-				"failedCreate": "API कुंजी बनाने में विफल",
+				"title": "Create API Key",
+				"description": "Create a new API key to access the Kaneo API programmatically.",
+				"nameLabel": "Name",
+				"namePlaceholder": "My API Key",
+				"nameDescription": "A descriptive name for this API key",
+				"expirationLabel": "Expiration",
+				"expirationPlaceholder": "Select expiration",
+				"expirationDescription": "Choose how long this API key should remain valid. Never will create a key without an automatic expiry.",
+				"expiration1d": "1 day",
+				"expiration7d": "7 days",
+				"expiration30d": "30 days",
+				"expiration90d": "90 days",
+				"expirationNever": "Never",
+				"create": "Create",
+				"creating": "Creating...",
+				"failedCreate": "Failed to create API key",
 				"validation": {
-					"nameRequired": "नाम आवश्यक है",
-					"nameShort": "नाम कम से कम 3 अक्षरों का होना चाहिए",
-					"expirationRequired": "समाप्ति आवश्यक है"
+					"nameRequired": "Name is required",
+					"nameShort": "Name must be at least 3 characters",
+					"expirationRequired": "Expiration is required"
 				},
 				"roleLabel": "Agent role",
 				"rolePlaceholder": "Choose an agent role",
@@ -1008,7 +1008,13 @@
 			"searchRepos": "खोजें…",
 			"browseNeedsCredentials": "ब्राउज़ करने के लिए GitLab URL और टोकन दर्ज करें",
 			"loadingRepos": "रिपॉज़िटरीज़ लोड हो रही हैं…",
-			"retry": "पुनः प्रयास करें"
+			"retry": "पुनः प्रयास करें",
+			"authedAs": "Authenticated as",
+			"repoPrivate": "Private",
+			"repoPublic": "Public",
+			"repoVisibility": "Visibility",
+			"tokenScopes": "Token scopes",
+			"tokenScopesEmpty": "Not advertised by the GitLab instance (common for personal access tokens)."
 		}
 	},
 	"navigation": {
@@ -1980,7 +1986,13 @@
 			"toast": {
 				"error": "Failed to save settings",
 				"saved": "AI settings saved"
-			}
+			},
+			"commandTimeoutHelp": "Max run time for agent_run_command. Default: 60000ms.",
+			"commandTimeoutLabel": "Command timeout (ms)",
+			"enableCommandDescription": "Allow pi-agent to run shell commands in the project working directory. Enable only if you trust the models and the environment.",
+			"enableCommandLabel": "Enable command execution",
+			"workdirRootHelp": "Server-side directory where pi-agent clones repos and stores uploaded files. Each project is isolated under agent-<projectId>.",
+			"workdirRootLabel": "Agent working directory root"
 		}
 	},
 	"chat": {
@@ -2000,6 +2012,9 @@
 		"clearHistoryDescription": "This will permanently delete all messages in this project's chat. This cannot be undone.",
 		"clearHistoryTitle": "Clear chat history?",
 		"historyCleared": "Chat history cleared",
-		"historyClearError": "Failed to clear chat history"
+		"historyClearError": "Failed to clear chat history",
+		"attachFile": "Upload a file",
+		"fileUploaded": "Uploaded",
+		"uploadError": "Failed to upload file"
 	}
 }
