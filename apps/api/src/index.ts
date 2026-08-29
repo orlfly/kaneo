@@ -577,8 +577,11 @@ export function createApp() {
     // an API key can never be created with `metadata.agentRole = "human"` (the
     // reserved required_role marker, not an agent role).
     if (c.req.method === "POST" && c.req.path.endsWith("/api-key/create")) {
-      const parsed = await c.req.json().catch(() => null);
-      const metadata = parsed?.metadata;
+      // Clone before reading: c.req.json() consumes the underlying body
+      // stream, so the request we hand to auth.handler must be a fresh
+      // clone (better-auth re-reads the body via better-call).
+      const guardParsed = await c.req.raw.clone().json().catch(() => null);
+      const metadata = guardParsed?.metadata;
       if (
         metadata &&
         typeof metadata === "object" &&

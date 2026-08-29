@@ -341,6 +341,33 @@ describe('API integration: API key with agentRole = "human" is rejected', () => 
     expect(response.status).toBe(400);
     await expect(response.text()).resolves.toContain("human");
   });
+
+  it("allows creation of an API key with a valid agent role", async () => {
+    // Regression: the route-level agentRole guard reads the request body via a
+    // fresh clone. If it consumed the original body instead, better-auth would
+    // re-read a drained stream and every key creation (even valid ones) would
+    // fail with "Body is unusable".
+    const { app } = createApp();
+    const cookieJar = await signUpAndGetCookie(app);
+
+    const response = await app.request("/api/auth/api-key/create", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        cookie: cookieJar,
+        origin: "http://localhost:5173",
+      },
+      body: JSON.stringify({
+        name: "good-coding",
+        metadata: { agentRole: "coding" },
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { metadata?: unknown; key?: string };
+    expect(body.key).toBeTruthy();
+    expect(body.metadata).toEqual({ agentRole: "coding" });
+  });
 });
 
 describe("API integration: requiredRole is locked once a task is in-progress or in-review", () => {
