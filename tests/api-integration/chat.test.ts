@@ -2,11 +2,31 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import db, { schema } from "../../apps/api/src/database";
+import { subscribeToEvent } from "../../apps/api/src/events";
 import { createApp } from "../../apps/api/src/index";
 import { decryptSecret } from "../../apps/api/src/notification-preferences/secrets";
-import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
+import {
+  mockAnonymousSession,
+  mockAuthenticatedSession,
+} from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
 import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
+
+type RecordedEvent = {
+  type: string;
+  data: unknown;
+};
+
+const recordedEvents: RecordedEvent[] = [];
+let subscribersInitialized = false;
+
+function initEventSubscribers() {
+  if (subscribersInitialized) return;
+  subscribersInitialized = true;
+  subscribeToEvent("task.created", async (data) => {
+    recordedEvents.push({ type: "task.created", data });
+  });
+}
 
 async function createAdmin() {
   const userId = `chat-admin-${randomUUID()}`;
@@ -35,6 +55,8 @@ async function readStoredEncrypted() {
 describe("API integration: pi-agent chat", () => {
   beforeEach(async () => {
     await resetTestDatabase();
+    recordedEvents.length = 0;
+    initEventSubscribers();
   });
 
   afterEach(() => {
@@ -383,11 +405,38 @@ describe("API integration: pi-agent chat", () => {
 
     // The tool actually created a task in the project.
     const tasks = await db
-      .select({ id: schema.taskTable.id, title: schema.taskTable.title })
+      .select({
+        id: schema.taskTable.id,
+        title: schema.taskTable.title,
+        status: schema.taskTable.status,
+        priority: schema.taskTable.priority,
+        number: schema.taskTable.number,
+        position: schema.taskTable.position,
+        pausedReason: schema.taskTable.pausedReason,
+        claimedBy: schema.taskTable.claimedBy,
+        requiredRole: schema.taskTable.requiredRole,
+      })
       .from(schema.taskTable)
       .where(eq(schema.taskTable.projectId, project.id));
     expect(tasks).toHaveLength(1);
     expect(tasks[0].title).toBe("集成测试任务");
+    expect(tasks[0].status).toBe("to-do");
+    expect(tasks[0].priority).toBe("high");
+    expect(tasks[0].number).toBeGreaterThan(0);
+    expect(tasks[0].position).toBeGreaterThan(0);
+    expect(tasks[0].pausedReason).toBeNull();
+    expect(tasks[0].claimedBy).toBeNull();
+    expect(tasks[0].requiredRole).toBeNull();
+
+    // Routing through the controller publishes task.created so realtime
+    // subscribers (Board, Backlog, activity feed) see the new row.
+    expect(
+      recordedEvents.some(
+        (event) =>
+          event.type === "task.created" &&
+          (event.data as { taskId?: string }).taskId === tasks[0].id,
+      ),
+    ).toBe(true);
   });
 
   it("emits a progress event before each tool call ahead of any token", async () => {

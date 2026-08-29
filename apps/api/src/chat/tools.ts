@@ -1,5 +1,4 @@
-import { createId } from "@paralleldrive/cuid2";
-import { and, count, eq, ilike, sql } from "drizzle-orm";
+import { and, count, eq, ilike } from "drizzle-orm";
 import {
   agentCloneRepo,
   agentDeleteFile,
@@ -14,11 +13,11 @@ import {
 } from "../agent";
 import db from "../database";
 import {
-  columnTable,
   integrationTable,
   projectTable,
   taskTable,
 } from "../database/schema";
+import createTaskController from "../task/controllers/create-task";
 import updateTaskStatus from "../task/controllers/update-task-status";
 import { vcsListPullRequests } from "../vcs";
 import { resolveVcsIntegration, type VcsType } from "../vcs/resolve";
@@ -295,7 +294,7 @@ export async function executeTool(
     case "get_task":
       return getTask(projectId, String(args.taskId));
     case "create_task":
-      return createTask(projectId, args);
+      return createTaskTool(projectId, args, userId);
     case "update_task_status":
       return updateTaskStatusTool(projectId, args, userId);
     case "get_project_summary":
@@ -365,54 +364,35 @@ async function getTask(projectId: string, taskId: string): Promise<string> {
   return JSON.stringify(row, null, 2);
 }
 
-async function createTask(
+async function createTaskTool(
   projectId: string,
   args: Record<string, unknown>,
+  userId: string,
 ): Promise<string> {
   const title = String(args.title ?? "").trim();
   if (!title) {
     return JSON.stringify({ error: "Title is required" });
   }
 
-  // Find the first column to place the task (or null if no columns)
-  const [firstColumn] = await db
-    .select({ id: columnTable.id })
-    .from(columnTable)
-    .where(eq(columnTable.projectId, projectId))
-    .limit(1);
-
-  // Claim the next task number atomically. `number` is unique per project,
-  // and the project counter can lag behind tasks created outside the claim
-  // flow, so start above both the counter and any existing task number.
-  const [claimed] = await db
-    .update(projectTable)
-    .set({
-      lastTaskNumber: sql`GREATEST(${projectTable.lastTaskNumber}, (SELECT COALESCE(MAX(${taskTable.number}), 0) FROM ${taskTable} WHERE ${taskTable.projectId} = ${projectId})) + 1`,
-    })
-    .where(eq(projectTable.id, projectId))
-    .returning({ lastTaskNumber: projectTable.lastTaskNumber });
-  const number = claimed?.lastTaskNumber ?? 1;
-
-  const taskId = createId();
-  const now = new Date();
-  const requiredRole =
-    typeof args.requiredRole === "string" ? args.requiredRole : null;
-
-  await db.insert(taskTable).values({
-    id: taskId,
-    projectId,
-    number,
-    title,
-    description: typeof args.description === "string" ? args.description : null,
-    status: typeof args.status === "string" ? args.status : "to-do",
-    priority: typeof args.priority === "string" ? args.priority : "low",
-    columnId: firstColumn?.id ?? null,
-    requiredRole,
-    createdAt: now,
-    updatedAt: now,
-  });
-
-  return JSON.stringify({ id: taskId, title, created: true });
+  try {
+    const task = await createTaskController({
+      projectId,
+      currentUserId: userId,
+      title,
+      description:
+        typeof args.description === "string" ? args.description : undefined,
+      status: typeof args.status === "string" ? args.status : "to-do",
+      priority: typeof args.priority === "string" ? args.priority : undefined,
+      requiredRole:
+        typeof args.requiredRole === "string" ? args.requiredRole : null,
+    });
+    return JSON.stringify({ id: task.id, title: task.title, created: true });
+  } catch (error) {
+    return JSON.stringify({
+      error:
+        error instanceof Error ? error.message : "Failed to create task",
+    });
+  }
 }
 
 async function updateTaskStatusTool(
