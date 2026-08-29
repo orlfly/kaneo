@@ -2022,6 +2022,8 @@
 		"historyClearError": "清除聊天记录失败",
 		"attachFile": "Upload a file",
 		"fileUploaded": "Uploaded",
-		"uploadError": "Failed to upload file"
+		"uploadError": "Failed to upload file",
+		"progressAriaLabel": "智能体执行步骤",
+		"progressItemAriaLabel": "智能体正在{{label}}"
 	}
 }

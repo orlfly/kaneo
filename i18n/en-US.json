@@ -2016,7 +2016,9 @@
 		"historyClearError": "Failed to clear chat history",
 		"attachFile": "Upload a file",
 		"fileUploaded": "Uploaded",
-		"uploadError": "Failed to upload file"
+		"uploadError": "Failed to upload file",
+		"progressAriaLabel": "Agent working steps",
+		"progressItemAriaLabel": "Agent is {{label}}"
 	},
 	"settings:apiKey": {
 		"createDialog": {
