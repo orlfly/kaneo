@@ -1,4 +1,4 @@
-import { AGENT_ROLES, type AgentRole } from "@kaneo/permissions";
+import { type AgentRole } from "@kaneo/permissions";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
@@ -11,7 +11,12 @@ import {
   taskTable,
   teamTable,
 } from "../database/schema";
-import { taskSchema } from "../schemas";
+import {
+  descHasAcceptanceCriteria,
+  humanReadableTitleSchema,
+  requiredRoleSchema,
+  taskSchema,
+} from "../schemas";
 import {
   assertTaskImageKeyMatchesContext,
   createTaskImageUploadUrl,
@@ -104,6 +109,7 @@ const task = new Hono<{
           dueBefore: v.optional(v.string()),
           dueAfter: v.optional(v.string()),
           unclaimed: v.optional(v.string()),
+          requiredRole: v.optional(requiredRoleSchema),
         }),
       ),
     ),
@@ -301,7 +307,8 @@ const task = new Hono<{
     describeRoute({
       operationId: "createTask",
       tags: ["Tasks"],
-      description: "Create a new task in a project",
+      description:
+        "Create a new task in a project. Title must be human-readable (≥8 chars, not a branch/ticket/SHA). When authenticated with an API key (agent), the description must include an 'Acceptance Criteria' (or 验收标准) section, and an omitted requiredRole is defaulted to the agent's own role so the work is routed to the right claimer.",
       responses: {
         200: {
           description: "Task created successfully",
@@ -314,14 +321,14 @@ const task = new Hono<{
     validator(
       "json",
       v.object({
-        title: v.string(),
+        title: humanReadableTitleSchema,
         description: v.string(),
         startDate: v.optional(v.string()),
         dueDate: v.optional(v.string()),
         priority: v.picklist(VALID_PRIORITIES),
         status: v.string(),
         userId: v.optional(v.string()),
-        requiredRole: v.optional(v.picklist(AGENT_ROLES)),
+        requiredRole: v.optional(requiredRoleSchema),
       }),
     ),
     workspaceAccess.fromProject("projectId"),
@@ -350,6 +357,20 @@ const task = new Hono<{
 
       validateDateRange(parsedStartDate, parsedDueDate);
 
+      const apiKey = c.get("apiKey");
+      // When an agent creates a task without an explicit requiredRole, default
+      // it to the agent's own role so the work is routed to the right claimer.
+      // `createTask` handles the fallback (requiredRole ?? agentRole ?? null).
+      // Agent-created tasks must still carry an Acceptance Criteria section so
+      // the executing agent and the reviewer share an objective done-condition.
+      // Human session callers are prompted but not blocked (see design.md).
+      if (apiKey && description && !descHasAcceptanceCriteria(description)) {
+        throw new HTTPException(400, {
+          message:
+            "description must include an 'Acceptance Criteria' (or 验收标准) section",
+        });
+      }
+
       const task = await createTask({
         projectId,
         currentUserId: c.get("userId"),
@@ -361,6 +382,7 @@ const task = new Hono<{
         priority,
         status,
         requiredRole: requiredRole ?? null,
+        agentRole: apiKey?.agentRole,
       });
 
       return c.json(task);
@@ -467,6 +489,7 @@ const task = new Hono<{
         projectId: v.string(),
         position: v.number(),
         userId: v.optional(v.string()),
+        requiredRole: v.optional(requiredRoleSchema),
       }),
     ),
     workspaceAccess.fromTask(),
@@ -484,6 +507,7 @@ const task = new Hono<{
         projectId,
         position,
         userId,
+        requiredRole,
       } = c.req.valid("json");
 
       const currentUserId = c.get("userId");
@@ -511,6 +535,7 @@ const task = new Hono<{
         position,
         userId,
         currentUserId,
+        requiredRole,
       );
 
       return c.json(task);
@@ -635,105 +660,21 @@ const task = new Hono<{
       const { id } = c.req.valid("param");
       const { status } = c.req.valid("json");
       const currentUserId = c.get("userId");
+      const apiKey = c.get("apiKey");
 
-      const task = await updateTaskStatus({ id, status, currentUserId });
+      const task = await updateTaskStatus({
+        id,
+        status,
+        currentUserId,
+        agentRole: apiKey?.agentRole,
+      });
 
       return c.json(task);
     },
   )
   // --- Agent collaboration endpoints ---
-  .post(
-    "/claim/:id",
-    describeRoute({
-      operationId: "claimTask",
-      tags: ["Tasks"],
-      description:
-        "Atomically claim an unassigned to-do task for the current user",
-      responses: {
-        200: {
-          description: "Task claimed successfully",
-          content: {
-            "application/json": { schema: resolver(v.any()) },
-          },
-        },
-        409: {
-          description: "Task is not available for claiming",
-          content: {
-            "application/json": {
-              schema: resolver(v.object({ message: v.string() })),
-            },
-          },
-        },
-      },
-    }),
-    validator("param", v.object({ id: v.string() })),
-    workspaceAccess.fromTask(),
-    requireWorkspacePermission({ task: ["update"] }),
-    async (c) => {
-      const { id } = c.req.valid("param");
-      const userId = c.get("userId");
-      const apiKey = c.get("apiKey");
-
-      const result = await claimTask({
-        taskId: id,
-        userId,
-        agentKeyId: apiKey?.id,
-        agentRole: apiKey?.agentRole,
-      });
-
-      return c.json(result);
-    },
-  )
-  .post(
-    "/claim-next",
-    describeRoute({
-      operationId: "claimNextTask",
-      tags: ["Tasks"],
-      description:
-        "Find and atomically claim the best available to-do task across the caller's team projects",
-      responses: {
-        200: {
-          description: "Task claimed successfully",
-          content: {
-            "application/json": { schema: resolver(v.any()) },
-          },
-        },
-        404: {
-          description: "No unclaimed tasks available",
-          content: {
-            "application/json": {
-              schema: resolver(v.object({ message: v.string() })),
-            },
-          },
-        },
-      },
-    }),
-    validator(
-      "json",
-      v.object({
-        projectId: v.optional(v.string()),
-        priorities: v.optional(v.array(v.string())),
-      }),
-    ),
-    async (c) => {
-      const userId = c.get("userId");
-      const apiKey = c.get("apiKey");
-      const body = c.req.valid("json");
-
-      const result = await claimNextTask({
-        userId,
-        agentKeyId: apiKey?.id,
-        projectId: body.projectId,
-        priorities: body.priorities,
-      });
-
-      if (!result) {
-        return c.json({ message: "No unclaimed tasks available" }, 404);
-      }
-
-      return c.json(result);
-    },
-  )
+  // /claim/:id is registered earlier (line ~199) — do not re-register.
+  // /claim-next is registered earlier (line ~241) — do not re-register.
   .post(
     "/pause/:id",
     describeRoute({
