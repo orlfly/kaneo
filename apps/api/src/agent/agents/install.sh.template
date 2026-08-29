@@ -2,14 +2,15 @@
 #
 # Kaneo Agent Configuration Installer
 #
-# 为单个 agent 工具实例设定一个人格角色。opencode / claude code / codex 是
-# agent 工具，"角色"是通过主指令文件设定的工作人格（模式/性格/能力）。
-# 一个工具实例对应一个人格。
+# 为单个 agent 工具实例设定一个人格角色。opencode / claude code / codex /
+# jcode 是 agent 工具，"角色"是通过主指令文件设定的工作人格（模式/性格/
+# 能力）。一个工具实例对应一个人格。
 #
 # 工具 → 主指令文件映射：
 #   opencode  → .opencode/AGENT.md
 #   claude    → CLAUDE.md
 #   codex     → AGENTS.md
+#   jcode     → AGENTS.md (与 codex 共享同一主指令文件，但 skills 各自隔离)
 #
 # 用法：
 #   ./install.sh --agent <tool> --role <name>    # 为指定工具设定角色人格
@@ -63,7 +64,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     *)
       echo "未知参数: $1"
-      echo "用法: ./install.sh [--target <dir>] --agent opencode|claude|codex --role <name>"
+      echo "用法: ./install.sh [--target <dir>] --agent opencode|claude|codex|jcode --role <name>"
       exit 1
       ;;
   esac
@@ -79,7 +80,7 @@ TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
 
 # 校验必须指定 agent 工具
 if [[ -z "$AGENT" ]]; then
-  echo "错误: 必须指定 --agent (opencode / claude / codex)"
+  echo "错误: 必须指定 --agent (opencode / claude / codex / jcode)"
   exit 1
 fi
 
@@ -106,9 +107,9 @@ fi
 
 # 校验 agent 工具有效性
 case "$AGENT" in
-  opencode|claude|codex) ;;
+  opencode|claude|codex|jcode) ;;
   *)
-    echo "不支持的 agent 工具: ${AGENT}（可选: opencode / claude / codex）"
+    echo "不支持的 agent 工具: ${AGENT}（可选: opencode / claude / codex / jcode）"
     exit 1
     ;;
 esac
@@ -229,6 +230,13 @@ case "$AGENT" in
     cp "$ROLE_SRC" "${TARGET_DIR}/AGENTS.md"
     echo "  ✓ ${ROLE} 人格写入 AGENTS.md"
     install_skills "${TARGET_DIR}/.codex/skills" "${ROLE}"
+    ;;
+  jcode)
+    # jcode 主指令文件: AGENTS.md（与 codex 同名，skills 目录隔离）
+    backup_if_exists "${TARGET_DIR}/AGENTS.md"
+    cp "$ROLE_SRC" "${TARGET_DIR}/AGENTS.md"
+    echo "  ✓ ${ROLE} 人格写入 AGENTS.md"
+    install_skills "${TARGET_DIR}/.jcode/skills" "${ROLE}"
     ;;
 esac
 
