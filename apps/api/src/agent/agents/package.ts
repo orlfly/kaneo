@@ -73,6 +73,19 @@ export async function buildAgentConfigZip(
       await writeFile(path.join(destDir, "SKILL.md"), content, "utf8");
     }
 
+    // Include the third-party attribution file at the zip root so
+    // downstream recipients see upstream licenses and copyrights alongside
+    // the SKILL.md files (satisfies MIT §1 and Apache 2.0 §4a/§4b).
+    const noticesSrc = path.join(skillsSrc, "THIRD_PARTY_NOTICES.md");
+    try {
+      const notices = await readFile(noticesSrc, "utf8");
+      await writeFile(path.join(stagingDir, "THIRD_PARTY_NOTICES.md"), notices, "utf8");
+    } catch {
+      // THIRD_PARTY_NOTICES.md is optional: absence is fine when no
+      // third-party skills are bundled. Surface only if it is present
+      // but unreadable.
+    }
+
     // Copy install.sh template
     const installSh = await readFile(INSTALL_SH_TEMPLATE, "utf8");
     await writeFile(path.join(stagingDir, "install.sh"), installSh, "utf8");
