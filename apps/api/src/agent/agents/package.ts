@@ -79,7 +79,11 @@ export async function buildAgentConfigZip(
     const noticesSrc = path.join(skillsSrc, "THIRD_PARTY_NOTICES.md");
     try {
       const notices = await readFile(noticesSrc, "utf8");
-      await writeFile(path.join(stagingDir, "THIRD_PARTY_NOTICES.md"), notices, "utf8");
+      await writeFile(
+        path.join(stagingDir, "THIRD_PARTY_NOTICES.md"),
+        notices,
+        "utf8",
+      );
     } catch {
       // THIRD_PARTY_NOTICES.md is optional: absence is fine when no
       // third-party skills are bundled. Surface only if it is present

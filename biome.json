@@ -29,7 +29,8 @@
 			"!**/.jcode",
 			"!**/.pi",
 			"!**/.pi-subagents",
-			"!**/openapi.json"
+			"!**/openapi.json",
+			"!skills"
 		]
 	},
 	"formatter": {
