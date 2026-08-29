@@ -30,7 +30,8 @@
 			"!**/.pi",
 			"!**/.pi-subagents",
 			"!**/openapi.json",
-			"!skills"
+			"!skills",
+			"!apps/api/drizzle/meta/_journal.json"
 		]
 	},
 	"formatter": {
