@@ -1,0 +1,241 @@
+#!/usr/bin/env bash
+#
+# Kaneo Agent Configuration Installer
+#
+# 为单个 agent 工具实例设定一个人格角色。opencode / claude code / codex 是
+# agent 工具，"角色"是通过主指令文件设定的工作人格（模式/性格/能力）。
+# 一个工具实例对应一个人格。
+#
+# 工具 → 主指令文件映射：
+#   opencode  → .opencode/AGENT.md
+#   claude    → CLAUDE.md
+#   codex     → AGENTS.md
+#
+# 用法：
+#   ./install.sh --agent <tool> --role <name>    # 为指定工具设定角色人格
+#   ./install.sh --agent opencode --role coding  # opencode 以 coding 人格工作
+#   ./install.sh -a claude -r testing            # claude code 以 testing 人格工作
+#
+# 可用角色（人格）: coding, product-design, architecture-design, devops,
+#                    ui-design, testing, code-review
+# skills 按所选角色过滤安装：仅安装 SKILL.md frontmatter 中
+# `for_roles` 包含当前角色的 skills。未声明 frontmatter 的 skills 视为
+# 通用，安装到所有角色。已存在的文件会备份为 <file>.bak，不会丢失。
+
+set -euo pipefail
+
+# 脚本所在目录（解压后的包根目录）
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# 目标目录 = 当前工作目录（可用 --target 覆盖）
+TARGET_DIR="$(pwd)"
+
+# 有效角色集合（Kaneo requiredRole）
+VALID_ROLES=("coding" "product-design" "architecture-design" "devops" "ui-design" "testing" "code-review")
+
+# 解析参数
+AGENT=""
+ROLE=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --agent)
+      AGENT="$2"
+      shift 2
+      ;;
+    -a)
+      AGENT="$2"
+      shift 2
+      ;;
+    --role)
+      ROLE="$2"
+      shift 2
+      ;;
+    -r)
+      ROLE="$2"
+      shift 2
+      ;;
+    --target)
+      TARGET_DIR="$2"
+      shift 2
+      ;;
+    -t)
+      TARGET_DIR="$2"
+      shift 2
+      ;;
+    *)
+      echo "未知参数: $1"
+      echo "用法: ./install.sh [--target <dir>] --agent opencode|claude|codex --role <name>"
+      exit 1
+      ;;
+  esac
+done
+
+# 确保目标目录存在
+if [[ ! -d "$TARGET_DIR" ]]; then
+  echo "目标目录不存在: ${TARGET_DIR}"
+  exit 1
+fi
+# 转为绝对路径
+TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
+
+# 校验必须指定 agent 工具
+if [[ -z "$AGENT" ]]; then
+  echo "错误: 必须指定 --agent (opencode / claude / codex)"
+  exit 1
+fi
+
+# 校验必须指定角色人格
+if [[ -z "$ROLE" ]]; then
+  echo "错误: 必须指定 --role (人格角色)"
+  echo "可用角色: ${VALID_ROLES[*]}"
+  exit 1
+fi
+
+# 校验角色有效性
+role_valid=false
+for valid in "${VALID_ROLES[@]}"; do
+  if [[ "$ROLE" == "$valid" ]]; then
+    role_valid=true
+    break
+  fi
+done
+if [[ "$role_valid" == "false" ]]; then
+  echo "无效角色: ${ROLE}"
+  echo "有效角色: ${VALID_ROLES[*]}"
+  exit 1
+fi
+
+# 校验 agent 工具有效性
+case "$AGENT" in
+  opencode|claude|codex) ;;
+  *)
+    echo "不支持的 agent 工具: ${AGENT}（可选: opencode / claude / codex）"
+    exit 1
+    ;;
+esac
+
+# 角色定义文件（zip 包内 roles/<role>/AGENTS.md）
+ROLE_SRC="${SCRIPT_DIR}/roles/${ROLE}/AGENTS.md"
+if [[ ! -f "$ROLE_SRC" ]]; then
+  echo "角色定义文件缺失: ${ROLE_SRC}"
+  exit 1
+fi
+
+backup_if_exists() {
+  local file="$1"
+  if [ -e "$file" ]; then
+    local bak="${file}.bak"
+    # 避免重复备份：如果 .bak 已存在，先移除旧的
+    if [ -e "$bak" ]; then
+      rm -f "$bak"
+    fi
+    mv "$file" "$bak"
+    echo "  备份: ${file} -> ${bak}"
+  fi
+}
+
+# 读取 SKILL.md 顶部的 for_roles frontmatter
+# 输出：单行数组 "[a, b, c]"，如果没有 frontmatter 则输出空字符串
+read_skill_for_roles() {
+  local skill_md="$1"
+  awk '
+    BEGIN { in_fm = 0; saw_open = 0 }
+    /^---$/ {
+      if (saw_open == 0) { saw_open = 1; in_fm = 1; next }
+      else if (in_fm == 1) { in_fm = 0; exit }
+    }
+    in_fm == 1 && /^for_roles:/ {
+      sub(/^for_roles:[ \t]*/, "", $0)
+      print
+      exit
+    }
+  ' "$skill_md"
+}
+
+# 判断当前角色是否在 for_roles 列表中
+# 用法：role_in_list "<role>" "<for_roles_line>"
+# for_roles_line 形如 "[coding, testing, devops]"
+role_in_list() {
+  local role="$1"
+  local line="$2"
+  if [[ -z "$line" ]]; then
+    return 0  # 空行 = 无 frontmatter = 通用
+  fi
+  # 去掉首尾的 [ ]
+  local stripped="${line#[}"
+  stripped="${stripped%]}"
+  # 逗号分隔遍历
+  local IFS=','
+  for item in $stripped; do
+    # 去掉空格
+    item="${item// /}"
+    if [[ "$item" == "$role" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+# 安装 skills 到指定工具的 skills 目录
+# 用法：install_skills <skills_dir> <role>
+install_skills() {
+  local skills_dir="$1"
+  local role="$2"
+  echo "安装 skills（按角色 ${role} 过滤）..."
+  mkdir -p "${skills_dir}"
+  for skill_dir in "${SCRIPT_DIR}/skills"/*/; do
+    skill="$(basename "${skill_dir}")"
+    if [ -f "${skill_dir}/SKILL.md" ]; then
+      local for_roles_line
+      for_roles_line="$(read_skill_for_roles "${skill_dir}/SKILL.md")"
+      if role_in_list "${role}" "${for_roles_line}"; then
+        mkdir -p "${skills_dir}/${skill}"
+        backup_if_exists "${skills_dir}/${skill}/SKILL.md"
+        cp "${skill_dir}/SKILL.md" "${skills_dir}/${skill}/SKILL.md"
+        echo "  ✓ ${skill}"
+      else
+        echo "  跳过 ${skill}（for_roles 不含 ${role}）"
+      fi
+    fi
+  done
+}
+
+echo "Kaneo Agent Configuration Installer"
+echo "===================================="
+echo "目标目录: ${TARGET_DIR}"
+echo "agent 工具: ${AGENT}"
+echo "角色人格: ${ROLE}"
+echo ""
+
+# 根据 agent 工具写入主指令文件
+case "$AGENT" in
+  opencode)
+    # opencode 主指令文件: .opencode/AGENT.md
+    mkdir -p "${TARGET_DIR}/.opencode"
+    backup_if_exists "${TARGET_DIR}/.opencode/AGENT.md"
+    cp "$ROLE_SRC" "${TARGET_DIR}/.opencode/AGENT.md"
+    echo "  ✓ ${ROLE} 人格写入 .opencode/AGENT.md"
+    install_skills "${TARGET_DIR}/.opencode/skills" "${ROLE}"
+    ;;
+  claude)
+    # claude code 主指令文件: CLAUDE.md
+    backup_if_exists "${TARGET_DIR}/CLAUDE.md"
+    cp "$ROLE_SRC" "${TARGET_DIR}/CLAUDE.md"
+    echo "  ✓ ${ROLE} 人格写入 CLAUDE.md"
+    install_skills "${TARGET_DIR}/.claude/skills" "${ROLE}"
+    ;;
+  codex)
+    # codex 主指令文件: AGENTS.md
+    backup_if_exists "${TARGET_DIR}/AGENTS.md"
+    cp "$ROLE_SRC" "${TARGET_DIR}/AGENTS.md"
+    echo "  ✓ ${ROLE} 人格写入 AGENTS.md"
+    install_skills "${TARGET_DIR}/.codex/skills" "${ROLE}"
+    ;;
+esac
+
+echo ""
+echo "✅ 安装完成！"
+echo ""
+echo "下一步："
+echo "  1. 在项目仓库根目录运行 ${AGENT}，即以「${ROLE}」人格工作"
+echo "  2. 配置 Kaneo API key（环境变量 KANEO_API_KEY）供 agent 认领任务"
+echo "  3. 参考对应工具的 skills/claim-task/SKILL.md 了解任务认领流程"
