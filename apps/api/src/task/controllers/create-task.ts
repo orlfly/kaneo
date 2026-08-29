@@ -1,3 +1,4 @@
+import type { AgentRole } from "@kaneo/permissions";
 import { and, eq, max } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
@@ -17,6 +18,7 @@ async function createTask({
   description,
   priority,
   requiredRole,
+  agentRole,
 }: {
   projectId: string;
   currentUserId: string;
@@ -28,9 +30,13 @@ async function createTask({
   description?: string;
   priority?: string;
   requiredRole?: string | null;
+  agentRole?: AgentRole;
 }) {
   const resolvedStatus = status || "to-do";
   const resolvedPriority = priority || "no-priority";
+  // When an agent creates a task without an explicit requiredRole, default it
+  // to the agent's own role so the same-role agent handles it.
+  const resolvedRequiredRole = requiredRole ?? agentRole ?? null;
 
   const normalizedUserId = userId?.trim() || undefined;
 
@@ -85,7 +91,7 @@ async function createTask({
         priority: resolvedPriority,
         number: taskNumber,
         position: nextPosition,
-        requiredRole: requiredRole ?? null,
+        requiredRole: resolvedRequiredRole,
       })
       .returning();
 

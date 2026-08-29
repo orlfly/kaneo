@@ -1,10 +1,18 @@
 ---
 name: "OPSX: Update"
 description: Update a change - revise existing planning artifacts and keep them coherent (Experimental)
-allowed-tools: Bash(openspec:*)
+allowed-tools: bash(openspec:*)
 category: Workflow
 tags: [workflow, artifacts, experimental]
 ---
+
+> **jcode-compatible fork note**
+> Rewritten to run under any agent (including jcode). Original saved as
+> `update.md.original`. If you regenerate from `openspec`, re-apply this patch.
+>
+> Changes vs. upstream:
+> - `allowed-tools: Bash(openspec:*)` (Claude Code) → `allowed-tools: bash(openspec:*)` (jcode / generic shell)
+> - `Use the **AskUserQuestion tool**` → numbered list prompt any agent can render
 
 Revise a change's existing planning artifacts and keep them coherent. Never edit code.
 
@@ -16,7 +24,7 @@ Revise a change's existing planning artifacts and keep them coherent. Never edit
 
 1. **If no change name provided, prompt for selection**
 
-   Run `openspec list --json` to get available changes sorted by most recently modified. Then use the **AskUserQuestion tool** to let the user select which change to update.
+   Run `openspec list --json` to get available changes sorted by most recently modified. Present the top 3–4 most recently modified changes as a numbered list (name, schema or "spec-driven", status e.g. "0/5 tasks" / "complete" / "no tasks", `lastModified`). Mark the most recently modified one as "(Recommended)". Wait for the user to reply with a number or change name before proceeding. **Do NOT guess or auto-select a change. Always let the user choose.**
 
    Present the top 3-4 most recently modified changes as options, showing:
    - Change name

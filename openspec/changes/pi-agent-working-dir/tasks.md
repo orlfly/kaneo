@@ -50,18 +50,45 @@
 
 ## 8. MCP 镜像注册（可选/后续）
 
-- [ ] 8.1 在 `apps/api/src/mcp/tools.ts`（modern）镜像注册 agent 工具（走对话工具同一实现）
-- [ ] 8.2 在 `packages/mcp/src/tools/register.ts`（legacy）镜像注册
-- [ ] 8.3 更新 MCP/对话工具清单测试
+- [x] 8.1 在 `apps/api/src/mcp/tools.ts`（modern）镜像注册 agent 工具（走对话工具同一实现）
+- [x] 8.2 在 `packages/mcp/src/tools/register.ts`（legacy）镜像注册
+- [x] 8.3 更新 MCP/对话工具清单测试
 
 ## 9. i18n 与文档
 
 - [x] 9.1 `i18n/en-US.json` 新增 `chat` attachFile/fileUploaded/uploadError 文案
 - [x] 9.2 `i18n/check --fix` 同步 16 个 locale
-- [ ] 9.3 更新 `apps/docs/core/functional/chat-with-ai-assistant.mdx`：说明新能力与安全注意
+- [x] 9.3 更新 `apps/docs/core/functional/chat-with-ai-assistant.mdx`：说明新能力与安全注意
 
 ## 10. 验证收尾
 
 - [x] 10.1 API typecheck、agent+chat 测试全绿；受影响文件 biome 干净
-- [ ] 10.2 端到端（本地内网 GitLab）：`agent_clone_repo` 克隆 `ki-agent-v2` → `agent_search_files` 搜索 → `agent_read_file` 读源码 → 上传文件
-- [ ] 10.3 明确记录：生产容器默认无持久卷，工作目录在容器本地；`enableCommandExecution` 默认关闭
+- [x] 10.2 端到端（本地内网 GitLab）：`agent_clone_repo` 克隆 `ki-agent-v2` → `agent_search_files` 搜索 → `agent_read_file` 读源码 → 上传文件
+- [x] 10.3 明确记录：生产容器默认无持久卷，工作目录在容器本地；`enableCommandExecution` 默认关闭
+
+### 10.2 端到端验证记录（本地内网 GitLab，2026-08-28）
+
+在本机 dev 实例（API 1337）上，用已登录浏览器会话携带 cookie 直调项目级 tool-execute 端点，项目
+`ki-agent-v2`（GitLab 集成 `http://gitlab.kingsware.cn`，active）：
+
+| 步骤 | 调用 | 结果 |
+| --- | --- | --- |
+| 克隆/刷新 | `agent_clone_repo` | `{ ok:true, location:"repo", branch:"main", refreshed:true }`（已存在克隆，走 pull 刷新） |
+| 列表 | `agent_list_files path:"repo"` | 返回 `.git`、`README.md`、`apps`、`docs`、`build`、`services`、`portal` 等 |
+| 搜索 | `agent_search_files content:"const"` | 返回多个文件 + 行号（`build/...jar`、`docs/decisions.md` 等） |
+| 读源码 | `agent_read_file path:"repo/README.md"` | 返回内容、`truncated:false`、`bytes:13005` |
+| 写文件 | `agent_write_file uploads/e2e-test.txt` | `{ ok:true, path:"uploads/e2e-test.txt", bytes:36 }`，随后 `agent_read_file` 读回一致，`agent_delete_file` 清理 |
+| 上传 | `POST /api/chat/project/:id/upload` | 200，`{ path:"uploads/note.txt", bytes:16 }`，`agent_read_file` 读回 `"e2e upload check"`，随后清理 |
+| 命令门控 | `agent_run_command echo hi` | 默认关闭 → 返回 `Command execution is not enabled`（符合预期） |
+
+所有调用走统一 tool-execute 分发器，与对话工具同一实现；跨团队/未认证访问在集成测试中已断言 403/401。
+
+### 10.3 运维注意记录
+
+- 生产容器（`node:20-alpine` runtime）**默认无持久卷**，agent 工作目录（默认 `<cwd>/data/agent-workdir`）
+  在容器本地，重启/重建容器会丢失克隆的仓库与上传的文件。需要持久化时，将配置的
+  `workdirRoot` 指向挂载的 PVC/emptyDir（或 Helm 加卷），并在 `chat_config` 里设置。
+- `enableCommandExecution` **默认关闭**；启用需管理员在 **Settings → System → AI** 显式开启，
+  且仅影响该实例。命令以项目工作目录为 `cwd` 运行，带超时（默认 60s）与输出上限。
+- 路径沙箱：所有文件工具经 `resolveInProject` 集中校验，杜绝穿越项目目录读任意文件。
+

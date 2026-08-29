@@ -4,7 +4,9 @@ import {
   type AgentRole,
   DEFAULT_AGENT_ROLE,
   DEFAULT_TEAM_ROLE,
+  HUMAN_REQUIRED_ROLE,
   isAgentRole,
+  isHumanRequiredRole,
   isTeamRole,
   TEAM_ROLES,
   type TeamRole,
@@ -61,5 +63,27 @@ describe("@kaneo/permissions agent roles", () => {
     expect(isAgentRole({ role: "testing" } satisfies { role: AgentRole })).toBe(
       false,
     );
+  });
+});
+
+describe("@kaneo/permissions human-only marker", () => {
+  it("uses the literal 'human' as the marker constant", () => {
+    expect(HUMAN_REQUIRED_ROLE).toBe("human");
+  });
+
+  it("does not appear in AGENT_ROLES", () => {
+    expect(AGENT_ROLES).not.toContain("human");
+  });
+
+  it("is rejected by isAgentRole", () => {
+    expect(isAgentRole("human")).toBe(false);
+  });
+
+  it("is detected by isHumanRequiredRole and rejects other inputs", () => {
+    expect(isHumanRequiredRole("human")).toBe(true);
+    expect(isHumanRequiredRole("coding")).toBe(false);
+    expect(isHumanRequiredRole(null)).toBe(false);
+    expect(isHumanRequiredRole(undefined)).toBe(false);
+    expect(isHumanRequiredRole("")).toBe(false);
   });
 });

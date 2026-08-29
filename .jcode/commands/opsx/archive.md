@@ -1,10 +1,19 @@
 ---
 name: "OPSX: Archive"
 description: Archive a completed change in the experimental workflow
-allowed-tools: Bash(openspec:*)
+allowed-tools: bash(openspec:*)
 category: Workflow
 tags: [workflow, archive, experimental]
 ---
+
+> **jcode-compatible fork note**
+> Rewritten to run under any agent (including jcode). Original saved as
+> `archive.md.original`. If you regenerate from `openspec`, re-apply this patch.
+>
+> Changes vs. upstream:
+> - `allowed-tools: Bash(openspec:*)` (Claude Code) → `allowed-tools: bash(openspec:*)` (jcode / generic shell)
+> - `Use the **AskUserQuestion tool**` → numbered list prompt any agent can render
+> - `Task tool (subagent_type: "general-purpose", … Skill tool …)` → inline execution
 
 Archive a completed change in the experimental workflow.
 
@@ -16,7 +25,7 @@ Archive a completed change in the experimental workflow.
 
 1. **If no change name provided, prompt for selection**
 
-   Run `openspec list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   Run `openspec list --json` to get available changes. Present them as a numbered list (name, schema, status, `lastModified` if available) and wait for the user to reply with a number or change name before proceeding. **Do NOT guess or auto-select a change. Always let the user choose.**
 
    Show only active changes (not already archived).
    Include the schema used for each change if available.
@@ -63,7 +72,7 @@ Archive a completed change in the experimental workflow.
    - If changes needed: "Sync now (recommended)", "Archive without syncing"
    - If already synced: "Archive now", "Sync anyway", "Cancel"
 
-   If user chooses sync, use Task tool (subagent_type: "general-purpose", prompt: "Use Skill tool to invoke openspec-sync-specs for change '<name>'. Delta spec analysis: <include the analyzed delta spec summary>"). Proceed to archive regardless of choice.
+   If the user chooses sync, run the openspec-sync-specs flow inline (read the delta spec summary produced above and follow the same merging steps described in the openspec-sync-specs skill — agent-driven, no subagent dispatch). Proceed to archive regardless of choice.
 
 5. **Perform the archive**
 
@@ -157,5 +166,5 @@ Target archive directory already exists.
 - Don't block archive on warnings - just inform and confirm
 - Preserve .openspec.yaml when moving to archive (it moves with the directory)
 - Show clear summary of what happened
-- If sync is requested, use the Skill tool to invoke `openspec-sync-specs` (agent-driven)
+- If sync is requested, run the openspec-sync-specs flow inline (read delta specs, merge into main specs as that skill instructs — agent-driven, not subagent-dispatched)
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting

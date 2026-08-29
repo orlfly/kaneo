@@ -1,5 +1,10 @@
-import type { AgentRole } from "@kaneo/permissions";
-import { BotIcon } from "lucide-react";
+import {
+  type AgentRole,
+  HUMAN_REQUIRED_ROLE,
+  isAgentRole,
+  isHumanRequiredRole,
+} from "@kaneo/permissions";
+import { BotIcon, UserIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
@@ -23,23 +28,34 @@ type TaskRoleBadgeProps = {
   className?: string;
 };
 
-function isAgentRole(value: string): value is AgentRole {
-  return (
-    value === "coding" ||
-    value === "product-design" ||
-    value === "architecture-design" ||
-    value === "devops" ||
-    value === "ui-design" ||
-    value === "testing" ||
-    value === "code-review"
-  );
-}
-
 export function TaskRoleBadge({ requiredRole, className }: TaskRoleBadgeProps) {
   const { t } = useTranslation();
   if (!requiredRole) return null;
-  const role = isAgentRole(requiredRole) ? requiredRole : null;
-  if (!role) return null;
+
+  // Human-only tasks get a distinct neutral badge so they stand apart from
+  // the agent-role badges. The agentRole branches below fall through to a
+  // role-coloured badge.
+  if (isHumanRequiredRole(requiredRole)) {
+    return (
+      <span
+        data-testid="task-role-badge"
+        data-role={HUMAN_REQUIRED_ROLE}
+        className={cn(
+          "inline-flex items-center gap-1 rounded border px-2 py-1 text-[10px] font-medium",
+          "border-zinc-300/60 bg-zinc-500/10 text-zinc-700 dark:text-zinc-300",
+          className,
+        )}
+      >
+        <UserIcon className="w-3 h-3" />
+        <span>
+          {t("tasks:agentRoles.human.name", { defaultValue: "Human-only" })}
+        </span>
+      </span>
+    );
+  }
+
+  if (!isAgentRole(requiredRole)) return null;
+  const role = requiredRole;
   return (
     <span
       data-testid="task-role-badge"

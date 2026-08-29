@@ -19,6 +19,7 @@ import {
   projectTable,
   taskTable,
 } from "../database/schema";
+import updateTaskStatus from "../task/controllers/update-task-status";
 import { vcsListPullRequests } from "../vcs";
 import { resolveVcsIntegration, type VcsType } from "../vcs/resolve";
 import { loadChatConfig } from "./config";
@@ -69,7 +70,7 @@ export const toolDefinitions: ChatCompletionTool[] = [
     function: {
       name: "create_task",
       description:
-        "Create a new task in the current project. Requires a title. Optionally set priority and status.",
+        "Create a new task in the current project. Requires a title. Optionally set priority, status, description, and requiredRole (agent role).",
       parameters: {
         type: "object",
         properties: {
@@ -86,8 +87,45 @@ export const toolDefinitions: ChatCompletionTool[] = [
             type: "string",
             description: "Optional task description in markdown",
           },
+          requiredRole: {
+            type: "string",
+            description:
+              "Agent role required for this task: coding, product-design, architecture-design, devops, ui-design, testing, or code-review. Omit for any agent.",
+            enum: [
+              "coding",
+              "product-design",
+              "architecture-design",
+              "devops",
+              "ui-design",
+              "testing",
+              "code-review",
+            ],
+          },
         },
         required: ["title"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_task_status",
+      description:
+        "Update the status of an existing task in the current project. Use this to complete a task (set status to 'done') or close/archive a task (set status to 'archived'), or move a task to another valid project status. The task status must be one of the project's valid statuses (e.g. to-do, in-progress, done, archived, planned, paused).",
+      parameters: {
+        type: "object",
+        properties: {
+          taskId: {
+            type: "string",
+            description: "The ID of the task to update",
+          },
+          status: {
+            type: "string",
+            description:
+              "The target status. Use 'done' to complete a task or 'archived' to close it. Other valid project statuses are also accepted.",
+          },
+        },
+        required: ["taskId", "status"],
       },
     },
   },
@@ -249,6 +287,7 @@ export async function executeTool(
   toolName: string,
   args: Record<string, unknown>,
   projectId: string,
+  userId: string,
 ): Promise<string> {
   switch (toolName) {
     case "list_tasks":
@@ -257,6 +296,8 @@ export async function executeTool(
       return getTask(projectId, String(args.taskId));
     case "create_task":
       return createTask(projectId, args);
+    case "update_task_status":
+      return updateTaskStatusTool(projectId, args, userId);
     case "get_project_summary":
       return getProjectSummary(projectId);
     case "list_blocked_tasks":
@@ -354,6 +395,8 @@ async function createTask(
 
   const taskId = createId();
   const now = new Date();
+  const requiredRole =
+    typeof args.requiredRole === "string" ? args.requiredRole : null;
 
   await db.insert(taskTable).values({
     id: taskId,
@@ -364,11 +407,57 @@ async function createTask(
     status: typeof args.status === "string" ? args.status : "to-do",
     priority: typeof args.priority === "string" ? args.priority : "low",
     columnId: firstColumn?.id ?? null,
+    requiredRole,
     createdAt: now,
     updatedAt: now,
   });
 
   return JSON.stringify({ id: taskId, title, created: true });
+}
+
+async function updateTaskStatusTool(
+  projectId: string,
+  args: Record<string, unknown>,
+  userId: string,
+): Promise<string> {
+  const taskId = String(args.taskId ?? "").trim();
+  const status = String(args.status ?? "").trim();
+  if (!taskId || !status) {
+    return JSON.stringify({ error: "Both taskId and status are required" });
+  }
+
+  // Ensure the task belongs to the current project so pi-agent stays scoped.
+  const [task] = await db
+    .select({ id: taskTable.id, projectId: taskTable.projectId })
+    .from(taskTable)
+    .where(eq(taskTable.id, taskId))
+    .limit(1);
+  if (!task || task.projectId !== projectId) {
+    return JSON.stringify({ error: "Task not found in this project" });
+  }
+
+  try {
+    const updated = await updateTaskStatus({
+      id: taskId,
+      status,
+      currentUserId: userId,
+    });
+    return JSON.stringify(
+      {
+        ok: true,
+        id: updated.id,
+        title: updated.title,
+        status: updated.status,
+      },
+      null,
+      2,
+    );
+  } catch (error) {
+    return JSON.stringify({
+      error:
+        error instanceof Error ? error.message : "Failed to update task status",
+    });
+  }
 }
 
 async function getProjectSummary(projectId: string): Promise<string> {

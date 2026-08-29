@@ -1,7 +1,7 @@
 ---
 name: openspec-sync-specs
 description: Sync delta specs from a change to main specs. Use when the user wants to update main specs with changes from a delta spec, without archiving the change.
-allowed-tools: Bash(openspec:*)
+allowed-tools: bash(openspec:*)
 license: MIT
 compatibility: Requires openspec CLI.
 metadata:
@@ -9,6 +9,14 @@ metadata:
   version: "1.0"
   generatedBy: "1.6.0"
 ---
+
+> **jcode-compatible fork note**
+> Rewritten to run under any agent (including jcode). Original saved as
+> `SKILL.md.original`. If you regenerate from `openspec`, re-apply this patch.
+>
+> Changes vs. upstream:
+> - `allowed-tools: Bash(openspec:*)` (Claude Code) → `allowed-tools: bash(openspec:*)` (jcode / generic shell)
+> - `Use the **AskUserQuestion tool**` → numbered list prompt any agent can render
 
 Sync delta specs from a change to main specs.
 
@@ -22,7 +30,7 @@ This is an **agent-driven** operation - you will read delta specs and directly e
 
 1. **If no change name provided, prompt for selection**
 
-   Run `openspec list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   Run `openspec list --json` to get available changes. Present them as a numbered list (showing only changes with delta specs under `specs/`) and wait for the user to reply with a number or change name before proceeding. **Do NOT guess or auto-select a change. Always let the user choose.**
 
    Show changes that have delta specs (under `specs/` directory).
 

@@ -11,7 +11,6 @@ WORKDIR /app
 # Copy only package files first for better caching
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY packages/typescript-config/package.json ./packages/typescript-config/
-COPY packages/email/package.json ./packages/email/
 COPY packages/libs/package.json ./packages/libs/
 COPY packages/permissions/package.json ./packages/permissions/
 COPY apps/api/package.json ./apps/api/
@@ -21,15 +20,10 @@ RUN pnpm install --frozen-lockfile
 
 # Copy source files
 COPY packages/typescript-config ./packages/typescript-config
-COPY packages/email ./packages/email
 COPY packages/libs ./packages/libs
 COPY packages/permissions ./packages/permissions
 COPY i18n ./i18n
 COPY apps/api ./apps/api
-
-# Build email package first
-WORKDIR /app/packages/email
-RUN pnpm run build
 
 # Build permissions package
 WORKDIR /app/packages/permissions
@@ -52,7 +46,6 @@ WORKDIR /app
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/libs/package.json ./packages/libs/
-COPY packages/email/package.json ./packages/email/
 COPY packages/permissions/package.json ./packages/permissions/
 COPY apps/api/package.json ./apps/api/
 
@@ -77,7 +70,6 @@ COPY --from=prod-deps --chown=appuser:appuser /app ./
 # Built application and workspace packages
 COPY --from=builder --chown=appuser:appuser /app/apps/api/dist ./apps/api/dist
 COPY --from=builder --chown=appuser:appuser /app/apps/api/drizzle ./apps/api/drizzle
-COPY --from=builder --chown=appuser:appuser /app/packages/email ./packages/email
 COPY --from=builder --chown=appuser:appuser /app/packages/permissions ./packages/permissions
 
 # Fail the build early if the runtime dependency layout is broken on the target architecture

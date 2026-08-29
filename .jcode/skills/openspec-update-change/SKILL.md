@@ -1,7 +1,7 @@
 ---
 name: openspec-update-change
 description: Update an OpenSpec change by revising its existing planning artifacts and keeping them coherent with one another. Use when the user wants to revise a change's plan, fold new decisions into it, or reconcile its artifacts after an edit. Never edits code.
-allowed-tools: Bash(openspec:*)
+allowed-tools: bash(openspec:*)
 license: MIT
 compatibility: Requires openspec CLI.
 metadata:
@@ -9,6 +9,14 @@ metadata:
   version: "1.0"
   generatedBy: "1.6.0"
 ---
+
+> **jcode-compatible fork note**
+> Rewritten to run under any agent (including jcode). Original saved as
+> `SKILL.md.original`. If you regenerate from `openspec`, re-apply this patch.
+>
+> Changes vs. upstream:
+> - `allowed-tools: Bash(openspec:*)` (Claude Code) → `allowed-tools: bash(openspec:*)` (jcode / generic shell)
+> - `Use the **AskUserQuestion tool**` → numbered list prompt any agent can render
 
 Revise a change's existing planning artifacts and keep them coherent. Never edit code.
 
@@ -20,7 +28,7 @@ Revise a change's existing planning artifacts and keep them coherent. Never edit
 
 1. **If no change name provided, prompt for selection**
 
-   Run `openspec list --json` to get available changes sorted by most recently modified. Then use the **AskUserQuestion tool** to let the user select which change to update.
+   Run `openspec list --json` to get available changes sorted by most recently modified. Present the top 3–4 most recently modified changes as a numbered list (name, schema or "spec-driven", status e.g. "0/5 tasks" / "complete" / "no tasks", `lastModified`). Mark the most recently modified one as "(Recommended)". Wait for the user to reply with a number or change name before proceeding. **Do NOT guess or auto-select a change. Always let the user choose.**
 
    Present the top 3-4 most recently modified changes as options, showing:
    - Change name

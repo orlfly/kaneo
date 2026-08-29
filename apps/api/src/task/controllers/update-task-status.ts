@@ -1,3 +1,4 @@
+import type { AgentRole } from "@kaneo/permissions";
 import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
@@ -9,10 +10,12 @@ async function updateTaskStatus({
   id,
   status,
   currentUserId,
+  agentRole,
 }: {
   id: string;
   status: string;
   currentUserId: string;
+  agentRole?: AgentRole;
 }) {
   const existingTask = await db.query.taskTable.findFirst({
     where: eq(taskTable.id, id),
@@ -33,9 +36,30 @@ async function updateTaskStatus({
     ),
   });
 
+  // When an agent changes status, keep the task's requiredRole aligned with
+  // the stage it is entering:
+  //   in-progress -> the agent's own role
+  //   in-review   -> code-review (the reviewer)
+  //   done        -> null (completed, no longer needs a role)
+  // Other statuses leave requiredRole untouched.
+  let nextRequiredRole = existingTask.requiredRole;
+  if (agentRole !== undefined) {
+    if (status === "in-progress") {
+      nextRequiredRole = agentRole;
+    } else if (status === "in-review") {
+      nextRequiredRole = "code-review";
+    } else if (status === "done") {
+      nextRequiredRole = null;
+    }
+  }
+
   const [updatedTask] = await db
     .update(taskTable)
-    .set({ status, columnId: column?.id ?? null })
+    .set({
+      status,
+      columnId: column?.id ?? null,
+      requiredRole: nextRequiredRole,
+    })
     .where(eq(taskTable.id, id))
     .returning();
 

@@ -6,6 +6,7 @@ import { requireTeamRole } from "../utils/require-team-role";
 import { teamAccess } from "../utils/team-access-middleware";
 import { type ChatConfig, loadChatConfig, saveChatConfig } from "./config";
 import clearMessages from "./controllers/clear-messages";
+import { executeAgentTool } from "./controllers/execute-tool";
 import listMessages from "./controllers/list-messages";
 import { sendMessage } from "./controllers/send-message";
 import { uploadFile } from "./controllers/upload-file";
@@ -204,6 +205,52 @@ const chat = new Hono<{
       return c.json(
         await uploadFile({ projectId, fileName, contentType, data }),
       );
+    },
+  )
+  .post(
+    "/project/:projectId/tool",
+    describeRoute({
+      operationId: "executeChatTool",
+      tags: ["Chat"],
+      description:
+        "Execute a project-scoped pi-agent tool (agent_clone_repo, agent_read_file, agent_list_files, agent_write_file, agent_search_files, agent_delete_file, agent_run_command). Mirrors the conversation tool set so MCP clients can call the same agent capabilities.",
+      responses: {
+        200: {
+          description: "Tool execution result",
+          content: {
+            "application/json": {
+              schema: resolver(
+                v.object({
+                  result: v.string(),
+                }),
+              ),
+            },
+          },
+        },
+        400: {
+          description: "Validation error",
+          content: {
+            "application/json": {
+              schema: resolver(v.object({ error: v.string() })),
+            },
+          },
+        },
+      },
+    }),
+    validator(
+      "json",
+      v.object({
+        tool: v.string(),
+        args: v.record(v.string(), v.unknown()),
+      }),
+    ),
+    teamAccess.fromProject("projectId"),
+    requireTeamRole("member"),
+    async (c) => {
+      const projectId = c.req.param("projectId");
+      const userId = c.get("userId");
+      const { tool, args } = c.req.valid("json");
+      return c.json(await executeAgentTool({ tool, args, projectId, userId }));
     },
   )
   .delete(

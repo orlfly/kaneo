@@ -1,5 +1,4 @@
 import { createHmac } from "node:crypto";
-import { sendNotificationEmail } from "@kaneo/email";
 import { and, eq } from "drizzle-orm";
 import db from "../database";
 import {
@@ -498,18 +497,6 @@ export async function deliverNotification(
   };
 
   const deliveries: Array<Promise<void>> = [];
-
-  if (decryptedPreference.emailEnabled && rule.emailEnabled && user.email) {
-    deliveries.push(
-      sendNotificationEmail(user.email, content.title, {
-        title: content.title,
-        message: content.body,
-        actionUrl: context.taskUrl,
-        actionLabel: context.taskUrl ? "Open in Kaneo" : undefined,
-        locale: user.locale ?? null,
-      }).then(() => undefined),
-    );
-  }
 
   if (
     decryptedPreference.ntfyEnabled &&

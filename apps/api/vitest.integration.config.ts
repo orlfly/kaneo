@@ -1,4 +1,3 @@
-import { resolve } from "node:path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
@@ -15,13 +14,5 @@ export default defineConfig({
   },
   esbuild: {
     target: "node18",
-  },
-  resolve: {
-    alias: {
-      "@kaneo/email": resolve(
-        __dirname,
-        "../../tests/api-integration/mocks/email.ts",
-      ),
-    },
   },
 });

@@ -1,4 +1,5 @@
 import type { AgentRole } from "@kaneo/permissions";
+import { HUMAN_REQUIRED_ROLE } from "@kaneo/permissions";
 import {
   and,
   asc,
@@ -6,6 +7,7 @@ import {
   eq,
   inArray,
   isNull,
+  ne,
   type SQL,
   sql,
 } from "drizzle-orm";
@@ -72,8 +74,14 @@ export async function claimNextTask({
   // Three-rule candidate matching:
   // 1. Assigned to me (rule 1) — these are picked first via the union below.
   // 2. Unassigned AND role matches: requiredRole IS NULL OR requiredRole = agentRole.
-  // 3. Status is in the claimable set (currently "to-do").
-  const claimableStatuses = ["to-do"] as const;
+  //    For human callers, also include tasks marked requiredRole = "human".
+  // 3. Status is in the claimable set, which depends on the agent's role:
+  //    - code-review agents claim "in-review" tasks (ignoring requiredRole,
+  //      EXCEPT they never claim tasks with requiredRole = "human")
+  //    - all other roles claim "to-do" tasks (respecting requiredRole)
+  //    - human callers claim "to-do" tasks whose requiredRole is null OR "human"
+  const isCodeReview = agentRole === "code-review";
+  const claimableStatuses = isCodeReview ? ["in-review"] : ["to-do"];
 
   // Build a parameterized conditions array, with the assigned-to-me rule
   // expressed as a subquery against the same set.
@@ -92,12 +100,22 @@ export async function claimNextTask({
   ];
   // Rule 2 (role match): only add when the caller's agent role is known,
   // otherwise every unassigned task is implicitly eligible.
-  if (agentRole !== undefined) {
+  // code-review agents still ignore requiredRole but never get a `human`-marked
+  // task. Other agents use the standard null-or-equals clause which already
+  // excludes "human" (it is not equal to any agent role).
+  if (isCodeReview) {
+    baseUnassignedConditions.push(
+      ne(taskTable.requiredRole, HUMAN_REQUIRED_ROLE),
+    );
+  } else if (agentRole !== undefined) {
     baseUnassignedConditions.push(
       sql<boolean>`(${taskTable.requiredRole} IS NULL OR ${taskTable.requiredRole} = ${agentRole})`,
     );
   } else {
-    baseUnassignedConditions.push(isNull(taskTable.requiredRole));
+    // Human caller: take null or human-required tasks.
+    baseUnassignedConditions.push(
+      sql<boolean>`(${taskTable.requiredRole} IS NULL OR ${taskTable.requiredRole} = ${HUMAN_REQUIRED_ROLE})`,
+    );
   }
 
   if (priorities && priorities.length > 0) {

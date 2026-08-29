@@ -79,7 +79,10 @@
 				"title": "新建任务",
 				"description": "通过提供标题、描述等详细信息来创建新任务。",
 				"taskTitlePlaceholder": "任务标题",
+				"titleHelper": "用通俗易懂的语言描述任务",
 				"descriptionPlaceholder": "为任务添加描述…",
+				"descriptionHelper": "请使用「背景 / 验收标准 / 不在范围内」模板，方便评审人客观验收。",
+				"requiredRoleHint": "建议：为任务选择所需代理角色，避免任务无人认领。",
 				"chooseProjectForImages": "上传图片前请先选择项目。",
 				"prepareTaskError": "任务准备失败",
 				"successCreated": "任务创建成功",
@@ -400,38 +403,38 @@
 				"toastDeleteError": "Failed to delete API key"
 			},
 			"createDialog": {
-				"title": "Create API Key",
-				"description": "Create a new API key to access the Kaneo API programmatically.",
-				"nameLabel": "Name",
-				"namePlaceholder": "My API Key",
-				"nameDescription": "A descriptive name for this API key",
-				"expirationLabel": "Expiration",
-				"expirationPlaceholder": "Select expiration",
-				"expirationDescription": "Choose how long this API key should remain valid. Never will create a key without an automatic expiry.",
-				"expiration1d": "1 day",
-				"expiration7d": "7 days",
-				"expiration30d": "30 days",
-				"expiration90d": "90 days",
-				"expirationNever": "Never",
-				"create": "Create",
-				"creating": "Creating...",
-				"failedCreate": "Failed to create API key",
+				"title": "创建 API 密钥",
+				"description": "创建一个新的 API 密钥以编程方式访问 Kaneo。",
+				"nameLabel": "名称",
+				"namePlaceholder": "我的 API 密钥",
+				"nameDescription": "API 密钥的描述性名称",
+				"expirationLabel": "有效期",
+				"expirationPlaceholder": "选择有效期",
+				"expirationDescription": "选择 API 密钥的有效期。选择\"永不过期\"将创建一个没有自动过期的密钥。",
+				"expiration1d": "1 天",
+				"expiration7d": "7 天",
+				"expiration30d": "30 天",
+				"expiration90d": "90 天",
+				"expirationNever": "永不过期",
+				"create": "创建",
+				"creating": "创建中...",
+				"failedCreate": "API 密钥创建失败",
 				"validation": {
-					"nameRequired": "Name is required",
-					"nameShort": "Name must be at least 3 characters",
-					"expirationRequired": "Expiration is required"
+					"nameRequired": "名称为必填项",
+					"nameShort": "名称至少需要 3 个字符",
+					"expirationRequired": "请选择有效期"
 				},
-				"roleLabel": "Agent role",
-				"rolePlaceholder": "Choose an agent role",
-				"roleDescription": "Tasks with this role are the ones this key claims.",
-				"roleCoding": "Coding (default)",
+				"roleLabel": "Agent 角色",
+				"rolePlaceholder": "选择 Agent 角色",
+				"roleDescription": "该 Agent 只会认领与所选角色匹配的任务。",
+				"roleCoding": "Coding (默认)",
 				"role": {
-					"product-design": "Product Design",
-					"architecture-design": "Architecture Design",
-					"devops": "Devops",
-					"ui-design": "UI Design",
-					"testing": "Testing",
-					"code-review": "Code Review"
+					"product-design": "产品设计",
+					"architecture-design": "架构设计",
+					"devops": "运维",
+					"ui-design": "UI 设计",
+					"testing": "测试",
+					"code-review": "代码评审"
 				}
 			}
 		},
@@ -1720,6 +1723,10 @@
 			},
 			"code-review": {
 				"name": "Code Review"
+			},
+			"human": {
+				"name": "Human-only",
+				"description": "Only a human team member can claim this task"
 			}
 		}
 	},

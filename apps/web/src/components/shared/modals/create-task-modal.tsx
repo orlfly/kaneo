@@ -1,4 +1,8 @@
-import { AGENT_ROLES, type AgentRole } from "@kaneo/permissions";
+import {
+  AGENT_ROLES,
+  type AgentRole,
+  HUMAN_REQUIRED_ROLE,
+} from "@kaneo/permissions";
 import { useLocation } from "@tanstack/react-router";
 import { produce } from "immer";
 import {
@@ -183,7 +187,9 @@ function CreateTaskModal({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<Priority>("no-priority");
-  const [requiredRole, setRequiredRole] = useState<AgentRole | null>(null);
+  const [requiredRole, setRequiredRole] = useState<
+    AgentRole | typeof HUMAN_REQUIRED_ROLE | null
+  >(null);
   const [assigneeId, setAssigneeId] = useState("");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
@@ -481,6 +487,15 @@ function CreateTaskModal({
           defaultValue: "Any agent",
         }),
       },
+      // Human-only sits between "Any agent" and the role-specific entries so
+      // it is visually distinct from the agent roles and harder to confuse
+      // with them.
+      {
+        value: HUMAN_REQUIRED_ROLE as typeof HUMAN_REQUIRED_ROLE,
+        label: t("tasks:agentRoles.human.name", {
+          defaultValue: "Human-only",
+        }),
+      },
       ...AGENT_ROLES.map((value) => ({
         value,
         label: t(`tasks:agentRoles.${value}.name`, { defaultValue: value }),
@@ -647,7 +662,7 @@ function CreateTaskModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               autoFocus
-              placeholder={t("common:modals.createTask.taskTitlePlaceholder")}
+              placeholder={t("common:modals.createTask.titleHelper")}
               className="w-full [&_[data-slot=input]]:h-auto [&_[data-slot=input]]:px-0 [&_[data-slot=input]]:py-3 [&_[data-slot=input]]:text-2xl [&_[data-slot=input]]:leading-tight [&_[data-slot=input]]:font-semibold [&_[data-slot=input]]:tracking-tight [&_[data-slot=input]]:text-foreground [&_[data-slot=input]]:placeholder:text-muted-foreground [&_[data-slot=input]]:outline-none"
               required
             />
@@ -663,6 +678,9 @@ function CreateTaskModal({
                 ensureTaskId={ensureDraftTask}
               />
             </div>
+            <p className="text-xs text-muted-foreground -mt-4">
+              {t("common:modals.createTask.descriptionHelper")}
+            </p>
 
             {labels.length > 0 && (
               <div className="flex flex-wrap mb-2">
@@ -826,7 +844,11 @@ function CreateTaskModal({
                         : "text-muted-foreground",
                     )}
                   >
-                    <BotIcon className="w-3.5 h-3.5" />
+                    {requiredRole === HUMAN_REQUIRED_ROLE ? (
+                      <UserIcon className="w-3.5 h-3.5" />
+                    ) : (
+                      <BotIcon className="w-3.5 h-3.5" />
+                    )}
                     <span>
                       {selectedRole
                         ? selectedRole.label
@@ -845,7 +867,11 @@ function CreateTaskModal({
                         className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-accent/50 text-left transition-colors h-8"
                         onClick={() => setRequiredRole(option.value)}
                       >
-                        <BotIcon className="w-3.5 h-3.5" />
+                        {option.value === HUMAN_REQUIRED_ROLE ? (
+                          <UserIcon className="w-3.5 h-3.5" />
+                        ) : (
+                          <BotIcon className="w-3.5 h-3.5" />
+                        )}
                         <span className="text-sm">{option.label}</span>
                         {requiredRole === option.value && (
                           <Check className="ml-auto h-4 w-4" />
@@ -855,6 +881,9 @@ function CreateTaskModal({
                   </div>
                 </PopoverContent>
               </Popover>
+              <span className="text-xs text-muted-foreground">
+                {t("common:modals.createTask.requiredRoleHint")}
+              </span>
 
               <Popover>
                 <PopoverTrigger asChild>

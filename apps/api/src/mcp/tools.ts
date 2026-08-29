@@ -1,4 +1,8 @@
-import { AGENT_ROLES, type AgentRole } from "@kaneo/permissions";
+import {
+  AGENT_ROLES,
+  type AgentRole,
+  HUMAN_REQUIRED_ROLE,
+} from "@kaneo/permissions";
 import { z } from "zod";
 
 type McpToolResult = {
@@ -16,13 +20,49 @@ export type McpToolRegistrar = {
     },
     callback: (args: unknown) => Promise<McpToolResult>,
   ): unknown;
+  registerPrompt?(
+    name: string,
+    config: { title?: string; description?: string },
+    callback: (args: unknown) => Promise<McpPromptResult>,
+  ): unknown;
 };
+
+type McpPromptResult = {
+  messages: Array<{
+    role: "assistant" | "user";
+    content: { type: "text"; text: string };
+  }>;
+};
+
+/**
+ * Shared guidance given to agents before they call create_task. Kept in sync
+ * with the tool description and the API validation (see schemas.ts).
+ */
+const CREATE_TASK_GUIDANCE = `Create high-quality tasks that a manager can scan and another agent can execute without access to your checkout.
+
+Title:
+- Write a plain-English, human-readable sentence (at least 8 chars).
+- NEVER use a branch name, ticket id, or commit SHA as the title.
+- Example: "Refactor OAuth refresh-token handling" not "feat/auth".
+
+Description:
+- Do not just link to a document. The agent that picks up this task may not be able to fetch the latest version from version control, so inline the essential context.
+- Structure it with Markdown sections: ## Context, ## Acceptance Criteria, ## Out of Scope.
+- The description MUST include an "Acceptance Criteria" (or 验收标准) section with at least one concrete, testable bullet.
+
+requiredRole:
+- ALWAYS set requiredRole to one of the seven agent roles ("coding", "product-design", "architecture-design", "devops", "ui-design", "testing", "code-review") or "human" for human-only work. If omitted, the API defaults it to the creating agent's own role so the work is routed to the right claimer.`;
 
 type ShapeToolServer = {
   registerTool(
     name: string,
     config: { description: string; inputSchema: z.ZodRawShape },
     callback: (args: unknown) => Promise<McpToolResult>,
+  ): unknown;
+  registerPrompt?(
+    name: string,
+    config: { title?: string; description?: string },
+    callback: (args: unknown) => Promise<McpPromptResult>,
   ): unknown;
 };
 
@@ -37,6 +77,10 @@ export function toMcpToolRegistrar(server: ShapeToolServer): McpToolRegistrar {
         },
         (args) => callback(args),
       ),
+    registerPrompt: (name, config, callback) => {
+      if (!server.registerPrompt) return;
+      return server.registerPrompt(name, config, (args) => callback(args));
+    },
   };
 }
 
@@ -198,9 +242,12 @@ const prioritySchema = z.enum([
 ]);
 
 const agentRoleSchema = z
-  .enum(AGENT_ROLES as unknown as [AgentRole, ...AgentRole[]])
+  .union([
+    z.enum(AGENT_ROLES as unknown as [AgentRole, ...AgentRole[]]),
+    z.literal(HUMAN_REQUIRED_ROLE),
+  ])
   .describe(
-    "Agent role the task should be claimed by. Generic tasks (omit the role) are claimable by any agent.",
+    'Required role for the task. Pass an agent role (e.g. "coding") to restrict the task to that role, omit to allow any agent, or pass "human" to reserve the task for human team members only.',
   );
 const nonEmptyString = z.string().trim().min(1);
 const optionalNonEmptyString = nonEmptyString.optional();
@@ -428,7 +475,11 @@ export function registerMcpTools(
   registerTool(
     "create_task",
     {
-      description: "Create a task in a project.",
+      description:
+        "Create a task in a project.\n\n" +
+        "Title: plain-English and human-readable (>=8 chars); never a branch name, ticket id, or SHA.\n" +
+        "Description: inline the essential context with Markdown sections (## Context, ## Acceptance Criteria, ## Out of Scope). The description MUST contain an 'Acceptance Criteria' (or 验收标准) section. Do not rely on links to documents the executing agent may not be able to fetch.\n" +
+        'requiredRole: ALWAYS set it to one of the seven agent roles or "human". If omitted, the API defaults it to the creating agent\'s own role so the work is routed to the right claimer.',
       inputSchema: z.object({
         projectId: nonEmptyString,
         title: nonEmptyString,
@@ -557,7 +608,7 @@ export function registerMcpTools(
     "claim_next_task",
     {
       description:
-        "Find and atomically claim the best available to-do task across the caller's team projects. The agent's declared role is used to filter candidates: tasks assigned to the caller are prioritized, then unassigned tasks whose required role matches the caller's role (or is generic). Ordering: due date (soonest first), priority (urgent first), creation date (oldest first). Returns 404 if no matching tasks are available.",
+        "Find and atomically claim the best available to-do task across the caller's team projects. The agent's declared role is used to filter candidates: tasks assigned to the caller are prioritized, then unassigned tasks whose required role matches the caller's role (or is generic). Ordering: due date (soonest first), priority (urgent first), creation date (oldest first). Tasks with requiredRole = \"human\" are always excluded for agent callers. Returns 404 if no matching tasks are available.",
       inputSchema: z.object({
         projectId: optionalNonEmptyString,
         priorities: z.array(z.string()).optional(),
@@ -640,7 +691,7 @@ export function registerMcpTools(
     "list_unclaimed_tasks",
     {
       description:
-        "List all unassigned to-do tasks in a project. Optionally narrow to tasks that need a specific agent role.",
+        'List all unassigned to-do tasks in a project. Optionally narrow to tasks that need a specific agent role, or to tasks reserved for human team members ("human").',
       inputSchema: z.object({
         projectId: nonEmptyString,
         requiredRole: agentRoleSchema.optional(),
@@ -1386,5 +1437,242 @@ export function registerMcpTools(
           body: JSON.stringify({ projectId: args.projectId }),
         }),
       ),
+  );
+
+  // --- Agent working-directory tools ---
+  // These mirror the conversation tool set (apps/api/src/chat/tools.ts) and
+  // route through the same tool-execute endpoint so both surfaces share the
+  // exact same implementation (working-directory sandboxing, clone, command
+  // gating, etc.).
+
+  registerTool(
+    "agent_clone_repo",
+    {
+      description:
+        "Clone the project's connected version-control repository into the agent working directory. If a clone already exists it is updated (pulled). Use this when asked to read, search, or analyze the project's source code.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({ tool: "agent_clone_repo", args: {} }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "agent_list_files",
+    {
+      description:
+        "List files and directories inside the agent working directory (which holds cloned repos and uploaded files).",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        path: z
+          .string()
+          .optional()
+          .describe(
+            "Relative path inside the working directory (default: root).",
+          ),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_list_files",
+              args: args.path !== undefined ? { path: args.path } : {},
+            }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "agent_read_file",
+    {
+      description:
+        "Read a text file inside the agent working directory. Optionally pass offset/limit to page large files.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        path: nonEmptyString.describe(
+          "Relative file path inside the working directory.",
+        ),
+        offset: z
+          .number()
+          .int()
+          .optional()
+          .describe("Line offset (0-based) for paging."),
+        limit: z
+          .number()
+          .int()
+          .optional()
+          .describe("Max lines to read from the offset."),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_read_file",
+              args: {
+                path: args.path,
+                ...(args.offset !== undefined ? { offset: args.offset } : {}),
+                ...(args.limit !== undefined ? { limit: args.limit } : {}),
+              },
+            }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "agent_write_file",
+    {
+      description:
+        "Write or overwrite a text file inside the agent working directory, creating parent directories as needed.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        path: nonEmptyString.describe(
+          "Relative file path inside the working directory.",
+        ),
+        content: nonEmptyString.describe("File content."),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_write_file",
+              args: { path: args.path, content: args.content },
+            }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "agent_search_files",
+    {
+      description:
+        "Recursively search the agent working directory by filename and/or content keyword. Returns matching files with line numbers for content matches.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        query: z
+          .string()
+          .optional()
+          .describe("Filename substring to match (optional)."),
+        content: z
+          .string()
+          .optional()
+          .describe("Content keyword to search for (optional)."),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_search_files",
+              args: {
+                ...(args.query !== undefined ? { query: args.query } : {}),
+                ...(args.content !== undefined
+                  ? { content: args.content }
+                  : {}),
+              },
+            }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "agent_delete_file",
+    {
+      description: "Delete a file inside the agent working directory.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        path: nonEmptyString.describe(
+          "Relative file path inside the working directory.",
+        ),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_delete_file",
+              args: { path: args.path },
+            }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "agent_run_command",
+    {
+      description:
+        "Run a shell command with the agent working directory as the working directory. Captures stdout/stderr and exit code. Only available when command execution is enabled.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        command: nonEmptyString.describe("The shell command to run."),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_run_command",
+              args: { command: args.command },
+            }),
+          },
+        ),
+      ),
+  );
+
+  // Reusable checklist agents can pull before creating a task. Registered only
+  // when the underlying server supports prompts (legacy and modern both do).
+  server.registerPrompt?.(
+    "create_task_skill",
+    {
+      title: "Create Task Skill",
+      description:
+        "Checklist and worked example for creating a high-quality Kaneo task",
+    },
+    () =>
+      Promise.resolve({
+        messages: [
+          {
+            role: "user" as const,
+            content: {
+              type: "text" as const,
+              text: `${CREATE_TASK_GUIDANCE}\n\nWorked example:\n{\n  "projectId": "<project-id>",\n  "title": "Refactor OAuth refresh-token handling",\n  "description": "## Context\\nThe current refresh flow does not rotate tokens.\\n\\n## Acceptance Criteria\\n- Token rotation is supported\\n- Old tokens are revoked\\n\\n## Out of Scope\\n- Password reset flow",\n  "priority": "high",\n  "status": "to-do",\n  "requiredRole": "coding"\n}`,
+            },
+          },
+        ],
+      }),
   );
 }

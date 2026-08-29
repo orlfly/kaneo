@@ -1,7 +1,7 @@
 ---
 name: openspec-apply-change
 description: Implement tasks from an OpenSpec change. Use when the user wants to start implementing, continue implementation, or work through tasks.
-allowed-tools: Bash(openspec:*)
+allowed-tools: bash(openspec:*)
 license: MIT
 compatibility: Requires openspec CLI.
 metadata:
@@ -9,6 +9,14 @@ metadata:
   version: "1.0"
   generatedBy: "1.6.0"
 ---
+
+> **jcode-compatible fork note**
+> Rewritten to run under any agent (including jcode). Original saved as
+> `SKILL.md.original`. If you regenerate from `openspec`, re-apply this patch.
+>
+> Changes vs. upstream:
+> - `allowed-tools: Bash(openspec:*)` (Claude Code) → `allowed-tools: bash(openspec:*)` (jcode / generic shell)
+> - `Use the **AskUserQuestion tool**` → numbered list prompt any agent can render
 
 Implement tasks from an OpenSpec change.
 
@@ -23,7 +31,7 @@ Implement tasks from an OpenSpec change.
    If a name is provided, use it. Otherwise:
    - Infer from conversation context if the user mentioned a change
    - Auto-select if only one active change exists
-   - If ambiguous, run `openspec list --json` to get available changes and use the **AskUserQuestion tool** to let the user select
+   - If ambiguous, run `openspec list --json` to get available changes and present them as a numbered list to the user; wait for a number or change name before proceeding
 
    Always announce: "Using change: <name>" and how to override (e.g., `/opsx:apply <other>`).
 

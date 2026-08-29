@@ -1,10 +1,19 @@
 ---
 name: "OPSX: Propose"
 description: Propose a new change - create it and generate all artifacts in one step
-allowed-tools: Bash(openspec:*)
+allowed-tools: bash(openspec:*)
 category: Workflow
 tags: [workflow, artifacts, experimental]
 ---
+
+> **jcode-compatible fork note**
+> Rewritten to run under any agent (including jcode). Original saved as
+> `propose.md.original`. If you regenerate from `openspec`, re-apply this patch.
+>
+> Changes vs. upstream:
+> - `allowed-tools: Bash(openspec:*)` (Claude Code) → `allowed-tools: bash(openspec:*)` (jcode / generic shell)
+> - `AskUserQuestion tool` → plain-text question any agent can render
+> - `TodoWrite tool` → `todo` tool (jcode's todo tracker; other agents without one can simply skip)
 
 Propose a new change - create the change and generate all artifacts in one step.
 
@@ -25,7 +34,7 @@ When ready to implement, run /opsx:apply
 
 1. **If no input provided, ask what they want to build**
 
-   Use the **AskUserQuestion tool** (open-ended, no preset options) to ask:
+   Ask the user in plain text (open-ended, no preset options):
    > "What change do you want to work on? Describe what you want to build or fix."
 
    From their description, derive a kebab-case name (e.g., "add user authentication" → `add-user-auth`).
@@ -49,7 +58,7 @@ When ready to implement, run /opsx:apply
 
 4. **Create artifacts in sequence until apply-ready**
 
-   Use the **TodoWrite tool** to track progress through the artifacts.
+   Use the `todo` tool to track progress through the artifacts (skip if your agent does not expose one).
 
    Loop through artifacts in dependency order (artifacts with no pending dependencies first):
 
@@ -76,8 +85,7 @@ When ready to implement, run /opsx:apply
       - Stop when all `applyRequires` artifacts are done
 
    c. **If an artifact requires user input** (unclear context):
-      - Use **AskUserQuestion tool** to clarify
-      - Then continue with creation
+      - Ask the user in plain text for clarification, then continue with creation
 
 5. **Show final status**
    ```bash

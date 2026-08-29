@@ -50,3 +50,22 @@ export function isAgentRole(value: unknown): value is AgentRole {
     (AGENT_ROLES as readonly string[]).includes(value)
   );
 }
+
+// `human` is a marker for the `required_role` column. It is NOT an agent role
+// and MUST NOT be assignable as `metadata.agentRole` on an API key. The value
+// exists so that a task can be reserved for a human team member to claim
+// manually, instead of being picked up by an agent.
+export const HUMAN_REQUIRED_ROLE = "human" as const;
+export type HumanRequiredRole = typeof HUMAN_REQUIRED_ROLE;
+
+/**
+ * The shape of any `requiredRole` value: either one of the seven agent roles,
+ * the `human` marker, or `null` (generic task that any agent may claim).
+ */
+export type TaskRequiredRole = AgentRole | HumanRequiredRole | null;
+
+export function isHumanRequiredRole(
+  value: unknown,
+): value is HumanRequiredRole {
+  return value === HUMAN_REQUIRED_ROLE;
+}

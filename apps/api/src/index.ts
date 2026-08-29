@@ -21,6 +21,7 @@ import {
 import * as v from "valibot";
 import activity from "./activity";
 import adminRoutes from "./admin";
+import agentConfig from "./agent/agents";
 import { auth } from "./auth";
 import chat from "./chat";
 import chatPublic from "./chat/public";
@@ -571,6 +572,30 @@ export function createApp() {
     const apiKeyHeader = c.req.header("x-api-key");
     const bearerToken = authHeader?.match(/^Bearer\s+(\S+)$/i)?.[1];
 
+    // The better-auth api-key plugin writes keys via the raw adapter, which
+    // bypasses `databaseHooks.apikey.create.before`. Enforce the guard here so
+    // an API key can never be created with `metadata.agentRole = "human"` (the
+    // reserved required_role marker, not an agent role).
+    if (c.req.method === "POST" && c.req.path.endsWith("/api-key/create")) {
+      const parsed = await c.req.json().catch(() => null);
+      const metadata = parsed?.metadata;
+      if (
+        metadata &&
+        typeof metadata === "object" &&
+        "agentRole" in metadata &&
+        (metadata as Record<string, unknown>).agentRole === "human"
+      ) {
+        return c.json(
+          {
+            message:
+              '"human" is a required_role marker, not an agent role. Use one of: coding, product-design, architecture-design, devops, ui-design, testing, code-review.',
+            code: "HUMAN_NOT_AGENT_ROLE",
+          },
+          400,
+        );
+      }
+    }
+
     if (bearerToken && !apiKeyHeader) {
       const session = await auth.api.getSession({
         headers: c.req.raw.headers,
@@ -627,6 +652,7 @@ export function createApp() {
 
   const projectApi = api.route("/project", project);
   const taskApi = api.route("/task", task);
+  const agentConfigApi = api.route("/agent/agents-config", agentConfig);
   const columnApi = api.route("/column", column);
   const activityApi = api.route("/activity", activity);
   const commentApi = api.route("/comment", comment);
@@ -814,6 +840,7 @@ export function createApp() {
     injectWebSocket,
     activityApi,
     adminApi,
+    agentConfigApi,
     columnApi,
     commentApi,
     configApi,
@@ -933,6 +960,7 @@ const {
   injectWebSocket,
   activityApi,
   adminApi,
+  agentConfigApi,
   columnApi,
   commentApi,
   configApi,
@@ -977,6 +1005,7 @@ export type AppType =
   | typeof columnApi
   | typeof activityApi
   | typeof adminApi
+  | typeof agentConfigApi
   | typeof commentApi
   | typeof timeEntryApi
   | typeof labelApi

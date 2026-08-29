@@ -1,10 +1,17 @@
 ---
 name: "OPSX: Explore"
 description: "Enter explore mode - think through ideas, investigate problems, clarify requirements"
-allowed-tools: Bash(openspec:*)
+allowed-tools: bash(openspec:*)
 category: Workflow
 tags: [workflow, explore, experimental, thinking]
 ---
+
+> **jcode-compatible fork note**
+> Rewritten to run under any agent (including jcode). Original saved as
+> `explore.md.original`. If you regenerate from `openspec`, re-apply this patch.
+>
+> Changes vs. upstream:
+> - `allowed-tools: Bash(openspec:*)` (Claude Code) → `allowed-tools: bash(openspec:*)` (jcode / generic shell)
 
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
 

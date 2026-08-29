@@ -1100,4 +1100,217 @@ export function registerTools(
         }),
       ),
   );
+
+  // --- Agent working-directory tools ---
+  // These mirror the conversation tool set (apps/api/src/chat/tools.ts) and
+  // route through the same tool-execute endpoint so both MCP surfaces share
+  // the same working-directory sandboxing, clone, and command-gating logic.
+
+  server.registerTool(
+    "agent_clone_repo",
+    {
+      description:
+        "Clone the project's connected version-control repository into the agent working directory. If a clone already exists it is updated (pulled). Use this when asked to read, search, or analyze the project's source code.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({ tool: "agent_clone_repo", args: {} }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "agent_list_files",
+    {
+      description:
+        "List files and directories inside the agent working directory (which holds cloned repos and uploaded files).",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        path: z
+          .string()
+          .optional()
+          .describe(
+            "Relative path inside the working directory (default: root).",
+          ),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_list_files",
+              args: args.path !== undefined ? { path: args.path } : {},
+            }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "agent_read_file",
+    {
+      description:
+        "Read a text file inside the agent working directory. Optionally pass offset/limit to page large files.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        path: nonEmptyString.describe(
+          "Relative file path inside the working directory.",
+        ),
+        offset: z
+          .number()
+          .int()
+          .optional()
+          .describe("Line offset (0-based) for paging."),
+        limit: z
+          .number()
+          .int()
+          .optional()
+          .describe("Max lines to read from the offset."),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_read_file",
+              args: {
+                path: args.path,
+                ...(args.offset !== undefined ? { offset: args.offset } : {}),
+                ...(args.limit !== undefined ? { limit: args.limit } : {}),
+              },
+            }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "agent_write_file",
+    {
+      description:
+        "Write or overwrite a text file inside the agent working directory, creating parent directories as needed.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        path: nonEmptyString.describe(
+          "Relative file path inside the working directory.",
+        ),
+        content: nonEmptyString.describe("File content."),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_write_file",
+              args: { path: args.path, content: args.content },
+            }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "agent_search_files",
+    {
+      description:
+        "Recursively search the agent working directory by filename and/or content keyword. Returns matching files with line numbers for content matches.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        query: z
+          .string()
+          .optional()
+          .describe("Filename substring to match (optional)."),
+        content: z
+          .string()
+          .optional()
+          .describe("Content keyword to search for (optional)."),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_search_files",
+              args: {
+                ...(args.query !== undefined ? { query: args.query } : {}),
+                ...(args.content !== undefined
+                  ? { content: args.content }
+                  : {}),
+              },
+            }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "agent_delete_file",
+    {
+      description: "Delete a file inside the agent working directory.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        path: nonEmptyString.describe(
+          "Relative file path inside the working directory.",
+        ),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_delete_file",
+              args: { path: args.path },
+            }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "agent_run_command",
+    {
+      description:
+        "Run a shell command with the agent working directory as the working directory. Captures stdout/stderr and exit code. Only available when command execution is enabled.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        command: nonEmptyString.describe("The shell command to run."),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_run_command",
+              args: { command: args.command },
+            }),
+          },
+        ),
+      ),
+  );
 }

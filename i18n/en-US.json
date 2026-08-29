@@ -79,7 +79,10 @@
 				"title": "New Task",
 				"description": "Create a new task by providing a title, description, and other details.",
 				"taskTitlePlaceholder": "Task title",
+				"titleHelper": "Describe the task in plain English",
 				"descriptionPlaceholder": "Add a description for your task...",
+				"descriptionHelper": "Use the Context / Acceptance Criteria / Out of Scope template so reviewers can sign off.",
+				"requiredRoleHint": "Recommended: pick a required agent role so the task isn't left unclaimable.",
 				"chooseProjectForImages": "Choose a project before uploading images.",
 				"prepareTaskError": "Failed to prepare task",
 				"successCreated": "Task created successfully",
@@ -237,11 +240,6 @@
 			"subtitle": "Choose how Kaneo delivers your account notifications and which channels to use.",
 			"statusConnected": "Connected",
 			"statusPaused": "Paused",
-			"emailTitle": "Email",
-			"emailDescription": "Use your account email as the destination for notifications.",
-			"accountEmailLabel": "Account email",
-			"accountEmailNoAddress": "No account email available",
-			"accountEmailHint": "Email delivery always goes to the signed-in account email.",
 			"saveChanges": "Save changes",
 			"disconnect": "Disconnect",
 			"ntfyTitle": "ntfy",
@@ -289,12 +287,9 @@
 			"reminderLeadTimeUnitDays": "Days",
 			"reminderLeadTimeInvalid": "Enter a whole number between 1 and {{max}}.",
 			"saveEventPreferences": "Save notification types",
-			"teamCardLabelEmail": "Email",
 			"teamCardLabelNtfy": "ntfy",
 			"teamCardLabelGotify": "Gotify",
 			"teamCardLabelWebhook": "Custom webhook",
-			"emailChannelHintEnabled": "Send matching team notifications by email.",
-			"emailChannelHintDisabled": "Configure and enable email globally first.",
 			"ntfyChannelHintEnabled": "Send matching team notifications to ntfy.",
 			"ntfyChannelHintDisabled": "Configure and enable ntfy globally first.",
 			"gotifyChannelHintEnabled": "Send matching team notifications to Gotify.",
@@ -491,7 +486,9 @@
 			"telegramSectionTitle": "Telegram Integration",
 			"telegramSectionSubtitle": "Send project task updates into a Telegram chat or topic with a bot.",
 			"gitlabSectionTitle": "GitLab Integration",
-			"gitlabSectionSubtitle": "Synchronize tasks with a GitLab project (issues, merge requests, webhooks)."
+			"gitlabSectionSubtitle": "Synchronize tasks with a GitLab project (issues, merge requests, webhooks).",
+			"agentConfigSectionTitle": "Agent Configuration",
+			"agentConfigSectionSubtitle": "Agent role definitions and shared skills for code agents"
 		},
 		"projectVisibility": {
 			"pageTitle": "Project Visibility",
@@ -1720,6 +1717,10 @@
 			},
 			"code-review": {
 				"name": "Code Review"
+			},
+			"human": {
+				"name": "Human-only",
+				"description": "Only a human team member can claim this task"
 			}
 		}
 	},
@@ -2032,5 +2033,17 @@
 				"code-review": "Code Review"
 			}
 		}
+	},
+	"agentConfig": {
+		"title": "Agent Configuration",
+		"description": "Download the agent configuration package, then run install.sh in your target directory to set up agent roles and skills for external code agents.",
+		"download": "Download Config",
+		"downloading": "Downloading...",
+		"downloadTitle": "Download Agent Configuration",
+		"downloadConfirm": "Download a zip package containing role definitions, skills, opencode.jsonc, and install.sh. Unzip it in your target directory and run ./install.sh to set up the agent configuration.",
+		"confirmDownload": "Download",
+		"downloadSuccess": "Agent configuration package downloaded",
+		"roles": "Roles",
+		"skills": "Skills"
 	}
 }

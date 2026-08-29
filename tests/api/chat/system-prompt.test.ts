@@ -17,13 +17,21 @@ describe("buildSystemPrompt", () => {
     const prompt = buildSystemPrompt("P", "T");
     expect(prompt).toContain("use the provided tools");
     expect(prompt).toContain("create_task");
+    expect(prompt).toContain("update_task_status");
     expect(prompt).toContain("list_tasks");
     expect(prompt).toContain("get_project_summary");
   });
 
-  it("declares the limitation that tasks cannot be deleted or modified", () => {
+  it("instructs the assistant it can update task status via the tool", () => {
     const prompt = buildSystemPrompt("P", "T");
-    expect(prompt).toContain("cannot delete tasks or modify existing tasks");
+    expect(prompt).toContain("update_task_status");
+    expect(prompt).toContain("'done' to complete a task");
+    expect(prompt).toContain("'archived' to close it");
+  });
+
+  it("declares the limitation that tasks cannot be deleted", () => {
+    const prompt = buildSystemPrompt("P", "T");
+    expect(prompt).toContain("cannot delete tasks");
   });
 
   it("handles empty names gracefully", () => {

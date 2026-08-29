@@ -1,10 +1,18 @@
 ---
 name: "OPSX: Apply"
 description: Implement tasks from an OpenSpec change (Experimental)
-allowed-tools: Bash(openspec:*)
+allowed-tools: bash(openspec:*)
 category: Workflow
 tags: [workflow, artifacts, experimental]
 ---
+
+> **jcode-compatible fork note**
+> Rewritten to run under any agent (including jcode). Original saved as
+> `apply.md.original`. If you regenerate from `openspec`, re-apply this patch.
+>
+> Changes vs. upstream:
+> - `allowed-tools: Bash(openspec:*)` (Claude Code) → `allowed-tools: bash(openspec:*)` (jcode / generic shell)
+> - `AskUserQuestion tool` → numbered list prompt any agent can render
 
 Implement tasks from an OpenSpec change.
 
@@ -19,7 +27,7 @@ Implement tasks from an OpenSpec change.
    If a name is provided, use it. Otherwise:
    - Infer from conversation context if the user mentioned a change
    - Auto-select if only one active change exists
-   - If ambiguous, run `openspec list --json` to get available changes and use the **AskUserQuestion tool** to let the user select
+   - If ambiguous, run `openspec list --json` to get available changes and present them as a numbered list to the user; wait for a number or change name before proceeding
 
    Always announce: "Using change: <name>" and how to override (e.g., `/opsx:apply <other>`).
 

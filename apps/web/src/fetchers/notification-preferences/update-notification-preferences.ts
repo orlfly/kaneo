@@ -2,7 +2,6 @@ import { getApiUrl } from "@/fetchers/get-api-url";
 import type { NotificationPreferences } from "./get-notification-preferences";
 
 export type UpdateNotificationPreferencesRequest = {
-  emailEnabled?: boolean;
   ntfyEnabled?: boolean;
   ntfyServerUrl?: string | null;
   ntfyTopic?: string | null;

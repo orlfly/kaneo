@@ -5,6 +5,13 @@ category: Workflow
 description: Implement tasks from an OpenSpec change (Experimental)
 ---
 
+> **jcode-compatible fork note**
+> Rewritten to run under any agent (including jcode). Original saved as
+> `opsx-apply.md.original`. If you regenerate from `openspec`, re-apply this patch.
+>
+> Changes vs. upstream:
+> - `AskUserQuestion tool` → numbered list prompt any agent can render
+
 Implement tasks from an OpenSpec change.
 
 **Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`). Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
@@ -18,7 +25,7 @@ Implement tasks from an OpenSpec change.
    If a name is provided, use it. Otherwise:
    - Infer from conversation context if the user mentioned a change
    - Auto-select if only one active change exists
-   - If ambiguous, run `openspec list --json` to get available changes and use the **AskUserQuestion tool** to let the user select
+   - If ambiguous, run `openspec list --json` to get available changes and present them as a numbered list to the user; wait for a number or change name before proceeding
 
    Always announce: "Using change: <name>" and how to override (e.g., `/opsx:apply <other>`).
 

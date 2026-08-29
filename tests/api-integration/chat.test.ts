@@ -70,6 +70,9 @@ describe("API integration: pi-agent chat", () => {
       baseUrl: "",
       apiKey: "",
       model: "",
+      workdirRoot: null,
+      enableCommandExecution: false,
+      commandTimeoutMs: 60000,
     });
 
     const status = await (await app.request("/api/chat/status")).json();
@@ -385,6 +388,45 @@ describe("API integration: pi-agent chat", () => {
       .where(eq(schema.taskTable.projectId, project.id));
     expect(tasks).toHaveLength(1);
     expect(tasks[0].title).toBe("集成测试任务");
+  });
+
+  it("routes agent tools through the tool-execute endpoint with team auth", async () => {
+    const member = await createTeamMember();
+    const outsider = await createTeamMember();
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+    const { app } = createApp();
+
+    // The tool-execute endpoint is protected by team access.
+    mockAuthenticatedSession(outsider.user);
+    let response = await app.request(`/api/chat/project/${project.id}/tool`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ tool: "agent_list_files", args: {} }),
+    });
+    expect(response.status).toBe(403);
+
+    // Unauthenticated requests are rejected by the global API auth.
+    mockAnonymousSession();
+    response = await app.request(`/api/chat/project/${project.id}/tool`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ tool: "agent_list_files", args: {} }),
+    });
+    expect(response.status).toBe(401);
+
+    // A team member can execute a tool; the result is the tool's JSON string.
+    mockAuthenticatedSession(member.user);
+    response = await app.request(`/api/chat/project/${project.id}/tool`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ tool: "agent_list_files", args: {} }),
+    });
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { result: string };
+    expect(typeof body.result).toBe("string");
+    expect(body.result).toContain("[]");
   });
 });
 

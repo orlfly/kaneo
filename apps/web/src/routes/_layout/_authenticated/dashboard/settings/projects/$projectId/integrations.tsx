@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  Bot,
   ChevronDown,
   FolderGit,
   GitFork,
@@ -12,6 +13,7 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { GithubIcon } from "@/components/icons/github-icon";
 import PageTitle from "@/components/page-title";
+import { AgentConfigPanel } from "@/components/project/agent-config-panel";
 import { DiscordIntegrationSettings } from "@/components/project/discord-integration-settings";
 import { GenericWebhookIntegrationSettings } from "@/components/project/generic-webhook-integration-settings";
 import { GiteaIntegrationSettings } from "@/components/project/gitea-integration-settings";
@@ -49,6 +51,23 @@ function RouteComponent() {
         </div>
 
         <div className="space-y-6">
+          <IntegrationSection
+            icon={<Bot className="size-4" />}
+            subtitle={t(
+              "settings:projectIntegrations.agentConfigSectionSubtitle",
+              {
+                defaultValue:
+                  "Agent role definitions and shared skills for code agents",
+              },
+            )}
+            title={t("settings:projectIntegrations.agentConfigSectionTitle", {
+              defaultValue: "Agent Configuration",
+            })}
+            defaultOpen
+          >
+            <AgentConfigPanel projectId={projectId} />
+          </IntegrationSection>
+
           <IntegrationSection
             icon={<GithubIcon className="size-4" />}
             subtitle={t("settings:projectIntegrations.githubSectionSubtitle")}

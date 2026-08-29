@@ -274,7 +274,8 @@ describe("API integration: agent role-based claim", () => {
       method: "POST",
       json: {
         title: "UI redesign",
-        description: "",
+        description:
+          "Redesign the dashboard landing screen.\n\n## Acceptance Criteria\n- Header renders on all breakpoints",
         priority: "medium",
         status: "to-do",
         requiredRole: "ui-design",

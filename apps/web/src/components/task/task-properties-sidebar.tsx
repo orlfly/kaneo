@@ -1,4 +1,5 @@
 import {
+  BotIcon,
   Calendar,
   CalendarClock,
   CalendarDays,
@@ -44,6 +45,7 @@ import TaskDueDatePopover from "./task-due-date-popover";
 import TaskLabelsPopover from "./task-labels-popover";
 import TaskMovePopover from "./task-move-popover";
 import TaskPriorityPopover from "./task-priority-popover";
+import TaskRolePopover from "./task-role-popover";
 import TaskStartDatePopover from "./task-start-date-popover";
 import TaskStatusPopover from "./task-status-popover";
 
@@ -320,6 +322,25 @@ export default function TaskPropertiesSidebar({
                   </Button>
                 </TaskDueDatePopover>
               )}
+              {task && (
+                <TaskRolePopover task={task}>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 rounded border border-border/70 bg-muted/55 px-2 py-1 text-[10px] font-medium text-muted-foreground hover:bg-accent/50 transition-colors"
+                  >
+                    <BotIcon className="w-3 h-3" />
+                    <span>
+                      {task.requiredRole
+                        ? t(`tasks:agentRoles.${task.requiredRole}.name`, {
+                            defaultValue: task.requiredRole,
+                          })
+                        : t("common:modals.createTask.agentRoleGeneric", {
+                            defaultValue: "Any agent",
+                          })}
+                    </span>
+                  </button>
+                </TaskRolePopover>
+              )}
             </div>
           </div>
         )}
@@ -508,6 +529,25 @@ export default function TaskPropertiesSidebar({
                       )}
                     </Button>
                   </TaskDueDatePopover>
+                )}
+                {task && (
+                  <TaskRolePopover task={task}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 rounded border border-border/70 bg-muted/55 px-2 py-1 text-[10px] font-medium text-muted-foreground hover:bg-accent/50 transition-colors"
+                    >
+                      <BotIcon className="w-3 h-3" />
+                      <span>
+                        {task.requiredRole
+                          ? t(`tasks:agentRoles.${task.requiredRole}.name`, {
+                              defaultValue: task.requiredRole,
+                            })
+                          : t("common:modals.createTask.agentRoleGeneric", {
+                              defaultValue: "Any agent",
+                            })}
+                      </span>
+                    </button>
+                  </TaskRolePopover>
                 )}
               </div>
             </div>
@@ -699,6 +739,25 @@ export default function TaskPropertiesSidebar({
                       )}
                     </Button>
                   </TaskDueDatePopover>
+                )}
+                {task && (
+                  <TaskRolePopover task={task}>
+                    <button
+                      type="button"
+                      className="justify-start h-7 px-1.5 gap-1.5 w-full inline-flex items-center"
+                    >
+                      <BotIcon className="w-3.5 h-3.5" />
+                      <span className="text-xs font-semibold truncate">
+                        {task.requiredRole
+                          ? t(`tasks:agentRoles.${task.requiredRole}.name`, {
+                              defaultValue: task.requiredRole,
+                            })
+                          : t("common:modals.createTask.agentRoleGeneric", {
+                              defaultValue: "Any agent",
+                            })}
+                      </span>
+                    </button>
+                  </TaskRolePopover>
                 )}
               </div>
             </div>

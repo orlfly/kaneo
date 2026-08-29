@@ -1,7 +1,7 @@
 ---
 name: openspec-explore
 description: Enter explore mode - a thinking partner for exploring ideas, investigating problems, and clarifying requirements. Use when the user wants to think through something before or during a change.
-allowed-tools: Bash(openspec:*)
+allowed-tools: bash(openspec:*)
 license: MIT
 compatibility: Requires openspec CLI.
 metadata:
@@ -9,6 +9,13 @@ metadata:
   version: "1.0"
   generatedBy: "1.6.0"
 ---
+
+> **jcode-compatible fork note**
+> Rewritten to run under any agent (including jcode). Original saved as
+> `SKILL.md.original`. If you regenerate from `openspec`, re-apply this patch.
+>
+> Changes vs. upstream:
+> - `allowed-tools: Bash(openspec:*)` (Claude Code) → `allowed-tools: bash(openspec:*)` (jcode / generic shell)
 
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
 

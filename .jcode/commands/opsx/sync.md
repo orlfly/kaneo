@@ -1,10 +1,18 @@
 ---
 name: "OPSX: Sync"
 description: Sync delta specs from a change to main specs
-allowed-tools: Bash(openspec:*)
+allowed-tools: bash(openspec:*)
 category: Workflow
 tags: [workflow, specs, experimental]
 ---
+
+> **jcode-compatible fork note**
+> Rewritten to run under any agent (including jcode). Original saved as
+> `sync.md.original`. If you regenerate from `openspec`, re-apply this patch.
+>
+> Changes vs. upstream:
+> - `allowed-tools: Bash(openspec:*)` (Claude Code) → `allowed-tools: bash(openspec:*)` (jcode / generic shell)
+> - `AskUserQuestion tool` → numbered list prompt any agent can render
 
 Sync delta specs from a change to main specs.
 
@@ -18,7 +26,7 @@ This is an **agent-driven** operation - you will read delta specs and directly e
 
 1. **If no change name provided, prompt for selection**
 
-   Run `openspec list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   Run `openspec list --json` to get available changes. Present them as a numbered list (showing only changes that have delta specs under `specs/`) and wait for the user to reply with a number or change name before proceeding. **Do NOT guess or auto-select a change. Always let the user choose.**
 
    Show changes that have delta specs (under `specs/` directory).
 

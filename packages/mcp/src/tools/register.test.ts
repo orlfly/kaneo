@@ -326,4 +326,66 @@ describe("registerTools", () => {
     });
     expect(result?.isError).toBe(false);
   });
+
+  describe("Agent working-directory tools", () => {
+    it("registers all agent working-directory tools", () => {
+      const { server } = createServerMock();
+      const client = { json: vi.fn() };
+
+      registerTools(server as never, { client: client as never });
+
+      const agentTools = [
+        "agent_clone_repo",
+        "agent_list_files",
+        "agent_read_file",
+        "agent_write_file",
+        "agent_search_files",
+        "agent_delete_file",
+        "agent_run_command",
+      ];
+      for (const name of agentTools) {
+        expect(server.registerTool).toHaveBeenCalledWith(
+          name,
+          expect.any(Object),
+          expect.any(Function),
+        );
+      }
+    });
+
+    it("routes agent_clone_repo to the tool-execute endpoint", async () => {
+      const { server, tools } = createServerMock();
+      const client = { json: vi.fn().mockResolvedValue({ ok: true }) };
+
+      registerTools(server as never, { client: client as never });
+
+      await tools.get("agent_clone_repo")?.handler({ projectId: "p1" });
+
+      expect(client.json).toHaveBeenCalledWith("/api/chat/project/p1/tool", {
+        method: "POST",
+        body: JSON.stringify({ tool: "agent_clone_repo", args: {} }),
+      });
+    });
+
+    it("routes agent_read_file with paging args", async () => {
+      const { server, tools } = createServerMock();
+      const client = { json: vi.fn().mockResolvedValue({ ok: true }) };
+
+      registerTools(server as never, { client: client as never });
+
+      await tools.get("agent_read_file")?.handler({
+        projectId: "p1",
+        path: "src/index.ts",
+        offset: 0,
+        limit: 10,
+      });
+
+      expect(client.json).toHaveBeenCalledWith("/api/chat/project/p1/tool", {
+        method: "POST",
+        body: JSON.stringify({
+          tool: "agent_read_file",
+          args: { path: "src/index.ts", offset: 0, limit: 10 },
+        }),
+      });
+    });
+  });
 });

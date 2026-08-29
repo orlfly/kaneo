@@ -51,7 +51,12 @@ describe("list_merge_requests tool", () => {
       { number: 1, title: "Fix bug", state: "opened" },
     ]);
 
-    const result = await executeTool("list_merge_requests", {}, PROJECT_ID);
+    const result = await executeTool(
+      "list_merge_requests",
+      {},
+      PROJECT_ID,
+      "u1",
+    );
     const parsed = JSON.parse(result);
 
     // Only the connected platform is queried, and only that VCS client is used.
@@ -66,7 +71,12 @@ describe("list_merge_requests tool", () => {
   it("returns a helpful error when the project has no connected VCS", async () => {
     mocks.integrationFindFirst.mockResolvedValue(undefined);
 
-    const result = await executeTool("list_merge_requests", {}, PROJECT_ID);
+    const result = await executeTool(
+      "list_merge_requests",
+      {},
+      PROJECT_ID,
+      "u1",
+    );
     const parsed = JSON.parse(result);
 
     expect(parsed.error).toContain("no connected version-control repository");
@@ -80,7 +90,12 @@ describe("list_merge_requests tool", () => {
       .mockResolvedValueOnce(undefined); // gitea
     mocks.vcsListPullRequests.mockResolvedValue([]);
 
-    const result = await executeTool("list_merge_requests", {}, PROJECT_ID);
+    const result = await executeTool(
+      "list_merge_requests",
+      {},
+      PROJECT_ID,
+      "u1",
+    );
     const parsed = JSON.parse(result);
 
     expect(Object.keys(parsed).sort()).toEqual(["github", "gitlab"]);

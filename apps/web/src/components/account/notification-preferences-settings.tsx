@@ -38,7 +38,6 @@ type TeamSummary = {
 
 type TeamRuleState = {
   isActive: boolean;
-  emailEnabled: boolean;
   ntfyEnabled: boolean;
   gotifyEnabled: boolean;
   webhookEnabled: boolean;
@@ -47,7 +46,6 @@ type TeamRuleState = {
 };
 
 type GlobalChannelPrefsState = {
-  emailEnabled: boolean;
   ntfy: { enabled: boolean; serverUrl: string; topic: string; token: string };
   gotify: { enabled: boolean; serverUrl: string; token: string };
   webhook: { enabled: boolean; url: string; secret: string };
@@ -63,7 +61,6 @@ type NotificationEventPrefsState = {
 };
 
 function createTeamRuleState(input: {
-  hasEmailChannel: boolean;
   hasGotifyChannel: boolean;
   hasNtfyChannel: boolean;
   hasWebhookChannel: boolean;
@@ -72,7 +69,6 @@ function createTeamRuleState(input: {
   if (input.rule) {
     return {
       isActive: input.rule.isActive,
-      emailEnabled: input.rule.emailEnabled,
       ntfyEnabled: input.rule.ntfyEnabled,
       gotifyEnabled: input.rule.gotifyEnabled,
       webhookEnabled: input.rule.webhookEnabled,
@@ -83,7 +79,6 @@ function createTeamRuleState(input: {
 
   return {
     isActive: false,
-    emailEnabled: input.hasEmailChannel,
     ntfyEnabled: input.hasNtfyChannel,
     gotifyEnabled: input.hasGotifyChannel,
     webhookEnabled: input.hasWebhookChannel,
@@ -94,7 +89,6 @@ function createTeamRuleState(input: {
 
 function createDefaultGlobalChannelPrefs(): GlobalChannelPrefsState {
   return {
-    emailEnabled: false,
     ntfy: { enabled: false, serverUrl: "", topic: "", token: "" },
     gotify: { enabled: false, serverUrl: "", token: "" },
     webhook: { enabled: false, url: "", secret: "" },
@@ -109,7 +103,7 @@ function ChannelCard({
   headerRight,
   title,
 }: {
-  channel: "email" | "gotify" | "ntfy" | "webhook";
+  channel: "gotify" | "ntfy" | "webhook";
   title: React.ReactNode;
   description: React.ReactNode;
   headerRight: React.ReactNode;
@@ -168,7 +162,6 @@ function ChannelToggle({
 }
 
 function TeamRuleCard({
-  hasEmailChannel,
   hasGotifyChannel,
   hasNtfyChannel,
   hasWebhookChannel,
@@ -177,7 +170,6 @@ function TeamRuleCard({
   rule,
   team,
 }: {
-  hasEmailChannel: boolean;
   hasGotifyChannel: boolean;
   hasNtfyChannel: boolean;
   hasWebhookChannel: boolean;
@@ -185,7 +177,6 @@ function TeamRuleCard({
   onSave: (teamId: string, rule: TeamRuleState) => Promise<void>;
   rule?: {
     isActive: boolean;
-    emailEnabled: boolean;
     ntfyEnabled: boolean;
     gotifyEnabled: boolean;
     webhookEnabled: boolean;
@@ -197,7 +188,6 @@ function TeamRuleCard({
   const { t } = useTranslation();
   const [state, setState] = React.useState<TeamRuleState>(() =>
     createTeamRuleState({
-      hasEmailChannel,
       hasGotifyChannel,
       hasNtfyChannel,
       hasWebhookChannel,
@@ -217,20 +207,13 @@ function TeamRuleCard({
   React.useEffect(() => {
     setState(
       createTeamRuleState({
-        hasEmailChannel,
         hasGotifyChannel,
         hasNtfyChannel,
         hasWebhookChannel,
         rule,
       }),
     );
-  }, [
-    hasEmailChannel,
-    hasGotifyChannel,
-    hasNtfyChannel,
-    hasWebhookChannel,
-    rule,
-  ]);
+  }, [hasGotifyChannel, hasNtfyChannel, hasWebhookChannel, rule]);
 
   const isConnected = Boolean(rule);
   const isBusy = isSaving || isDeleting;
@@ -281,19 +264,6 @@ function TeamRuleCard({
       <Separator />
 
       <div className="space-y-3">
-        <ChannelToggle
-          checked={state.emailEnabled}
-          disabled={!hasEmailChannel || isBusy}
-          hint={
-            hasEmailChannel
-              ? t("settings:notificationsPage.emailChannelHintEnabled")
-              : t("settings:notificationsPage.emailChannelHintDisabled")
-          }
-          label={t("settings:notificationsPage.teamCardLabelEmail")}
-          onCheckedChange={(checked) =>
-            setState((current) => ({ ...current, emailEnabled: checked }))
-          }
-        />
         <ChannelToggle
           checked={state.ntfyEnabled}
           disabled={!hasNtfyChannel || isBusy}
@@ -504,7 +474,6 @@ export function NotificationPreferencesSettings() {
   React.useEffect(() => {
     if (!preferences) return;
     setGlobalPrefs({
-      emailEnabled: preferences.emailEnabled,
       ntfy: {
         enabled: preferences.ntfyEnabled,
         serverUrl: preferences.ntfyServerUrl ?? "",
@@ -721,61 +690,6 @@ export function NotificationPreferencesSettings() {
           </Button>
         </div>
       </div>
-
-      <ChannelCard
-        actions={
-          <div className="flex gap-2">
-            <Button
-              disabled={isSavingPreferences || !preferences?.emailAddress}
-              onClick={async () => {
-                await updatePreferences({
-                  emailEnabled: globalPrefs.emailEnabled,
-                });
-              }}
-              type="button"
-            >
-              {t("settings:notificationsPage.saveChanges")}
-            </Button>
-          </div>
-        }
-        channel="email"
-        description={t("settings:notificationsPage.emailDescription")}
-        headerRight={
-          <div className="flex items-center gap-3">
-            {preferences?.emailEnabled ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle className="size-4 text-green-600" />
-                <span>{t("settings:notificationsPage.statusConnected")}</span>
-              </div>
-            ) : null}
-            <Switch
-              checked={globalPrefs.emailEnabled}
-              disabled={isSavingPreferences || !preferences?.emailAddress}
-              onCheckedChange={(checked) =>
-                setGlobalPrefs((prev) => ({ ...prev, emailEnabled: checked }))
-              }
-            />
-          </div>
-        }
-        title={t("settings:notificationsPage.emailTitle")}
-      >
-        <div className="space-y-1">
-          <Label className="text-sm font-medium">
-            {t("settings:notificationsPage.accountEmailLabel")}
-          </Label>
-          <Input
-            disabled
-            readOnly
-            value={
-              preferences?.emailAddress ??
-              t("settings:notificationsPage.accountEmailNoAddress")
-            }
-          />
-          <p className="text-xs text-muted-foreground">
-            {t("settings:notificationsPage.accountEmailHint")}
-          </p>
-        </div>
-      </ChannelCard>
 
       <ChannelCard
         actions={
@@ -1193,7 +1107,6 @@ export function NotificationPreferencesSettings() {
             return (
               <TeamRuleCard
                 key={team.id}
-                hasEmailChannel={Boolean(preferences?.emailEnabled)}
                 hasGotifyChannel={Boolean(
                   preferences?.gotifyEnabled && preferences?.gotifyConfigured,
                 )}

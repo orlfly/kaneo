@@ -3,7 +3,6 @@ import type { NotificationPreferences } from "./get-notification-preferences";
 
 export type UpsertNotificationTeamRuleRequest = {
   isActive: boolean;
-  emailEnabled: boolean;
   ntfyEnabled: boolean;
   gotifyEnabled: boolean;
   webhookEnabled: boolean;

@@ -6,6 +6,12 @@ import { publishEvent } from "../../events";
 import { deleteOrphanedAssets } from "../../storage/cleanup-assets";
 import { assertValidTaskStatus } from "../validate-task-fields";
 
+// Once a task is actively being worked on or under review, the role contract
+// with the current worker is fixed: changing requiredRole at that stage would
+// silently invalidate the claim and confuse integrations that rely on the
+// role (e.g. claim-next filters). Only to-do tasks remain editable.
+const LOCKED_STATUSES = new Set(["in-progress", "in-review"]);
+
 async function updateTask(
   id: string,
   title: string,
@@ -18,6 +24,7 @@ async function updateTask(
   position: number,
   userId?: string,
   currentUserId?: string,
+  requiredRole?: string | null,
 ) {
   const [existingTask] = await db
     .select({
@@ -25,6 +32,7 @@ async function updateTask(
       description: taskTable.description,
       status: taskTable.status,
       projectId: taskTable.projectId,
+      requiredRole: taskTable.requiredRole,
     })
     .from(taskTable)
     .where(eq(taskTable.id, id))
@@ -43,6 +51,19 @@ async function updateTask(
   }
 
   await assertValidTaskStatus(status, projectId);
+
+  // Reject requiredRole changes once the task is locked to an active worker.
+  // requiredRole is the only field on which the worker contract depends at
+  // runtime, so we allow the status/assignee/priority to keep moving while
+  // the role remains pinned.
+  const nextRequiredRole = requiredRole ?? null;
+  const roleChanged = nextRequiredRole !== existingTask.requiredRole;
+  if (roleChanged && LOCKED_STATUSES.has(existingTask.status)) {
+    throw new HTTPException(409, {
+      message:
+        "Cannot change requiredRole while the task is in-progress or in-review",
+    });
+  }
 
   const column = await db.query.columnTable.findFirst({
     where: and(
@@ -64,6 +85,7 @@ async function updateTask(
       priority,
       position,
       userId: userId || null,
+      requiredRole: requiredRole ?? null,
     })
     .where(eq(taskTable.id, id))
     .returning();

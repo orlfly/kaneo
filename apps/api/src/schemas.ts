@@ -1,4 +1,51 @@
+import { AGENT_ROLES, HUMAN_REQUIRED_ROLE } from "@kaneo/permissions";
 import * as v from "valibot";
+
+// A `required_role` column accepts either one of the seven agent roles or the
+// literal `"human"` marker (reserves the task for a human team member). Null
+// means "any agent role may claim". See packages/permissions HUMAN_REQUIRED_ROLE.
+export const requiredRoleSchema = v.nullable(
+  v.union([v.picklist(AGENT_ROLES), v.literal(HUMAN_REQUIRED_ROLE)]),
+);
+
+// --- Task-creation quality guards (see openspec improve-task-creation-quality) ---
+
+/**
+ * A title is readable when it is not a pure branch name (`feat/auth`),
+ * a ticket id (`#123`, `456`), or a bare SHA-like hex string. Those are
+ * useful as identifiers but useless to a manager scanning the board.
+ */
+export function titleLooksReadable(title: string): boolean {
+  const t = title.trim();
+  if (t.length < 8) return false;
+  if (/^#?\d+$/.test(t)) return false; // ticket id
+  if (/^[0-9a-f]{7,}$/i.test(t)) return false; // SHA-like
+  if (/^[a-z][\w-]*\/[\w./-]+$/i.test(t)) return false; // branch-like
+  return true;
+}
+
+/** Description must carry an Acceptance Criteria section for reviewers. */
+export function descHasAcceptanceCriteria(description: string): boolean {
+  return /acceptance criteria|验收标准/iu.test(description);
+}
+
+export const humanReadableTitleSchema = v.pipe(
+  v.string(),
+  v.minLength(8, "title must be at least 8 characters"),
+  v.check(
+    (value) => titleLooksReadable(value),
+    "title must be human-readable (not a branch name, ticket id, or SHA)",
+  ),
+);
+
+export const taskDescriptionSchema = v.pipe(
+  v.string(),
+  v.minLength(40, "description must be at least 40 characters"),
+  v.check(
+    (value) => descHasAcceptanceCriteria(value),
+    "description must include an 'Acceptance Criteria' (or 验收标准) section",
+  ),
+);
 
 export const labelSchema = v.object({
   id: v.string(),

@@ -396,4 +396,92 @@ describe("MCP tool catalog", () => {
       });
     });
   });
+
+  it("registers the create_task_skill prompt", async () => {
+    const prompts = new Map<string, unknown>();
+    const registrar: McpToolRegistrar = {
+      registerTool: (_n, _c, _cb) => {},
+      registerPrompt: (name, config, callback) => {
+        prompts.set(name, { config, callback });
+      },
+    };
+    registerMcpTools(registrar, "http://api.test", "test-token");
+
+    expect(prompts.has("create_task_skill")).toBe(true);
+    const entry = prompts.get("create_task_skill") as {
+      config: { title?: string };
+      callback: (args: unknown) => Promise<{
+        messages: Array<{
+          role: string;
+          content: { type: string; text: string };
+        }>;
+      }>;
+    };
+    expect(entry.config.title).toBe("Create Task Skill");
+    const result = await entry.callback({});
+    expect(result.messages[0].role).toBe("user");
+    expect(result.messages[0].content.text).toContain("Acceptance Criteria");
+    expect(result.messages[0].content.text).toContain("requiredRole");
+  });
+
+  describe("Agent working-directory tools", () => {
+    const agentTools = [
+      "agent_clone_repo",
+      "agent_list_files",
+      "agent_read_file",
+      "agent_write_file",
+      "agent_search_files",
+      "agent_delete_file",
+      "agent_run_command",
+    ];
+
+    it("registers all agent working-directory tools", () => {
+      for (const name of agentTools) {
+        expect(tools.has(name)).toBe(true);
+      }
+    });
+
+    it("routes agent_clone_repo to the tool-execute endpoint", async () => {
+      await call("agent_clone_repo", { projectId: "p1" });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/chat/project/p1/tool",
+        method: "POST",
+        body: { tool: "agent_clone_repo", args: {} },
+      });
+    });
+
+    it("routes agent_read_file with its paging args", async () => {
+      await call("agent_read_file", {
+        projectId: "p1",
+        path: "src/index.ts",
+        offset: 10,
+        limit: 20,
+      });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/chat/project/p1/tool",
+        method: "POST",
+        body: {
+          tool: "agent_read_file",
+          args: { path: "src/index.ts", offset: 10, limit: 20 },
+        },
+      });
+    });
+
+    it("omits optional args for agent_list_files", async () => {
+      await call("agent_list_files", { projectId: "p1" });
+      expect(lastRequest().body).toEqual({
+        tool: "agent_list_files",
+        args: {},
+      });
+    });
+
+    it("rejects an empty required projectId", async () => {
+      const result = await call("agent_run_command", {
+        projectId: "",
+        command: "ls",
+      });
+      expect(result.isError).toBe(true);
+      expect(apiFetch).not.toHaveBeenCalled();
+    });
+  });
 });

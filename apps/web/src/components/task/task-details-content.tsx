@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, BotIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Activity from "@/components/activity";
 import CommentInput from "@/components/activity/comment-input";
@@ -15,6 +15,7 @@ import useGetTaskRelations from "@/hooks/queries/task-relation/use-get-task-rela
 import type { ExternalLink } from "@/types/external-link";
 import TaskDescription from "./task-description";
 import TaskRelations from "./task-relations";
+import TaskRolePopover from "./task-role-popover";
 import TaskSubtasks from "./task-subtasks";
 import TaskTitle from "./task-title";
 
@@ -77,6 +78,25 @@ export default function TaskDetailsContent({
           {project?.slug}-{task?.number}
         </p>
         <TaskTitle taskId={taskId} />
+        {task && (
+          <TaskRolePopover task={task}>
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 rounded border border-border/70 bg-muted/55 px-2 py-1 text-[10px] font-medium text-muted-foreground hover:bg-accent/50 transition-colors w-fit"
+            >
+              <BotIcon className="w-3 h-3" />
+              <span>
+                {task.requiredRole
+                  ? t(`tasks:agentRoles.${task.requiredRole}.name`, {
+                      defaultValue: task.requiredRole,
+                    })
+                  : t("common:modals.createTask.agentRoleGeneric", {
+                      defaultValue: "Any agent",
+                    })}
+              </span>
+            </button>
+          </TaskRolePopover>
+        )}
         <TaskDescription taskId={taskId} />
       </div>
       {!isLoadingExternalLinks && externalLinks.length > 0 && (

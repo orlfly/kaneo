@@ -201,6 +201,27 @@ export const auth = betterAuth({
     },
   },
   databaseHooks: {
+    apikey: {
+      create: {
+        before: async (apiKey: { metadata?: unknown }) => {
+          // The `human` value is reserved for the `required_role` column. It
+          // is NOT an agent role and must never be stored as the agent role on
+          // an API key (see HUMAN_REQUIRED_ROLE in @kaneo/permissions).
+          const metadata = apiKey?.metadata;
+          if (
+            metadata &&
+            typeof metadata === "object" &&
+            "agentRole" in metadata &&
+            (metadata as Record<string, unknown>).agentRole === "human"
+          ) {
+            throw new APIError("BAD_REQUEST", {
+              message:
+                '"human" is a required_role marker, not an agent role. Use one of: coding, product-design, architecture-design, devops, ui-design, testing, code-review.',
+            });
+          }
+        },
+      },
+    },
     user: {
       create: {
         before: async () => {

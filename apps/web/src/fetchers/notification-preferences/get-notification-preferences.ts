@@ -5,7 +5,6 @@ export type NotificationPreferenceTeamRule = {
   teamId: string;
   teamName: string;
   isActive: boolean;
-  emailEnabled: boolean;
   ntfyEnabled: boolean;
   gotifyEnabled: boolean;
   webhookEnabled: boolean;
@@ -16,8 +15,6 @@ export type NotificationPreferenceTeamRule = {
 };
 
 export type NotificationPreferences = {
-  emailAddress: string | null;
-  emailEnabled: boolean;
   ntfyEnabled: boolean;
   ntfyConfigured: boolean;
   ntfyServerUrl: string | null;

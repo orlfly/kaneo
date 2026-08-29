@@ -778,7 +778,6 @@ export function GitLabIntegrationSettings({
                   disabled={
                     isVerifying ||
                     !baseUrl.trim() ||
-                    !accessToken.trim() ||
                     !repositoryOwner.trim() ||
                     !repositoryName.trim() ||
                     (!accessToken.trim() && !integration)

@@ -1,5 +1,7 @@
-## ADDED Requirements
+## Purpose
 
+Defines the project-level AI assistant (pi-agent) chat interface: the chat tab, SSE message streaming, tool-driven task/project interaction, conversation history, and admin configuration.
+## Requirements
 ### Requirement: Chat tab in project navigation
 
 The system SHALL add a "Chat" tab to the project page navigation.
@@ -23,7 +25,7 @@ The system SHALL add a "Chat" tab to the project page navigation.
 
 ### Requirement: Send message to pi-agent via SSE streaming
 
-The system SHALL provide an SSE endpoint `POST /api/chat/project/:projectId` that streams pi-agent responses token-by-token. The endpoint SHALL be protected by team membership: only members of the project's team may call it.
+The system SHALL provide an SSE endpoint `POST /api/chat/project/:projectId` that streams pi-agent responses token-by-token. The endpoint SHALL be protected by team membership: only members of the project's team may call it. The system prompt SHALL be updated to reflect that pi-agent can now update task status via the `update_task_status` tool, while still being unable to delete tasks.
 
 #### Scenario: User sends a message and receives streamed response
 
@@ -46,6 +48,14 @@ The system SHALL provide an SSE endpoint `POST /api/chat/project/:projectId` tha
 - **THEN** the API server creates the task in the database
 - **AND** the task is visible in the project's Board and Backlog views
 - **AND** the pi-agent confirms the creation in its response
+
+#### Scenario: pi-agent updates task status
+
+- **WHEN** the user asks pi-agent to complete or close a task
+- **THEN** pi-agent calls the `update_task_status` tool
+- **AND** the system prompt instructs pi-agent that it can update task status via the tool
+- **AND** the tool executes with the caller's identity
+- **AND** the task status is updated and the pi-agent confirms in its response
 
 #### Scenario: Unconfigured service returns 503
 
@@ -168,3 +178,4 @@ The system SHALL render pi-agent responses as markdown and provide a text input 
 - **WHEN** the pi-agent is generating a response
 - **THEN** the UI shows a typing/streaming indicator
 - **AND** the input is disabled until the response completes
+
