@@ -1,10 +1,6 @@
 # enhance-pm-ui-skills
 
-## Purpose
-
-把 6 个公开上游 SKILL.md（来自 affaan-m/ECC 仓库 MIT 与 anthropics/skills 仓库 Apache 2.0）并入 Kaneo skill 树，使 product-design 与 ui-design 角色获得**前置**（产品诊断、能力契约、验收标准）与**后置**（设计方向、UI 打磨、无障碍）能力。
-
-## Requirements
+## ADDED Requirements
 
 ### Requirement: SKILL.md 数量与归属
 
