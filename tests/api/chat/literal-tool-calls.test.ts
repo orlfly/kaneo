@@ -29,6 +29,10 @@ describe("parseLiteralToolCalls", () => {
   });
 
   it("skips invoke blocks with no name", () => {
-    expect(parseLiteralToolCalls('<invoke><parameter name="x">1</parameter></invoke>')).toEqual([]);
+    expect(
+      parseLiteralToolCalls(
+        '<invoke><parameter name="x">1</parameter></invoke>',
+      ),
+    ).toEqual([]);
   });
 });

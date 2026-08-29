@@ -130,7 +130,11 @@ export async function sendMessage(c: Context, projectId: string) {
         tool_calls: choice.message.tool_calls,
       });
 
-      await executeToolCalls(currentMessages, choice.message.tool_calls, projectId);
+      await executeToolCalls(
+        currentMessages,
+        choice.message.tool_calls,
+        projectId,
+      );
 
       round += 1;
       continue;
@@ -304,8 +308,7 @@ async function executeToolCalls(
       // uncaught error escape to the Hono 500 handler.
       console.error(`[chat] tool "${toolCall.function.name}" error:`, error);
       result = JSON.stringify({
-        error:
-          error instanceof Error ? error.message : "Tool execution failed",
+        error: error instanceof Error ? error.message : "Tool execution failed",
       });
     }
 
@@ -322,9 +325,7 @@ async function executeToolCalls(
  * `<invoke name="agent_read_file">`). Returns them in the same shape as the
  * structured `tool_calls` field so the caller can execute them uniformly.
  */
-export function parseLiteralToolCalls(
-  content: string,
-): Array<{
+export function parseLiteralToolCalls(content: string): Array<{
   id: string;
   type: "function";
   function: { name: string; arguments: string };
