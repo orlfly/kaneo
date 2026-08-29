@@ -2,6 +2,11 @@
 
 ## Purpose
 TBD - created by archiving change role-scoped-skill-installation. Update Purpose after archive.
+
+## Related Capabilities
+
+- `continuous-work-loop` — 定义 `continuous-work` 与 `claim-task` skill 在持续 / 交互两种模式下的循环契约，包括单任务单周期、work vs helper 职责边界、race condition 处理。该 capability 在 `2026-08-29-loop-contract-clarifications` change 中正式同步到主 specs。
+
 ## Requirements
 ### Requirement: SKILL.md frontmatter declares applicable roles
 

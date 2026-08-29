@@ -10,7 +10,9 @@ description: 通过 Kaneo API 认领任务、管理任务状态和创建后续�
 ## 触发时机
 
 - agent 启动后认领第一个任务
-- 完成当前任务后认领下一个任务
+- 当前任务状态转 `done` / `paused` 之后：
+  - **持续模式（autonomous / loop）**：host 进程会在下一 cycle 重新发起 `claim_next_task`，agent 不需要主动循环
+  - **交互模式（chat / 单次调用）**：等待用户下一条指令，**不**主动 claim 下一个
 - 遇到阻塞时暂停任务
 - 发现角色不匹配时释放任务
 - 实现过程中发现需要创建后续任务
@@ -100,6 +102,8 @@ curl -X POST "${KANEO_API_URL}/api/task/${projectId}" \
   - 非 `code-review` 角色：只认领 `to-do` 任务，且 `requiredRole` 为 null 或等于 agent 角色
   - `code-review` 角色：只认领 `in-review` 任务，忽略 `requiredRole`
 - 每次只认领一个任务，完成后再认领下一个
+  - 持续模式下 host 会自动驱动下一次 claim（见 `continuous-work` skill）
+  - 交互模式下由用户下一条指令触发
 - 暂停任务必须写明原因，便于项目经理巡检
 - 释放任务前确保没有未提交的代码变更
 - 创建后续任务时，服务端默认将 `requiredRole` 设为 agent 的设定角色；如需指定其它角色，显式传 `requiredRole`

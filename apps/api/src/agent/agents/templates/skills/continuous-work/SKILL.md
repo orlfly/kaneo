@@ -58,6 +58,35 @@ curl -X POST "${KANEO_API_URL}/api/task/claim-next" \
 - 在当前任务未转入 `done` / `paused` 前，**禁止**再次 claim
 - 在 work 中途不要切换到另一个 task — 当前 cycle 必须终结
 
+#### 2.1 Work skill vs helper skill 的职责边界
+
+skill 分两层，agent 必须明确自己处在哪一层：
+
+| 层 | 例子 | 是否调用 `update_task_status` |
+|---|---|---|
+| **outer work skill**（产出可交付物） | `submit-pr`, `write-prd`, `write-adr`, `write-iac`, `write-design-spec`, `write-test-suite`, `review-pr` | ✅ 由它负责在末尾把状态推到 `done` / `in-review` |
+| **helper skill**（分析、检查、辅助） | `run-tests`, `repo-sync`, `code-search`, `frontend-design`, `make-interfaces-feel-better`, `accessibility`, `product-lens`, `product-capability`, `intent-driven-development` | ❌ **禁止**自己改 task 状态 |
+
+**契约要点**：
+
+- helper skill 只产生中间产物（代码改动、设计草稿、检查报告）。任何 status 更新由调用 helper 的 outer work skill 在最终步骤统一处理。
+- 如果当前 task 没有对应的 outer work skill（例如 task 描述只要求"跑测试并报告"），agent 必须**在 helper 调用结束后自己决定**是 `done`、`in-review` 还是 `pause`，不能省略这一步。
+- 绝对禁止 helper skill 在循环内部反复调用 `claim_next_task` —— 那是 cycle 入口，不是 helper 的职责。
+
+#### 2.2 Race condition 处理
+
+`update_task_status` / `pause_task` 可能在返回非 200 时遇到以下场景：
+
+- **403** — 当前 task 的 `userId` 已被改走（别人 claim / release）
+- **409** — 状态机不兼容（例如想从 `done` 改回 `in-review`）
+- **404** — task 已被删除
+
+收到这些状态码时：
+
+1. **不要**重试同一调用
+2. **不要**自动 fallback 到 `claim_next_task` 抢新任务
+3. 把"task 已被接管"作为本 cycle 的结果（视同 done），记录到审计日志 / task comment，然后 host 进入下一 cycle
+
 ### 3. Cycle 出口：显式更新任务状态
 
 只有**显式收到 done / paused 状态确认**后，才能发起下一次 claim。
@@ -115,7 +144,7 @@ cycle_finished_empty → sleep 60s → next cycle
 - **禁止放弃不释放**：work 中抛错必须调用 `pause_task({reason})`，不能直接 `claim_next_task` 下一个
 - **禁止用 `list_tasks` 批量领**：这是单任务契约的反面，永远不要做
 - **不修改 API key**：循环中 role 由 API key 决定，禁止 attempt 切换 role 来扩展可领任务范围（违反授权边界）
-- **不重写已认领任务的状态**：如果别的 agent / 人类修改了当前 task 状态（race condition），接收响应并继续当前 cycle — 不要回退到重 claim
+- **不重写已认领任务的状态**：如果别的 agent / 人类修改了当前 task 状态（race condition），按 §2.2 处理 — 不要重 claim
 
 ## 质量标准
 
