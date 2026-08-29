@@ -134,10 +134,12 @@ const chat = new Hono<{
     describeRoute({
       operationId: "sendChatMessage",
       tags: ["Chat"],
-      description: "Send a message and stream the pi-agent response via SSE",
+      description:
+        "Send a message and stream the pi-agent response via SSE. The stream emits four event types: `progress` (sent before each tool call with `{ round, tool, label }` so the chat panel can show what the agent is doing), `token` (incremental assistant text), `done` (final event with the persisted `messageId`), and `error` (sent before `done` if pi-agent fails).",
       responses: {
         200: {
-          description: "SSE stream of tokens",
+          description:
+            "SSE stream of `progress`, `token`, `done`, and `error` events",
           content: {
             "text/event-stream": {
               schema: resolver(v.any()),

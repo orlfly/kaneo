@@ -390,6 +390,106 @@ describe("API integration: pi-agent chat", () => {
     expect(tasks[0].title).toBe("集成测试任务");
   });
 
+  it("emits a progress event before each tool call ahead of any token", async () => {
+    const admin = await createAdmin();
+    const member = await createTeamMember();
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+
+    mockAuthenticatedSession(admin);
+    let app = createApp().app;
+    await app.request("/api/chat/config", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        enabled: true,
+        baseUrl: "https://mock.example",
+        apiKey: "sk-integration-test-key",
+        model: "gpt-4o",
+      }),
+    });
+
+    // Round 1 emits a list_tasks tool call; round 2 answers in prose.
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: {
+                  role: "assistant",
+                  content: "",
+                  tool_calls: [
+                    {
+                      id: "call_list",
+                      type: "function",
+                      function: {
+                        name: "list_tasks",
+                        arguments: "{}",
+                      },
+                    },
+                  ],
+                },
+                finish_reason: "tool_calls",
+              },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: {
+                  role: "assistant",
+                  content: "当前任务列表为空。",
+                  finish_reason: "stop",
+                },
+              },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+    vi.stubGlobal("fetch", mockFetch);
+    mockAuthenticatedSession(member.user);
+    app = createApp().app;
+
+    const response = await app.request(`/api/chat/project/${project.id}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ content: "列出任务" }),
+    });
+
+    expect(response.status).toBe(200);
+    const stream = await response.text();
+
+    // The SSE payload must contain a progress event for the list_tasks tool,
+    // emitted before any token event.
+    const progressOffset = stream.indexOf("event: progress");
+    const tokenOffset = stream.indexOf("event: token");
+    expect(progressOffset).toBeGreaterThanOrEqual(0);
+    expect(tokenOffset).toBeGreaterThan(progressOffset);
+
+    // The progress payload includes the tool name and a label.
+    const progressMatch = stream.match(
+      /event: progress\ndata: (\{.*?\})\n/,
+    );
+    expect(progressMatch).not.toBeNull();
+    const progressPayload = JSON.parse(progressMatch?.[1] ?? "{}");
+    expect(progressPayload.tool).toBe("list_tasks");
+    expect(typeof progressPayload.label).toBe("string");
+    expect(progressPayload.label.length).toBeGreaterThan(0);
+    expect(progressPayload.round).toBe(0);
+
+    // Final events still arrive.
+    expect(stream).toContain("event: done");
+  });
+
   it("routes agent tools through the tool-execute endpoint with team auth", async () => {
     const member = await createTeamMember();
     const outsider = await createTeamMember();
