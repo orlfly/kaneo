@@ -98,10 +98,10 @@ export function resolveApiBaseUrl(): string {
 }
 
 /**
- * Parses one SSE `data:` payload line from the chat stream.
- * Token chunks are plain text (data: 你好); the done event is a JSON object
- * (data: {"messageId":"..."}). Returns null for lines to skip (empty or
- * [DONE]), an object describing the payload otherwise.
+ * Parses one SSE `data:` payload line from the chat stream. Token chunks are
+ * plain text (data: 你好); the done event is a JSON object (data:
+ * {"messageId":"..."}). Returns null for lines to skip (empty or [DONE]), an
+ * object describing the payload otherwise.
  */
 export function parseSSELine(
   trimmed: string,
@@ -130,15 +130,35 @@ export function parseSSELine(
 }
 
 /**
- * Stream a chat message via SSE. Calls onToken for each token chunk.
- * Returns the full assistant response.
+ * One step emitted by pi-agent while it is working between tool calls. The
+ * server puts the tool name and a human-readable label into the SSE event so
+ * the chat panel can show what the agent is doing without exposing tool
+ * arguments or results.
+ */
+export type ProgressEntry = {
+  round: number;
+  tool: string;
+  label: string;
+};
+
+export type StreamChatResult = {
+  content: string;
+  progressLog: ProgressEntry[];
+};
+
+/**
+ * Stream a chat message via SSE. Calls onToken for each token chunk and
+ * onProgress for each progress event emitted between tool calls. Returns the
+ * full assistant response and the progress log so the caller can render the
+ * intermediate steps in the chat panel.
  */
 export async function streamChatMessage(
   projectId: string,
   content: string,
   onToken: (token: string) => void,
+  onProgress?: (entry: ProgressEntry) => void,
   signal?: AbortSignal,
-): Promise<string> {
+): Promise<StreamChatResult> {
   const response = await fetch(
     `${resolveApiBaseUrl()}/chat/project/${projectId}`,
     {
@@ -167,6 +187,8 @@ export async function streamChatMessage(
   const decoder = new TextDecoder();
   let buffer = "";
   let fullContent = "";
+  let currentEvent = "message";
+  const progressLog: ProgressEntry[] = [];
 
   while (true) {
     const { done, value } = await reader.read();
@@ -176,8 +198,41 @@ export async function streamChatMessage(
     const lines = buffer.split("\n");
     buffer = lines.pop() ?? "";
 
-    for (const line of lines) {
-      const trimmed = line.trim();
+    for (const rawLine of lines) {
+      const trimmed = rawLine.trim();
+      if (!trimmed) {
+        // Blank line separates SSE events. Reset for the next event block.
+        currentEvent = "message";
+        continue;
+      }
+      if (trimmed.startsWith("event: ")) {
+        currentEvent = trimmed.slice(7).trim();
+        continue;
+      }
+      if (currentEvent === "progress") {
+        const payload = trimmed.startsWith("data: ")
+          ? trimmed.slice(6)
+          : trimmed;
+        try {
+          const parsed = JSON.parse(payload);
+          if (
+            parsed &&
+            typeof parsed.tool === "string" &&
+            typeof parsed.label === "string"
+          ) {
+            const entry: ProgressEntry = {
+              round: typeof parsed.round === "number" ? parsed.round : 0,
+              tool: parsed.tool,
+              label: parsed.label,
+            };
+            progressLog.push(entry);
+            onProgress?.(entry);
+          }
+        } catch {
+          // Ignore malformed progress payloads; they should never appear.
+        }
+        continue;
+      }
       const parsed = parseSSELine(trimmed);
       if (!parsed) continue;
       if (parsed.kind === "token") {
@@ -189,5 +244,5 @@ export async function streamChatMessage(
     }
   }
 
-  return fullContent;
+  return { content: fullContent, progressLog };
 }

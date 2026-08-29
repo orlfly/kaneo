@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   type ChatMessage,
+  type ProgressEntry,
   clearChatHistory,
   getChatStatus,
   streamChatMessage,
@@ -25,6 +26,7 @@ import {
 import useChatMessages from "@/hooks/queries/project/use-chat-messages";
 import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
+import ChatProgressList from "./chat-progress-list";
 
 type Props = {
   projectId: string;
@@ -46,6 +48,7 @@ function ChatPanel({ projectId }: Props) {
   const [streamingMsg, setStreamingMsg] = useState<StreamingMessage | null>(
     null,
   );
+  const [progressLog, setProgressLog] = useState<ProgressEntry[]>([]);
   const [enabled, setEnabled] = useState<boolean>(false);
   const [statusLoaded, setStatusLoaded] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
@@ -107,6 +110,7 @@ function ChatPanel({ projectId }: Props) {
     setInput("");
     setStreaming(true);
     const tempId = `streaming-${Date.now()}`;
+    setProgressLog([]);
     setStreamingMsg({
       id: tempId,
       role: "assistant",
@@ -124,6 +128,9 @@ function ChatPanel({ projectId }: Props) {
           setStreamingMsg((prev) =>
             prev ? { ...prev, content: prev.content + token } : prev,
           );
+        },
+        (entry) => {
+          setProgressLog((prev) => [...prev, entry]);
         },
         abortRef.current.signal,
       );
@@ -145,6 +152,7 @@ function ChatPanel({ projectId }: Props) {
     } finally {
       setStreaming(false);
       setStreamingMsg(null);
+      setProgressLog([]);
       abortRef.current = null;
     }
   };
@@ -230,53 +238,69 @@ function ChatPanel({ projectId }: Props) {
             </p>
           </div>
         ) : (
-          allMessages.map((msg) => (
-            <div
-              key={msg.id}
-              className={cn(
-                "flex gap-3",
-                msg.role === "user" && "flex-row-reverse",
-              )}
-            >
-              <Avatar
-                className={cn(
-                  "size-7 shrink-0",
-                  msg.role === "user" ? "bg-primary/10" : "bg-muted",
-                )}
-              >
-                <AvatarFallback className="text-[10px]">
-                  {msg.role === "user" ? (
-                    <UserIcon className="size-3.5" />
-                  ) : (
-                    <BotIcon className="size-3.5" />
-                  )}
-                </AvatarFallback>
-              </Avatar>
+          allMessages.map((msg) => {
+            const isStreamingAssistant =
+              msg.role === "assistant" &&
+              "streaming" in msg &&
+              msg.streaming;
+            return (
               <div
+                key={msg.id}
                 className={cn(
-                  "max-w-[80%] rounded-lg px-3 py-2 text-sm",
-                  msg.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted",
+                  "flex flex-col gap-2",
+                  msg.role === "user" && "items-end",
                 )}
               >
-                {msg.role === "assistant" ? (
-                  <div className="kaneo-tiptap-prose">
-                    <MarkdownRenderer content={msg.content} />
-                    {"streaming" in msg && msg.streaming && !msg.content ? (
-                      <span className="inline-flex gap-1">
-                        <span className="size-1.5 animate-pulse rounded-full bg-muted-foreground/50" />
-                        <span className="size-1.5 animate-pulse rounded-full bg-muted-foreground/50 [animation-delay:200ms]" />
-                        <span className="size-1.5 animate-pulse rounded-full bg-muted-foreground/50 [animation-delay:400ms]" />
-                      </span>
-                    ) : null}
-                  </div>
-                ) : (
-                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                {isStreamingAssistant && progressLog.length > 0 && (
+                  <ChatProgressList entries={progressLog} streaming={streaming} />
                 )}
+                <div
+                  className={cn(
+                    "flex w-full gap-3",
+                    msg.role === "user" && "flex-row-reverse",
+                  )}
+                >
+                  <Avatar
+                    className={cn(
+                      "size-7 shrink-0",
+                      msg.role === "user" ? "bg-primary/10" : "bg-muted",
+                    )}
+                  >
+                    <AvatarFallback className="text-[10px]">
+                      {msg.role === "user" ? (
+                        <UserIcon className="size-3.5" />
+                      ) : (
+                        <BotIcon className="size-3.5" />
+                      )}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div
+                    className={cn(
+                      "max-w-[80%] rounded-lg px-3 py-2 text-sm",
+                      msg.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted",
+                    )}
+                  >
+                    {msg.role === "assistant" ? (
+                      <div className="kaneo-tiptap-prose">
+                        <MarkdownRenderer content={msg.content} />
+                        {isStreamingAssistant && !msg.content ? (
+                          <span className="inline-flex gap-1">
+                            <span className="size-1.5 animate-pulse rounded-full bg-muted-foreground/50" />
+                            <span className="size-1.5 animate-pulse rounded-full bg-muted-foreground/50 [animation-delay:200ms]" />
+                            <span className="size-1.5 animate-pulse rounded-full bg-muted-foreground/50 [animation-delay:400ms]" />
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 

@@ -117,6 +117,19 @@ function sseStream(chunks: string[]): ReadableStream<Uint8Array> {
   });
 }
 
+/** Emit raw SSE byte chunks without the `data: …` wrapper. */
+function rawSseStream(rawChunks: string[]): ReadableStream<Uint8Array> {
+  const encoder = new TextEncoder();
+  return new ReadableStream({
+    start(controller) {
+      for (const chunk of rawChunks) {
+        controller.enqueue(encoder.encode(chunk));
+      }
+      controller.close();
+    },
+  });
+}
+
 describe("getChatStatus runtime contract", () => {
   const fetchMock = vi.fn();
 
@@ -180,8 +193,34 @@ describe("streamChatMessage runtime contract", () => {
     );
     const tokens: string[] = [];
     const result = await streamChatMessage("p1", "hi", (t) => tokens.push(t));
-    expect(result).toContain("你好");
-    expect(result).toContain("pi-agent");
+    expect(result.content).toContain("你好");
+    expect(result.content).toContain("pi-agent");
+    expect(result.progressLog).toEqual([]);
     expect(tokens).toEqual(["你好", "，我是 pi-agent。"]);
+  });
+
+  it("captures progress events emitted before the assistant text", async () => {
+    fetchMock.mockResolvedValue(
+      stubFetchResponse({
+        ok: true,
+        body: rawSseStream([
+          "event: progress\ndata: {\"round\":0,\"tool\":\"list_tasks\",\"label\":\"正在查询任务列表\"}\n\n",
+          "data: 你好\n\n",
+        ]),
+      }),
+    );
+    const tokens: string[] = [];
+    const entries: Array<{ round: number; tool: string; label: string }> = [];
+    const result = await streamChatMessage(
+      "p1",
+      "hi",
+      (t) => tokens.push(t),
+      (entry) => entries.push(entry),
+    );
+    expect(result.progressLog).toEqual([
+      { round: 0, tool: "list_tasks", label: "正在查询任务列表" },
+    ]);
+    expect(entries).toEqual(result.progressLog);
+    expect(tokens).toEqual(["你好"]);
   });
 });
