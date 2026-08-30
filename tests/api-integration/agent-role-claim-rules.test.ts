@@ -456,3 +456,98 @@ describe("API integration: agent-created task requiredRole", () => {
     expect(persisted?.requiredRole).toBe("testing");
   });
 });
+
+describe("API integration: review-claim lifecycle", () => {
+  beforeEach(async () => {
+    await resetTestDatabase();
+    currentApiKey = null;
+  });
+
+  it("reviewer rework hands the task back to-in-progress and releases the lock", async () => {
+    const member = await createTeamMember({ role: "member" });
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+    const task = await seedTask(project.id, "in-review", "coding");
+    await db
+      .update(schema.taskTable)
+      .set({ userId: member.user.id })
+      .where(eq(schema.taskTable.id, task.id));
+    setAgent(member.user.id, "code-review");
+    const { app } = createApp();
+
+    await agentFetch(app, `/api/task/claim/${task.id}`, { method: "POST" });
+    const response = await agentFetch(app, `/api/task/status/${task.id}`, {
+      method: "PUT",
+      json: { status: "in-progress" },
+    });
+    expect(response.status).toBe(200);
+
+    const persisted = await db.query.taskTable.findFirst({
+      where: eq(schema.taskTable.id, task.id),
+    });
+    expect(persisted?.status).toBe("in-progress");
+    // Back to the pool for any implementer (requiredRole cleared, not
+    // forced back to code-review); review lock released; attribution intact.
+    expect(persisted?.requiredRole).toBeNull();
+    expect(persisted?.reviewClaimedBy).toBeNull();
+    expect(persisted?.userId).toBe(member.user.id);
+  });
+
+  it("reviewer release frees the review lock but keeps the task in-review", async () => {
+    const member = await createTeamMember({ role: "member" });
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+    const task = await seedTask(project.id, "in-review", "coding");
+    await db
+      .update(schema.taskTable)
+      .set({ userId: member.user.id, claimedBy: "implementer-key" })
+      .where(eq(schema.taskTable.id, task.id));
+    setAgent(member.user.id, "code-review");
+    const { app } = createApp();
+
+    await agentFetch(app, `/api/task/claim/${task.id}`, { method: "POST" });
+
+    // A second reviewer cannot claim while the lock is held.
+    const other = await createTeamMember({ role: "member" });
+    await db.insert(schema.teamMemberTable).values({
+      teamId: member.team.id,
+      userId: other.user.id,
+      role: "member",
+      joinedAt: new Date(),
+    });
+    setAgent(other.user.id, "code-review");
+    const blocked = await agentFetch(app, `/api/task/claim/${task.id}`, {
+      method: "POST",
+    });
+    expect(blocked.status).toBe(409);
+
+    // The lock holder releases: the task stays in-review, claimed_by intact,
+    // and another reviewer can now claim it.
+    setAgent(member.user.id, "code-review");
+    const release = await agentFetch(app, `/api/task/release/${task.id}`, {
+      method: "POST",
+    });
+    expect(release.status).toBe(200);
+
+    const afterRelease = await db.query.taskTable.findFirst({
+      where: eq(schema.taskTable.id, task.id),
+    });
+    expect(afterRelease?.reviewClaimedBy).toBeNull();
+    expect(afterRelease?.status).toBe("in-review");
+    expect(afterRelease?.claimedBy).toBe("implementer-key");
+
+    setAgent(other.user.id, "code-review");
+    const reclaim = await agentFetch(app, `/api/task/claim/${task.id}`, {
+      method: "POST",
+    });
+    expect(reclaim.status).toBe(200);
+    const persisted = await db.query.taskTable.findFirst({
+      where: eq(schema.taskTable.id, task.id),
+    });
+    expect(persisted?.reviewClaimedBy).toBe(`mock-agent-key-${other.user.id}`);
+    expect(persisted?.claimedBy).toBe("implementer-key");
+    expect(persisted?.status).toBe("in-review");
+  });
+});
