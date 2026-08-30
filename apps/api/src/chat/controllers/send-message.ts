@@ -10,6 +10,7 @@ import {
 } from "../../database/schema";
 import {
   type ChatCompletionMessage,
+  type ChatCompletionResponse,
   chatCompletion,
   chatCompletionStream,
   isPiAgentConfigured,
@@ -117,7 +118,7 @@ export async function sendMessage(c: Context, projectId: string) {
     let usedStreamingCompletion = false;
 
     while (round < MAX_TOOL_ROUNDS) {
-      let response: unknown;
+      let response: ChatCompletionResponse;
       try {
         response = await chatCompletion(currentMessages, toolDefinitions);
       } catch (error) {

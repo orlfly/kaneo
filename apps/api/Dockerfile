@@ -2,7 +2,7 @@
 FROM --platform=$BUILDPLATFORM node:20.20.2-alpine AS builder
 
 # Install build dependencies in a single layer
-RUN apk add --no-cache python3 make g++ && \
+RUN apk add --no-cache python3 make g++ zip && \
   corepack enable && \
   corepack prepare pnpm@10.7.0 --activate
 
@@ -55,8 +55,9 @@ RUN sed -i 's/"prepare": "husky"/"prepare": ""/g' package.json && \
 # Production stage - use specific version tag without SHA256
 FROM node:20.20.2-alpine AS runtime
 
-# Set up user in a single layer
-RUN addgroup -g 1001 appuser && \
+# Install runtime dependencies (zip for creating config packages)
+RUN apk add --no-cache zip && \
+  addgroup -g 1001 appuser && \
   adduser -u 1001 -G appuser -D appuser && \
   mkdir -p /app/apps/api/data && \
   chown -R appuser:appuser /app
@@ -71,8 +72,9 @@ COPY --from=prod-deps --chown=appuser:appuser /app ./
 COPY --from=builder --chown=appuser:appuser /app/apps/api/dist ./apps/api/dist
 COPY --from=builder --chown=appuser:appuser /app/apps/api/drizzle ./apps/api/drizzle
 COPY --from=builder --chown=appuser:appuser /app/packages/permissions ./packages/permissions
-# Copy templates to agent/agents because __dirname resolves to /app/apps/api (not dist/)
+# Copy templates and install script to agent/agents because __dirname resolves to /app/apps/api (not dist/)
 COPY --from=builder --chown=appuser:appuser /app/apps/api/src/agent/agents/templates ./apps/api/agent/agents/templates
+COPY --from=builder --chown=appuser:appuser /app/apps/api/src/agent/agents/install.sh.template ./apps/api/agent/agents/install.sh.template
 
 # Fail the build early if the runtime dependency layout is broken on the target architecture
 RUN cd /app/apps/api && node -e "const fs=require('fs');for(const m of ['bcryptjs','hono','pg','drizzle-orm','better-auth','ioredis','valibot','octokit','@modelcontextprotocol/sdk']){fs.accessSync('node_modules/'+m+'/package.json')}"

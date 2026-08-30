@@ -1,10 +1,26 @@
+import { existsSync } from "node:fs";
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { AGENT_ROLES } from "@kaneo/permissions";
 
+// Handle both development (import.meta.url) and production (esbuild bundling) environments
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEMPLATES_DIR = path.join(__dirname, "templates");
+
+// Fallback for esbuild bundling: use direct path resolution
+function getTemplatesDir(): string {
+  // In Docker, process.cwd() is /app/apps/api and templates are at agent/agents/templates
+  const dockerPath = path.join(process.cwd(), "agent", "agents", "templates");
+  if (existsSync(dockerPath)) {
+    return dockerPath;
+  }
+
+  // Fallback to original __dirname resolution
+  return TEMPLATES_DIR;
+}
+
+const FINAL_TEMPLATES_DIR = getTemplatesDir();
 
 export type RoleTemplate = {
   name: string;
@@ -73,7 +89,7 @@ export function skillAppliesToRole(
  * Each role directory contains an AGENTS.md file.
  */
 export async function listRoleTemplates(): Promise<RoleTemplate[]> {
-  const rolesDir = path.join(TEMPLATES_DIR, "roles");
+  const rolesDir = path.join(FINAL_TEMPLATES_DIR, "roles");
 
   const entries = await readdir(rolesDir, { withFileTypes: true });
   const dirs = entries.filter((e) => e.isDirectory());
@@ -118,7 +134,7 @@ export async function listSkillsForRole(
 async function listSkillTemplatesFiltered(
   role?: string,
 ): Promise<SkillTemplate[]> {
-  const skillsDir = path.join(TEMPLATES_DIR, "skills");
+  const skillsDir = path.join(FINAL_TEMPLATES_DIR, "skills");
 
   const entries = await readdir(skillsDir, { withFileTypes: true });
   const dirs = entries.filter((e) => e.isDirectory());
@@ -152,7 +168,12 @@ async function listSkillTemplatesFiltered(
 export async function readRoleTemplate(
   roleName: string,
 ): Promise<string | null> {
-  const agentsPath = path.join(TEMPLATES_DIR, "roles", roleName, "AGENTS.md");
+  const agentsPath = path.join(
+    FINAL_TEMPLATES_DIR,
+    "roles",
+    roleName,
+    "AGENTS.md",
+  );
   try {
     return await readFile(agentsPath, "utf8");
   } catch {
@@ -166,7 +187,12 @@ export async function readRoleTemplate(
 export async function readSkillTemplate(
   skillName: string,
 ): Promise<string | null> {
-  const skillPath = path.join(TEMPLATES_DIR, "skills", skillName, "SKILL.md");
+  const skillPath = path.join(
+    FINAL_TEMPLATES_DIR,
+    "skills",
+    skillName,
+    "SKILL.md",
+  );
   try {
     return await readFile(skillPath, "utf8");
   } catch {
@@ -179,11 +205,11 @@ export async function readSkillTemplate(
  */
 export async function templatesExist(): Promise<boolean> {
   try {
-    const s = await stat(TEMPLATES_DIR);
+    const s = await stat(FINAL_TEMPLATES_DIR);
     return s.isDirectory();
   } catch {
     return false;
   }
 }
 
-export { AGENT_ROLES, TEMPLATES_DIR };
+export { AGENT_ROLES, FINAL_TEMPLATES_DIR as TEMPLATES_DIR };

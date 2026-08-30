@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,6 +16,37 @@ const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEMPLATES_DIR = path.join(__dirname, "templates");
 const INSTALL_SH_TEMPLATE = path.join(__dirname, "install.sh.template");
+
+// Fallback for esbuild bundling: use direct path resolution
+function getTemplatesDir(): string {
+  // In Docker, process.cwd() is /app/apps/api and templates are at agent/agents/templates
+  const dockerPath = path.join(process.cwd(), "agent", "agents", "templates");
+  if (existsSync(dockerPath)) {
+    return dockerPath;
+  }
+
+  // Fallback to original __dirname resolution
+  return TEMPLATES_DIR;
+}
+
+function getInstallShTemplate(): string {
+  // In Docker, install.sh.template is at agent/agents/install.sh.template
+  const dockerPath = path.join(
+    process.cwd(),
+    "agent",
+    "agents",
+    "install.sh.template",
+  );
+  if (existsSync(dockerPath)) {
+    return dockerPath;
+  }
+
+  // Fallback to original __dirname resolution
+  return INSTALL_SH_TEMPLATE;
+}
+
+const FINAL_TEMPLATES_DIR = getTemplatesDir();
+const FINAL_INSTALL_SH_TEMPLATE = getInstallShTemplate();
 
 /**
  * Build a zip package containing role definitions (persona sources), skills,
@@ -40,7 +72,7 @@ export async function buildAgentConfigZip(
 
   try {
     // Copy roles (each is a persona source)
-    const rolesSrc = path.join(TEMPLATES_DIR, "roles");
+    const rolesSrc = path.join(FINAL_TEMPLATES_DIR, "roles");
     const rolesDest = path.join(stagingDir, "roles");
     await mkdir(rolesDest, { recursive: true });
     for (const role of AGENT_ROLES) {
@@ -52,7 +84,7 @@ export async function buildAgentConfigZip(
     }
 
     // Copy skills, filtered by role when roleFilter is provided
-    const skillsSrc = path.join(TEMPLATES_DIR, "skills");
+    const skillsSrc = path.join(FINAL_TEMPLATES_DIR, "skills");
     const skillsDest = path.join(stagingDir, "skills");
     await mkdir(skillsDest, { recursive: true });
     const skillEntries = await readdir(skillsSrc, { withFileTypes: true });
@@ -91,7 +123,7 @@ export async function buildAgentConfigZip(
     }
 
     // Copy install.sh template
-    const installSh = await readFile(INSTALL_SH_TEMPLATE, "utf8");
+    const installSh = await readFile(FINAL_INSTALL_SH_TEMPLATE, "utf8");
     await writeFile(path.join(stagingDir, "install.sh"), installSh, "utf8");
 
     // Zip the staging directory
