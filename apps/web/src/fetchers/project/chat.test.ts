@@ -204,7 +204,7 @@ describe("streamChatMessage runtime contract", () => {
       stubFetchResponse({
         ok: true,
         body: rawSseStream([
-          "event: progress\ndata: {\"round\":0,\"tool\":\"list_tasks\",\"label\":\"正在查询任务列表\"}\n\n",
+          'event: progress\ndata: {"round":0,"tool":"list_tasks","label":"正在查询任务列表"}\n\n',
           "data: 你好\n\n",
         ]),
       }),

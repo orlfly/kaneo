@@ -364,7 +364,10 @@ describe('API integration: API key with agentRole = "human" is rejected', () => 
     });
 
     expect(response.status).toBe(200);
-    const body = (await response.json()) as { metadata?: unknown; key?: string };
+    const body = (await response.json()) as {
+      metadata?: unknown;
+      key?: string;
+    };
     expect(body.key).toBeTruthy();
     expect(body.metadata).toEqual({ agentRole: "coding" });
   });

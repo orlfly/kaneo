@@ -5,10 +5,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { subscribeToEvent } from "../../apps/api/src/events";
 import { createApp } from "../../apps/api/src/index";
 import { decryptSecret } from "../../apps/api/src/notification-preferences/secrets";
-import {
-  mockAnonymousSession,
-  mockAuthenticatedSession,
-} from "./helpers/auth";
+import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
 import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
@@ -525,9 +522,7 @@ describe("API integration: pi-agent chat", () => {
     expect(tokenOffset).toBeGreaterThan(progressOffset);
 
     // The progress payload includes the tool name and a label.
-    const progressMatch = stream.match(
-      /event: progress\ndata: (\{.*?\})\n/,
-    );
+    const progressMatch = stream.match(/event: progress\ndata: (\{.*?\})\n/);
     expect(progressMatch).not.toBeNull();
     const progressPayload = JSON.parse(progressMatch?.[1] ?? "{}");
     expect(progressPayload.tool).toBe("list_tasks");

@@ -17,9 +17,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   type ChatMessage,
-  type ProgressEntry,
   clearChatHistory,
   getChatStatus,
+  type ProgressEntry,
   streamChatMessage,
   uploadChatFile,
 } from "@/fetchers/project/chat";
@@ -240,9 +240,7 @@ function ChatPanel({ projectId }: Props) {
         ) : (
           allMessages.map((msg) => {
             const isStreamingAssistant =
-              msg.role === "assistant" &&
-              "streaming" in msg &&
-              msg.streaming;
+              msg.role === "assistant" && "streaming" in msg && msg.streaming;
             return (
               <div
                 key={msg.id}
@@ -252,7 +250,10 @@ function ChatPanel({ projectId }: Props) {
                 )}
               >
                 {isStreamingAssistant && progressLog.length > 0 && (
-                  <ChatProgressList entries={progressLog} streaming={streaming} />
+                  <ChatProgressList
+                    entries={progressLog}
+                    streaming={streaming}
+                  />
                 )}
                 <div
                   className={cn(

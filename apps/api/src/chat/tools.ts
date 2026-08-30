@@ -12,11 +12,7 @@ import {
   projectWorkdir,
 } from "../agent";
 import db from "../database";
-import {
-  integrationTable,
-  projectTable,
-  taskTable,
-} from "../database/schema";
+import { integrationTable, projectTable, taskTable } from "../database/schema";
 import createTaskController from "../task/controllers/create-task";
 import updateTaskStatus from "../task/controllers/update-task-status";
 import { vcsListPullRequests } from "../vcs";
@@ -389,8 +385,7 @@ async function createTaskTool(
     return JSON.stringify({ id: task.id, title: task.title, created: true });
   } catch (error) {
     return JSON.stringify({
-      error:
-        error instanceof Error ? error.message : "Failed to create task",
+      error: error instanceof Error ? error.message : "Failed to create task",
     });
   }
 }
