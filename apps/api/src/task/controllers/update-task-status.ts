@@ -44,15 +44,27 @@ async function updateTaskStatus({
   const hasReviewLock =
     existingTask.reviewClaimedBy != null &&
     existingTask.reviewClaimedBy === agentKeyId;
+  const lockHeldByOther =
+    existingTask.reviewClaimedBy != null &&
+    existingTask.reviewClaimedBy !== agentKeyId;
 
-  // Review ownership guard: an in-review task may only be pulled out of review
-  // by the reviewer who holds the lock, or by a human (agentRole undefined).
-  // This prevents an implementer (or a different reviewer) from hijacking a
-  // review that is in flight.
-  if (leavingInReview && agentRole !== undefined && !hasReviewLock) {
-    throw new HTTPException(403, {
-      message: "Task review is not claimed by you",
-    });
+  // Review ownership guard when pulling a task out of in-review:
+  // 1. A reviewer may only finish (or rework) a review it currently holds.
+  // 2. No agent may disrupt an in-flight review claimed by another reviewer.
+  //    This also stops an implementer and a different reviewer from hijacking
+  //    an active review. An unclaimed in-review task (no reviewer engaged) is
+  //    still withdrawable by the current agent (e.g. the submitter reverting).
+  if (leavingInReview) {
+    if (isReviewer && !hasReviewLock) {
+      throw new HTTPException(403, {
+        message: "Task review is not claimed by you",
+      });
+    }
+    if (lockHeldByOther) {
+      throw new HTTPException(403, {
+        message: "Task review is not claimed by you",
+      });
+    }
   }
 
   // A reviewer may finish the review (done) or hand the task back for rework

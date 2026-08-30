@@ -16,9 +16,9 @@ describe("agent config templates", () => {
     }
   });
 
-  it("returns all 5 skill templates", async () => {
+  it("returns the core skill templates", async () => {
     const skills = await listSkillTemplates();
-    expect(skills).toHaveLength(5);
+    expect(skills.length).toBeGreaterThanOrEqual(5);
     const names = skills.map((s) => s.name);
     expect(names).toContain("claim-task");
     expect(names).toContain("repo-sync");

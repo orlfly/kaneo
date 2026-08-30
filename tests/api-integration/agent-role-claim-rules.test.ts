@@ -696,4 +696,30 @@ describe("API integration: review-claim lifecycle", () => {
     });
     expect(response.status).toBe(404);
   });
+
+  it("implementer can withdraw an unclaimed in-review task before a reviewer claims", async () => {
+    const member = await createTeamMember({ role: "member" });
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+    const task = await seedTask(project.id, "in-review", "coding");
+    await db
+      .update(schema.taskTable)
+      .set({ userId: member.user.id })
+      .where(eq(schema.taskTable.id, task.id));
+    // The submitter (coding, the assignee) reverts an unclaimed review.
+    setAgent(member.user.id, "coding");
+    const { app } = createApp();
+
+    const response = await agentFetch(app, `/api/task/status/${task.id}`, {
+      method: "PUT",
+      json: { status: "in-progress" },
+    });
+    expect(response.status).toBe(200);
+    const persisted = await db.query.taskTable.findFirst({
+      where: eq(schema.taskTable.id, task.id),
+    });
+    expect(persisted?.status).toBe("in-progress");
+    expect(persisted?.reviewClaimedBy).toBeNull();
+  });
 });

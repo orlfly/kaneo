@@ -85,7 +85,29 @@ describe("resolveVcsIntegration", () => {
 
     await expect(resolveVcsIntegration("p1", "github")).rejects.toMatchObject({
       status: 400,
-      message: "GitHub installation ID not configured",
+      message: "GitHub installation or access token not configured",
+    });
+  });
+
+  it("resolves a GitHub integration with only an access token (PAT mode)", async () => {
+    mocks.projectFindFirst.mockResolvedValueOnce({ id: "p1", teamId: "t1" });
+    mocks.integrationFindFirst.mockResolvedValueOnce({
+      id: "i1",
+      isActive: true,
+      config: JSON.stringify({
+        repositoryOwner: "owner",
+        repositoryName: "repo",
+        installationId: null,
+        accessToken: "ghp_test",
+      }),
+    });
+
+    const resolved = await resolveVcsIntegration("p1", "github");
+    expect(resolved).toMatchObject({
+      type: "github",
+      integrationId: "i1",
+      teamId: "t1",
+      config: { installationId: null, accessToken: "ghp_test" },
     });
   });
 

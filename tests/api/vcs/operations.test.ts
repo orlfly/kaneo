@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  getInstallationOctokit: vi.fn(),
+  getRepoOctokit: vi.fn(),
   createGitLabClient: vi.fn(),
   createGiteaClient: vi.fn(),
 }));
 
 vi.mock("../../../apps/api/src/plugins/github/utils/github-app", () => ({
-  getInstallationOctokit: mocks.getInstallationOctokit,
+  getRepoOctokit: mocks.getRepoOctokit,
 }));
 
 vi.mock("../../../apps/api/src/plugins/gitlab/utils/gitlab-api", () => ({
@@ -61,7 +61,7 @@ const giteaIntegration = {
 };
 
 beforeEach(() => {
-  mocks.getInstallationOctokit.mockReset();
+  mocks.getRepoOctokit.mockReset();
   mocks.createGitLabClient.mockReset();
   mocks.createGiteaClient.mockReset();
 });
@@ -72,7 +72,7 @@ afterEach(() => {
 
 describe("vcsListRepositories", () => {
   it("lists GitHub App-accessible repositories", async () => {
-    mocks.getInstallationOctokit.mockResolvedValue({
+    mocks.getRepoOctokit.mockResolvedValue({
       rest: {
         apps: {
           listReposAccessibleToInstallation: vi.fn().mockResolvedValue({
@@ -120,7 +120,7 @@ describe("vcsListRepositories", () => {
 
 describe("vcsListIssues", () => {
   it("lists GitHub issues and filters out pull requests", async () => {
-    mocks.getInstallationOctokit.mockResolvedValue({
+    mocks.getRepoOctokit.mockResolvedValue({
       rest: {
         issues: {
           listForRepo: vi.fn().mockResolvedValue({
@@ -164,7 +164,7 @@ describe("vcsCreateIssue", () => {
     const create = vi
       .fn()
       .mockResolvedValue({ data: { number: 1, title: "Bug" } });
-    mocks.getInstallationOctokit.mockResolvedValue({
+    mocks.getRepoOctokit.mockResolvedValue({
       rest: { issues: { create } },
     });
 
@@ -217,7 +217,7 @@ describe("vcsCreateIssueComment", () => {
     const createComment = vi
       .fn()
       .mockResolvedValue({ data: { id: 1, body: "Thanks" } });
-    mocks.getInstallationOctokit.mockResolvedValue({
+    mocks.getRepoOctokit.mockResolvedValue({
       rest: { issues: { createComment } },
     });
 
