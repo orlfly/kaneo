@@ -67,6 +67,8 @@ curl -X PUT "${KANEO_API_URL}/api/task/status/${taskId}" \
 
 `code-review` agent 认领 `in-review` 任务时，服务端只加「**评审锁**」（review claim），用于多个评审 agent 之间的互斥。它**不会**改动任务的 `userId` / `claimedBy` / `claimedAt`（实现者归属不变），也**不会**改变任务状态（保持 `in-review`）。`claim_next_task` / `claim` 返回 409 表示该任务已被另一个评审 agent 锁定。
 
+> **重要提醒（code-review）**：`in-review` 任务的 `assignee` / `claimed_by` **必然**是原实现者（例如 coding key），**这不代表任务被占用，评审 agent 照常认领**。直接 claim 会得到评审锁（200，状态仍为 `in-review`）；不要因为任务详情里 `claimed_by` / `assignee` 有值就跳过、误判为"已认领"或等待实现者释放。只有 `claim` 返回 409（"already claimed by another reviewer"）才表示评审锁被别的评审 agent 占用。
+
 评审完成时，评审 agent 通过更新任务状态来释放评审锁：
 - **评审通过**：`PUT /api/task/status/{taskId}` `{"status":"done"}`（任务完成）
 - **需要返工**：`PUT /api/task/status/{taskId}` `{"status":"in-progress"}`（任务回到实现者手中，`requiredRole` 清空）
