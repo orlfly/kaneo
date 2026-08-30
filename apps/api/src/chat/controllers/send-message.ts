@@ -1,7 +1,7 @@
 import { createId } from "@paralleldrive/cuid2";
 import { eq } from "drizzle-orm";
 import type { Context } from "hono";
-import { streamSSE, type SSEStreamingApi } from "hono/streaming";
+import { type SSEStreamingApi, streamSSE } from "hono/streaming";
 import db from "../../database";
 import {
   chatMessageTable,
@@ -117,7 +117,7 @@ export async function sendMessage(c: Context, projectId: string) {
     let usedStreamingCompletion = false;
 
     while (round < MAX_TOOL_ROUNDS) {
-      let response;
+      let response: unknown;
       try {
         response = await chatCompletion(currentMessages, toolDefinitions);
       } catch (error) {

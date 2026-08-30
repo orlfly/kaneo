@@ -71,6 +71,8 @@ COPY --from=prod-deps --chown=appuser:appuser /app ./
 COPY --from=builder --chown=appuser:appuser /app/apps/api/dist ./apps/api/dist
 COPY --from=builder --chown=appuser:appuser /app/apps/api/drizzle ./apps/api/drizzle
 COPY --from=builder --chown=appuser:appuser /app/packages/permissions ./packages/permissions
+# Copy templates to agent/agents because __dirname resolves to /app/apps/api (not dist/)
+COPY --from=builder --chown=appuser:appuser /app/apps/api/src/agent/agents/templates ./apps/api/agent/agents/templates
 
 # Fail the build early if the runtime dependency layout is broken on the target architecture
 RUN cd /app/apps/api && node -e "const fs=require('fs');for(const m of ['bcryptjs','hono','pg','drizzle-orm','better-auth','ioredis','valibot','octokit','@modelcontextprotocol/sdk']){fs.accessSync('node_modules/'+m+'/package.json')}"

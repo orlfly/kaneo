@@ -408,6 +408,7 @@ export function createApp() {
   );
 
   const configApi = api.route("/config", config);
+  const agentConfigApi = api.route("/agent/agents-config", agentConfig);
 
   const honoOpenApiHandler = openAPIRouteHandler(api, {
     documentation: {
@@ -580,7 +581,10 @@ export function createApp() {
       // Clone before reading: c.req.json() consumes the underlying body
       // stream, so the request we hand to auth.handler must be a fresh
       // clone (better-auth re-reads the body via better-call).
-      const guardParsed = await c.req.raw.clone().json().catch(() => null);
+      const guardParsed = await c.req.raw
+        .clone()
+        .json()
+        .catch(() => null);
       const metadata = guardParsed?.metadata;
       if (
         metadata &&
@@ -655,7 +659,6 @@ export function createApp() {
 
   const projectApi = api.route("/project", project);
   const taskApi = api.route("/task", task);
-  const agentConfigApi = api.route("/agent/agents-config", agentConfig);
   const columnApi = api.route("/column", column);
   const activityApi = api.route("/activity", activity);
   const commentApi = api.route("/comment", comment);

@@ -30,7 +30,7 @@ function ChatProgressList({ entries, streaming }: Props) {
         });
         return (
           <li
-            key={`${entry.round}-${index}-${entry.tool}`}
+            key={`${entry.round}-${entry.tool}`}
             aria-label={ariaLabel}
             className={cn(
               "flex items-center gap-2",
