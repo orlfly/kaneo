@@ -1,4 +1,5 @@
 import { HTTPException } from "hono/http-exception";
+import { Octokit } from "octokit";
 import { getGithubApp } from "../../plugins/github/utils/github-app";
 
 type VerificationResult = {
@@ -40,15 +41,27 @@ function settingsUrlFor(installationId: number): string {
 async function verifyGithubInstallation({
   repositoryOwner,
   repositoryName,
+  accessToken,
 }: {
   repositoryOwner: string;
   repositoryName: string;
+  accessToken?: string;
 }): Promise<VerificationResult> {
+  const token = accessToken?.trim();
+  if (token) {
+    return verifyWithPersonalAccessToken({
+      repositoryOwner,
+      repositoryName,
+      accessToken: token,
+    });
+  }
+
   const githubApp = getGithubApp();
 
   if (!githubApp) {
     throw new HTTPException(500, {
-      message: "GitHub app not configured",
+      message:
+        "GitHub integration is not configured. Add a personal access token or configure a GitHub App.",
     });
   }
 
@@ -180,6 +193,93 @@ function getMissingPermissions(
     const permissionLevel = permissions[perm];
     return permissionLevel !== "write" && permissionLevel !== "admin";
   });
+}
+
+/**
+ * Verify repository access using a personal access token. Mutations like
+ * creating issues need write access: classic tokens advertise scopes via the
+ * response header, fine-grained tokens do not. We accept either an explicit
+ * issues-capable scope or push/admin rights on the repository itself.
+ */
+async function verifyWithPersonalAccessToken({
+  repositoryOwner,
+  repositoryName,
+  accessToken,
+}: {
+  repositoryOwner: string;
+  repositoryName: string;
+  accessToken: string;
+}): Promise<VerificationResult> {
+  const octokit = new Octokit({ auth: accessToken });
+
+  let repo: {
+    private: boolean;
+    permissions?: { admin?: boolean; push?: boolean; pull?: boolean };
+  };
+  let scopes: string[] = [];
+  try {
+    const response = await octokit.rest.repos.get({
+      owner: repositoryOwner,
+      repo: repositoryName,
+    });
+    repo = response.data;
+    const scopesHeader = response.headers["x-oauth-scopes"];
+    if (typeof scopesHeader === "string" && scopesHeader.trim()) {
+      scopes = scopesHeader
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+  } catch (error) {
+    if (isGithubNotFound(error)) {
+      return {
+        isInstalled: false,
+        installationId: null,
+        repositoryExists: false,
+        repositoryPrivate: null,
+        permissions: null,
+        hasRequiredPermissions: false,
+        missingPermissions: [],
+        message:
+          "Repository not found or not accessible with the provided token",
+      };
+    }
+
+    const status = (error as { status?: number })?.status;
+    if (status === 401 || status === 403) {
+      throw new HTTPException(401, {
+        message: "Invalid or unauthorized GitHub token",
+      });
+    }
+
+    throw new HTTPException(500, {
+      message: `Failed to verify GitHub repository: ${(error as Error).message || "Unknown error"}`,
+    });
+  }
+
+  const scopesGrantIssuesAccess = scopes.some((scope) =>
+    ["repo", "public_repo", "issues"].includes(scope),
+  );
+  const repoWritable =
+    repo.permissions?.push === true || repo.permissions?.admin === true;
+  const hasRequiredPermissions = scopesGrantIssuesAccess || repoWritable;
+
+  const permissions: Record<string, string> = {
+    issues: hasRequiredPermissions ? "write" : "read",
+  };
+
+  return {
+    isInstalled: true,
+    installationId: null,
+    repositoryExists: true,
+    repositoryPrivate: repo.private,
+    permissions,
+    hasRequiredPermissions,
+    missingPermissions: hasRequiredPermissions ? [] : ["issues"],
+    message: hasRequiredPermissions
+      ? "Repository is accessible with the provided token"
+      : "Repository is accessible but the token cannot write issues",
+  };
 }
 
 export default verifyGithubInstallation;

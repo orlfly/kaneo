@@ -17,6 +17,9 @@ export const githubConfigSchema = v.object({
   repositoryOwner: v.string(),
   repositoryName: v.string(),
   installationId: v.nullable(v.number()),
+  // Personal access token used when no GitHub App is configured. Stored in
+  // the integration config row; never returned by API responses.
+  accessToken: v.optional(v.string()),
   branchPattern: v.optional(v.string()),
   customBranchRegex: v.optional(v.string()),
   commentTaskLinkOnGitHubIssue: v.optional(v.boolean()),

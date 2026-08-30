@@ -1,4 +1,5 @@
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
+import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   CheckCircle,
@@ -29,6 +30,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import getGitHubAppInfo from "@/fetchers/github-integration/get-app-info";
 import type { VerifyGithubInstallationResponse } from "@/fetchers/github-integration/verify-github-installation";
 import {
   useCreateGithubIntegration,
@@ -44,6 +46,7 @@ import { toast } from "@/lib/toast";
 type GithubIntegrationFormValues = {
   repositoryOwner: string;
   repositoryName: string;
+  accessToken?: string;
 };
 
 export function GitHubIntegrationSettings({
@@ -69,11 +72,17 @@ export function GitHubIntegrationSettings({
             /^[a-zA-Z0-9._-]+$/,
             t("settings:githubIntegration.validation.nameInvalid"),
           ),
+        accessToken: z.string().optional(),
       }),
     [t],
   );
 
   const { data: integration, isLoading } = useGetGithubIntegration(projectId);
+  const { data: appInfo } = useQuery({
+    queryKey: ["github-app-info"],
+    queryFn: getGitHubAppInfo,
+  });
+  const hasGithubApp = Boolean(appInfo?.appName);
   const { mutateAsync: createIntegration, isPending: isCreating } =
     useCreateGithubIntegration();
   const { mutateAsync: deleteIntegration, isPending: isDeleting } =
@@ -95,6 +104,7 @@ export function GitHubIntegrationSettings({
     defaultValues: {
       repositoryOwner: integration?.repositoryOwner || "",
       repositoryName: integration?.repositoryName || "",
+      accessToken: "",
     },
   });
 
@@ -103,6 +113,7 @@ export function GitHubIntegrationSettings({
       form.reset({
         repositoryOwner: integration.repositoryOwner,
         repositoryName: integration.repositoryName,
+        accessToken: "",
       });
     }
   }, [integration, form]);
@@ -147,6 +158,8 @@ export function GitHubIntegrationSettings({
 
   React.useEffect(() => {
     if (repositoryOwner && repositoryName && form.formState.isValid) {
+      // Auto-verify without a token so App-mode installs flow seamlessly.
+      // PAT connections verify explicitly via the Verify button or submit.
       handleVerifyInstallation({ repositoryOwner, repositoryName }, false);
     }
   }, [
@@ -195,7 +208,11 @@ export function GitHubIntegrationSettings({
 
       await createIntegration({
         projectId,
-        data,
+        data: {
+          repositoryOwner: data.repositoryOwner,
+          repositoryName: data.repositoryName,
+          accessToken: data.accessToken?.trim() || undefined,
+        },
       });
       toast.success(t("settings:githubIntegration.toast.updated"));
     } catch (error) {
@@ -474,6 +491,43 @@ export function GitHubIntegrationSettings({
 
             <Separator />
 
+            <FormField
+              control={form.control}
+              name="accessToken"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-sm font-medium">
+                        {t("settings:githubIntegration.tokenLabel", {
+                          defaultValue: "Personal Access Token",
+                        })}
+                      </FormLabel>
+                      <p className="text-xs text-muted-foreground">
+                        {t("settings:githubIntegration.tokenHint", {
+                          defaultValue:
+                            "Optional, unless no GitHub App is configured. The stored token is never shown again; leave this blank to keep it.",
+                        })}
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Input
+                        className="w-64"
+                        type="password"
+                        autoComplete="off"
+                        placeholder="ghp_..."
+                        {...field}
+                        disabled={isCreating || isDeleting}
+                      />
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Separator />
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <p className="text-sm font-medium">
@@ -490,6 +544,15 @@ export function GitHubIntegrationSettings({
                   size="sm"
                   onClick={() => setShowRepositoryBrowser(true)}
                   className="gap-2"
+                  disabled={!hasGithubApp}
+                  title={
+                    hasGithubApp
+                      ? undefined
+                      : t("settings:githubIntegration.browseUnavailable", {
+                          defaultValue:
+                            "Repository browsing requires a configured GitHub App",
+                        })
+                  }
                 >
                   <GitBranch className="size-3" />
                   {t("settings:githubIntegration.browse")}

@@ -12,18 +12,13 @@ import {
   formatIssueTitle,
   getLabelsForIssue,
 } from "../utils/format";
-import { getGithubApp, getInstallationIdForRepo } from "../utils/github-app";
+import { getRepoOctokit } from "../utils/github-app";
 import { addLabelsToIssue } from "../utils/labels";
 
 export async function handleTaskCreated(
   event: TaskCreatedEvent,
   context: PluginContext,
 ): Promise<void> {
-  const githubApp = getGithubApp();
-  if (!githubApp) {
-    return;
-  }
-
   const config = context.config as GitHubConfig;
   const { repositoryOwner, repositoryName } = config;
 
@@ -38,15 +33,10 @@ export async function handleTaskCreated(
   }
 
   try {
-    let installationId = config.installationId;
-    if (!installationId) {
-      installationId = await getInstallationIdForRepo(
-        repositoryOwner,
-        repositoryName,
-      );
+    const octokit = await getRepoOctokit(config);
+    if (!octokit) {
+      return;
     }
-
-    const octokit = await githubApp.getInstallationOctokit(installationId);
 
     const createdIssue = await octokit.rest.issues.create({
       owner: repositoryOwner,

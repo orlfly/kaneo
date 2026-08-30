@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
+import type { Octokit } from "octokit";
 import db from "../../database";
 import {
   activityTable,
@@ -20,7 +21,7 @@ import {
   extractIssueStatus,
 } from "../../plugins/github/utils/extract-priority";
 import { formatTaskDescriptionFromIssue } from "../../plugins/github/utils/format";
-import { getInstallationOctokit } from "../../plugins/github/utils/github-app";
+import { getRepoOctokit } from "../../plugins/github/utils/github-app";
 import { claimTaskNumber } from "../../task/controllers/claim-task-numbers";
 
 type ImportResult = {
@@ -92,13 +93,13 @@ export async function importIssues(projectId: string): Promise<ImportResult> {
 
   const config = JSON.parse(integration.config) as GitHubConfig;
 
-  if (!config.installationId) {
-    throw new HTTPException(400, {
-      message: "GitHub installation ID not configured",
+  const octokit = await getRepoOctokit(config);
+  if (!octokit) {
+    throw new HTTPException(500, {
+      message:
+        "GitHub integration requires a personal access token or a configured GitHub App",
     });
   }
-
-  const octokit = await getInstallationOctokit(config.installationId);
 
   const allIssues: GitHubIssue[] = [];
   let page = 1;
@@ -199,7 +200,7 @@ async function importSingleIssue(
   projectId: string,
   teamId: string,
   config: GitHubConfig,
-  octokit: Awaited<ReturnType<typeof getInstallationOctokit>>,
+  octokit: Octokit,
 ): Promise<"imported" | "updated" | "skipped"> {
   const existingLink = await findExternalLink(
     integrationId,
@@ -339,7 +340,7 @@ async function importCommentsForTask(
   issueNumber: number,
   taskId: string,
   config: GitHubConfig,
-  octokit: Awaited<ReturnType<typeof getInstallationOctokit>>,
+  octokit: Octokit,
 ): Promise<void> {
   const allComments: GitHubComment[] = [];
   let page = 1;

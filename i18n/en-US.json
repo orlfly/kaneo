@@ -548,12 +548,12 @@
 				"nameInvalid": "Invalid repository name format"
 			},
 			"toast": {
-				"installedOk": "GitHub App is properly installed!",
-				"installedMissingPerms": "GitHub App is installed but missing required permissions",
-				"needsInstallOnRepo": "GitHub App needs to be installed on this repository",
+				"installedOk": "Repository access verified — GitHub integration is ready",
+				"installedMissingPerms": "Repository connected but the token or app is missing required permissions",
+				"needsInstallOnRepo": "The repository is not accessible with the current credentials",
 				"repoNotFound": "Repository not found or not accessible",
-				"verifyError": "Failed to verify GitHub installation",
-				"installAppFirst": "Please install the GitHub App on this repository first",
+				"verifyError": "Failed to verify GitHub integration",
+				"installAppFirst": "Repository access could not be verified. Check the token or GitHub App permissions",
 				"missingPermsDetail": "GitHub App is missing required permissions: {{list}}. Please update the app permissions.",
 				"updated": "GitHub integration updated successfully",
 				"updateError": "Failed to update GitHub integration",

@@ -131,14 +131,17 @@ const githubIntegration = new Hono<{
       v.object({
         repositoryOwner: v.pipe(v.string(), v.minLength(1)),
         repositoryName: v.pipe(v.string(), v.minLength(1)),
+        accessToken: v.optional(v.string()),
       }),
     ),
     async (c) => {
-      const { repositoryOwner, repositoryName } = c.req.valid("json");
+      const { repositoryOwner, repositoryName, accessToken } =
+        c.req.valid("json");
 
       const verification = await verifyGithubInstallation({
         repositoryOwner,
         repositoryName,
+        accessToken,
       });
 
       return c.json(verification);
@@ -188,18 +191,21 @@ const githubIntegration = new Hono<{
       v.object({
         repositoryOwner: v.pipe(v.string(), v.minLength(1)),
         repositoryName: v.pipe(v.string(), v.minLength(1)),
+        accessToken: v.optional(v.string()),
       }),
     ),
     workspaceAccess.fromProject("projectId"),
     requireWorkspacePermission({ workspace: ["manage_settings"] }),
     async (c) => {
       const { projectId } = c.req.valid("param");
-      const { repositoryOwner, repositoryName } = c.req.valid("json");
+      const { repositoryOwner, repositoryName, accessToken } =
+        c.req.valid("json");
 
       const integration = await createGithubIntegration({
         projectId,
         repositoryOwner,
         repositoryName,
+        accessToken,
       });
 
       return c.json(integration);

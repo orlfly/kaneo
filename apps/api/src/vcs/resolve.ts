@@ -13,7 +13,7 @@ export type ResolvedVcsIntegration =
       type: "github";
       integrationId: string;
       teamId: string;
-      config: GitHubConfig & { installationId: number };
+      config: GitHubConfig & { installationId?: number };
     }
   | {
       type: "gitlab";
@@ -76,16 +76,16 @@ export async function resolveVcsIntegration(
 
   if (type === "github") {
     const githubConfig = config as GitHubConfig;
-    if (!githubConfig.installationId) {
+    if (!githubConfig.installationId && !githubConfig.accessToken) {
       throw new HTTPException(400, {
-        message: "GitHub installation ID not configured",
+        message: "GitHub installation or access token not configured",
       });
     }
     return {
       type,
       integrationId: integration.id,
       teamId: project.teamId,
-      config: githubConfig as GitHubConfig & { installationId: number },
+      config: githubConfig as GitHubConfig & { installationId?: number },
     };
   }
 

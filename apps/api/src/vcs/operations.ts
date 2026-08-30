@@ -1,6 +1,6 @@
 import { HTTPException } from "hono/http-exception";
 import { createGiteaClient } from "../plugins/gitea/utils/gitea-api";
-import { getInstallationOctokit } from "../plugins/github/utils/github-app";
+import { getRepoOctokit } from "../plugins/github/utils/github-app";
 import { createGitLabClient } from "../plugins/gitlab/utils/gitlab-api";
 import type { ResolvedVcsIntegration } from "./resolve";
 
@@ -25,14 +25,41 @@ export type VcsLabelInput = {
 
 /**
  * Dispatch a VCS operation to the appropriate client for the resolved
- * integration. GitHub uses the App installation octokit; GitLab and Gitea use
- * their existing clients (which enforce the SSRF guard and timeouts).
+ * integration. GitHub uses the App installation octokit (or a personal access
+ * token when configured); GitLab and Gitea use their existing clients (which
+ * enforce the SSRF guard and timeouts).
  */
+async function getGithubOctokit(
+  integration: Extract<ResolvedVcsIntegration, { type: "github" }>,
+) {
+  const octokit = await getRepoOctokit(integration.config);
+  if (!octokit) {
+    throw new HTTPException(500, {
+      message:
+        "GitHub integration requires a personal access token or a configured GitHub App",
+    });
+  }
+  return octokit;
+}
+
 export async function vcsListRepositories(integration: ResolvedVcsIntegration) {
   if (integration.type === "github") {
-    const octokit = await getInstallationOctokit(
-      integration.config.installationId,
-    );
+    const octokit = await getGithubOctokit(integration);
+    // A personal access token cannot enumerate App installations: list the
+    // token owner's own repositories instead.
+    if (integration.config.accessToken) {
+      const { data } = await octokit.rest.repos.listForAuthenticatedUser({
+        per_page: 100,
+      });
+      return data.map((repo) => ({
+        id: repo.id,
+        name: repo.name,
+        full_name: repo.full_name,
+        private: repo.private,
+        owner: { login: repo.owner.login },
+        html_url: repo.html_url,
+      }));
+    }
     const { data } =
       await octokit.rest.apps.listReposAccessibleToInstallation();
     return data.repositories.map((repo) => ({
@@ -65,9 +92,7 @@ export async function vcsListIssues(
   state: VcsIssueState = "open",
 ) {
   if (integration.type === "github") {
-    const octokit = await getInstallationOctokit(
-      integration.config.installationId,
-    );
+    const octokit = await getGithubOctokit(integration);
     const { data: issues } = await octokit.rest.issues.listForRepo({
       owner: integration.config.repositoryOwner,
       repo: integration.config.repositoryName,
@@ -95,9 +120,7 @@ export async function vcsGetIssue(
   number: number,
 ) {
   if (integration.type === "github") {
-    const octokit = await getInstallationOctokit(
-      integration.config.installationId,
-    );
+    const octokit = await getGithubOctokit(integration);
     const { data: issue } = await octokit.rest.issues.get({
       owner: integration.config.repositoryOwner,
       repo: integration.config.repositoryName,
@@ -122,9 +145,7 @@ export async function vcsListIssueComments(
   number: number,
 ) {
   if (integration.type === "github") {
-    const octokit = await getInstallationOctokit(
-      integration.config.installationId,
-    );
+    const octokit = await getGithubOctokit(integration);
     const { data: comments } = await octokit.rest.issues.listComments({
       owner: integration.config.repositoryOwner,
       repo: integration.config.repositoryName,
@@ -149,9 +170,7 @@ export async function vcsListIssueComments(
 
 export async function vcsListPullRequests(integration: ResolvedVcsIntegration) {
   if (integration.type === "github") {
-    const octokit = await getInstallationOctokit(
-      integration.config.installationId,
-    );
+    const octokit = await getGithubOctokit(integration);
     const { data: pulls } = await octokit.rest.pulls.list({
       owner: integration.config.repositoryOwner,
       repo: integration.config.repositoryName,
@@ -174,9 +193,7 @@ export async function vcsListPullRequests(integration: ResolvedVcsIntegration) {
 
 export async function vcsListLabels(integration: ResolvedVcsIntegration) {
   if (integration.type === "github") {
-    const octokit = await getInstallationOctokit(
-      integration.config.installationId,
-    );
+    const octokit = await getGithubOctokit(integration);
     const { data: labels } = await octokit.rest.issues.listLabelsForRepo({
       owner: integration.config.repositoryOwner,
       repo: integration.config.repositoryName,
@@ -200,9 +217,7 @@ export async function vcsCreateIssue(
   input: VcsIssueInput,
 ) {
   if (integration.type === "github") {
-    const octokit = await getInstallationOctokit(
-      integration.config.installationId,
-    );
+    const octokit = await getGithubOctokit(integration);
     const { data: issue } = await octokit.rest.issues.create({
       owner: integration.config.repositoryOwner,
       repo: integration.config.repositoryName,
@@ -229,9 +244,7 @@ export async function vcsUpdateIssue(
   update: VcsIssueUpdate,
 ) {
   if (integration.type === "github") {
-    const octokit = await getInstallationOctokit(
-      integration.config.installationId,
-    );
+    const octokit = await getGithubOctokit(integration);
     const { data: issue } = await octokit.rest.issues.update({
       owner: integration.config.repositoryOwner,
       repo: integration.config.repositoryName,
@@ -265,9 +278,7 @@ export async function vcsCreateIssueComment(
   body: string,
 ) {
   if (integration.type === "github") {
-    const octokit = await getInstallationOctokit(
-      integration.config.installationId,
-    );
+    const octokit = await getGithubOctokit(integration);
     const { data: comment } = await octokit.rest.issues.createComment({
       owner: integration.config.repositoryOwner,
       repo: integration.config.repositoryName,
@@ -294,9 +305,7 @@ export async function vcsCreateLabel(
   input: VcsLabelInput,
 ) {
   if (integration.type === "github") {
-    const octokit = await getInstallationOctokit(
-      integration.config.installationId,
-    );
+    const octokit = await getGithubOctokit(integration);
     const { data: label } = await octokit.rest.issues.createLabel({
       owner: integration.config.repositoryOwner,
       repo: integration.config.repositoryName,
@@ -324,9 +333,7 @@ export async function vcsAddLabelsToIssue(
   labelIds: number[],
 ) {
   if (integration.type === "github") {
-    const octokit = await getInstallationOctokit(
-      integration.config.installationId,
-    );
+    const octokit = await getGithubOctokit(integration);
     const { data: issue } = await octokit.rest.issues.addLabels({
       owner: integration.config.repositoryOwner,
       repo: integration.config.repositoryName,
@@ -355,9 +362,7 @@ export async function vcsReplaceIssueLabels(
   labelIds: number[],
 ) {
   if (integration.type === "github") {
-    const octokit = await getInstallationOctokit(
-      integration.config.installationId,
-    );
+    const octokit = await getGithubOctokit(integration);
     const { data: issue } = await octokit.rest.issues.setLabels({
       owner: integration.config.repositoryOwner,
       repo: integration.config.repositoryName,
@@ -406,9 +411,7 @@ export async function vcsRemoveLabelFromIssue(
   labelId: number,
 ) {
   if (integration.type === "github") {
-    const octokit = await getInstallationOctokit(
-      integration.config.installationId,
-    );
+    const octokit = await getGithubOctokit(integration);
     await octokit.rest.issues.removeLabel({
       owner: integration.config.repositoryOwner,
       repo: integration.config.repositoryName,
