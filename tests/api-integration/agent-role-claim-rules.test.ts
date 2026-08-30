@@ -550,4 +550,99 @@ describe("API integration: review-claim lifecycle", () => {
     expect(persisted?.claimedBy).toBe("implementer-key");
     expect(persisted?.status).toBe("in-review");
   });
+
+  it("claim-next for code-review skips a review locked by another reviewer", async () => {
+    const reviewerA = await createTeamMember({ role: "member" });
+    const reviewerB = await createTeamMember({ role: "member" });
+    await db.insert(schema.teamMemberTable).values({
+      teamId: reviewerA.team.id,
+      userId: reviewerB.user.id,
+      role: "member",
+      joinedAt: new Date(),
+    });
+    const { project } = await createProjectFixture({
+      teamId: reviewerA.team.id,
+    });
+    const locked = await seedTask(project.id, "in-review", "coding", "Locked");
+    const free = await seedTask(project.id, "in-review", "testing", "Free");
+    // Reviewer B locks 'locked'; reviewer A's claim-next must pick 'free'.
+    setAgent(reviewerB.user.id, "code-review");
+    const { app: appB } = createApp();
+    const lock = await agentFetch(appB, `/api/task/claim/${locked.id}`, {
+      method: "POST",
+    });
+    expect(lock.status).toBe(200);
+
+    setAgent(reviewerA.user.id, "code-review");
+    const { app } = createApp();
+    const response = await agentFetch(app, "/api/task/claim-next", {
+      method: "POST",
+      json: {},
+    });
+    expect(response.status).toBe(200);
+    const payload = (await response.json()) as { taskId: string };
+    expect(payload.taskId).toBe(free.id);
+    // The locked task's reviewer is untouched.
+    const persisted = await db.query.taskTable.findFirst({
+      where: eq(schema.taskTable.id, locked.id),
+    });
+    expect(persisted?.reviewClaimedBy).toBe(
+      `mock-agent-key-${reviewerB.user.id}`,
+    );
+  });
+
+  it("claim-next for code-review resumes my own in-flight review first", async () => {
+    const member = await createTeamMember({ role: "member" });
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+    const mine = await seedTask(project.id, "in-review", "coding", "Mine");
+    const other = await seedTask(project.id, "in-review", "testing", "Other");
+    setAgent(member.user.id, "code-review");
+    const { app } = createApp();
+
+    // Claim 'mine'; it is now under my review lock.
+    const first = await agentFetch(app, `/api/task/claim/${mine.id}`, {
+      method: "POST",
+    });
+    expect(first.status).toBe(200);
+
+    // claim-next should resume 'mine' (my lock) before claiming free 'other'.
+    const second = await agentFetch(app, "/api/task/claim-next", {
+      method: "POST",
+      json: {},
+    });
+    expect(second.status).toBe(200);
+    const payload = (await second.json()) as { taskId: string };
+    expect(payload.taskId).toBe(mine.id);
+    // The other free task is left untouched for another reviewer.
+    const freeTask = await db.query.taskTable.findFirst({
+      where: eq(schema.taskTable.id, other.id),
+    });
+    expect(freeTask?.reviewClaimedBy).toBeNull();
+  });
+
+  it("a reviewer can re-claim its own review (crash recovery)", async () => {
+    const member = await createTeamMember({ role: "member" });
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+    const task = await seedTask(project.id, "in-review", "coding");
+    setAgent(member.user.id, "code-review");
+    const { app } = createApp();
+
+    const first = await agentFetch(app, `/api/task/claim/${task.id}`, {
+      method: "POST",
+    });
+    expect(first.status).toBe(200);
+    // Re-claiming with the SAME key must succeed (idempotent for the holder).
+    const second = await agentFetch(app, `/api/task/claim/${task.id}`, {
+      method: "POST",
+    });
+    expect(second.status).toBe(200);
+    const persisted = await db.query.taskTable.findFirst({
+      where: eq(schema.taskTable.id, task.id),
+    });
+    expect(persisted?.reviewClaimedBy).toBe(`mock-agent-key-${member.user.id}`);
+  });
 });
