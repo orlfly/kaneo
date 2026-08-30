@@ -52,11 +52,14 @@ curl -X POST "${KANEO_API_URL}/api/task/claim-next" \
 
 调用角色专属 skill 执行工作（例如 coding → `submit-pr`、testing → `run-tests`、code-review → `review-pr`）。
 
+**claim 之后、开始 work 之前，先同步远端的项目代码**（见 `repo-sync`）：`git pull --rebase` 拉到其它 agent 的最新更新，再基于这份最新代码处理任务。
+
 **关键纪律**：
 
 - 一个 cycle 只调一次 `claim_next_task` / `claim_task`
 - 在当前任务未转入 `done` / `paused` 前，**禁止**再次 claim
 - 在 work 中途不要切换到另一个 task — 当前 cycle 必须终结
+- **任务处理完成并变更任务状态之前，禁止 `git push` 到远端**：本地可以提交，但推送（`submit-pr`）只能在任务收尾、状态流转那一轮一次性执行
 
 #### 2.1 Work skill vs helper skill 的职责边界
 
