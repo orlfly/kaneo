@@ -645,4 +645,55 @@ describe("API integration: review-claim lifecycle", () => {
     });
     expect(persisted?.reviewClaimedBy).toBe(`mock-agent-key-${member.user.id}`);
   });
+
+  it("code-review claim records a review-claimed activity entry", async () => {
+    const member = await createTeamMember({ role: "member" });
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+    const task = await seedTask(project.id, "in-review", "coding");
+    await db
+      .update(schema.taskTable)
+      .set({ userId: member.user.id })
+      .where(eq(schema.taskTable.id, task.id));
+    setAgent(member.user.id, "code-review");
+    const { app } = createApp();
+
+    const claim = await agentFetch(app, `/api/task/claim/${task.id}`, {
+      method: "POST",
+    });
+    expect(claim.status).toBe(200);
+
+    const entry = await db.query.activityTable.findFirst({
+      where: eq(schema.activityTable.taskId, task.id),
+    });
+    expect(entry?.type).toBe("review-claimed");
+    expect(entry?.agentKeyId).toBe(`mock-agent-key-${member.user.id}`);
+  });
+
+  it("claim-next returns 404 when the only in-review task is locked by another reviewer", async () => {
+    const reviewerA = await createTeamMember({ role: "member" });
+    const reviewerB = await createTeamMember({ role: "member" });
+    await db.insert(schema.teamMemberTable).values({
+      teamId: reviewerA.team.id,
+      userId: reviewerB.user.id,
+      role: "member",
+      joinedAt: new Date(),
+    });
+    const { project } = await createProjectFixture({
+      teamId: reviewerA.team.id,
+    });
+    const task = await seedTask(project.id, "in-review", "coding");
+    setAgent(reviewerA.user.id, "code-review");
+    const { app } = createApp();
+    // Reviewer A locks the only in-review task; B has nothing free to claim.
+    await agentFetch(app, `/api/task/claim/${task.id}`, { method: "POST" });
+
+    setAgent(reviewerB.user.id, "code-review");
+    const response = await agentFetch(app, "/api/task/claim-next", {
+      method: "POST",
+      json: {},
+    });
+    expect(response.status).toBe(404);
+  });
 });
