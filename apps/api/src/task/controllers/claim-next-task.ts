@@ -82,7 +82,10 @@ export async function claimNextTask({
   //    - implementation roles: to-do tasks with requiredRole null or my role
   //    - human callers: to-do tasks with requiredRole null or "human"
   const isCodeReview = agentRole === "code-review";
-  const claimableStatuses = isCodeReview ? ["in-review"] : ["to-do"];
+  // Implementation roles resume their own in-progress work (e.g. a task sent
+  // back for rework) before taking new to-do work, so "mine" spans both.
+  const mineStatuses = isCodeReview ? ["in-review"] : ["to-do", "in-progress"];
+  const freeStatuses = isCodeReview ? ["in-review"] : ["to-do"];
 
   const mineCondition: SQL = isCodeReview
     ? eq(taskTable.reviewClaimedBy, agentKeyId ?? "")
@@ -93,12 +96,12 @@ export async function claimNextTask({
 
   const baseMineConditions: SQL[] = [
     inArray(taskTable.projectId, projectIds),
-    inArray(taskTable.status, [...claimableStatuses]),
+    inArray(taskTable.status, [...mineStatuses]),
     mineCondition,
   ];
   const baseFreeConditions: SQL[] = [
     inArray(taskTable.projectId, projectIds),
-    inArray(taskTable.status, [...claimableStatuses]),
+    inArray(taskTable.status, [...freeStatuses]),
     freeCondition,
   ];
   // Rule 2 (role match): only add when the caller's agent role is known,
@@ -143,7 +146,11 @@ export async function claimNextTask({
 
   // Rule 1 (my current assignment) wins over Rule 2 (free, role-matched).
   const mineCandidates = await db
-    .select({ id: taskTable.id })
+    .select({
+      id: taskTable.id,
+      status: taskTable.status,
+      title: taskTable.title,
+    })
     .from(taskTable)
     .where(and(...baseMineConditions))
     .orderBy(...orderBy)
@@ -152,7 +159,11 @@ export async function claimNextTask({
   let candidates = mineCandidates;
   if (candidates.length === 0) {
     const roleMatched = await db
-      .select({ id: taskTable.id })
+      .select({
+        id: taskTable.id,
+        status: taskTable.status,
+        title: taskTable.title,
+      })
       .from(taskTable)
       .where(and(...baseFreeConditions))
       .orderBy(...orderBy)
@@ -167,6 +178,20 @@ export async function claimNextTask({
   const bestTaskId = candidates[0]?.id;
   if (!bestTaskId) {
     return null;
+  }
+
+  // If the best match is my OWN in-progress task (an implementation role's
+  // task sent back for rework), it is already assigned to me and already in
+  // progress, so there is nothing to claim: hand it back to resume work.
+  // A free/role-matched candidate is always to-do, so only the mine branch
+  // reaches this case.
+  if (!isCodeReview && candidates[0]?.status === "in-progress") {
+    return {
+      taskId: bestTaskId,
+      title: candidates[0]?.title ?? "",
+      status: "in-progress",
+      claimed: true,
+    };
   }
 
   // Atomically claim it. If another agent beat us, return null (caller can retry).

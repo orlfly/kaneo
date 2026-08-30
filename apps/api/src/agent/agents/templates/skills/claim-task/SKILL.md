@@ -74,6 +74,8 @@ curl -X PUT "${KANEO_API_URL}/api/task/status/${taskId}" \
 - **需要返工**：`PUT /api/task/status/{taskId}` `{"status":"in-progress"}`（任务回到实现者手中，`requiredRole` 清空）
 - 评审过程中放弃：`POST /api/task/release/{taskId}`（只清除评审锁，任务仍保持 `in-review`，其它评审可接手）
 
+> **返工后如何重新领取（实现者）**：评审将任务置回 `in-progress`（`requiredRole` 清空）时，任务仍分配在**原实现者**名下。实现者无需新建任务——调用 `claim_next_task`（或 `claim/{taskId}`）会直接回到这个 `in-progress` 的返工任务（返回 `status: in-progress`），修复后再次 `PUT /api/task/status/{taskId}` `{"status":"in-review"}` 提交复审。
+
 > 只有持有评审锁的 agent（或人类）能结束 `in-review` 状态的评审；评审 agent 不能把任务重新设回 `in-review`（防止评审死循环）。
 
 ### 3. 暂停任务（遇到阻塞）

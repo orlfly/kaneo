@@ -722,4 +722,106 @@ describe("API integration: review-claim lifecycle", () => {
     expect(persisted?.status).toBe("in-progress");
     expect(persisted?.reviewClaimedBy).toBeNull();
   });
+
+  it("implementation agent resumes its own in-progress rework task via claim-next", async () => {
+    const reviewer = await createTeamMember({ role: "member" });
+    const coder = await createTeamMember({ role: "member" });
+    await db.insert(schema.teamMemberTable).values({
+      teamId: reviewer.team.id,
+      userId: coder.user.id,
+      role: "member",
+      joinedAt: new Date(),
+    });
+    const { project } = await createProjectFixture({
+      teamId: reviewer.team.id,
+    });
+    const task = await seedTask(
+      project.id,
+      "in-review",
+      "code-review",
+      "Rework me",
+    );
+    // The implementer submitted it (assigned to the coder).
+    await db
+      .update(schema.taskTable)
+      .set({
+        userId: coder.user.id,
+        claimedBy: `mock-agent-key-${coder.user.id}`,
+        claimedAt: new Date(),
+      })
+      .where(eq(schema.taskTable.id, task.id));
+
+    // Reviewer claims and returns it for rework (status stays in-progress).
+    setAgent(reviewer.user.id, "code-review");
+    const { app } = createApp();
+    await agentFetch(app, `/api/task/claim/${task.id}`, { method: "POST" });
+    const rework = await agentFetch(app, `/api/task/status/${task.id}`, {
+      method: "PUT",
+      json: { status: "in-progress" },
+    });
+    expect(rework.status).toBe(200);
+
+    // The coding implementer resumes the rework task via claim-next.
+    setAgent(coder.user.id, "coding");
+    const resumed = await agentFetch(app, "/api/task/claim-next", {
+      method: "POST",
+      json: {},
+    });
+    expect(resumed.status).toBe(200);
+    const payload = (await resumed.json()) as {
+      taskId: string;
+      status: string;
+    };
+    expect(payload.taskId).toBe(task.id);
+    expect(payload.status).toBe("in-progress");
+
+    const persisted = await db.query.taskTable.findFirst({
+      where: eq(schema.taskTable.id, task.id),
+    });
+    expect(persisted?.status).toBe("in-progress");
+    expect(persisted?.userId).toBe(coder.user.id);
+    expect(persisted?.reviewClaimedBy).toBeNull();
+  });
+
+  it("implementation agent resumes its own in-progress rework task via direct claim", async () => {
+    const reviewer = await createTeamMember({ role: "member" });
+    const coder = await createTeamMember({ role: "member" });
+    await db.insert(schema.teamMemberTable).values({
+      teamId: reviewer.team.id,
+      userId: coder.user.id,
+      role: "member",
+      joinedAt: new Date(),
+    });
+    const { project } = await createProjectFixture({
+      teamId: reviewer.team.id,
+    });
+    const task = await seedTask(project.id, "in-review", "code-review");
+    await db
+      .update(schema.taskTable)
+      .set({ userId: coder.user.id })
+      .where(eq(schema.taskTable.id, task.id));
+
+    setAgent(reviewer.user.id, "code-review");
+    const { app } = createApp();
+    await agentFetch(app, `/api/task/claim/${task.id}`, { method: "POST" });
+    await agentFetch(app, `/api/task/status/${task.id}`, {
+      method: "PUT",
+      json: { status: "in-progress" },
+    });
+
+    // Direct /claim/{id} on the in-progress rework task is a no-op resume.
+    setAgent(coder.user.id, "coding");
+    const claim = await agentFetch(app, `/api/task/claim/${task.id}`, {
+      method: "POST",
+    });
+    expect(claim.status).toBe(200);
+    const payload = (await claim.json()) as { status: string };
+    expect(payload.status).toBe("in-progress");
+
+    const persisted = await db.query.taskTable.findFirst({
+      where: eq(schema.taskTable.id, task.id),
+    });
+    expect(persisted?.status).toBe("in-progress");
+    expect(persisted?.userId).toBe(coder.user.id);
+  });
 });

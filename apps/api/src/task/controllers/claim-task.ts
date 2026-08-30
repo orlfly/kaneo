@@ -52,12 +52,24 @@ export async function claimTask({
       userId: schema.taskTable.userId,
       requiredRole: schema.taskTable.requiredRole,
       reviewClaimedBy: schema.taskTable.reviewClaimedBy,
+      title: schema.taskTable.title,
     })
     .from(schema.taskTable)
     .where(eq(schema.taskTable.id, taskId))
     .limit(1);
 
-  if (candidate?.status !== claimableStatus) {
+  if (!candidate) {
+    throw new HTTPException(404, { message: "Task not found" });
+  }
+
+  const isMineInProgress =
+    !isCodeReview &&
+    candidate.status === "in-progress" &&
+    candidate.userId === userId;
+  const statusAllowed = isCodeReview
+    ? candidate.status === "in-review"
+    : candidate.status === "to-do" || isMineInProgress;
+  if (!statusAllowed) {
     throw new HTTPException(409, {
       message: `Task is not available for claiming (already assigned or not in ${claimableStatus} status)`,
     });
@@ -104,6 +116,17 @@ export async function claimTask({
       message:
         "Task is not claimable by this agent role (assignee mismatch or required role does not match)",
     });
+  }
+
+  // Resuming my own in-progress task (e.g. a task sent back for rework): it
+  // is already assigned to me and already in-progress, so claiming is a no-op.
+  if (isMineInProgress) {
+    return {
+      taskId: candidate.id,
+      title: candidate.title ?? "",
+      status: "in-progress",
+      claimed: true,
+    };
   }
 
   // Re-check under the row lock
