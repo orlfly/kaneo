@@ -351,6 +351,13 @@
 			"when": 1787816510000,
 			"tag": "0049_add_task_pause_claim_columns",
 			"breakpoints": true
+		},
+		{
+			"idx": 50,
+			"version": "7",
+			"when": 1788088800000,
+			"tag": "0050_add_task_review_claim_columns",
+			"breakpoints": true
 		}
 	]
 }

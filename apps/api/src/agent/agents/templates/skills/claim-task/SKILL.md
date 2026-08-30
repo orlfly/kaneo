@@ -63,6 +63,17 @@ curl -X PUT "${KANEO_API_URL}/api/task/status/${taskId}" \
 > - → `in-review`：requiredRole 设为 `code-review`
 > - → `done`：requiredRole 清空（NULL）
 
+**code-review 的 review 认领（特殊）**：
+
+`code-review` agent 认领 `in-review` 任务时，服务端只加「**评审锁**」（review claim），用于多个评审 agent 之间的互斥。它**不会**改动任务的 `userId` / `claimedBy` / `claimedAt`（实现者归属不变），也**不会**改变任务状态（保持 `in-review`）。`claim_next_task` / `claim` 返回 409 表示该任务已被另一个评审 agent 锁定。
+
+评审完成时，评审 agent 通过更新任务状态来释放评审锁：
+- **评审通过**：`PUT /api/task/status/{taskId}` `{"status":"done"}`（任务完成）
+- **需要返工**：`PUT /api/task/status/{taskId}` `{"status":"in-progress"}`（任务回到实现者手中，`requiredRole` 清空）
+- 评审过程中放弃：`POST /api/task/release/{taskId}`（只清除评审锁，任务仍保持 `in-review`，其它评审可接手）
+
+> 只有持有评审锁的 agent（或人类）能结束 `in-review` 状态的评审；评审 agent 不能把任务重新设回 `in-review`（防止评审死循环）。
+
 ### 3. 暂停任务（遇到阻塞）
 
 ```bash
@@ -100,7 +111,9 @@ curl -X POST "${KANEO_API_URL}/api/task/${projectId}" \
 
 - API key 的 agent role 决定能认领哪些任务：
   - 非 `code-review` 角色：只认领 `to-do` 任务，且 `requiredRole` 为 null 或等于 agent 角色
-  - `code-review` 角色：只认领 `in-review` 任务，忽略 `requiredRole`
+  - `code-review` 角色：只认领 `in-review` 任务（忽略 `requiredRole` 与 `claim_by`/`userId`），领取时**不修改**原实现者的 `userId` / `claimedBy`，任务状态保持 `in-review`
+- code-review 评审期间任务处于「评审锁」状态：同一任务同时只能有一个评审 agent 持有锁，其它评审 agent `claim` 会得到 409
+- 评审结束必须显式变更任务状态（`done` = 通过，`in-progress` = 返工）来释放评审锁，全程不改 `claim_by`
 - 每次只认领一个任务，完成后再认领下一个
   - 持续模式下 host 会自动驱动下一次 claim（见 `continuous-work` skill）
   - 交互模式下由用户下一条指令触发

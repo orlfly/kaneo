@@ -14,7 +14,19 @@ type ClaimResult = {
 
 /**
  * Atomically claim a task for the current user. The UPDATE ... WHERE
- * userId IS NULL guard ensures only one concurrent caller wins.
+ * guard ensures only one concurrent caller wins.
+ *
+ * Two distinct claim kinds:
+ *
+ * 1. Implementation claim (all roles except code-review): claims a `to-do`
+ *    task, sets the assignee (userId/claimedBy/claimedAt) and moves it to
+ *    `in-progress`.
+ *
+ * 2. Review claim (code-review): claims an `in-review` task by taking the
+ *    review lock (reviewClaimedBy/reviewClaimedAt). It never touches the
+ *    implementer's claim fields (userId/claimedBy/claimedAt) and leaves the
+ *    status `in-review`, so concurrent reviewers are excluded via the lock
+ *    while the original attribution is preserved.
  */
 export async function claimTask({
   taskId,
@@ -33,15 +45,13 @@ export async function claimTask({
   const claimableStatus = isCodeReview ? "in-review" : "to-do";
 
   // Verify the task is claimable by this agent before locking on it.
-  // Rule 1 (assigned to me): userId === caller; or
-  // Rule 2 (role match): unassigned AND (requiredRole IS NULL or equals my role),
-  //   or code-review (which claims any in-review task regardless of requiredRole).
   const [candidate] = await db
     .select({
       id: schema.taskTable.id,
       status: schema.taskTable.status,
       userId: schema.taskTable.userId,
       requiredRole: schema.taskTable.requiredRole,
+      reviewClaimedBy: schema.taskTable.reviewClaimedBy,
     })
     .from(schema.taskTable)
     .where(eq(schema.taskTable.id, taskId))
@@ -63,8 +73,22 @@ export async function claimTask({
     });
   }
 
+  // Mutex: if another reviewer already holds the review lock, this task is
+  // busy, not merely role-ineligible.
+  const reviewTakenByOther =
+    isCodeReview &&
+    candidate.reviewClaimedBy != null &&
+    candidate.reviewClaimedBy !== agentKeyId;
+  if (reviewTakenByOther) {
+    throw new HTTPException(409, {
+      message: "Task review is already claimed by another reviewer",
+    });
+  }
+
   const assignedToMe = candidate.userId === userId;
   const roleMatched =
+    // code-review ignores userId entirely: it matches any in-review task that
+    // is not already under review by another key (checked above).
     (isCodeReview && candidate.status === "in-review") ||
     (!isCodeReview &&
       candidate.userId === null &&
@@ -90,7 +114,10 @@ export async function claimTask({
   if (assignedToMe) {
     whereClauses.push(eq(schema.taskTable.userId, userId));
   } else if (isCodeReview) {
-    // code-review claims any in-review task (except `human`, already excluded above), ignoring requiredRole.
+    // Take the review lock only if it is free or already held by this key.
+    whereClauses.push(
+      sql<boolean>`(${schema.taskTable.reviewClaimedBy} IS NULL OR ${schema.taskTable.reviewClaimedBy} = ${agentKeyId ?? ""})`,
+    );
   } else {
     whereClauses.push(isNull(schema.taskTable.userId));
     if (agentRole !== undefined) {
@@ -109,30 +136,43 @@ export async function claimTask({
 
   const [claimed] = await db
     .update(schema.taskTable)
-    .set({
-      userId,
-      claimedBy: agentKeyId ?? null,
-      claimedAt: now,
-      status: "in-progress",
-    })
+    .set(
+      isCodeReview
+        ? {
+            // Review claim: lock the review, never touch implementer fields
+            // or the task status.
+            reviewClaimedBy: agentKeyId ?? null,
+            reviewClaimedAt: now,
+          }
+        : {
+            userId,
+            claimedBy: agentKeyId ?? null,
+            claimedAt: now,
+            status: "in-progress",
+          },
+    )
     .where(and(...whereClauses))
     .returning();
 
   if (!claimed) {
     throw new HTTPException(409, {
-      message:
-        "Task is not available for claiming (already assigned or not in to-do status)",
+      message: isCodeReview
+        ? "Task review is already claimed by another reviewer"
+        : "Task is not available for claiming (already assigned or not in to-do status)",
     });
   }
 
-  // Audit trail: record who claimed via which API key.
+  // Audit trail: record who claimed (or took the review lock) via which key.
   await db.insert(schema.activityTable).values({
     taskId: claimed.id,
-    type: "claimed",
+    type: isCodeReview ? "review-claimed" : "claimed",
     userId,
     agentKeyId: agentKeyId ?? null,
     content: null,
-    eventData: { agentKeyId: agentKeyId ?? null },
+    eventData: {
+      agentKeyId: agentKeyId ?? null,
+      kind: isCodeReview ? "review" : "implementation",
+    },
   });
 
   await publishEvent("task.claimed", {
@@ -140,20 +180,24 @@ export async function claimTask({
     projectId: claimed.projectId,
     userId,
     title: claimed.title,
-    type: "claimed",
+    type: isCodeReview ? "review-claimed" : "claimed",
   });
 
-  // Also emit status_changed so integrations/realtime update.
-  await publishEvent("task.status_changed", {
-    taskId: claimed.id,
-    projectId: claimed.projectId,
-    userId,
-    oldStatus: "to-do",
-    newStatus: "in-progress",
-    title: claimed.title,
-    assigneeId: userId,
-    type: "status_changed",
-  });
+  // Implementation claims move the task to in-progress and therefore change
+  // its status; review claims keep it in-review, so only emit status_changed
+  // for the former.
+  if (!isCodeReview) {
+    await publishEvent("task.status_changed", {
+      taskId: claimed.id,
+      projectId: claimed.projectId,
+      userId,
+      oldStatus: "to-do",
+      newStatus: "in-progress",
+      title: claimed.title,
+      assigneeId: userId,
+      type: "status_changed",
+    });
+  }
 
   return {
     taskId: claimed.id,

@@ -203,6 +203,11 @@ logger.error({ err, userId }, "login failed");
 ## 完成后
 
 1. 将评审报告作为 PR 评论提交（`gh pr review <number> --comment --body-file review.md`）
-2. 调用 `PUT /api/task/status/{taskId}` 将任务状态更新为 `in-review`（code-review 任务的"完成"状态）
+2. 通过 `claim-task` 认领任务时，code-review 领到的是 `in-review` 任务（评审锁），**不会**改动 `userId` / `claimedBy`；评审结束要通过变更任务状态来释放评审锁：
+   - **评审通过**：调用 `PUT /api/task/status/{taskId}`，`{"status":"done"}`（任务完成）
+   - **发现必须修复的问题（Blocker / 关键 Major）**：调用 `PUT /api/task/status/{taskId}`，`{"status":"in-progress"}`，让任务回到实现者手中返工，之后原实现 agent 修复并重新提交 `in-review`
+   - **评审过程中决定放弃**：`POST /api/task/release/{taskId}`（释放评审锁，任务仍保持 `in-review`，其它评审可接手）
 3. 如果发现需要修复的问题，使用 `claim-task` skill 创建后续任务并设置 `requiredRole: coding`
 4. 如果发现测试不足，使用 `claim-task` skill 创建后续任务并设置 `requiredRole: testing`
+
+> 不要直接修改代码（仅评审）。评审通过后任务进入 `done`；要求返工时任务回到 `in-progress`，由实现 agent 处理后再提交 `in-review`。

@@ -320,6 +320,11 @@ export const taskTable = pgTable(
     claimedBy: text("claimed_by"),
     claimedAt: timestamp("claimed_at", { mode: "date" }),
     requiredRole: text("required_role"),
+    // Review lock: which agent key currently owns the code review of this
+    // task. Independent of the implementer's claim fields so a reviewer never
+    // steals attribution. Null means the review is unclaimed.
+    reviewClaimedBy: text("review_claimed_by"),
+    reviewClaimedAt: timestamp("review_claimed_at", { mode: "date" }),
   },
   (table) => [
     index("task_projectId_idx").on(table.projectId),
@@ -327,6 +332,7 @@ export const taskTable = pgTable(
     index("task_assigneeId_idx").on(table.userId),
     index("task_columnId_idx").on(table.columnId),
     index("task_claimedBy_idx").on(table.claimedBy),
+    index("task_reviewClaimedBy_idx").on(table.reviewClaimedBy),
     unique("task_project_number_unique").on(table.projectId, table.number),
   ],
 );

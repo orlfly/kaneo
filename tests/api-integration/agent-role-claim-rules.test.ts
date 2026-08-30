@@ -23,7 +23,7 @@ vi.mock("../../apps/api/src/utils/verify-api-key", async () => {
       return {
         valid: true,
         key: {
-          id: "mock-agent-key",
+          id: `mock-agent-key-${currentApiKey.userId}`,
           userId: currentApiKey.userId,
           name: "Mock Agent Key",
           prefix: "mock",
@@ -155,12 +155,22 @@ describe("API integration: role-specific claim rules", () => {
     expect(persisted?.userId).toBeNull();
   });
 
-  it("code-review agent claims an in-review task ignoring requiredRole", async () => {
+  it("code-review agent review-claims an in-review task without touching implementer fields", async () => {
+    const implementer = await createTeamMember({ role: "member" });
     const member = await createTeamMember({ role: "member" });
     const { project } = await createProjectFixture({
       teamId: member.team.id,
     });
     const task = await seedTask(project.id, "in-review", "coding");
+    // The in-review task has an implementer assigned (submitted work).
+    await db
+      .update(schema.taskTable)
+      .set({
+        userId: implementer.user.id,
+        claimedBy: "implementer-key",
+        claimedAt: new Date(),
+      })
+      .where(eq(schema.taskTable.id, task.id));
     setAgent(member.user.id, "code-review");
     const { app } = createApp();
 
@@ -168,10 +178,59 @@ describe("API integration: role-specific claim rules", () => {
       method: "POST",
     });
     expect(response.status).toBe(200);
+    const payload = (await response.json()) as { status: string };
+    expect(payload.status).toBe("in-review");
     const persisted = await db.query.taskTable.findFirst({
       where: eq(schema.taskTable.id, task.id),
     });
-    expect(persisted?.userId).toBe(member.user.id);
+    // Review lock taken, but implementer attribution and status untouched.
+    expect(persisted?.reviewClaimedBy).toBe(`mock-agent-key-${member.user.id}`);
+    expect(persisted?.userId).toBe(implementer.user.id);
+    expect(persisted?.claimedBy).toBe("implementer-key");
+    expect(persisted?.status).toBe("in-review");
+  });
+
+  it("a second code-review agent cannot review-claim a task already under review", async () => {
+    const reviewerA = await createTeamMember({ role: "member" });
+    const reviewerB = await createTeamMember({ role: "member" });
+    // Reviewer B must belong to the same team as the project to reach the task.
+    await db.insert(schema.teamMemberTable).values({
+      teamId: reviewerA.team.id,
+      userId: reviewerB.user.id,
+      role: "member",
+      joinedAt: new Date(),
+    });
+    const { project } = await createProjectFixture({
+      teamId: reviewerA.team.id,
+    });
+    const task = await seedTask(project.id, "in-review", "coding");
+    await db
+      .update(schema.taskTable)
+      .set({ userId: reviewerB.user.id })
+      .where(eq(schema.taskTable.id, task.id));
+
+    // Reviewer A claims the review.
+    setAgent(reviewerA.user.id, "code-review");
+    const { app } = createApp();
+    const a = await agentFetch(app, `/api/task/claim/${task.id}`, {
+      method: "POST",
+    });
+    expect(a.status).toBe(200);
+
+    // Reviewer B is excluded while A holds the lock.
+    setAgent(reviewerB.user.id, "code-review");
+    const b = await agentFetch(app, `/api/task/claim/${task.id}`, {
+      method: "POST",
+    });
+    expect(b.status).toBe(409);
+    const persisted = await db.query.taskTable.findFirst({
+      where: eq(schema.taskTable.id, task.id),
+    });
+    expect(persisted?.reviewClaimedBy).toBe(
+      `mock-agent-key-${reviewerA.user.id}`,
+    );
+    expect(persisted?.userId).toBe(reviewerB.user.id);
+    expect(persisted?.status).toBe("in-review");
   });
 
   it("code-review agent does not claim a to-do task", async () => {
@@ -264,7 +323,7 @@ describe("API integration: requiredRole flow on status change", () => {
     expect(persisted?.requiredRole).toBe("code-review");
   });
 
-  it("agent moving task to done clears requiredRole", async () => {
+  it("code-review agent approving a review sets done and releases the review lock", async () => {
     const member = await createTeamMember({ role: "member" });
     const { project } = await createProjectFixture({
       teamId: member.team.id,
@@ -272,6 +331,12 @@ describe("API integration: requiredRole flow on status change", () => {
     const task = await seedTask(project.id, "in-review", "code-review");
     setAgent(member.user.id, "code-review");
     const { app } = createApp();
+
+    // The reviewer must hold the review lock to finish the review.
+    const claimResponse = await agentFetch(app, `/api/task/claim/${task.id}`, {
+      method: "POST",
+    });
+    expect(claimResponse.status).toBe(200);
 
     const response = await agentFetch(app, `/api/task/status/${task.id}`, {
       method: "PUT",
@@ -282,6 +347,53 @@ describe("API integration: requiredRole flow on status change", () => {
       where: eq(schema.taskTable.id, task.id),
     });
     expect(persisted?.requiredRole).toBeNull();
+    expect(persisted?.status).toBe("done");
+    expect(persisted?.reviewClaimedBy).toBeNull();
+  });
+
+  it("a reviewer cannot resubmit an in-review task to in-review", async () => {
+    const member = await createTeamMember({ role: "member" });
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+    const task = await seedTask(project.id, "in-review", "coding");
+    setAgent(member.user.id, "code-review");
+    const { app } = createApp();
+
+    await agentFetch(app, `/api/task/claim/${task.id}`, { method: "POST" });
+    const response = await agentFetch(app, `/api/task/status/${task.id}`, {
+      method: "PUT",
+      json: { status: "in-review" },
+    });
+    expect(response.status).toBe(409);
+  });
+
+  it("a non-reviewer agent cannot pull a task out of in-review", async () => {
+    const reviewer = await createTeamMember({ role: "member" });
+    const implementer = await createTeamMember({ role: "member" });
+    const { project } = await createProjectFixture({
+      teamId: reviewer.team.id,
+    });
+    const task = await seedTask(project.id, "in-review", "coding");
+    await db
+      .update(schema.taskTable)
+      .set({ userId: implementer.user.id })
+      .where(eq(schema.taskTable.id, task.id));
+    setAgent(reviewer.user.id, "code-review");
+    const { app } = createApp();
+    await agentFetch(app, `/api/task/claim/${task.id}`, { method: "POST" });
+
+    // Another coding agent cannot mark the reviewed task done.
+    setAgent(implementer.user.id, "coding");
+    const response = await agentFetch(app, `/api/task/status/${task.id}`, {
+      method: "PUT",
+      json: { status: "done" },
+    });
+    expect(response.status).toBe(403);
+    const persisted = await db.query.taskTable.findFirst({
+      where: eq(schema.taskTable.id, task.id),
+    });
+    expect(persisted?.status).toBe("in-review");
   });
 });
 

@@ -73,6 +73,8 @@ skill 分两层，agent 必须明确自己处在哪一层：
 - 如果当前 task 没有对应的 outer work skill（例如 task 描述只要求"跑测试并报告"），agent 必须**在 helper 调用结束后自己决定**是 `done`、`in-review` 还是 `pause`，不能省略这一步。
 - 绝对禁止 helper skill 在循环内部反复调用 `claim_next_task` —— 那是 cycle 入口，不是 helper 的职责。
 
+**code-review 特例**：code-review 的 `claim` 是**评审锁**，认领 `in-review` 任务时不会改动 `userId` / `claimedBy`，任务状态保持 `in-review`。评审周期以**变更任务状态**结束（`done` = 通过，`in-progress` = 返工），而不是把状态改成 `in-review`；改回 `in-review` 会被服务端拒绝（防止评审死循环）。
+
 #### 2.2 Race condition 处理
 
 `update_task_status` / `pause_task` 可能在返回非 200 时遇到以下场景：

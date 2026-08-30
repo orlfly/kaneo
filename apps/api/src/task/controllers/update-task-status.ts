@@ -11,11 +11,13 @@ async function updateTaskStatus({
   status,
   currentUserId,
   agentRole,
+  agentKeyId,
 }: {
   id: string;
   status: string;
   currentUserId: string;
   agentRole?: AgentRole;
+  agentKeyId?: string;
 }) {
   const existingTask = await db.query.taskTable.findFirst({
     where: eq(taskTable.id, id),
@@ -36,16 +38,42 @@ async function updateTaskStatus({
     ),
   });
 
+  const isReviewer = agentRole === "code-review";
+  const leavingInReview =
+    existingTask.status === "in-review" && status !== "in-review";
+  const hasReviewLock =
+    existingTask.reviewClaimedBy != null &&
+    existingTask.reviewClaimedBy === agentKeyId;
+
+  // Review ownership guard: an in-review task may only be pulled out of review
+  // by the reviewer who holds the lock, or by a human (agentRole undefined).
+  // This prevents an implementer (or a different reviewer) from hijacking a
+  // review that is in flight.
+  if (leavingInReview && agentRole !== undefined && !hasReviewLock) {
+    throw new HTTPException(403, {
+      message: "Task review is not claimed by you",
+    });
+  }
+
+  // A reviewer may finish the review (done) or hand the task back for rework
+  // (in-progress), but must never resubmit it to in-review (infinite loop).
+  if (isReviewer && status === "in-review") {
+    throw new HTTPException(409, {
+      message: "A reviewer cannot resubmit a task to in-review",
+    });
+  }
+
   // When an agent changes status, keep the task's requiredRole aligned with
   // the stage it is entering:
-  //   in-progress -> the agent's own role
+  //   in-progress -> the agent's own role (except reviewer rework: null, so
+  //     the original implementer can pick it back up)
   //   in-review   -> code-review (the reviewer)
   //   done        -> null (completed, no longer needs a role)
   // Other statuses leave requiredRole untouched.
   let nextRequiredRole = existingTask.requiredRole;
   if (agentRole !== undefined) {
     if (status === "in-progress") {
-      nextRequiredRole = agentRole;
+      nextRequiredRole = isReviewer ? null : agentRole;
     } else if (status === "in-review") {
       nextRequiredRole = "code-review";
     } else if (status === "done") {
@@ -53,12 +81,18 @@ async function updateTaskStatus({
     }
   }
 
+  // Leaving in-review releases the review lock. The lock is only meaningful
+  // while a task is under review, so clear it on any non-in-review status.
+  const releaseReviewLock = status !== "in-review";
+
   const [updatedTask] = await db
     .update(taskTable)
     .set({
       status,
       columnId: column?.id ?? null,
       requiredRole: nextRequiredRole,
+      reviewClaimedBy: releaseReviewLock ? null : existingTask.reviewClaimedBy,
+      reviewClaimedAt: releaseReviewLock ? null : existingTask.reviewClaimedAt,
     })
     .where(eq(taskTable.id, id))
     .returning();

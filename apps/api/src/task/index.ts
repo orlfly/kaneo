@@ -667,6 +667,7 @@ const task = new Hono<{
         status,
         currentUserId,
         agentRole: apiKey?.agentRole,
+        agentKeyId: apiKey?.id,
       });
 
       return c.json(task);
@@ -768,10 +769,13 @@ const task = new Hono<{
     async (c) => {
       const { id } = c.req.valid("param");
       const currentUserId = c.get("userId");
+      const apiKey = c.get("apiKey");
 
       const task = await releaseTask({
         taskId: id,
         currentUserId,
+        agentRole: apiKey?.agentRole,
+        agentKeyId: apiKey?.id,
       });
 
       return c.json(task);

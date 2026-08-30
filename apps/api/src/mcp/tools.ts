@@ -593,7 +593,7 @@ export function registerMcpTools(
     "claim_task",
     {
       description:
-        "Atomically claim an unassigned to-do task. Only works if the task has no assignee and is in to-do status. Returns 409 if the task is already claimed.",
+        "Atomically claim a task for this agent. Implementation roles claim an unassigned to-do task (sets the assignee and moves it to in-progress); a code-review agent instead takes the review lock on an in-review task without touching the implementer's assignee/claimed_by or the status. Returns 409 if the task is already claimed or already under review by another agent.",
       inputSchema: z.object({ taskId: nonEmptyString }),
     },
     async (args) =>
@@ -608,7 +608,7 @@ export function registerMcpTools(
     "claim_next_task",
     {
       description:
-        "Find and atomically claim the best available to-do task across the caller's team projects. The agent's declared role is used to filter candidates: tasks assigned to the caller are prioritized, then unassigned tasks whose required role matches the caller's role (or is generic). Ordering: due date (soonest first), priority (urgent first), creation date (oldest first). Tasks with requiredRole = \"human\" are always excluded for agent callers. Returns 404 if no matching tasks are available.",
+        "Find and atomically claim the best available task across the caller's team projects. Implementation roles claim the best to-do task: the caller's own assignments are prioritized, then unassigned tasks whose required role matches the caller's role (or is generic). A code-review agent instead claims the best in-review task whose review is not already claimed by another reviewer, and takes the review lock without changing the assignee, claimed_by, or status. Ordering: due date (soonest first), priority (urgent first), creation date (oldest first). Tasks with requiredRole = \"human\" are always excluded for agent callers. Returns 404 if no matching tasks are available.",
       inputSchema: z.object({
         projectId: optionalNonEmptyString,
         priorities: z.array(z.string()).optional(),

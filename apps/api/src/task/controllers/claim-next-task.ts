@@ -72,54 +72,57 @@ export async function claimNextTask({
   const projectIds = projects.map((p) => p.id);
 
   // Three-rule candidate matching:
-  // 1. Assigned to me (rule 1) — these are picked first via the union below.
-  // 2. Unassigned AND role matches: requiredRole IS NULL OR requiredRole = agentRole.
-  //    For human callers, also include tasks marked requiredRole = "human".
-  // 3. Status is in the claimable set, which depends on the agent's role:
-  //    - code-review agents claim "in-review" tasks (ignoring requiredRole,
-  //      EXCEPT they never claim tasks with requiredRole = "human")
-  //    - all other roles claim "to-do" tasks (respecting requiredRole)
-  //    - human callers claim "to-do" tasks whose requiredRole is null OR "human"
+  // 1. My current assignment (rule 1) — picked first via the union below.
+  //    - implementation roles: tasks assigned to me (userId === caller)
+  //    - code-review: tasks whose review lock is held by me (resume an
+  //      in-flight review instead of grabbing another one)
+  // 2. Free (rule 2): unassigned OR review unclaimed, and role matches.
+  //    - code-review: any in-review task whose review is unclaimed (ignoring
+  //      requiredRole, EXCEPT never `human`)
+  //    - implementation roles: to-do tasks with requiredRole null or my role
+  //    - human callers: to-do tasks with requiredRole null or "human"
   const isCodeReview = agentRole === "code-review";
   const claimableStatuses = isCodeReview ? ["in-review"] : ["to-do"];
 
-  // Build a parameterized conditions array, with the assigned-to-me rule
-  // expressed as a subquery against the same set.
-  // To keep one query that prefers assigned-to-me, we'll do two queries:
-  // first assigned-to-me, then role-matched unassigned. This preserves
-  // the existing ordering within each group.
-  const baseAssignedConditions: SQL[] = [
+  const mineCondition: SQL = isCodeReview
+    ? eq(taskTable.reviewClaimedBy, agentKeyId ?? "")
+    : eq(taskTable.userId, userId);
+  const freeCondition: SQL = isCodeReview
+    ? isNull(taskTable.reviewClaimedBy)
+    : isNull(taskTable.userId);
+
+  const baseMineConditions: SQL[] = [
     inArray(taskTable.projectId, projectIds),
     inArray(taskTable.status, [...claimableStatuses]),
-    eq(taskTable.userId, userId),
+    mineCondition,
   ];
-  const baseUnassignedConditions: SQL[] = [
+  const baseFreeConditions: SQL[] = [
     inArray(taskTable.projectId, projectIds),
     inArray(taskTable.status, [...claimableStatuses]),
-    isNull(taskTable.userId),
+    freeCondition,
   ];
   // Rule 2 (role match): only add when the caller's agent role is known,
-  // otherwise every unassigned task is implicitly eligible.
+  // otherwise every free task is implicitly eligible.
   // code-review agents still ignore requiredRole but never get a `human`-marked
   // task. Other agents use the standard null-or-equals clause which already
   // excludes "human" (it is not equal to any agent role).
   if (isCodeReview) {
-    baseUnassignedConditions.push(
-      ne(taskTable.requiredRole, HUMAN_REQUIRED_ROLE),
-    );
+    baseMineConditions.push(ne(taskTable.requiredRole, HUMAN_REQUIRED_ROLE));
+    baseFreeConditions.push(ne(taskTable.requiredRole, HUMAN_REQUIRED_ROLE));
   } else if (agentRole !== undefined) {
-    baseUnassignedConditions.push(
+    // A task I already own is always reclaimable regardless of requiredRole.
+    baseFreeConditions.push(
       sql<boolean>`(${taskTable.requiredRole} IS NULL OR ${taskTable.requiredRole} = ${agentRole})`,
     );
   } else {
     // Human caller: take null or human-required tasks.
-    baseUnassignedConditions.push(
+    baseFreeConditions.push(
       sql<boolean>`(${taskTable.requiredRole} IS NULL OR ${taskTable.requiredRole} = ${HUMAN_REQUIRED_ROLE})`,
     );
   }
 
   if (priorities && priorities.length > 0) {
-    baseUnassignedConditions.push(inArray(taskTable.priority, priorities));
+    baseFreeConditions.push(inArray(taskTable.priority, priorities));
   }
 
   // Priority weight: urgent=4, high=3, medium=2, low=1, no-priority=0
@@ -138,20 +141,20 @@ export async function claimNextTask({
     asc(taskTable.createdAt),
   ];
 
-  // Rule 1 (assigned to me) wins over Rule 2 (role-matched unassigned).
-  const assignedCandidates = await db
+  // Rule 1 (my current assignment) wins over Rule 2 (free, role-matched).
+  const mineCandidates = await db
     .select({ id: taskTable.id })
     .from(taskTable)
-    .where(and(...baseAssignedConditions))
+    .where(and(...baseMineConditions))
     .orderBy(...orderBy)
     .limit(1);
 
-  let candidates = assignedCandidates;
+  let candidates = mineCandidates;
   if (candidates.length === 0) {
     const roleMatched = await db
       .select({ id: taskTable.id })
       .from(taskTable)
-      .where(and(...baseUnassignedConditions))
+      .where(and(...baseFreeConditions))
       .orderBy(...orderBy)
       .limit(1);
     candidates = roleMatched;

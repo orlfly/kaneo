@@ -1,3 +1,4 @@
+import type { AgentRole } from "@kaneo/permissions";
 import { eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
@@ -8,10 +9,67 @@ import { assertTaskOwnership } from "./assert-task-ownership";
 export async function releaseTask({
   taskId,
   currentUserId,
+  agentRole,
+  agentKeyId,
 }: {
   taskId: string;
   currentUserId: string;
+  agentRole?: AgentRole;
+  agentKeyId?: string;
 }) {
+  const isReviewer = agentRole === "code-review";
+
+  const target = await db.query.taskTable.findFirst({
+    where: eq(taskTable.id, taskId),
+  });
+
+  if (!target) {
+    throw new HTTPException(404, { message: "Task not found" });
+  }
+
+  // Reviewer release: only clear the review lock so the task stays in-review
+  // and becomes claimable by another reviewer. Never touch the implementer's
+  // claim fields or the status.
+  if (
+    isReviewer &&
+    target.reviewClaimedBy === agentKeyId &&
+    target.status === "in-review"
+  ) {
+    const [released] = await db
+      .update(taskTable)
+      .set({
+        reviewClaimedBy: null,
+        reviewClaimedAt: null,
+      })
+      .where(eq(taskTable.id, taskId))
+      .returning();
+
+    if (!released) {
+      throw new HTTPException(500, {
+        message: "Failed to release task",
+      });
+    }
+
+    await publishEvent("task.released", {
+      taskId: released.id,
+      projectId: released.projectId,
+      userId: currentUserId,
+      title: released.title,
+      type: "review-released",
+    });
+
+    return released;
+  }
+
+  // If a reviewer tries to release a review they do not hold, do not fall
+  // through to the implementer release path.
+  if (isReviewer && target.status === "in-review") {
+    throw new HTTPException(403, {
+      message: "Task review is not claimed by you",
+    });
+  }
+
+  // Implementation release: the assignee returns the task to the to-do pool.
   await assertTaskOwnership(taskId, currentUserId);
 
   const [releasedTask] = await db
@@ -21,6 +79,8 @@ export async function releaseTask({
       userId: null,
       claimedBy: null,
       claimedAt: null,
+      reviewClaimedBy: null,
+      reviewClaimedAt: null,
       pausedReason: null,
     })
     .where(eq(taskTable.id, taskId))
