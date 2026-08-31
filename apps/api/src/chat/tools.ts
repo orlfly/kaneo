@@ -15,6 +15,9 @@ import db from "../database";
 import { integrationTable, projectTable, taskTable } from "../database/schema";
 import createTaskController from "../task/controllers/create-task";
 import updateTaskStatus from "../task/controllers/update-task-status";
+import createTaskRelation from "../task-relation/controllers/create-task-relation";
+import deleteTaskRelation from "../task-relation/controllers/delete-task-relation";
+import getTaskRelations from "../task-relation/controllers/get-task-relations";
 import { vcsListPullRequests } from "../vcs";
 import { resolveVcsIntegration, type VcsType } from "../vcs/resolve";
 import { loadChatConfig } from "./config";
@@ -65,7 +68,7 @@ export const toolDefinitions: ChatCompletionTool[] = [
     function: {
       name: "create_task",
       description:
-        "Create a new task in the current project. Requires a title. Optionally set priority, status, description, and requiredRole (agent role).",
+        "Create a new task in the current project. Requires a title. Optionally set priority, status, description, requiredRole (agent role), and dependencies (relations to existing tasks).",
       parameters: {
         type: "object",
         properties: {
@@ -96,8 +99,92 @@ export const toolDefinitions: ChatCompletionTool[] = [
               "code-review",
             ],
           },
+          dependencies: {
+            type: "array",
+            description:
+              "Optional relations to existing tasks. Each entry declares a relation from this new task (source) to an existing task (target).",
+            items: {
+              type: "object",
+              properties: {
+                targetTaskId: {
+                  type: "string",
+                  description:
+                    "The ID of the existing task this task depends on",
+                },
+                relationType: {
+                  type: "string",
+                  description:
+                    "Relation type: 'subtask' (this task is a child of the target), 'blocks' (this task blocks the target), or 'related' (bidirectional).",
+                  enum: ["subtask", "blocks", "related"],
+                },
+              },
+              required: ["targetTaskId", "relationType"],
+            },
+          },
         },
         required: ["title"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_task_relation",
+      description:
+        "Create a relation between two tasks in the current project. relationType: 'subtask' (sourceTaskId is the parent, targetTaskId the child), 'blocks' (sourceTaskId blocks targetTaskId), or 'related' (bidirectional).",
+      parameters: {
+        type: "object",
+        properties: {
+          sourceTaskId: {
+            type: "string",
+            description: "The ID of the source task",
+          },
+          targetTaskId: {
+            type: "string",
+            description: "The ID of the target task",
+          },
+          relationType: {
+            type: "string",
+            description: "Relation type: 'subtask', 'blocks', or 'related'",
+            enum: ["subtask", "blocks", "related"],
+          },
+        },
+        required: ["sourceTaskId", "targetTaskId", "relationType"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_task_relations",
+      description:
+        "List all relations (subtask/blocks/related) involving a task in the current project.",
+      parameters: {
+        type: "object",
+        properties: {
+          taskId: {
+            type: "string",
+            description: "The task ID",
+          },
+        },
+        required: ["taskId"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_task_relation",
+      description: "Delete a task relation by its relation ID.",
+      parameters: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            description: "The relation ID",
+          },
+        },
+        required: ["id"],
       },
     },
   },
@@ -291,6 +378,12 @@ export async function executeTool(
       return getTask(projectId, String(args.taskId));
     case "create_task":
       return createTaskTool(projectId, args, userId);
+    case "create_task_relation":
+      return createTaskRelationTool(projectId, args, userId);
+    case "get_task_relations":
+      return getTaskRelationsTool(projectId, args);
+    case "delete_task_relation":
+      return deleteTaskRelationTool(projectId, args, userId);
     case "update_task_status":
       return updateTaskStatusTool(projectId, args, userId);
     case "get_project_summary":
@@ -382,10 +475,143 @@ async function createTaskTool(
       requiredRole:
         typeof args.requiredRole === "string" ? args.requiredRole : null,
     });
-    return JSON.stringify({ id: task.id, title: task.title, created: true });
+
+    // Create declared dependencies (relations from the new task to existing
+    // tasks). If any relation fails, delete the ones already created and
+    // return an error so no partial dependencies remain.
+    const dependencies = Array.isArray(args.dependencies)
+      ? args.dependencies
+      : [];
+    const createdRelationIds: string[] = [];
+    try {
+      for (const dep of dependencies) {
+        const targetTaskId = String(
+          (dep as Record<string, unknown>)?.targetTaskId ?? "",
+        ).trim();
+        const relationType = String(
+          (dep as Record<string, unknown>)?.relationType ?? "",
+        ).trim();
+        if (!targetTaskId || !relationType) {
+          throw new Error(
+            "Each dependency requires targetTaskId and relationType",
+          );
+        }
+        const relation = await createTaskRelation({
+          sourceTaskId: task.id,
+          targetTaskId,
+          relationType,
+          userId,
+          teamId: await resolveTeamId(projectId),
+        });
+        createdRelationIds.push(relation.id);
+      }
+    } catch (error) {
+      for (const relationId of createdRelationIds) {
+        await deleteTaskRelation(relationId, userId).catch(() => {});
+      }
+      return JSON.stringify({
+        error:
+          error instanceof Error
+            ? `Failed to create task dependencies: ${error.message}`
+            : "Failed to create task dependencies",
+      });
+    }
+
+    return JSON.stringify({
+      id: task.id,
+      title: task.title,
+      created: true,
+      dependencies: createdRelationIds.length,
+    });
   } catch (error) {
     return JSON.stringify({
       error: error instanceof Error ? error.message : "Failed to create task",
+    });
+  }
+}
+
+async function resolveTeamId(projectId: string): Promise<string> {
+  const [project] = await db
+    .select({ teamId: projectTable.teamId })
+    .from(projectTable)
+    .where(eq(projectTable.id, projectId))
+    .limit(1);
+  if (!project) {
+    throw new Error("Project not found");
+  }
+  return project.teamId;
+}
+
+async function createTaskRelationTool(
+  projectId: string,
+  args: Record<string, unknown>,
+  userId: string,
+): Promise<string> {
+  const sourceTaskId = String(args.sourceTaskId ?? "").trim();
+  const targetTaskId = String(args.targetTaskId ?? "").trim();
+  const relationType = String(args.relationType ?? "").trim();
+  if (!sourceTaskId || !targetTaskId || !relationType) {
+    return JSON.stringify({
+      error: "sourceTaskId, targetTaskId, and relationType are required",
+    });
+  }
+
+  try {
+    const relation = await createTaskRelation({
+      sourceTaskId,
+      targetTaskId,
+      relationType,
+      userId,
+      teamId: await resolveTeamId(projectId),
+    });
+    return JSON.stringify(relation, null, 2);
+  } catch (error) {
+    return JSON.stringify({
+      error:
+        error instanceof Error ? error.message : "Failed to create relation",
+    });
+  }
+}
+
+async function getTaskRelationsTool(
+  projectId: string,
+  args: Record<string, unknown>,
+): Promise<string> {
+  const taskId = String(args.taskId ?? "").trim();
+  if (!taskId) {
+    return JSON.stringify({ error: "taskId is required" });
+  }
+
+  try {
+    const relations = await getTaskRelations(
+      taskId,
+      await resolveTeamId(projectId),
+    );
+    return JSON.stringify(relations, null, 2);
+  } catch (error) {
+    return JSON.stringify({
+      error: error instanceof Error ? error.message : "Failed to get relations",
+    });
+  }
+}
+
+async function deleteTaskRelationTool(
+  _projectId: string,
+  args: Record<string, unknown>,
+  userId: string,
+): Promise<string> {
+  const id = String(args.id ?? "").trim();
+  if (!id) {
+    return JSON.stringify({ error: "id is required" });
+  }
+
+  try {
+    const relation = await deleteTaskRelation(id, userId);
+    return JSON.stringify({ ok: true, id: relation.id }, null, 2);
+  } catch (error) {
+    return JSON.stringify({
+      error:
+        error instanceof Error ? error.message : "Failed to delete relation",
     });
   }
 }

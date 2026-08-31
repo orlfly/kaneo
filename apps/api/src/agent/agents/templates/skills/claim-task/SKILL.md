@@ -111,6 +111,28 @@ curl -X POST "${KANEO_API_URL}/api/task/${projectId}" \
   }'
 ```
 
+创建后续任务后，若它与已有任务存在依赖关系，使用任务关系 API 声明依赖，使甘特图和依赖视图反映真实的任务先后关系：
+
+```bash
+# 关系类型：
+#   subtask  → 新任务是 target 的子任务（source 是父任务，target 是子任务）
+#   blocks   → 新任务阻塞 target
+#   related  → 双向关联
+curl -X POST "${KANEO_API_URL}/api/task-relation" \
+  -H "Authorization: Bearer ${KANEO_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sourceTaskId": "<新任务 id>",
+    "targetTaskId": "<被依赖任务 id>",
+    "relationType": "blocks"
+  }'
+```
+
+- 新任务依赖某个前置任务时，用 `blocks`（新任务阻塞前置任务）或 `related`
+- 新任务是某个任务的子任务时，用 `subtask`（source = 父任务，target = 新任务）
+- 查询任务依赖：`GET ${KANEO_API_URL}/api/task-relation/<taskId>`
+- 删除依赖：`DELETE ${KANEO_API_URL}/api/task-relation/<relationId>`
+
 ## 关键约束
 
 - API key 的 agent role 决定能认领哪些任务：

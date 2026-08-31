@@ -43,3 +43,4 @@
 2. 提交 PR（submit-pr skill），PR 描述包含测试报告
 3. 调用 `PUT /api/task/:id` 将任务状态更新为 `in-review`
 4. 如果测试发现 bug，创建后续任务并设置 `requiredRole: coding`
+5. 创建后续任务后，若它与已有任务存在依赖关系，使用任务关系 API 声明依赖（`subtask` / `blocks` / `related`），使甘特图和依赖视图反映真实的任务先后关系
