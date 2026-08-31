@@ -5,6 +5,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { subscribeToEvent } from "../../apps/api/src/events";
 import { createApp } from "../../apps/api/src/index";
 import { decryptSecret } from "../../apps/api/src/notification-preferences/secrets";
+import createTaskController from "../../apps/api/src/task/controllers/create-task";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
 import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
@@ -571,6 +572,61 @@ describe("API integration: pi-agent chat", () => {
     const body = (await response.json()) as { result: string };
     expect(typeof body.result).toBe("string");
     expect(body.result).toContain("[]");
+  });
+
+  it("create_task with dependencies persists the task and its relations", async () => {
+    const member = await createTeamMember();
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+
+    // Seed an existing task that the new task will depend on. Use the
+    // controller so it claims a proper task number (the project's
+    // lastTaskNumber counter starts at 0).
+    const existing = await createTaskController({
+      projectId: project.id,
+      currentUserId: member.user.id,
+      title: "Existing prerequisite task",
+      status: "to-do",
+    });
+
+    mockAuthenticatedSession(member.user);
+    const { app } = createApp();
+    const response = await app.request(`/api/chat/project/${project.id}/tool`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        tool: "create_task",
+        args: {
+          title: "New dependent task",
+          dependencies: [{ targetTaskId: existing.id, relationType: "blocks" }],
+        },
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { result: string };
+    const parsed = JSON.parse(body.result) as {
+      id: string;
+      created: boolean;
+      dependencies: number;
+    };
+    expect(parsed.created).toBe(true);
+    expect(parsed.dependencies).toBe(1);
+
+    // The relation must be persisted in the task_relation table.
+    const relations = await db
+      .select({
+        id: schema.taskRelationTable.id,
+        sourceTaskId: schema.taskRelationTable.sourceTaskId,
+        targetTaskId: schema.taskRelationTable.targetTaskId,
+        relationType: schema.taskRelationTable.relationType,
+      })
+      .from(schema.taskRelationTable)
+      .where(eq(schema.taskRelationTable.sourceTaskId, parsed.id));
+    expect(relations).toHaveLength(1);
+    expect(relations[0].targetTaskId).toBe(existing.id);
+    expect(relations[0].relationType).toBe("blocks");
   });
 });
 

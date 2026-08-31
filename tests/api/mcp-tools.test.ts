@@ -484,4 +484,84 @@ describe("MCP tool catalog", () => {
       expect(apiFetch).not.toHaveBeenCalled();
     });
   });
+
+  describe("create_task with dependencies", () => {
+    it("creates the task and its declared relations", async () => {
+      apiFetch
+        .mockResolvedValueOnce(Response.json({ id: "new1" }))
+        .mockResolvedValueOnce(Response.json({ id: "rel1" }))
+        .mockResolvedValueOnce(Response.json({ id: "rel2" }));
+
+      const result = await call("create_task", {
+        projectId: "p1",
+        title: "New task",
+        description: "## Context\n## Acceptance Criteria\n- done",
+        priority: "high",
+        status: "to-do",
+        dependencies: [
+          { targetTaskId: "t1", relationType: "blocks" },
+          { targetTaskId: "t2", relationType: "subtask" },
+        ],
+      });
+
+      expect(result.isError).toBeFalsy();
+      // First call: create the task.
+      expect(apiFetch.mock.calls[0][1]).toMatchObject({
+        method: "POST",
+        body: JSON.stringify({
+          title: "New task",
+          description: "## Context\n## Acceptance Criteria\n- done",
+          priority: "high",
+          status: "to-do",
+        }),
+      });
+      // Second call: create the first relation.
+      expect(apiFetch.mock.calls[1][0]).toBe(
+        "http://api.test/api/task-relation",
+      );
+      expect(JSON.parse(String(apiFetch.mock.calls[1][1]?.body))).toEqual({
+        sourceTaskId: "new1",
+        targetTaskId: "t1",
+        relationType: "blocks",
+      });
+      // Third call: create the second relation.
+      expect(JSON.parse(String(apiFetch.mock.calls[2][1]?.body))).toEqual({
+        sourceTaskId: "new1",
+        targetTaskId: "t2",
+        relationType: "subtask",
+      });
+    });
+
+    it("rolls back created relations when a dependency fails", async () => {
+      apiFetch
+        .mockResolvedValueOnce(Response.json({ id: "new1" }))
+        .mockResolvedValueOnce(Response.json({ id: "rel1" }))
+        .mockResolvedValueOnce(
+          Response.json({ message: "Target task not found" }, { status: 404 }),
+        )
+        .mockResolvedValueOnce(Response.json({ ok: true }));
+
+      const result = await call("create_task", {
+        projectId: "p1",
+        title: "New task",
+        description: "## Context\n## Acceptance Criteria\n- done",
+        priority: "high",
+        status: "to-do",
+        dependencies: [
+          { targetTaskId: "t1", relationType: "blocks" },
+          { targetTaskId: "missing", relationType: "related" },
+        ],
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain("Target task not found");
+      // The first relation must be rolled back via DELETE.
+      const deleteCall = apiFetch.mock.calls.find(
+        ([url, init]) =>
+          String(url).includes("/api/task-relation/rel1") &&
+          init?.method === "DELETE",
+      );
+      expect(deleteCall).toBeTruthy();
+    });
+  });
 });

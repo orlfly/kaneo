@@ -490,6 +490,14 @@ export function registerMcpTools(
         dueDate: optionalIsoDateTimeSchema,
         userId: optionalNonEmptyString,
         requiredRole: agentRoleSchema.optional(),
+        dependencies: z
+          .array(
+            z.object({
+              targetTaskId: nonEmptyString,
+              relationType: z.enum(["subtask", "blocks", "related"]),
+            }),
+          )
+          .optional(),
       }),
     },
     async (args) => {
@@ -504,12 +512,40 @@ export function registerMcpTools(
       if (args.userId !== undefined) body.userId = args.userId;
       if (args.requiredRole !== undefined)
         body.requiredRole = args.requiredRole;
-      return run(() =>
-        client.json(`/api/task/${encodeURIComponent(args.projectId)}`, {
-          method: "POST",
-          body: JSON.stringify(body),
-        }),
-      );
+      return run(async () => {
+        const created = (await client.json(
+          `/api/task/${encodeURIComponent(args.projectId)}`,
+          {
+            method: "POST",
+            body: JSON.stringify(body),
+          },
+        )) as { id: string };
+        const dependencies = args.dependencies ?? [];
+        const createdRelationIds: string[] = [];
+        try {
+          for (const dep of dependencies) {
+            const relation = (await client.json("/api/task-relation", {
+              method: "POST",
+              body: JSON.stringify({
+                sourceTaskId: created.id,
+                targetTaskId: dep.targetTaskId,
+                relationType: dep.relationType,
+              }),
+            })) as { id: string };
+            createdRelationIds.push(relation.id);
+          }
+        } catch (error) {
+          for (const relationId of createdRelationIds) {
+            await client
+              .json(`/api/task-relation/${encodeURIComponent(relationId)}`, {
+                method: "DELETE",
+              })
+              .catch(() => {});
+          }
+          throw error;
+        }
+        return { ...created, dependencies: createdRelationIds.length };
+      });
     },
   );
 
