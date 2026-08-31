@@ -31,6 +31,7 @@
 			"!**/.pi-subagents",
 			"!**/openapi.json",
 			"!skills",
+			"!apps/api/data",
 			"!apps/api/drizzle/meta/_journal.json"
 		]
 	},
