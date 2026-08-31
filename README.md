@@ -46,6 +46,22 @@ We believe the best tools are **invisible**. They should amplify your team's nat
 
 Learn more about Kaneo's features and capabilities in our [documentation](https://kaneo.app/docs/core).
 
+## Architecture
+
+Kaneo is a monorepo managed with [Turborepo](https://turbo.build) and [pnpm](https://pnpm.io). It is deliberately simple: a typed API owns all domain behavior and authorization, a React app consumes its generated client, and PostgreSQL stores durable state.
+
+- **`apps/api`** — Hono API with Better Auth, controllers, Drizzle ORM database access, event publishing, integrations, MCP HTTP routes, and WebSockets.
+- **`apps/web`** — React/Vite UI using TanStack Router and Query, typed fetchers, hooks, and realtime cache updates.
+- **`apps/docs`** — product and API documentation content (Mintlify).
+- **`packages/libs`** — shared typed Hono client and URL helpers.
+- **`packages/permissions`** — canonical permission vocabulary and built-in roles.
+- **`packages/mcp`** — the published stdio MCP package (`@kaneo/mcp`).
+- **`packages/planka-import`** — Planka workspace import tooling.
+- **`charts/kaneo`** — Helm deployment surface.
+- **`tests/api`** — API unit tests; **`tests/api-integration`** — PostgreSQL-backed integration tests.
+
+**Tech stack:** Hono + TypeScript (API), React 19 + Vite + Tailwind CSS (web), PostgreSQL + Drizzle ORM (database), Better Auth (authentication), WebSockets for realtime updates, and optional Redis for multi-instance realtime fan-out.
+
 ## Sponsors
 
 Kaneo is open source. If you find it useful, consider [sponsoring the project](https://github.com/sponsors/andrejsshell) to help support ongoing development.
@@ -136,11 +152,47 @@ cd kaneo
 pnpm install
 
 # Create a .env file in the root with required environment variables
+cp .env.sample .env
 # See ENVIRONMENT_SETUP.md for detailed instructions
 
-# Start development servers
+# Start development servers (API on :1337, web on :5173)
 pnpm dev
 ```
+
+The API runs on [http://localhost:1337](http://localhost:1337) and the web app on [http://localhost:5173](http://localhost:5173). The web app proxies API requests to `KANEO_API_URL` (default `http://localhost:1337`).
+
+Useful commands:
+```bash
+pnpm build            # build all packages
+pnpm typecheck        # typecheck all packages
+pnpm test             # unit tests
+pnpm test:integration # PostgreSQL-backed integration tests
+pnpm lint             # Biome lint + format (writes changes)
+```
+
+Database migrations are managed with Drizzle. From `apps/api`:
+```bash
+pnpm db:generate      # generate a migration from schema changes
+pnpm db:migrate       # apply migrations
+pnpm db:studio        # open Drizzle Studio
+```
+
+### Agent configuration
+
+Kaneo ships role definitions and role-scoped skills that let AI coding agents (opencode, Claude Code, codex, jcode) work as a specific persona. Download a zip from the API:
+
+```bash
+# All roles, or filter to a single persona with ?role=<name>
+curl -OJ http://localhost:1337/api/agent/agents-config/download
+curl -OJ "http://localhost:1337/api/agent/agents-config/download?role=coding"
+```
+
+Unzip it and run the bundled installer in your project root:
+```bash
+./install.sh --agent jcode --role coding
+```
+
+The installer writes the role's primary instruction file (`AGENTS.md`, `CLAUDE.md`, or `.opencode/AGENT.md`) and installs the skills that apply to that role. See the [MCP documentation](https://kaneo.app/docs/core/integrations/mcp) for connecting AI tools to Kaneo.
 
 For contributing guidelines, code structure, and development best practices, check out our [contributing guide](CONTRIBUTING.md) and [documentation](https://kaneo.app/docs/core).
 
@@ -175,5 +227,5 @@ MIT License - see [LICENSE](LICENSE) for details.
 </div>
 
 <p align="center">
-  Built with ❤️ by the Kaneo team and <a href="#contributors">contributors</a>
+  Built with ❤️ by the Kaneo team and <a href="https://github.com/usekaneo/kaneo/graphs/contributors">contributors</a>
 </p>
