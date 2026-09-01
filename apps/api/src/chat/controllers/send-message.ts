@@ -359,13 +359,18 @@ async function writeStreamErrorAndDone(
 
 // Regex for literal <invoke name="tool"><parameter name="arg">value</parameter></invoke>
 // blocks that some models emit in the content instead of the structured
-// tool_calls field.
-const INVOKE_RE = /<invoke\s+name="([^"]+)"[^>]*>([\s\S]*?)<\/invoke>/g;
-const PARAM_RE = /<parameter\s+name="([^"]+)"[^>]*>([\s\S]*?)<\/parameter>/g;
+// tool_calls field. DeepSeek models use a proprietary DSML dialect with a
+// fullwidth vertical bar prefix (U+FF5C): <｜DSML｜invoke ...>. Both dialects
+// share the same inner structure, so one regex covers them.
+const INVOKE_RE =
+  /<(?:｜DSML｜)?invoke\s+name="([^"]+)"[^>]*>([\s\S]*?)<\/(?:｜DSML｜)?invoke>/g;
+const PARAM_RE =
+  /<(?:｜DSML｜)?parameter\s+name="([^"]+)"[^>]*>([\s\S]*?)<\/(?:｜DSML｜)?parameter>/g;
 
 /**
  * Detect tool calls emitted as literal markup in the message content (e.g.
- * `<invoke name="agent_read_file">`). Returns them in the same shape as the
+ * `<invoke name="agent_read_file">` or the DeepSeek DSML dialect
+ * `<｜DSML｜invoke name="...">`). Returns them in the same shape as the
  * structured `tool_calls` field so the caller can execute them uniformly.
  */
 export function parseLiteralToolCalls(content: string): Array<{
