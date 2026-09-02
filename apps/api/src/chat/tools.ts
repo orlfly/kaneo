@@ -1,4 +1,5 @@
 import { and, count, eq, ilike } from "drizzle-orm";
+import { HTTPException } from "hono/http-exception";
 import {
   agentCloneRepo,
   agentDeleteFile,
@@ -68,7 +69,7 @@ export const toolDefinitions: ChatCompletionTool[] = [
     function: {
       name: "create_task",
       description:
-        "Create a new task in the current project. Requires a title. Optionally set priority, status, description, requiredRole (agent role), and dependencies (relations to existing tasks).",
+        "Create a new task in the current project. Requires a title. Optionally set priority, status, description, requiredRole (agent role), schedule dates (startDate/dueDate), and dependencies (relations to existing tasks). Every task needs startDate and dueDate to appear on the Gantt chart.",
       parameters: {
         type: "object",
         properties: {
@@ -84,6 +85,16 @@ export const toolDefinitions: ChatCompletionTool[] = [
           description: {
             type: "string",
             description: "Optional task description in markdown",
+          },
+          startDate: {
+            type: "string",
+            description:
+              'Scheduled start date, ISO 8601 (e.g. "2025-01-15"). Defaults to today.',
+          },
+          dueDate: {
+            type: "string",
+            description:
+              'Scheduled due date, ISO 8601 (e.g. "2025-01-20"). Estimate from task size and start date; must not be before startDate.',
           },
           requiredRole: {
             type: "string",
@@ -453,6 +464,18 @@ async function getTask(projectId: string, taskId: string): Promise<string> {
   return JSON.stringify(row, null, 2);
 }
 
+const DEFAULT_TASK_DURATION_DAYS = 3;
+
+function parseScheduleDate(value: string, fieldName: string): Date {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new HTTPException(400, {
+      message: `Invalid ${fieldName} "${value}". Please provide a valid date string (e.g. "2025-01-15" or "2025-01-15T10:30:00Z").`,
+    });
+  }
+  return parsed;
+}
+
 async function createTaskTool(
   projectId: string,
   args: Record<string, unknown>,
@@ -461,6 +484,34 @@ async function createTaskTool(
   const title = String(args.title ?? "").trim();
   if (!title) {
     return JSON.stringify({ error: "Title is required" });
+  }
+
+  const startDateStr =
+    typeof args.startDate === "string" ? args.startDate.trim() : "";
+  const dueDateStr =
+    typeof args.dueDate === "string" ? args.dueDate.trim() : "";
+
+  // Agent-created tasks need a schedule to show up on the Gantt chart. Default
+  // startDate to today and dueDate a few days out when the model omits them.
+  let startDate: Date;
+  let dueDate: Date;
+  try {
+    startDate = startDateStr
+      ? parseScheduleDate(startDateStr, "startDate")
+      : new Date();
+    dueDate = dueDateStr
+      ? parseScheduleDate(dueDateStr, "dueDate")
+      : new Date(startDate.getTime() + DEFAULT_TASK_DURATION_DAYS * 86400000);
+  } catch (error) {
+    return JSON.stringify({
+      error: error instanceof Error ? error.message : "Invalid schedule dates",
+    });
+  }
+
+  if (startDate.getTime() > dueDate.getTime()) {
+    return JSON.stringify({
+      error: "startDate cannot be after dueDate",
+    });
   }
 
   try {
@@ -472,6 +523,8 @@ async function createTaskTool(
         typeof args.description === "string" ? args.description : undefined,
       status: typeof args.status === "string" ? args.status : "to-do",
       priority: typeof args.priority === "string" ? args.priority : undefined,
+      startDate,
+      dueDate,
       requiredRole:
         typeof args.requiredRole === "string" ? args.requiredRole : null,
     });

@@ -251,7 +251,11 @@ export function registerTools(
   server.registerTool(
     "create_task",
     {
-      description: "Create a task in a project.",
+      description:
+        "Create a task in a project.\n\n" +
+        "Title: plain-English and human-readable (>=8 chars); never a branch name, ticket id, or SHA.\n" +
+        "Description: inline the essential context with Markdown sections (## Context, ## Acceptance Criteria, ## Out of Scope). The description MUST contain an 'Acceptance Criteria' (or 验收标准) section.\n" +
+        'startDate/dueDate: ALWAYS schedule the task (ISO 8601, e.g. "2025-01-15"). Estimate dates from task size, priority, and dependencies; start from today when nothing else is known. Tasks without dates do not appear on the Gantt chart.',
       inputSchema: z.object({
         projectId: nonEmptyString,
         title: nonEmptyString,

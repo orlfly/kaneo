@@ -413,6 +413,8 @@ describe("API integration: pi-agent chat", () => {
         pausedReason: schema.taskTable.pausedReason,
         claimedBy: schema.taskTable.claimedBy,
         requiredRole: schema.taskTable.requiredRole,
+        startDate: schema.taskTable.startDate,
+        dueDate: schema.taskTable.dueDate,
       })
       .from(schema.taskTable)
       .where(eq(schema.taskTable.projectId, project.id));
@@ -425,6 +427,14 @@ describe("API integration: pi-agent chat", () => {
     expect(tasks[0].pausedReason).toBeNull();
     expect(tasks[0].claimedBy).toBeNull();
     expect(tasks[0].requiredRole).toBeNull();
+
+    // The tool always schedules agent-created tasks so they show on the Gantt
+    // chart. Without explicit dates it defaults to today + a few days out.
+    expect(tasks[0].startDate).not.toBeNull();
+    expect(tasks[0].dueDate).not.toBeNull();
+    expect((tasks[0].dueDate as Date).getTime()).toBeGreaterThan(
+      (tasks[0].startDate as Date).getTime(),
+    );
 
     // Routing through the controller publishes task.created so realtime
     // subscribers (Board, Backlog, activity feed) see the new row.

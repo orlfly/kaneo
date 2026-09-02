@@ -101,15 +101,25 @@ curl -X POST "${KANEO_API_URL}/api/task/release/${taskId}" \
 ```bash
 # 注意：projectId 在路径中（/api/task/:projectId），不在请求体
 # 未显式传 requiredRole 时，服务端会默认设为 agent 的设定角色
+# startDate/dueDate 必填排期（ISO 8601）：没有排期的任务不会出现在甘特图上
 curl -X POST "${KANEO_API_URL}/api/task/${projectId}" \
   -H "Authorization: Bearer ${KANEO_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
     "title": "实现 auth-center SSO 登录接口",
     "description": "...",
-    "priority": "high"
+    "priority": "high",
+    "startDate": "2025-09-02",
+    "dueDate": "2025-09-05"
   }'
 ```
+
+排期规则：
+
+- `startDate`：任务可以开始的日子。无明确信息时用当天日期
+- `dueDate`：预计完成日。按任务规模估算（小任务 1-2 天，中等 3-5 天，大型拆分后再排期）
+- 依赖前置任务时，`startDate` 应在前置任务预期完成之后
+- `startDate` 不能晚于 `dueDate`（API 会返回 400）
 
 创建后续任务后，若它与已有任务存在依赖关系，使用任务关系 API 声明依赖，使甘特图和依赖视图反映真实的任务先后关系：
 
@@ -146,3 +156,4 @@ curl -X POST "${KANEO_API_URL}/api/task-relation" \
 - 暂停任务必须写明原因，便于项目经理巡检
 - 释放任务前确保没有未提交的代码变更
 - 创建后续任务时，服务端默认将 `requiredRole` 设为 agent 的设定角色；如需指定其它角色，显式传 `requiredRole`
+- 创建后续任务时必须传 `startDate` / `dueDate` 排期（ISO 8601），没有排期的任务不会出现在甘特图上
