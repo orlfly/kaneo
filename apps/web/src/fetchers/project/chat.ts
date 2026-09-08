@@ -147,10 +147,23 @@ export type StreamChatResult = {
 };
 
 /**
+ * How long the stream may stay silent (no bytes at all) before we give up.
+ * The server sends SSE ping comments every 15s while pi-agent works, so any
+ * real stall beyond 90s means the connection died (proxy drop, network issue)
+ * and no result will arrive. Aborting surfaces a clear error instead of a
+ * stream that "ends" with nothing.
+ */
+const STREAM_STALL_TIMEOUT_MS = 90_000;
+
+/**
  * Stream a chat message via SSE. Calls onToken for each token chunk and
  * onProgress for each progress event emitted between tool calls. Returns the
  * full assistant response and the progress log so the caller can render the
  * intermediate steps in the chat panel.
+ *
+ * Aborts with a stall error if no bytes arrive within
+ * STREAM_STALL_TIMEOUT_MS; every byte received resets the timer, so server
+ * heartbeats keep long tool executions alive.
  */
 export async function streamChatMessage(
   projectId: string,
@@ -190,58 +203,97 @@ export async function streamChatMessage(
   let currentEvent = "message";
   const progressLog: ProgressEntry[] = [];
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+  // Watchdog: reject if the stream stays completely silent. Called on every
+  // received chunk; also triggered by the caller's abort signal.
+  let stallTimer: ReturnType<typeof setTimeout> | undefined;
+  let settled = false;
+  let rejectStall: (reason?: unknown) => void = () => {};
+  const arm = () => {
+    clearTimeout(stallTimer);
+    stallTimer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      // Reject before cancelling: cancel can resolve the pending read with
+      // {done:true}, which would otherwise win the race and look like a clean
+      // end-of-stream (exactly the silent-empty-result bug this guards
+      // against). Rejecting first guarantees the caller sees the stall error.
+      rejectStall(new Error("stalled"));
+      reader.cancel().catch(() => {});
+    }, STREAM_STALL_TIMEOUT_MS);
+  };
+  const watchdog = new Promise<never>((_, reject) => {
+    rejectStall = reject;
+    arm();
+    signal?.addEventListener("abort", () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(stallTimer);
+      reject(new Error("aborted"));
+    });
+  });
+  const resetStall = () => {
+    if (settled) return;
+    arm();
+  };
 
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
+  try {
+    while (true) {
+      const { done, value } = await Promise.race([reader.read(), watchdog]);
+      if (done) break;
+      resetStall();
 
-    for (const rawLine of lines) {
-      const trimmed = rawLine.trim();
-      if (!trimmed) {
-        // Blank line separates SSE events. Reset for the next event block.
-        currentEvent = "message";
-        continue;
-      }
-      if (trimmed.startsWith("event: ")) {
-        currentEvent = trimmed.slice(7).trim();
-        continue;
-      }
-      if (currentEvent === "progress") {
-        const payload = trimmed.startsWith("data: ")
-          ? trimmed.slice(6)
-          : trimmed;
-        try {
-          const parsed = JSON.parse(payload);
-          if (
-            parsed &&
-            typeof parsed.tool === "string" &&
-            typeof parsed.label === "string"
-          ) {
-            const entry: ProgressEntry = {
-              round: typeof parsed.round === "number" ? parsed.round : 0,
-              tool: parsed.tool,
-              label: parsed.label,
-            };
-            progressLog.push(entry);
-            onProgress?.(entry);
-          }
-        } catch {
-          // Ignore malformed progress payloads; they should never appear.
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+
+      for (const rawLine of lines) {
+        const trimmed = rawLine.trim();
+        if (!trimmed) {
+          // Blank line separates SSE events. Reset for the next event block.
+          currentEvent = "message";
+          continue;
         }
-        continue;
-      }
-      const parsed = parseSSELine(trimmed);
-      if (!parsed) continue;
-      if (parsed.kind === "token") {
-        fullContent += parsed.text;
-        onToken(parsed.text);
-      } else if (parsed.kind === "error") {
-        throw new Error(parsed.message);
+        if (trimmed.startsWith("event: ")) {
+          currentEvent = trimmed.slice(7).trim();
+          continue;
+        }
+        if (currentEvent === "progress") {
+          const payload = trimmed.startsWith("data: ")
+            ? trimmed.slice(6)
+            : trimmed;
+          try {
+            const parsed = JSON.parse(payload);
+            if (
+              parsed &&
+              typeof parsed.tool === "string" &&
+              typeof parsed.label === "string"
+            ) {
+              const entry: ProgressEntry = {
+                round: typeof parsed.round === "number" ? parsed.round : 0,
+                tool: parsed.tool,
+                label: parsed.label,
+              };
+              progressLog.push(entry);
+              onProgress?.(entry);
+            }
+          } catch {
+            // Ignore malformed progress payloads; they should never appear.
+          }
+          continue;
+        }
+        const parsed = parseSSELine(trimmed);
+        if (!parsed) continue;
+        if (parsed.kind === "token") {
+          fullContent += parsed.text;
+          onToken(parsed.text);
+        } else if (parsed.kind === "error") {
+          throw new Error(parsed.message);
+        }
       }
     }
+  } finally {
+    settled = true;
+    clearTimeout(stallTimer);
   }
 
   return { content: fullContent, progressLog };

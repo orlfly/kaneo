@@ -2007,6 +2007,8 @@
 		"notEnabledDescription": "The pi-agent AI assistant has not been configured for this instance. Please contact an administrator to enable it.",
 		"errorFailed": "Failed to send message",
 		"errorTimeout": "Request timed out. Please try again.",
+		"errorNoResult": "No response received. Please try again.",
+		"errorStalled": "The connection was interrupted and no result arrived. Please try again.",
 		"you": "You",
 		"clearHistory": "Clear history",
 		"clearHistoryTitle": "Clear chat history?",

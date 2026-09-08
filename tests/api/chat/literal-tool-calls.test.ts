@@ -35,4 +35,39 @@ describe("parseLiteralToolCalls", () => {
       ),
     ).toEqual([]);
   });
+
+  it("parses the DeepSeek DSML dialect with fullwidth bar prefix", () => {
+    const content =
+      '继续核对剩余 2 个服务。<｜DSML｜tool_calls><｜DSML｜invoke name="agent_list_files"><｜DSML｜parameter name="path" string="true">repo/services/java/knowledge-service</｜DSML｜parameter></｜DSML｜invoke><｜DSML｜invoke name="agent_list_files"><｜DSML｜parameter name="path" string="true">repo/services/java/skill-service</｜DSML｜parameter></｜DSML｜invoke></｜DSML｜tool_calls>';
+    const calls = parseLiteralToolCalls(content);
+    expect(calls).toHaveLength(2);
+    expect(calls[0].function.name).toBe("agent_list_files");
+    expect(JSON.parse(calls[0].function.arguments)).toEqual({
+      path: "repo/services/java/knowledge-service",
+    });
+    expect(JSON.parse(calls[1].function.arguments)).toEqual({
+      path: "repo/services/java/skill-service",
+    });
+  });
+
+  it("parses DSML parameters whose values contain angle-bracket markup", () => {
+    const content =
+      '<｜DSML｜invoke name="create_task"><｜DSML｜parameter name="title">Fix <b>bold</b> title</｜DSML｜parameter></｜DSML｜invoke>';
+    const calls = parseLiteralToolCalls(content);
+    expect(calls).toHaveLength(1);
+    expect(JSON.parse(calls[0].function.arguments).title).toBe(
+      "Fix <b>bold</b> title",
+    );
+  });
+
+  it("does not treat a normal invoke as part of a DSML block", () => {
+    const content =
+      '<invoke name="list_tasks"></invoke><｜DSML｜invoke name="get_project_summary"></｜DSML｜invoke>';
+    const calls = parseLiteralToolCalls(content);
+    expect(calls).toHaveLength(2);
+    expect(calls.map((c) => c.function.name)).toEqual([
+      "list_tasks",
+      "get_project_summary",
+    ]);
+  });
 });

@@ -6,6 +6,7 @@ import { columnTable, taskTable, userTable } from "../../database/schema";
 import { publishEvent } from "../../events";
 import { assertValidTaskStatus } from "../validate-task-fields";
 import { claimTaskNumber } from "./claim-task-numbers";
+import { withTaskNumberRetry } from "./with-task-number-retry";
 
 async function createTask({
   projectId,
@@ -74,29 +75,49 @@ async function createTask({
 
   const nextPosition = (maxPositionResult?.maxPosition ?? 0) + 1;
 
-  const createdTask = await db.transaction(async (tx) => {
-    const taskNumber = await claimTaskNumber(projectId, tx);
+  // The transaction body may run multiple times if a (projectId, number)
+  // unique-constraint conflict is detected (e.g. an external writer inserted
+  // a task between our counter claim and our insert). claimTaskNumber itself
+  // is skip-forward safe: it reads MAX(task.number) under SELECT ... FOR
+  // UPDATE and bumps the counter, so two retries will skip past any orphan
+  // numbers from ad-hoc psql or pre-sync gitea imports.
+  const createdTask = await withTaskNumberRetry(
+    () =>
+      db.transaction(async (tx) => {
+        const taskNumber = await claimTaskNumber(projectId, tx);
 
-    const [task] = await tx
-      .insert(taskTable)
-      .values({
-        projectId,
-        userId: normalizedUserId ?? null,
-        title: title || "",
-        status: resolvedStatus,
-        columnId: column?.id ?? null,
-        startDate: startDate || null,
-        dueDate: dueDate || null,
-        description: description || "",
-        priority: resolvedPriority,
-        number: taskNumber,
-        position: nextPosition,
-        requiredRole: resolvedRequiredRole,
-      })
-      .returning();
+        const [task] = await tx
+          .insert(taskTable)
+          .values({
+            projectId,
+            userId: normalizedUserId ?? null,
+            title: title || "",
+            status: resolvedStatus,
+            columnId: column?.id ?? null,
+            startDate: startDate || null,
+            dueDate: dueDate || null,
+            description: description || "",
+            priority: resolvedPriority,
+            number: taskNumber,
+            position: nextPosition,
+            requiredRole: resolvedRequiredRole,
+          })
+          .returning();
 
-    return task;
-  });
+        return task;
+      }),
+    {
+      projectId,
+      onRetry: (attempt) => {
+        if (process.env.NODE_ENV !== "test") {
+          // eslint-disable-next-line no-console
+          console.warn(
+            `[create-task] task_number_retry project=${projectId} attempt=${attempt}`,
+          );
+        }
+      },
+    },
+  );
 
   if (!createdTask) {
     throw new HTTPException(500, {

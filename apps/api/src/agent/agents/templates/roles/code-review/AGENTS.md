@@ -48,4 +48,6 @@
 2. 调用 `PUT /api/task/:id` 将任务状态更新为 `in-review`
 3. 如果发现需要修复的问题，创建后续任务并设置 `requiredRole: coding`
 4. 如果发现测试不足，创建后续任务并设置 `requiredRole: testing`
-5. 创建后续任务后，若它与已有任务存在依赖关系，使用任务关系 API 声明依赖（`subtask` / `blocks` / `related`），使甘特图和依赖视图反映真实的任务先后关系
+5. 创建后续任务后：
+  - 设置排期（`startDate` / `dueDate`，ISO 8601）：按任务规模和依赖估一个合理日期范围，默认从当天开始。没有排期的任务不会出现在甘特图上
+  - 若它与已有任务存在依赖关系，使用任务关系 API 声明依赖（`subtask` / `blocks` / `related`），使甘特图和依赖视图反映真实的任务先后关系

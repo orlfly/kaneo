@@ -9,6 +9,7 @@ import {
   getValidTaskStatuses,
 } from "../validate-task-fields";
 import { claimTaskNumber } from "./claim-task-numbers";
+import { withTaskNumberRetry } from "./with-task-number-retry";
 
 export type ImportTask = {
   title: string;
@@ -57,27 +58,46 @@ async function importTasks(
         ),
       });
 
-      const createdTask = await db.transaction(async (tx) => {
-        const taskNumber = await claimTaskNumber(projectId, tx);
+      // Same retry guard as createTask: if an external writer races a
+      // (projectId, number) unique-constraint conflict, the claim step will
+      // skip forward and the insert will succeed on the next attempt.
+      const createdTask = await withTaskNumberRetry(
+        () =>
+          db.transaction(async (tx) => {
+            const taskNumber = await claimTaskNumber(projectId, tx);
 
-        const [task] = await tx
-          .insert(taskTable)
-          .values({
-            projectId,
-            userId: taskData.userId || null,
-            title: taskData.title,
-            status,
-            columnId: column?.id ?? null,
-            startDate: taskData.startDate ? new Date(taskData.startDate) : null,
-            dueDate: taskData.dueDate ? new Date(taskData.dueDate) : null,
-            description: taskData.description || "",
-            priority,
-            number: taskNumber,
-          })
-          .returning();
+            const [task] = await tx
+              .insert(taskTable)
+              .values({
+                projectId,
+                userId: taskData.userId || null,
+                title: taskData.title,
+                status,
+                columnId: column?.id ?? null,
+                startDate: taskData.startDate
+                  ? new Date(taskData.startDate)
+                  : null,
+                dueDate: taskData.dueDate ? new Date(taskData.dueDate) : null,
+                description: taskData.description || "",
+                priority,
+                number: taskNumber,
+              })
+              .returning();
 
-        return task;
-      });
+            return task;
+          }),
+        {
+          projectId,
+          onRetry: (attempt) => {
+            if (process.env.NODE_ENV !== "test") {
+              // eslint-disable-next-line no-console
+              console.warn(
+                `[import-tasks] task_number_retry project=${projectId} attempt=${attempt}`,
+              );
+            }
+          },
+        },
+      );
 
       if (createdTask) {
         await publishEvent("task.created", {

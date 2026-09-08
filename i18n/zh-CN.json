@@ -2013,6 +2013,8 @@
 		"notEnabledDescription": "此实例尚未配置 pi-agent AI 助手。请联系管理员启用。",
 		"errorFailed": "发送消息失败",
 		"errorTimeout": "请求超时，请重试。",
+		"errorNoResult": "未收到任何回复，请重试。",
+		"errorStalled": "连接中断，未能获取结果，请重试。",
 		"you": "你",
 		"clearHistory": "清除历史",
 		"clearHistoryConfirm": "清除历史",

@@ -121,7 +121,7 @@ function ChatPanel({ projectId }: Props) {
     abortRef.current = new AbortController();
 
     try {
-      await streamChatMessage(
+      const result = await streamChatMessage(
         projectId,
         content,
         (token) => {
@@ -135,6 +135,17 @@ function ChatPanel({ projectId }: Props) {
         abortRef.current.signal,
       );
 
+      if (!result.content.trim()) {
+        // Stream completed without any assistant text (e.g. a proxy dropped
+        // the connection before the done event). Surface a real message
+        // instead of silently showing nothing.
+        toast.error(
+          t("chat:errorNoResult", {
+            defaultValue: "No response received. Please try again.",
+          }),
+        );
+      }
+
       // Refresh message list from server
       await queryClient.invalidateQueries({
         queryKey: ["chat-messages", projectId],
@@ -142,6 +153,13 @@ function ChatPanel({ projectId }: Props) {
     } catch (error) {
       if (error instanceof Error && error.message === "not-enabled") {
         setEnabled(false);
+      } else if (error instanceof Error && error.message === "stalled") {
+        toast.error(
+          t("chat:errorStalled", {
+            defaultValue:
+              "The connection was interrupted and no result arrived. Please try again.",
+          }),
+        );
       } else {
         toast.error(
           error instanceof Error
