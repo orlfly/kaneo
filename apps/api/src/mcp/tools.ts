@@ -51,7 +51,13 @@ Description:
 - The description MUST include an "Acceptance Criteria" (or 验收标准) section with at least one concrete, testable bullet.
 
 requiredRole:
-- ALWAYS set requiredRole to one of the seven agent roles ("coding", "product-design", "architecture-design", "devops", "ui-design", "testing", "code-review") or "human" for human-only work. If omitted, the API defaults it to the creating agent's own role so the work is routed to the right claimer.`;
+- ALWAYS set requiredRole to one of the seven agent roles ("coding", "product-design", "architecture-design", "devops", "ui-design", "testing", "code-review") or "human" for human-only work. If omitted, the API defaults it to the creating agent's own role so the work is routed to the right claimer.
+
+Schedule (startDate/dueDate):
+- ALWAYS schedule the task (ISO 8601). Tasks without dates do not appear on the Gantt chart.
+- A blocked or subordinate task must start on or after its blocker's/parent's dueDate. Check existing tasks' schedules first instead of stacking everything on the same days.
+- Estimated effort over ~3 days or more than ~5 unrelated acceptance criteria means the work should be split into a parent with subtasks, each with its own schedule and role.
+- Put urgency in the priority field and the executing role in requiredRole. Never encode them in the title (no "[coding-P2]" prefixes).`;
 
 type ShapeToolServer = {
   registerTool(

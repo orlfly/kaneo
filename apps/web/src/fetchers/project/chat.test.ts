@@ -223,4 +223,69 @@ describe("streamChatMessage runtime contract", () => {
     expect(entries).toEqual(result.progressLog);
     expect(tokens).toEqual(["你好"]);
   });
+
+  it("ignores ping heartbeats without treating them as tokens", async () => {
+    fetchMock.mockResolvedValue(
+      stubFetchResponse({
+        ok: true,
+        body: rawSseStream([
+          "event: ping\ndata: \n\n",
+          "data: 你好\n\n",
+          "event: ping\ndata: \n\n",
+        ]),
+      }),
+    );
+    const tokens: string[] = [];
+    const result = await streamChatMessage("p1", "hi", (t) => tokens.push(t));
+    expect(result.content).toBe("你好");
+    expect(tokens).toEqual(["你好"]);
+  });
+
+  it("rejects with 'stalled' when no bytes arrive within the stall window", async () => {
+    vi.useFakeTimers();
+    try {
+      // A stream that opens but never sends anything (the proxy-drop case).
+      fetchMock.mockResolvedValue(
+        stubFetchResponse({
+          ok: true,
+          body: new ReadableStream<Uint8Array>({ start() {} }),
+        }),
+      );
+      const promise = streamChatMessage("p1", "hi", vi.fn());
+      // Attach a no-op catch so the rejection is handled while we advance
+      // timers, then assert on the settled result.
+      promise.catch(() => {});
+      await vi.advanceTimersByTimeAsync(90_000);
+      await expect(promise).rejects.toThrow("stalled");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("keeps waiting when heartbeats keep arriving during a long tool call", async () => {
+    vi.useFakeTimers();
+    try {
+      let controller: ReadableStreamDefaultController<Uint8Array> | undefined;
+      const encoder = new TextEncoder();
+      const body = new ReadableStream<Uint8Array>({
+        start(c) {
+          controller = c;
+        },
+      });
+      fetchMock.mockResolvedValue(stubFetchResponse({ ok: true, body }));
+      const promise = streamChatMessage("p1", "hi", vi.fn());
+      // Heartbeat every 15s across 6 minutes of "tool execution": the
+      // watchdog must keep resetting and never fire.
+      for (let i = 0; i < 24; i++) {
+        controller?.enqueue(encoder.encode("event: ping\ndata: \n\n"));
+        await vi.advanceTimersByTimeAsync(15_000);
+      }
+      controller?.enqueue(encoder.encode("data: 完成\n\n"));
+      controller?.close();
+      const result = await promise;
+      expect(result.content).toBe("完成");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

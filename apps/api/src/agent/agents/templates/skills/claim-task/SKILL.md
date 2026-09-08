@@ -120,6 +120,9 @@ curl -X POST "${KANEO_API_URL}/api/task/${projectId}" \
 - `dueDate`：预计完成日。按任务规模估算（小任务 1-2 天，中等 3-5 天，大型拆分后再排期）
 - 依赖前置任务时，`startDate` 应在前置任务预期完成之后
 - `startDate` 不能晚于 `dueDate`（API 会返回 400）
+- **先查后排**：创建前用 `GET /api/task?projectId=...` 或 list_tasks 查看相关任务的现有排期，被阻塞任务的 `startDate` 不早于阻塞者的 `dueDate`，避免把所有任务堆在同一天
+- **大任务拆分**：预计超过 3 天、或验收标准超过 5 条不相关项的任务，应拆成父任务 + 子任务（`subtask` 关系），每个子任务单独排期并设置 `requiredRole`
+- **元数据进字段不进标题**：紧急度写 `priority`，执行角色写 `requiredRole`；标题保持简洁的工作内容描述，不要写 `[coding-P2]` 这类前缀
 
 创建后续任务后，若它与已有任务存在依赖关系，使用任务关系 API 声明依赖，使甘特图和依赖视图反映真实的任务先后关系：
 

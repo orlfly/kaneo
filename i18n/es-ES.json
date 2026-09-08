@@ -2017,6 +2017,8 @@
 		"fileUploaded": "Uploaded",
 		"uploadError": "Failed to upload file",
 		"progressAriaLabel": "Agent working steps",
-		"progressItemAriaLabel": "Agent is {{label}}"
+		"progressItemAriaLabel": "Agent is {{label}}",
+		"errorNoResult": "No response received. Please try again.",
+		"errorStalled": "The connection was interrupted and no result arrived. Please try again."
 	}
 }

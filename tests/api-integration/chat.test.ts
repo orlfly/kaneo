@@ -545,6 +545,108 @@ describe("API integration: pi-agent chat", () => {
     expect(stream).toContain("event: done");
   });
 
+  it("emits heartbeat pings while a long tool call keeps the stream idle", {
+    timeout: 30_000,
+  }, async () => {
+    const admin = await createAdmin();
+    const member = await createTeamMember();
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+
+    mockAuthenticatedSession(admin);
+    let app = createApp().app;
+    await app.request("/api/chat/config", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        enabled: true,
+        baseUrl: "https://mock.example",
+        apiKey: "sk-integration-test-key",
+        model: "gpt-4o",
+      }),
+    });
+
+    // The first completion resolves quickly with a tool call, but the tool
+    // itself is stubbed to block for longer than the heartbeat interval
+    // (one delayed call, then passthrough). The stream must carry ping
+    // events during that window so proxies keep it open.
+    const toolsModule = await import("../../apps/api/src/chat/tools");
+    const realExecuteTool = toolsModule.executeTool;
+    let delayedOnce = false;
+    vi.spyOn(toolsModule, "executeTool").mockImplementation(
+      async (toolName, args, projectId, userId) => {
+        if (!delayedOnce) {
+          delayedOnce = true;
+          await new Promise((resolve) => setTimeout(resolve, 16_000));
+        }
+        return realExecuteTool(toolName, args, projectId, userId);
+      },
+    );
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: {
+                  role: "assistant",
+                  content: "",
+                  tool_calls: [
+                    {
+                      id: "call_slow_list",
+                      type: "function",
+                      function: { name: "list_tasks", arguments: "{}" },
+                    },
+                  ],
+                },
+                finish_reason: "tool_calls",
+              },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: {
+                  role: "assistant",
+                  content: "终于完成了。",
+                  finish_reason: "stop",
+                },
+              },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+    vi.stubGlobal("fetch", mockFetch);
+    mockAuthenticatedSession(member.user);
+    app = createApp().app;
+
+    const response = await app.request(`/api/chat/project/${project.id}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ content: "慢慢列出任务" }),
+    });
+    expect(response.status).toBe(200);
+    const stream = await response.text();
+
+    // At least one heartbeat arrived while the tool was "running", and every
+    // ping is an empty comment payload the client parser ignores.
+    expect(stream).toContain("event: ping");
+    for (const match of stream.matchAll(/event: ping\ndata: [^\n]*\n\n/g)) {
+      expect(match[0]).toBe("event: ping\ndata: \n\n");
+    }
+    // The normal result still streams after the slow tool finished.
+    expect(stream).toContain("event: done");
+    expect(stream).toContain("终于完成了。");
+  });
+
   it("routes agent tools through the tool-execute endpoint with team auth", async () => {
     const member = await createTeamMember();
     const outsider = await createTeamMember();

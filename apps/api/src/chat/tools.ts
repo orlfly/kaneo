@@ -30,7 +30,7 @@ export const toolDefinitions: ChatCompletionTool[] = [
     function: {
       name: "list_tasks",
       description:
-        "List tasks in the current project. Optionally filter by status or priority.",
+        "List tasks in the current project. Optionally filter by status or priority. Returns each task's id, number, title, status, priority, schedule (startDate/dueDate), and requiredRole — use it to check when related tasks are scheduled before planning new ones.",
       parameters: {
         type: "object",
         properties: {
@@ -69,7 +69,7 @@ export const toolDefinitions: ChatCompletionTool[] = [
     function: {
       name: "create_task",
       description:
-        "Create a new task in the current project. Requires a title. Optionally set priority, status, description, requiredRole (agent role), schedule dates (startDate/dueDate), and dependencies (relations to existing tasks). Every task needs startDate and dueDate to appear on the Gantt chart.",
+        "Create a new task in the current project. Requires a title. Optionally set priority, status, description, requiredRole (agent role), schedule dates (startDate/dueDate), and dependencies (relations to existing tasks). Every task needs startDate and dueDate to appear on the Gantt chart.\n\nQuality bar: (1) description must carry the full context and a testable '验收标准/Acceptance Criteria' section — the executing agent cannot see this chat; (2) keep startDate of a blocked/subordinate task on or after the blocker's dueDate — check list_tasks first; (3) put urgency in priority (low/medium/high) and the executing role in requiredRole, not in the title; (4) split work estimated over ~3 days into a parent with subtasks, each scheduled and role-assigned.",
       parameters: {
         type: "object",
         properties: {
@@ -440,7 +440,9 @@ async function listTasks(
       title: taskTable.title,
       status: taskTable.status,
       priority: taskTable.priority,
+      startDate: taskTable.startDate,
       dueDate: taskTable.dueDate,
+      requiredRole: taskTable.requiredRole,
       number: taskTable.number,
     })
     .from(taskTable)
@@ -570,11 +572,40 @@ async function createTaskTool(
       });
     }
 
+    // Soft schedule-conflict feedback: report blockers whose dueDate is after
+    // this task's startDate so the model can self-correct on the next
+    // planning round. Creation is not blocked — the relation stands.
+    const warnings: string[] = [];
+    if (createdRelationIds.length > 0 && dependencies.length > 0) {
+      for (const dep of dependencies as Array<Record<string, unknown>>) {
+        const targetTaskId = String(dep?.targetTaskId ?? "").trim();
+        const relationType = String(dep?.relationType ?? "").trim();
+        if (relationType !== "blocks" || !targetTaskId) continue;
+        const [blocker] = await db
+          .select({
+            number: taskTable.number,
+            dueDate: taskTable.dueDate,
+          })
+          .from(taskTable)
+          .where(eq(taskTable.id, targetTaskId))
+          .limit(1);
+        if (
+          blocker?.dueDate &&
+          startDate.getTime() < blocker.dueDate.getTime()
+        ) {
+          warnings.push(
+            `Task starts ${startDate.toISOString().slice(0, 10)} but its blocker #${blocker.number} is scheduled until ${blocker.dueDate.toISOString().slice(0, 10)}; consider moving startDate on or after the blocker's dueDate.`,
+          );
+        }
+      }
+    }
+
     return JSON.stringify({
       id: task.id,
       title: task.title,
       created: true,
       dependencies: createdRelationIds.length,
+      ...(warnings.length > 0 ? { warnings } : {}),
     });
   } catch (error) {
     return JSON.stringify({

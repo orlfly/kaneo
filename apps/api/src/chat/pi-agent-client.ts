@@ -75,6 +75,15 @@ async function getConfig() {
 }
 
 /**
+ * Overall timeout for a single non-streaming completion request. Model calls
+ * normally finish in well under a minute, but a wedged upstream would otherwise
+ * leave the request hanging until the client gives up with no server-side
+ * error. Tool calls are sent back to the model in a new request, so this does
+ * not cap total agentic task duration.
+ */
+export const CHAT_COMPLETION_TIMEOUT_MS = 120_000;
+
+/**
  * Non-streaming completion for tool-call rounds.
  * Returns the full message including any tool_calls.
  */
@@ -100,6 +109,7 @@ export async function chatCompletion(
       Authorization: `Bearer ${config.apiKey}`,
     },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(CHAT_COMPLETION_TIMEOUT_MS),
   });
 
   if (!response.ok) {
@@ -135,7 +145,7 @@ export async function chatCompletionStream(
       messages,
       stream: true,
     }),
-    signal,
+    signal: signal ?? AbortSignal.timeout(CHAT_COMPLETION_TIMEOUT_MS),
   });
 
   if (!response.ok) {
