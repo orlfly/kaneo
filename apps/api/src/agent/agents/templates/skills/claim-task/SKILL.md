@@ -44,6 +44,16 @@ curl -X GET "${KANEO_API_URL}/api/task/${taskId}" \
   -H "Authorization: Bearer ${KANEO_API_KEY}"
 ```
 
+> **认领后必做：先同步仓库，再开始处理（见 `repo-sync` skill）**。GitHub 上的代码可能已被其它 agent 更新过，处理任务前必须先把远端最新代码拉取到本地：
+>
+> ```bash
+> git status --porcelain        # 工作树干净再 pull（有未提交改动先提交/stash）
+> git pull --rebase origin <branch>   # main / master / develop / trunk 视仓库而定
+> git rev-parse HEAD            # 记录 base commit，供本轮 submit-pr 使用
+> ```
+>
+> 冲突无法解决时 `git rebase --abort` 并 pause 任务报告阻塞，不要在过时代码上继续工作。
+
 ### 2. 更新任务状态
 
 ```bash
@@ -148,6 +158,9 @@ curl -X POST "${KANEO_API_URL}/api/task-relation" \
 
 ## 关键约束
 
+- **认领后先同步仓库（必做）**：处理任务前先 `git pull --rebase` 拉到其它 agent 的最新更新，见 `repo-sync` skill
+- **处理任务期间禁止提交并推送**：在任务**处理完成并变更任务状态之前**，不得 `git commit` + `git push` 到远端（本地临时提交可以，但推送只能在任务收尾一次性进行，见 `submit-pr` skill）；这样可以避免把半成品/与其它 agent 冲突的代码推上去
+- 变更任务状态完成本轮任务后，才执行 `submit-pr`（提交 + 推送 + 建 PR），再把状态流转到 `in-review` / `done`
 - API key 的 agent role 决定能认领哪些任务：
   - 非 `code-review` 角色：只认领 `to-do` 任务，且 `requiredRole` 为 null 或等于 agent 角色
   - `code-review` 角色：只认领 `in-review` 任务（忽略 `requiredRole` 与 `claim_by`/`userId`），领取时**不修改**原实现者的 `userId` / `claimedBy`，任务状态保持 `in-review`
