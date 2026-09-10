@@ -13,6 +13,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - kaneo-net
 
   api:
     build:
@@ -29,6 +31,8 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - kaneo-net
 
 #  Optional for HA setup
 #  redis:
@@ -50,6 +54,15 @@ services:
     depends_on:
       - api
     restart: unless-stopped
+    networks:
+      - kaneo-net
 
+networks:
+  kaneo-net:
+    name: kaneo-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.89.0.0/24
 volumes:
   postgres_data:
