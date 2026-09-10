@@ -2,9 +2,9 @@ services:
   postgres:
     image: postgres:16-alpine
     env_file:
-      - .env.local
-    # Host port 5432 is used by the standalone kaneo-postgres container;
-    # this compose postgres is only consumed by the api service.
+      - .env
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -19,19 +19,18 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
     ports:
-      - "1338:1337"
+      - "1337:1337"
     environment:
+      # Explicit; ${POSTGRES_PASSWORD} is interpolated from .env next to this file.
       - DATABASE_URL=postgres://kaneo:${POSTGRES_PASSWORD}@postgres:5432/kaneo
-      - KANEO_API_URL=http://localhost:1338
-      - CORS_ORIGINS=http://localhost:5174,http://192.168.6.32:5174
     env_file:
-      - .env.local
+      - .env
     depends_on:
       postgres:
         condition: service_healthy
     restart: unless-stopped
 
-#  Optional
+#  Optional for HA setup
 #  redis:
 #    image: valkey/valkey
 #    ports:
@@ -42,11 +41,12 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
     ports:
-      - "5174:5173"
+      - "5173:5173"
     environment:
-      - KANEO_API_URL=http://localhost:1338
+      - KANEO_API_URL=http://192.168.6.32:1337
+      - KANEO_CLIENT_URL=http://192.168.6.32:5173
     env_file:
-      - .env.local
+      - .env
     depends_on:
       - api
     restart: unless-stopped
