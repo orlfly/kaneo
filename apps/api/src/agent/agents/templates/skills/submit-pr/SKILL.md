@@ -114,3 +114,5 @@ curl -X PUT "${KANEO_API_URL}/api/task/status/${taskId}" \
 - PR 必须关联到 Kaneo 任务，通过 API 更新状态和创建 external link
 - 如果 VCS 集成不可用，仅做 git push 并在任务描述中注明分支名
 - 不要删除本地分支（CI 可能需要）
+- **只改动和提交当前任务关联的 Kaneo 项目集成代码库**，不要触碰其他代码库
+- **不要自动执行 MR/PR 的合并操作**。收尾是创建 MR 并把任务置为 `in-review`，合并由人工 review 完成

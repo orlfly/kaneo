@@ -16,6 +16,7 @@ const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEMPLATES_DIR = path.join(__dirname, "templates");
 const INSTALL_SH_TEMPLATE = path.join(__dirname, "install.sh.template");
+const INSTALL_BAT_TEMPLATE = path.join(__dirname, "install.bat.template");
 
 // Fallback for esbuild bundling: use direct path resolution
 function getTemplatesDir(): string {
@@ -45,8 +46,25 @@ function getInstallShTemplate(): string {
   return INSTALL_SH_TEMPLATE;
 }
 
+function getInstallBatTemplate(): string {
+  // In Docker, install.bat.template is at agent/agents/install.bat.template
+  const dockerPath = path.join(
+    process.cwd(),
+    "agent",
+    "agents",
+    "install.bat.template",
+  );
+  if (existsSync(dockerPath)) {
+    return dockerPath;
+  }
+
+  // Fallback to original __dirname resolution
+  return INSTALL_BAT_TEMPLATE;
+}
+
 const FINAL_TEMPLATES_DIR = getTemplatesDir();
 const FINAL_INSTALL_SH_TEMPLATE = getInstallShTemplate();
+const FINAL_INSTALL_BAT_TEMPLATE = getInstallBatTemplate();
 
 /**
  * Build a zip package containing role definitions (persona sources), skills,
@@ -125,6 +143,14 @@ export async function buildAgentConfigZip(
     // Copy install.sh template
     const installSh = await readFile(FINAL_INSTALL_SH_TEMPLATE, "utf8");
     await writeFile(path.join(stagingDir, "install.sh"), installSh, "utf8");
+
+    // Copy install.bat for Windows users (same role/skill model as install.sh)
+    const installBat = await readFile(FINAL_INSTALL_BAT_TEMPLATE, "utf8");
+    await writeFile(
+      path.join(stagingDir, "install.bat"),
+      installBat.replace(/\r?\n/g, "\r\n"),
+      "utf8",
+    );
 
     // Zip the staging directory
     const zipPath = `${stagingDir}.zip`;

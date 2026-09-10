@@ -63,10 +63,32 @@ describe("agent config download package", () => {
     }
   });
 
-  it("zip contains skills and install.sh", async () => {
+  it("zip contains skills, install.sh, and install.bat", async () => {
     const zip = await buildAgentConfigZip();
     const text = new TextDecoder("latin1").decode(zip);
     expect(text).toContain("skills/claim-task/SKILL.md");
     expect(text).toContain("install.sh");
+    expect(text).toContain("install.bat");
+  });
+
+  it("install.bat in the zip uses CRLF line endings", async () => {
+    const zip = await buildAgentConfigZip();
+    // Write to a temp dir and extract with the system unzip; the zip store is
+    // deflated, so raw CRLF bytes are not visible in a plain bytes decode.
+    const os = await import("node:os");
+    const fs = await import("node:fs/promises");
+    const pathMod = await import("node:path");
+    const { execFileSync } = await import("node:child_process");
+    const tmp = await fs.mkdtemp(pathMod.join(os.tmpdir(), "kaneo-bat-"));
+    try {
+      const zipPath = pathMod.join(tmp, "pkg.zip");
+      await fs.writeFile(zipPath, zip);
+      execFileSync("unzip", ["-o", "-q", zipPath, "install.bat", "-d", tmp]);
+      const bat = await fs.readFile(pathMod.join(tmp, "install.bat"), "utf8");
+      expect(bat).toContain("@echo off\r\n");
+      expect(bat).toContain("--agent");
+    } finally {
+      await fs.rm(tmp, { recursive: true, force: true });
+    }
   });
 });

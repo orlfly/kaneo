@@ -2040,11 +2040,11 @@
 	},
 	"agentConfig": {
 		"title": "Agent Configuration",
-		"description": "Download the agent configuration package, then run install.sh in your target directory to set up agent roles and skills for external code agents.",
+		"description": "Download the agent configuration package, then run install.sh (macOS/Linux) or install.bat (Windows) in your target directory to set up agent roles and skills for external code agents.",
 		"download": "Download Config",
 		"downloading": "Downloading...",
 		"downloadTitle": "Download Agent Configuration",
-		"downloadConfirm": "Download a zip package containing role definitions, skills, opencode.jsonc, and install.sh. Unzip it in your target directory and run ./install.sh to set up the agent configuration.",
+		"downloadConfirm": "Download a zip package containing role definitions, skills, opencode.jsonc, install.sh, and install.bat. Unzip it in your target directory and run ./install.sh (macOS/Linux) or install.bat (Windows) to set up the agent configuration.",
 		"confirmDownload": "Download",
 		"downloadSuccess": "Agent configuration package downloaded",
 		"roles": "Roles",

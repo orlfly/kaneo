@@ -75,6 +75,7 @@ COPY --from=builder --chown=appuser:appuser /app/packages/permissions ./packages
 # Copy templates and install script to agent/agents because __dirname resolves to /app/apps/api (not dist/)
 COPY --from=builder --chown=appuser:appuser /app/apps/api/src/agent/agents/templates ./apps/api/agent/agents/templates
 COPY --from=builder --chown=appuser:appuser /app/apps/api/src/agent/agents/install.sh.template ./apps/api/agent/agents/install.sh.template
+COPY --from=builder --chown=appuser:appuser /app/apps/api/src/agent/agents/install.bat.template ./apps/api/agent/agents/install.bat.template
 
 # Fail the build early if the runtime dependency layout is broken on the target architecture
 RUN cd /app/apps/api && node -e "const fs=require('fs');for(const m of ['bcryptjs','hono','pg','drizzle-orm','better-auth','ioredis','valibot','octokit','@modelcontextprotocol/sdk']){fs.accessSync('node_modules/'+m+'/package.json')}"

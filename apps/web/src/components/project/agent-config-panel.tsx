@@ -69,7 +69,7 @@ export function AgentConfigPanel(_props: AgentConfigPanelProps) {
       <p className="text-xs text-muted-foreground">
         {t("agentConfig.description", {
           defaultValue:
-            "Download the agent configuration package, then run install.sh in your target directory to set up agent roles and skills for external code agents.",
+            "Download the agent configuration package, then run install.sh (macOS/Linux) or install.bat (Windows) in your target directory to set up agent roles and skills for external code agents.",
         })}
       </p>
 
@@ -124,7 +124,7 @@ export function AgentConfigPanel(_props: AgentConfigPanelProps) {
             <DialogDescription>
               {t("agentConfig.downloadConfirm", {
                 defaultValue:
-                  "Download a zip package containing role definitions, skills, opencode.jsonc, and install.sh. Unzip it in your target directory and run ./install.sh to set up the agent configuration.",
+                  "Download a zip package containing role definitions, skills, opencode.jsonc, install.sh, and install.bat. Unzip it in your target directory and run ./install.sh (macOS/Linux) or install.bat (Windows) to set up the agent configuration.",
               })}
             </DialogDescription>
           </DialogHeader>
