@@ -1,0 +1,190 @@
+@echo off
+setlocal enabledelayedexpansion
+REM
+REM Kaneo Agent Configuration Installer (Windows)
+REM
+REM Windows counterpart of install.sh: sets one persona role for a single
+REM agent tool instance. Requires PowerShell (built into Windows 8.1+),
+REM no other dependencies.
+REM
+REM Tool -> primary instruction file mapping:
+REM   opencode  -> .opencode/AGENT.md
+REM   claude    -> CLAUDE.md
+REM   codex     -> AGENTS.md
+REM   jcode     -> AGENTS.md (same file as codex, but skills stay isolated)
+REM
+REM Usage (run from cmd.exe):
+REM   install.bat --agent opencode --role coding
+REM   install.bat -a claude -r testing -t C:\path\to\repo
+REM
+REM Available roles: coding, product-design, architecture-design, devops,
+REM                  ui-design, testing, code-review
+REM Skills are filtered by the chosen role: only skills whose SKILL.md
+REM frontmatter lists the role in `for_roles` are installed. Skills without
+REM frontmatter are treated as universal. Existing files are backed up as
+REM <file>.bak, never overwritten silently.
+
+REM Script directory (package root after unzip)
+set "SCRIPT_DIR=%~dp0"
+if "%SCRIPT_DIR:~-1%"=="\" set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
+REM Target directory = current working directory (override with --target)
+set "TARGET_DIR=%cd%"
+
+set "AGENT="
+set "ROLE="
+
+:parse_args
+if "%~1"=="" goto args_done
+if /i "%~1"=="--agent" ( set "AGENT=%~2" & shift & shift & goto parse_args )
+if /i "%~1"=="-a"      ( set "AGENT=%~2" & shift & shift & goto parse_args )
+if /i "%~1"=="--role"  ( set "ROLE=%~2"   & shift & shift & goto parse_args )
+if /i "%~1"=="-r"      ( set "ROLE=%~2"   & shift & shift & goto parse_args )
+if /i "%~1"=="--target"( set "TARGET_DIR=%~2" & shift & shift & goto parse_args )
+if /i "%~1"=="-t"      ( set "TARGET_DIR=%~2" & shift & shift & goto parse_args )
+echo Unknown argument: %~1
+echo Usage: install.bat [--target ^<dir^>] --agent opencode^|claude^|codex^|jcode --role ^<name^>
+exit /b 1
+
+:args_done
+REM Resolve TARGET_DIR to an absolute path via PowerShell
+for /f "usebackq delims=" %%i in (`powershell -NoProfile -Command "(Resolve-Path -LiteralPath '%TARGET_DIR%').Path" 2^>nul`) do set "TARGET_DIR=%%i"
+if not exist "%TARGET_DIR%\" (
+  echo Target directory does not exist: %TARGET_DIR%
+  exit /b 1
+)
+
+if "%AGENT%"=="" (
+  echo Error: --agent is required ^(opencode / claude / codex / jcode^)
+  exit /b 1
+)
+
+if "%ROLE%"=="" (
+  echo Error: --role is required
+  echo Available roles: coding, product-design, architecture-design, devops, ui-design, testing, code-review
+  exit /b 1
+)
+
+set "VALID_ROLES=coding product-design architecture-design devops ui-design testing code-review"
+set "ROLE_OK="
+for %%v in (%VALID_ROLES%) do if /i "%ROLE%"=="%%v" set "ROLE_OK=1"
+if not defined ROLE_OK (
+  echo Invalid role: %ROLE%
+  echo Valid roles: %VALID_ROLES%
+  exit /b 1
+)
+
+set "AGENT_OK="
+for %%v in (opencode claude codex jcode) do if /i "%AGENT%"=="%%v" set "AGENT_OK=1"
+if not defined AGENT_OK (
+  echo Unsupported agent tool: %AGENT% ^(choose: opencode / claude / codex / jcode^)
+  exit /b 1
+)
+
+set "ROLE_SRC=%SCRIPT_DIR%\roles\%ROLE%\AGENTS.md"
+if not exist "%ROLE_SRC%" (
+  echo Role definition file is missing: %ROLE_SRC%
+  exit /b 1
+)
+
+echo Kaneo Agent Configuration Installer
+echo ====================================
+echo Target directory: %TARGET_DIR%
+echo Agent tool:       %AGENT%
+echo Role persona:     %ROLE%
+echo.
+
+REM Dispatch to the tool-specific instruction file and skills directory
+if /i "%AGENT%"=="opencode" call :install_tool "%TARGET_DIR%\.opencode" "%TARGET_DIR%\.opencode\AGENT.md" "%TARGET_DIR%\.opencode\skills" "opencode"
+if /i "%AGENT%"=="claude"   call :install_tool "%TARGET_DIR%"            "%TARGET_DIR%\CLAUDE.md"          "%TARGET_DIR%\.claude\skills"  "claude"
+if /i "%AGENT%"=="codex"    call :install_tool "%TARGET_DIR%"            "%TARGET_DIR%\AGENTS.md"          "%TARGET_DIR%\.codex\skills"   "codex"
+if /i "%AGENT%"=="jcode"    call :install_tool "%TARGET_DIR%"            "%TARGET_DIR%\AGENTS.md"          "%TARGET_DIR%\.jcode\skills"   "jcode"
+
+echo.
+echo Installation complete!
+echo.
+echo Next steps:
+echo   1. Run %AGENT% in the project repo root to work as the "%ROLE%" persona
+echo   2. Configure a Kaneo API key (environment variable KANEO_API_KEY) so the agent can claim tasks
+echo   3. See skills/claim-task/SKILL.md for the claim-task workflow
+exit /b 0
+
+:install_tool
+REM %1 = tool config dir, %2 = instruction file, %3 = skills dir, %4 = agent name
+set "TOOL_DIR=%~1"
+set "INSTR_FILE=%~2"
+set "SKILLS_DIR=%~3"
+
+REM Ensure the tool config directory exists (opencode needs .opencode)
+if not exist "%TOOL_DIR%\" mkdir "%TOOL_DIR%"
+
+call :backup_if_exists "%INSTR_FILE%"
+copy /y "%ROLE_SRC%" "%INSTR_FILE%" >nul
+echo   OK %ROLE% persona written to %INSTR_FILE%
+
+call :install_skills "%SKILLS_DIR%"
+goto :eof
+
+:backup_if_exists
+if exist "%~1" (
+  if exist "%~1.bak" del /q "%~1.bak"
+  move /y "%~1" "%~1.bak" >nul
+  echo   Backup: %~1 -^> %~1.bak
+)
+goto :eof
+
+:install_skills
+echo Installing skills (filtered by role %ROLE%)...
+if not exist "%~1\" mkdir "%~1"
+for /d %%D in ("%SCRIPT_DIR%\skills\*") do (
+  if exist "%%D\SKILL.md" call :maybe_install_skill "%%D\SKILL.md" "%%~nxD" "%~1"
+)
+goto :eof
+
+:maybe_install_skill
+set "SKILL_MD=%~1"
+set "SKILL_NAME=%~2"
+set "SKILLS_DIR=%~3"
+set "FOR_ROLES_LINE="
+for /f "usebackq delims=" %%L in (`powershell -NoProfile -Command ^
+  "$md = Get-Content -LiteralPath '%SKILL_MD%' -ErrorAction Stop;" ^
+  "if ($md.Count -gt 0 -and $md[0] -eq '---') {" ^
+  "  for ($i = 1; $i -lt $md.Count; $i++) {" ^
+  "    if ($md[$i] -eq '---') { break }" ^
+  "    if ($md[$i] -match '^for_roles:\s*(.*)$') { $Matches[1]; break }" ^
+  "  }" ^
+  "}" 2^>nul`) do set "FOR_ROLES_LINE=%%L"
+
+if not defined FOR_ROLES_LINE (
+  REM No frontmatter = universal skill, install for every role
+  call :copy_skill "%SKILL_NAME%" "%SKILLS_DIR%"
+  goto :eof
+)
+call :role_in_list "%ROLE%" "%FOR_ROLES_LINE%"
+if errorlevel 1 (
+  echo   Skipping %SKILL_NAME% (for_roles does not include %ROLE%)
+  goto :eof
+)
+call :copy_skill "%SKILL_NAME%" "%SKILLS_DIR%"
+goto :eof
+
+:copy_skill
+if not exist "%SKILLS_DIR%\%~1\" mkdir "%SKILLS_DIR%\%~1"
+call :backup_if_exists "%SKILLS_DIR%\%~1\SKILL.md"
+copy /y "%SCRIPT_DIR%\skills\%~1\SKILL.md" "%SKILLS_DIR%\%~1\SKILL.md" >nul
+echo   OK %~1
+goto :eof
+
+:role_in_list
+REM %1 = role, %2 = for_roles line like "[coding, testing, devops]"
+set "LIST=%~2"
+set "LIST=%LIST:[=%"
+set "LIST=%LIST:]=%"
+:role_in_list_loop
+for /f "tokens=1* delims=," %%a in ("%LIST%") do (
+  set "ITEM=%%a"
+  set "ITEM=!ITEM: =!"
+  if /i "%~1"=="!ITEM!" exit /b 0
+  set "LIST=%%b"
+  if defined LIST goto role_in_list_loop
+)
+exit /b 1
