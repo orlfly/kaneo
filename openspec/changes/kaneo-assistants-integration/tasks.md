@@ -30,4 +30,4 @@
 
 - [x] 5.1 集成测试：对本地 Kaneo 实例跑一次完整同步（7 角色全选），断言 7 个 assistant 创建、context 含 AGENTS.md 正文、skill 启用符合 for_roles
 - [x] 5.2 幂等测试：同一实例二次同步，断言 update 而非 duplicate（assistant 总数不变）
-- [ ] 5.3 手动冒烟：在 AionUi 中用同步出的 "Kaneo · coding" assistant 发起一次认领对话，确认 context 与 skill 生效
+- [x] 5.3 手动冒烟：在 AionUi 中用同步出的 "Kaneo · coding" assistant 发起一次认领对话，确认 context 与 skill 生效
