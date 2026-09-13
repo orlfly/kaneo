@@ -1,7 +1,9 @@
 import { AGENT_ROLES } from "@kaneo/permissions";
-import { Hono } from "hono";
+import { type Context, Hono } from "hono";
 import { describeRoute, resolver } from "hono-openapi";
 import * as v from "valibot";
+import { resolveAgentRole } from "../../utils/agent-role";
+import { verifyApiKey } from "../../utils/verify-api-key";
 import { buildAgentConfigZip } from "./package";
 import { listRoleTemplates, listSkillTemplates } from "./templates";
 
@@ -13,6 +15,24 @@ const RoleQuery = v.object({
 
 function isValidRole(value: string): boolean {
   return (AGENT_ROLES as readonly string[]).includes(value);
+}
+
+/**
+ * Resolve the caller's bound agent role, if any.
+ *
+ * The agents-config endpoints stay public so AionUi can list templates without
+ * a key, but when a request carries a valid API key we resolve its
+ * `metadata.agentRole` so clients can scope their sync to exactly the one role
+ * the key is authorized for. An invalid or absent credential yields undefined.
+ */
+async function resolveCallerRole(c: Context): Promise<string | undefined> {
+  const bearer = c.req.header("Authorization")?.replace(/^Bearer\s+/i, "");
+  const headerKey = c.req.header("x-api-key")?.trim();
+  const raw = (bearer || headerKey || "").trim();
+  if (!raw) return undefined;
+  const result = await verifyApiKey(raw);
+  if (!result?.valid || !result.key) return undefined;
+  return resolveAgentRole(result.key.metadata ?? null);
 }
 
 /**
@@ -47,6 +67,7 @@ app.get(
                     forRoles: v.union([v.array(v.string()), v.null()]),
                   }),
                 ),
+                agentRole: v.optional(v.string()),
               }),
             ),
           },
@@ -57,7 +78,8 @@ app.get(
   async (c) => {
     const roles = await listRoleTemplates();
     const skills = await listSkillTemplates();
-    return c.json({ roles, skills });
+    const agentRole = await resolveCallerRole(c);
+    return c.json({ roles, skills, ...(agentRole ? { agentRole } : {}) });
   },
 );
 
