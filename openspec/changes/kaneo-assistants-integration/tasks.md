@@ -16,15 +16,15 @@
 
 - [x] 3.1 实现认领 prompt 模板生成（按角色名渲染，引用 kaneo-claim-task skill 与 KANEO_API_URL 约定）
 - [x] 3.2 实现 `syncKaneoAssistants(baseUrl, selection)`：按 `Kaneo · <role>` upsert（create 或 update context/prompts/custom_skill_names），逐角色 try/catch 收集结果
-- [ ] 3.3 实现同步结果报告：per-role 成功/失败 + 重试单个角色的路径
+- [x] 3.3 实现同步结果报告：per-role 成功/失败 + 重试单个角色的路径
 - [x] 3.4 单元测试：新建 vs 更新分支、非 Kaneo 命名的 assistant 不被触碰、部分失败不影响其余角色、API key 不出现在任何 assistant 字段
 
 ## 4. UI 入口
 
-- [ ] 4.1 assistants 管理页新增 "从 Kaneo 导入" 入口按钮
-- [ ] 4.2 连接表单：base URL + API key（可选记住 base URL），连接后展示角色多选与 skill 概览（数量 + 名称）
-- [ ] 4.3 同步进行中状态、结果报告视图（成功列表 + 失败重试按钮）
-- [ ] 4.4 i18n：新增全部用户可见文案的 en-US 与 zh-CN key，并跑 i18n 校验脚本
+- [x] 4.1 assistants 管理页新增 "从 Kaneo 导入" 入口按钮
+- [x] 4.2 连接表单：base URL + API key（可选记住 base URL），连接后展示角色多选与 skill 概览（数量 + 名称）
+- [x] 4.3 同步进行中状态、结果报告视图（成功列表 + 失败重试按钮）
+- [x] 4.4 i18n：新增全部用户可见文案的 en-US 与 zh-CN key，并跑 i18n 校验脚本
 
 ## 5. 验证
 
