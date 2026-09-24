@@ -651,7 +651,7 @@ export function registerMcpTools(
     "claim_next_task",
     {
       description:
-        "Find and atomically claim the best available task across the caller's team projects. Implementation roles claim the best to-do task: the caller's own assignments are prioritized, then unassigned tasks whose required role matches the caller's role (or is generic). A code-review agent instead claims the best in-review task whose review is not already claimed by another reviewer, and takes the review lock without changing the assignee, claimed_by, or status. Ordering: due date (soonest first), priority (urgent first), creation date (oldest first). Tasks with requiredRole = \"human\" are always excluded for agent callers. Returns 404 if no matching tasks are available.",
+        "Find and atomically claim the best available task across the caller's team projects. Implementation roles claim the best to-do task: the caller's own assignments are prioritized, then unassigned tasks whose required role matches the caller's role (or is generic). A code-review agent instead claims the best in-review task whose review is not already claimed by another reviewer, and takes the review lock without changing the assignee, claimed_by, or status. Ordering: due date (soonest first), priority (urgent first), creation date (oldest first). Tasks with requiredRole = \"human\" are always excluded for agent callers. If the API key is bound to a project (metadata.projectId), only tasks in that project are considered; one agent session then serves exactly one project. Returns 404 if no matching tasks are available.",
       inputSchema: z.object({
         projectId: optionalNonEmptyString,
         priorities: z.array(z.string()).optional(),

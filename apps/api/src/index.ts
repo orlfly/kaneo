@@ -99,6 +99,7 @@ type ApiKey = {
   userId: string;
   enabled: boolean;
   permissions: Record<string, string[]> | null;
+  projectId?: string | null;
 };
 
 type AppVariables = {

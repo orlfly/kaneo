@@ -21,6 +21,7 @@ metadata:
 
 - 已通过 `claim-task` skill 学会调用 `claim_next_task` / `update_task_status` / `pause_task`
 - API key 的 `metadata.agentRole` 已设置（默认 `coding`）
+- API key 可绑定单个项目（`metadata.projectId`）；绑定后循环只会在该项目内领任务，适合一个 agent 会话专注一个项目
 - 单 agent 实例一次只跑一个循环；多 agent 并行由 host 进程管理（不是本 skill 的责任）
 - 已选择 backoff 策略：固定间隔（30/60/120 秒）或指数退避（30 → 60 → 120 → 300 秒）
 
