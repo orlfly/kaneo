@@ -73,6 +73,13 @@ export function AgentConfigPanel(_props: AgentConfigPanelProps) {
         })}
       </p>
 
+      <p className="text-xs text-muted-foreground">
+        {t("agentConfig.keyScopeHint", {
+          defaultValue:
+            "Tip: bind each agent API key to a single project so one agent session stays on one project.",
+        })}
+      </p>
+
       {/* Available roles and skills */}
       <div className="space-y-3">
         {/* Roles */}

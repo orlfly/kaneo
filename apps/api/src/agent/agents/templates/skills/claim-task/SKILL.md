@@ -21,6 +21,7 @@ description: 通过 Kaneo API 认领任务、管理任务状态和创建后续�
 
 - 已配置 Kaneo API key（通过环境变量 `KANEO_API_KEY` 或 `KANEO_API_TOKEN`）
 - API key 的 `metadata.agentRole` 已设置（默认 `coding`）
+- API key 可在开发者设置中绑定单个项目（`metadata.projectId`）；绑定后 `claim_next_task` 只会在该项目内找任务，且所有任务操作限制在该项目内。多项目并行时为每个项目各建一个 key，避免同一 agent 会话跨项目串上下文
 - 已知 Kaneo API base URL（通过环境变量 `KANEO_API_URL` 或默认 `http://localhost:1337`）
 
 ## 工作流程

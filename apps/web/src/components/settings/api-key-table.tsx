@@ -2,6 +2,7 @@ import { Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import useDeleteApiKey from "@/hooks/mutations/api-key/use-delete-api-key";
+import type { ProjectOption } from "@/hooks/queries/use-project-options";
 import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
 import type { ApiKey } from "@/types/api-key";
@@ -29,6 +30,7 @@ import {
 type ApiKeyTableProps = {
   apiKeys: ApiKey[];
   isLoading: boolean;
+  projectOptions?: ProjectOption[];
 };
 
 function formatDate(value: Date | string | null) {
@@ -42,11 +44,41 @@ function formatDate(value: Date | string | null) {
   }).format(date);
 }
 
-export function ApiKeyTable({ apiKeys, isLoading }: ApiKeyTableProps) {
+function getProjectScopeLabelFactory(
+  t: (key: string, opts?: Record<string, unknown>) => string,
+  projectOptions: ProjectOption[],
+) {
+  return (apiKey: ApiKey) => {
+    const metadata = apiKey.metadata as
+      | Record<string, unknown>
+      | null
+      | undefined;
+    const projectId =
+      typeof metadata?.projectId === "string" ? metadata.projectId : null;
+    if (!projectId) {
+      return (
+        <Badge variant="outline">
+          {t("settings:apiKey.table.allProjectsBadge", {
+            defaultValue: "All projects",
+          })}
+        </Badge>
+      );
+    }
+    const project = projectOptions.find((o) => o.id === projectId);
+    return <span className="text-sm">{project?.name ?? projectId}</span>;
+  };
+}
+
+export function ApiKeyTable({
+  apiKeys,
+  isLoading,
+  projectOptions = [],
+}: ApiKeyTableProps) {
   const { t } = useTranslation();
   const { mutateAsync: deleteApiKey } = useDeleteApiKey();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const getProjectScopeLabel = getProjectScopeLabelFactory(t, projectOptions);
 
   const getExpirationState = (expiresAt: Date | string | null) => {
     if (!expiresAt) {
@@ -118,6 +150,11 @@ export function ApiKeyTable({ apiKeys, isLoading }: ApiKeyTableProps) {
             <TableRow>
               <TableHead>{t("settings:apiKey.table.columnName")}</TableHead>
               <TableHead>{t("settings:apiKey.table.columnKey")}</TableHead>
+              <TableHead>
+                {t("settings:apiKey.table.columnProjectScope", {
+                  defaultValue: "Project scope",
+                })}
+              </TableHead>
               <TableHead>{t("settings:apiKey.table.columnCreated")}</TableHead>
               <TableHead>{t("settings:apiKey.table.columnExpires")}</TableHead>
               <TableHead className="w-[90px] text-right">
@@ -150,6 +187,7 @@ export function ApiKeyTable({ apiKeys, isLoading }: ApiKeyTableProps) {
                       {apiKey.start}...
                     </code>
                   </TableCell>
+                  <TableCell>{getProjectScopeLabel(apiKey)}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {formatDate(apiKey.createdAt)}
                   </TableCell>

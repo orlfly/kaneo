@@ -565,3 +565,21 @@ describe("MCP tool catalog", () => {
     });
   });
 });
+
+describe("MCP tool catalog: project scope", () => {
+  it("claim_next_task documents the project binding of the API key", () => {
+    const configs = new Map<string, { description: string }>();
+    const registrar = {
+      registerTool: (name: string, config: { description: string }) => {
+        configs.set(name, config);
+        return undefined;
+      },
+    };
+    registerMcpTools(registrar, "http://api.test", "test-token");
+
+    const claimNext = configs.get("claim_next_task");
+    expect(claimNext).toBeDefined();
+    expect(claimNext?.description).toContain("metadata.projectId");
+    expect(claimNext?.description).toContain("only tasks in that project");
+  });
+});

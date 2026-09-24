@@ -67,6 +67,7 @@ const task = new Hono<{
       permissions?: Record<string, string[]> | null;
       metadata?: Record<string, unknown> | null;
       agentRole?: AgentRole;
+      projectId?: string | null;
     };
   };
 }>()
@@ -287,10 +288,21 @@ const task = new Hono<{
           ? requestedRole
           : agentRole;
 
+      // A project-bound API key is pinned to its project: inject the binding
+      // when no projectId was passed and reject a mismatched explicit one.
+      const boundProjectId = apiKey?.projectId ?? null;
+      if (boundProjectId) {
+        if (body.projectId && body.projectId !== boundProjectId) {
+          throw new HTTPException(403, {
+            message: "This API key is bound to a different project.",
+          });
+        }
+      }
+
       const result = await claimNextTask({
         userId,
         agentKeyId: apiKey?.id,
-        projectId: body.projectId,
+        projectId: boundProjectId ?? body.projectId,
         priorities: body.priorities,
         agentRole: effectiveRole,
       });

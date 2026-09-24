@@ -3,7 +3,7 @@ import { APIError } from "better-auth/api";
 import type { Context } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { auth } from "../auth";
-import { resolveAgentRole } from "./agent-role";
+import { resolveAgentRole, resolveProjectId } from "./agent-role";
 import { verifyApiKey } from "./verify-api-key";
 
 // User is tagged on Sentry's isolation scope; the per-request isolation
@@ -86,6 +86,7 @@ export async function authenticateApiRequest(c: Context): Promise<void> {
       permissions: key.permissions,
       metadata: key.metadata ?? null,
       agentRole: resolveAgentRole(key.metadata),
+      projectId: resolveProjectId(key.metadata),
     });
     attachUserToScope(key.userId);
     return;
@@ -106,6 +107,7 @@ export async function authenticateApiRequest(c: Context): Promise<void> {
         permissions: key.permissions,
         metadata: key.metadata ?? null,
         agentRole: resolveAgentRole(key.metadata),
+        projectId: resolveProjectId(key.metadata),
       });
       attachUserToScope(key.userId);
       return;

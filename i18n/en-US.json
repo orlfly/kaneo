@@ -381,7 +381,9 @@
 				"columnKey": "Key",
 				"columnCreated": "Created",
 				"columnExpires": "Expires",
+				"columnProjectScope": "Project scope",
 				"columnActions": "Actions",
+				"allProjectsBadge": "All projects",
 				"unnamedKey": "Unnamed Key",
 				"expiredBadge": "Expired {{label}}",
 				"deleteConfirmTitle": "Delete API key?",
@@ -427,7 +429,11 @@
 					"ui-design": "UI Design",
 					"testing": "Testing",
 					"code-review": "Code Review"
-				}
+				},
+				"projectLabel": "Project scope",
+				"projectPlaceholder": "All projects",
+				"projectAllProjects": "All projects",
+				"projectDescription": "Bound to one project, the key can only claim and manage tasks there. Keeps one agent session on one project."
 			}
 		},
 		"projectGeneral": {
@@ -2048,6 +2054,7 @@
 		"confirmDownload": "Download",
 		"downloadSuccess": "Agent configuration package downloaded",
 		"roles": "Roles",
-		"skills": "Skills"
+		"skills": "Skills",
+		"keyScopeHint": "Tip: bind each agent API key to a single project so one agent session stays on one project."
 	}
 }

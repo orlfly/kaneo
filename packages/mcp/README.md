@@ -113,6 +113,8 @@ On the first tool call that needs Kaneo, the server:
 
 For headless or sandboxed environments where opening a browser is impractical, set `KANEO_API_KEY` to a key created under Settings → Account → Developer. The server sends it as a Bearer token on every request and skips the device flow entirely, so no token is cached to disk.
 
+A key can also be bound to a single project (`metadata.projectId`, optional field in the create dialog). When bound, `claim_next_task` only considers tasks in that project and all task operations are rejected with 403 outside it, so one agent session stays on one project.
+
 ## Tools
 
 - Session: `whoami`, `list_workspaces`, `list_workspace_members`, `list_notifications`
