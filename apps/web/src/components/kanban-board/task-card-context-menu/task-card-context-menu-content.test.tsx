@@ -48,14 +48,11 @@ vi.mock("@/hooks/queries/column/use-get-columns", () => ({
   }),
 }));
 
-vi.mock(
-  "@/hooks/queries/workspace-users/use-get-active-workspace-users",
-  () => ({
-    useGetActiveWorkspaceUsers: () => ({
-      data: { members: [] },
-    }),
+vi.mock("@/hooks/queries/team-member/use-get-active-team-members", () => ({
+  useGetActiveTeamMembers: () => ({
+    data: [],
   }),
-);
+}));
 
 vi.mock("@/hooks/mutations/task/use-update-task", () => ({
   useUpdateTask: () => ({ mutateAsync: vi.fn() }),

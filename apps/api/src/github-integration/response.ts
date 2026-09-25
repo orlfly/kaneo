@@ -13,15 +13,6 @@ export const importResultSchema = z
   })
   .openapi("IssueImportResult");
 
-export const importSummarySchema = z
-  .object({
-    imported: z.number(),
-    updated: z.number(),
-    skipped: z.number(),
-    errors: z.array(z.string()).optional(),
-  })
-  .openapi("IssueImportSummary");
-
 export const githubIntegrationSchema = z
   .object({
     id: z.string(),

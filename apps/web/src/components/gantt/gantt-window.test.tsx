@@ -52,7 +52,7 @@ vi.mock("react-i18next", () => ({
 vi.mock("@/lib/toast", () => ({ toast: { error: vi.fn() } }));
 
 await import(
-  "@/routes/_layout/_authenticated/dashboard/workspace/$workspaceId/project/$projectId/gantt"
+  "@/routes/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/gantt"
 );
 afterEach(() => {
   cleanup();

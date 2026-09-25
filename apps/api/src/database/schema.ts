@@ -13,6 +13,7 @@ import {
   unique,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
+import type { GitHubImportState } from "../github-integration/import-state";
 
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({
   dataType() {
@@ -743,6 +744,23 @@ export const integrationTable = pgTable(
     unique("integration_project_type_unique").on(table.projectId, table.type),
   ],
 );
+
+export const githubImportTable = pgTable("github_import", {
+  integrationId: text("integration_id")
+    .primaryKey()
+    .references(() => integrationTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  runId: text("run_id")
+    .notNull()
+    .$defaultFn(() => createId()),
+  state: jsonb("state").$type<GitHubImportState>().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" })
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
 
 export const externalLinkTable = pgTable(
   "external_link",

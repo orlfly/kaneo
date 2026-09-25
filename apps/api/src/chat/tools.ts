@@ -561,8 +561,10 @@ async function createTaskTool(
         createdRelationIds.push(relation.id);
       }
     } catch (error) {
+      const teamId = await resolveTeamId(projectId).catch(() => "");
       for (const relationId of createdRelationIds) {
-        await deleteTaskRelation(relationId, userId).catch(() => {});
+        if (!teamId) break;
+        await deleteTaskRelation(relationId, userId, teamId).catch(() => {});
       }
       return JSON.stringify({
         error:
@@ -690,7 +692,11 @@ async function deleteTaskRelationTool(
   }
 
   try {
-    const relation = await deleteTaskRelation(id, userId);
+    const relation = await deleteTaskRelation(
+      id,
+      userId,
+      await resolveTeamId(_projectId),
+    );
     return JSON.stringify({ ok: true, id: relation.id }, null, 2);
   } catch (error) {
     return JSON.stringify({

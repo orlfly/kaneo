@@ -243,19 +243,15 @@ function CreateTaskModalContent({
     location.pathname.match(/\/project\/([^/]+)/)?.[1] ?? null;
   const explicitProjectId = projectId || routeProjectId || "";
   const [selectedProjectId, setSelectedProjectId] = useState("");
-  const resolvedProjectId =
-    explicitProjectId || selectedProjectId || project?.id || "";
   const { data: teamProjects } = useGetProjects({
     teamId: team?.id || "",
   });
   // Only a project from this team's query may receive new content; the global
   // project store can still contain the last visited team's project.
-  const resolvedProject = explicitProjectId
-    ? (teamProjects?.find(
-        (candidate) =>
-          candidate.id === (explicitProjectId || selectedProjectId),
-      ) ?? project)
-    : (teamProjects?.find((p) => p.id === resolvedProjectId) ?? null);
+  const resolvedProject = teamProjects?.find(
+    (candidate) => candidate.id === (explicitProjectId || selectedProjectId),
+  );
+  const resolvedProjectId = resolvedProject?.id ?? "";
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const draftCreationPromiseRef = useRef<Promise<Task | null> | null>(null);
@@ -1530,7 +1526,7 @@ function CreateTaskModalContent({
 }
 
 function CreateTaskModal(props: CreateTaskModalProps) {
-  const { data: workspace } = useActiveWorkspace();
+  const { data: team } = useActiveTeam();
   const location = useLocation();
   const routeWorkspaceId = useParams({
     strict: false,
@@ -1539,16 +1535,16 @@ function CreateTaskModal(props: CreateTaskModalProps) {
         ? params.workspaceId
         : undefined,
   });
-  // useActiveWorkspace may temporarily fall back to the previous organization
-  // while the new route's organization list is loading.
-  if (!props.open || (routeWorkspaceId && routeWorkspaceId !== workspace?.id))
+  // useActiveTeam may temporarily fall back to the previous team
+  // while the new route's team list is loading.
+  if (!props.open || (routeWorkspaceId && routeWorkspaceId !== team?.id))
     return null;
 
   // Closing or navigating ends the whole editing session, including pending
   // upload drafts, instead of carrying confidential fields into a new context.
   return (
     <CreateTaskModalContent
-      key={JSON.stringify([workspace?.id, location.pathname, props.projectId])}
+      key={JSON.stringify([team?.id, location.pathname, props.projectId])}
       {...props}
     />
   );

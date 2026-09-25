@@ -12,7 +12,7 @@ beforeEach(() => {
 });
 const root = {
   id: "label",
-  workspaceId: "workspace",
+  teamId: "team",
   taskId: null,
   name: "bug",
 };
@@ -20,7 +20,7 @@ function setup() {
   const client = new QueryClient({
     defaultOptions: { mutations: { retry: false } },
   });
-  client.setQueryData(["labels", "workspace"], [root]);
+  client.setQueryData(["labels", "team"], [root]);
   client.setQueryData(["tasks", "project"], { id: "project" });
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={client}>{children}</QueryClientProvider>
@@ -39,12 +39,12 @@ describe("label deletion cache state", () => {
     const { client, result } = setup();
     act(() => result.current.mutate({ id: root.id }));
     await waitFor(() => expect(result.current.isPending).toBe(true));
-    expect(client.getQueryData(["labels", "workspace"])).toEqual([root]);
+    expect(client.getQueryData(["labels", "team"])).toEqual([root]);
     await act(async () => {
       finish(root);
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(client.getQueryData(["labels", "workspace"])).toEqual([]);
+    expect(client.getQueryData(["labels", "team"])).toEqual([]);
     expect(client.getQueryState(["tasks", "project"])?.isInvalidated).toBe(
       true,
     );
@@ -55,10 +55,8 @@ describe("label deletion cache state", () => {
     const { client, result } = setup();
     act(() => result.current.mutate({ id: root.id }));
     await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(client.getQueryData(["labels", "workspace"])).toEqual([root]);
-    expect(client.getQueryState(["labels", "workspace"])?.isInvalidated).toBe(
-      true,
-    );
+    expect(client.getQueryData(["labels", "team"])).toEqual([root]);
+    expect(client.getQueryState(["labels", "team"])?.isInvalidated).toBe(true);
     expect(client.getQueryState(["tasks", "project"])?.isInvalidated).toBe(
       true,
     );

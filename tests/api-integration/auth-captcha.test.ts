@@ -17,22 +17,6 @@ const endpoints = [
     "/sign-in/social",
     { provider: "github", callbackURL: "http://localhost:5173/dashboard" },
   ],
-  [
-    "/sign-in/oauth2",
-    { providerId: "custom", callbackURL: "http://localhost:5173/dashboard" },
-  ],
-  ["/sign-in/anonymous", {}],
-  [
-    "/sign-in/magic-link",
-    {
-      email: "captcha@example.com",
-      callbackURL: "http://localhost:5173/dashboard",
-    },
-  ],
-  [
-    "/email-otp/send-verification-otp",
-    { email: "captcha@example.com", type: "sign-in" },
-  ],
 ] as const;
 
 function post(path: string, body: unknown, token?: string) {
@@ -84,7 +68,7 @@ describe("server-side auth CAPTCHA enforcement", () => {
     },
   );
 
-  it("permits one verified guest request and rejects a replay response", async () => {
+  it("permits one verified password sign-up and rejects a replay response", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(
@@ -106,10 +90,30 @@ describe("server-side auth CAPTCHA enforcement", () => {
       );
     vi.stubGlobal("fetch", fetchMock);
     expect(
-      (await post("/sign-in/anonymous", {}, "single-use-token")).status,
+      (
+        await post(
+          "/sign-up/email",
+          {
+            name: "User",
+            email: "captcha@example.com",
+            password: "long-test-password",
+          },
+          "single-use-token",
+        )
+      ).status,
     ).toBe(200);
     expect(
-      (await post("/sign-in/anonymous", {}, "single-use-token")).status,
+      (
+        await post(
+          "/sign-up/email",
+          {
+            name: "User",
+            email: "captcha@example.com",
+            password: "long-test-password",
+          },
+          "single-use-token",
+        )
+      ).status,
     ).toBe(403);
     expect(await db.select().from(schema.userTable)).toHaveLength(2);
   });

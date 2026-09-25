@@ -45,6 +45,7 @@ import {
   customFieldValueTable,
   deviceCodeTable,
   externalLinkTable,
+  githubImportTable,
   githubIntegrationTable,
   integrationTable,
   jobLeaseTable,
@@ -81,6 +82,7 @@ export const schema = {
   chatMessageTable,
   deviceCodeTable,
   externalLinkTable,
+  githubImportTable,
   githubIntegrationTable,
 
   integrationTable,

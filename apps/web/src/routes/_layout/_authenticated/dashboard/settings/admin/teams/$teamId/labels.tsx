@@ -87,6 +87,7 @@ function TeamLabelsPage() {
   const [deletingLabel, setDeletingLabel] = useState<{
     id: string;
     name: string;
+    deletionStartedAt?: string | null;
   } | null>(null);
 
   const resetCreate = () => {
@@ -180,7 +181,11 @@ function TeamLabelsPage() {
     }
   };
 
-  const openDelete = (label: { id: string; name: string }) => {
+  const openDelete = (label: {
+    id: string;
+    name: string;
+    deletionStartedAt?: string | null;
+  }) => {
     setDeletingLabel(label);
     setDeleteOpen(true);
   };
@@ -297,6 +302,13 @@ function TeamLabelsPage() {
                           }}
                         />
                         <span className="text-sm truncate">{label.name}</span>
+                        {label.deletionStartedAt && (
+                          <span className="text-xs text-muted-foreground">
+                            {t("settings:teamLabels.deletionPending", {
+                              defaultValue: "Deletion in progress",
+                            })}
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-1 flex-shrink-0">
                         <Button
@@ -306,6 +318,9 @@ function TeamLabelsPage() {
                             defaultValue: "Edit Label",
                           })}
                           className="h-8 w-8"
+                          disabled={
+                            !!label.deletionStartedAt || deleteLabel.isPending
+                          }
                           onClick={() =>
                             openEdit({
                               id: label.id,
@@ -319,14 +334,21 @@ function TeamLabelsPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          aria-label={t("settings:teamLabels.deleteLabel", {
-                            defaultValue: "Delete",
-                          })}
+                          aria-label={
+                            label.deletionStartedAt
+                              ? t("settings:teamLabels.resumeDeletion", {
+                                  defaultValue: "Resume deletion",
+                                })
+                              : t("settings:teamLabels.deleteLabel", {
+                                  defaultValue: "Delete",
+                                })
+                          }
                           className="h-8 w-8 text-destructive hover:text-destructive"
                           onClick={() =>
                             openDelete({
                               id: label.id,
                               name: label.name,
+                              deletionStartedAt: label.deletionStartedAt,
                             })
                           }
                         >
@@ -562,9 +584,15 @@ function TeamLabelsPage() {
               onClick={handleDelete}
               disabled={deleteLabel.isPending}
             >
-              {t("settings:teamLabels.deleteLabel", {
-                defaultValue: "Delete",
-              })}
+              {deleteLabel.isPending
+                ? t("common:actions.deleting")
+                : deletingLabel?.deletionStartedAt
+                  ? t("settings:teamLabels.resumeDeletion", {
+                      defaultValue: "Resume deletion",
+                    })
+                  : t("settings:teamLabels.deleteLabel", {
+                      defaultValue: "Delete",
+                    })}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

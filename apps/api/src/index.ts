@@ -554,8 +554,14 @@ export function createApp() {
   });
   organizationRoutes(api.openAPIRegistry);
 
+  // Registry-based document for @hono/zod-openapi routers, plus hono-openapi's
+  // marker-based spec for legacy plain-Hono routers (chat, team, integrations).
   const honoOpenApiHandler = openAPIRouteHandler(api, {
-    documentation: {
+    documentation: { openapi: "3.0.3" },
+  });
+
+  api.get("/openapi", async (c) => {
+    const registrySpec = api.getOpenAPIDocument({
       openapi: "3.0.3",
       info: {
         title: "Kaneo API",
@@ -571,23 +577,16 @@ export function createApp() {
           description: "Kaneo API Server",
         },
       ],
-      components: {
-        securitySchemes: {
-          bearerAuth: {
-            type: "http",
-            scheme: "bearer",
-            description: "API key or session token (Bearer)",
-          },
-        },
-      },
       security: [{ bearerAuth: [] }],
-    },
-  });
+    }) as unknown as Record<string, unknown>;
 
-  api.get("/openapi", async (c) => {
     const maybeResponse = await honoOpenApiHandler(c, async () => {});
     const honoSpecResponse = maybeResponse ?? c.res;
-    const honoSpec = (await honoSpecResponse.json()) as Record<string, unknown>;
+    const describeRouteSpec = (await honoSpecResponse.json()) as Record<
+      string,
+      unknown
+    >;
+    const honoSpec = mergeOpenApiSpecs(registrySpec, describeRouteSpec);
 
     let authSpec: Record<string, unknown> = {};
     try {

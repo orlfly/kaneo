@@ -19,7 +19,11 @@ const m = vi.hoisted(() => ({
   pending: false,
 }));
 vi.mock("@tanstack/react-router", () => ({
-  createFileRoute: () => (options: unknown) => ({ options }),
+  createFileRoute: () => (options: unknown) => ({
+    options,
+    useParams: () => ({ teamId: "team-1" }),
+  }),
+  useNavigate: () => () => {},
 }));
 vi.mock("@/components/page-title", () => ({ default: () => null }));
 vi.mock("react-i18next", () => ({
@@ -36,7 +40,11 @@ vi.mock("@/hooks/use-workspace-permission", () => ({
     canDeleteLabels: () => true,
   }),
 }));
-vi.mock("@/hooks/queries/label/use-get-labels-by-workspace", () => ({
+vi.mock("@tanstack/react-query", () => ({
+  useQueryClient: () => ({ invalidateQueries: () => {} }),
+  useMutation: () => ({}),
+}));
+vi.mock("@/hooks/queries/label/use-get-labels-by-team", () => ({
   default: () => ({
     data: [
       {
@@ -71,19 +79,17 @@ describe("resuming workspace label deletion", () => {
   it("shows persisted deletion state, prevents editing and resumes after confirmation", async () => {
     m.remove.mockResolvedValue({ id: "root" });
     render(<Component />);
-    expect(
-      screen.getByText("settings:workspaceLabels.deletionPending"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Deletion in progress")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Edit Label" })).toBeDisabled();
     fireEvent.click(
       screen.getByRole("button", {
-        name: "settings:workspaceLabels.resumeDeletion",
+        name: "Resume deletion",
       }),
     );
     const dialog = screen.getByRole("alertdialog");
     fireEvent.click(
       within(dialog).getByRole("button", {
-        name: "settings:workspaceLabels.resumeDeletion",
+        name: "Resume deletion",
       }),
     );
     await waitFor(() => expect(m.remove).toHaveBeenCalledWith({ id: "root" }));
@@ -96,12 +102,12 @@ describe("resuming workspace label deletion", () => {
     render(<Component />);
     fireEvent.click(
       screen.getByRole("button", {
-        name: "settings:workspaceLabels.resumeDeletion",
+        name: "Resume deletion",
       }),
     );
     fireEvent.click(
       within(screen.getByRole("alertdialog")).getByRole("button", {
-        name: "settings:workspaceLabels.resumeDeletion",
+        name: "Resume deletion",
       }),
     );
     await waitFor(() =>

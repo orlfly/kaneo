@@ -26,7 +26,7 @@ describe("Better Auth session IP with trusted transport", () => {
       await once(server, "listening");
       try {
         const response = await fetch(
-          `http://127.0.0.1:${(server.address() as AddressInfo).port}/api/auth/sign-in/anonymous`,
+          `http://127.0.0.1:${(server.address() as AddressInfo).port}/api/auth/sign-up/email`,
           {
             method: "POST",
             headers: {
@@ -36,7 +36,11 @@ describe("Better Auth session IP with trusted transport", () => {
               "cf-connecting-ip": "5.6.7.8",
               "x-forwarded-for": "1.2.3.4, 203.0.113.9",
             },
-            body: "{}",
+            body: JSON.stringify({
+              name: "Transport User",
+              email: `${"transport"}-${policy.includes("/") ? "loopback" : policy}@example.com`,
+              password: "long-test-password",
+            }),
           },
         );
         expect(response.status, await response.text()).toBe(200);

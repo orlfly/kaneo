@@ -34,7 +34,7 @@ import {
   githubAppInfoSchema,
   githubIntegrationSchema,
   githubRepositoryListSchema,
-  importSummarySchema,
+  importResultSchema,
   integrationNotFoundSchema,
   verificationResultSchema,
 } from "./response";
@@ -238,7 +238,11 @@ const importIssuesRoute = createRoute({
     },
   },
   responses: {
-    200: jsonResponse("Completed import summary", importSummarySchema),
+    200: jsonResponse("Completed import summary", importResultSchema),
+    202: jsonResponse(
+      "Saved import progress; continue with runId",
+      importResultSchema,
+    ),
     409: errorResponse(
       "Integration or import changed; refresh before resuming",
     ),
@@ -377,9 +381,9 @@ const githubIntegration = apiRouter<BaseVariables & { teamId: string }>()
     return c.json(result, 200);
   })
   .openapi(importIssuesRoute, async (c) => {
-    const { projectId } = c.req.valid("json");
-    const result = await importIssues(projectId);
-    return c.json(result, 200);
+    const { projectId, runId } = c.req.valid("json");
+    const result = await importIssues(projectId, runId);
+    return result.pending ? c.json(result, 202) : c.json(result, 200);
   });
 
 export async function handleGithubWebhookRoute(c: Context) {

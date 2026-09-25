@@ -281,6 +281,14 @@ export const auth = betterAuth({
         });
       }
 
+      if (authCaptchaPaths.has(ctx.path)) {
+        const verdict = await verifyTurnstile(
+          ctx.headers?.get("x-turnstile-token") ?? ctx.body?.turnstileToken,
+        );
+        if (!verdict.ok)
+          throw new APIError("FORBIDDEN", { message: verdict.reason });
+      }
+
       // Block team-member add calls on cloud from anonymous users or to
       // disposable-email addresses.
       if (ctx.path === "/team/members" && isCloud()) {

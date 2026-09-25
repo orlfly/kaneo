@@ -1588,9 +1588,23 @@
 				"includeAnyOf": "include any of"
 			}
 		},
+		"calendar": {
+			"pageTitle": "{{name}} – Calendar",
+			"title": "Calendar",
+			"previousMonth": "Previous month",
+			"nextMonth": "Next month",
+			"today": "Today",
+			"noTasks": "No scheduled tasks",
+			"noTasksSubtitle": "Add a start date, due date, or both to tasks to place them on the calendar.",
+			"moreTasks": "+{{count}} more",
+			"loadError": "Failed to load tasks.",
+			"dayTasksAriaLabel": "Show all tasks for {{date}}",
+			"taskAriaLabel": "{{title}}, {{range}}: open task"
+		},
 		"gantt": {
 			"pageTitle": "{{name}} – Gantt",
 			"title": "Gantt Timeline",
+			"jumpToToday": "Jump to today",
 			"searchPlaceholder": "Search scheduled tickets...",
 			"hideTasks": "Hide tasks",
 			"showTasks": "Show tasks",
@@ -1602,7 +1616,11 @@
 			"updateDatesError": "Failed to update task dates",
 			"resizeStart": "Resize start date",
 			"resizeDue": "Resize due date",
-			"taskAriaLabel": "{{title}}: open or drag to move"
+			"taskAriaLabel": "{{title}}: open or drag to move",
+			"previousPeriod": "Previous period",
+			"nextPeriod": "Next period",
+			"periodStart": "Timeline start date",
+			"showTaskDates": "Show task dates"
 		},
 		"delete": {
 			"title": "Delete Task?",

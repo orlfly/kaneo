@@ -46,6 +46,7 @@ const search = new Hono<{
       q: v.pipe(
         v.string(),
         v.minLength(1, "Query must be at least 1 character"),
+        v.maxLength(512, "Query must not exceed 512 characters"),
       ),
       type: v.optional(
         v.picklist([
