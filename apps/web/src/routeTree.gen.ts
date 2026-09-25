@@ -49,6 +49,7 @@ import { Route as LayoutAuthenticatedDashboardSettingsAdminTeamsTeamIdLabelsRout
 import { Route as LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdIndexRouteImport } from './routes/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/index'
 import { Route as LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRouteImport } from './routes/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/backlog'
 import { Route as LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRouteImport } from './routes/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/board'
+import { Route as LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdCalendarRouteImport } from './routes/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/calendar'
 import { Route as LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRouteImport } from './routes/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/chat'
 import { Route as LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRouteImport } from './routes/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/gantt'
 import { Route as LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdTaskTaskIdRouteImport } from './routes/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/task/$taskId_'
@@ -291,6 +292,14 @@ const LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRoute =
       getParentRoute: () => LayoutAuthenticatedDashboardTeamTeamIdRoute,
     } as any,
   )
+const LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdCalendarRoute =
+  LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdCalendarRouteImport.update(
+    {
+      id: '/project/$projectId/calendar',
+      path: '/project/$projectId/calendar',
+      getParentRoute: () => LayoutAuthenticatedDashboardTeamTeamIdRoute,
+    } as any,
+  )
 const LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRoute =
   LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRouteImport.update({
     id: '/project/$projectId/chat',
@@ -352,6 +361,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/admin/teams/$teamId/labels': typeof LayoutAuthenticatedDashboardSettingsAdminTeamsTeamIdLabelsRoute
   '/dashboard/team/$teamId/project/$projectId/backlog': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRoute
   '/dashboard/team/$teamId/project/$projectId/board': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRoute
+  '/dashboard/team/$teamId/project/$projectId/calendar': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdCalendarRoute
   '/dashboard/team/$teamId/project/$projectId/chat': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRoute
   '/dashboard/team/$teamId/project/$projectId/gantt': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRoute
   '/dashboard/team/$teamId/project/$projectId/': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdIndexRoute
@@ -392,6 +402,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings/admin/teams/$teamId/labels': typeof LayoutAuthenticatedDashboardSettingsAdminTeamsTeamIdLabelsRoute
   '/dashboard/team/$teamId/project/$projectId/backlog': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRoute
   '/dashboard/team/$teamId/project/$projectId/board': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRoute
+  '/dashboard/team/$teamId/project/$projectId/calendar': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdCalendarRoute
   '/dashboard/team/$teamId/project/$projectId/chat': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRoute
   '/dashboard/team/$teamId/project/$projectId/gantt': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRoute
   '/dashboard/team/$teamId/project/$projectId': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdIndexRoute
@@ -438,6 +449,7 @@ export interface FileRoutesById {
   '/_layout/_authenticated/dashboard/settings/admin/teams/$teamId/labels': typeof LayoutAuthenticatedDashboardSettingsAdminTeamsTeamIdLabelsRoute
   '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/backlog': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRoute
   '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/board': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRoute
+  '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/calendar': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdCalendarRoute
   '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/chat': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRoute
   '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/gantt': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRoute
   '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/': typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdIndexRoute
@@ -483,6 +495,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/admin/teams/$teamId/labels'
     | '/dashboard/team/$teamId/project/$projectId/backlog'
     | '/dashboard/team/$teamId/project/$projectId/board'
+    | '/dashboard/team/$teamId/project/$projectId/calendar'
     | '/dashboard/team/$teamId/project/$projectId/chat'
     | '/dashboard/team/$teamId/project/$projectId/gantt'
     | '/dashboard/team/$teamId/project/$projectId/'
@@ -523,6 +536,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/admin/teams/$teamId/labels'
     | '/dashboard/team/$teamId/project/$projectId/backlog'
     | '/dashboard/team/$teamId/project/$projectId/board'
+    | '/dashboard/team/$teamId/project/$projectId/calendar'
     | '/dashboard/team/$teamId/project/$projectId/chat'
     | '/dashboard/team/$teamId/project/$projectId/gantt'
     | '/dashboard/team/$teamId/project/$projectId'
@@ -568,6 +582,7 @@ export interface FileRouteTypes {
     | '/_layout/_authenticated/dashboard/settings/admin/teams/$teamId/labels'
     | '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/backlog'
     | '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/board'
+    | '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/calendar'
     | '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/chat'
     | '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/gantt'
     | '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/'
@@ -866,6 +881,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdRoute
     }
+    '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/calendar': {
+      id: '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/calendar'
+      path: '/project/$projectId/calendar'
+      fullPath: '/dashboard/team/$teamId/project/$projectId/calendar'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdCalendarRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdRoute
+    }
     '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/chat': {
       id: '/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/chat'
       path: '/project/$projectId/chat'
@@ -986,6 +1008,7 @@ interface LayoutAuthenticatedDashboardTeamTeamIdRouteChildren {
   LayoutAuthenticatedDashboardTeamTeamIdIndexRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdIndexRoute
   LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRoute
   LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRoute
+  LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdCalendarRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdCalendarRoute
   LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRoute
   LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRoute
   LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdIndexRoute: typeof LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdIndexRoute
@@ -1004,6 +1027,8 @@ const LayoutAuthenticatedDashboardTeamTeamIdRouteChildren: LayoutAuthenticatedDa
       LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBacklogRoute,
     LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRoute:
       LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdBoardRoute,
+    LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdCalendarRoute:
+      LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdCalendarRoute,
     LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRoute:
       LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdChatRoute,
     LayoutAuthenticatedDashboardTeamTeamIdProjectProjectIdGanttRoute:
