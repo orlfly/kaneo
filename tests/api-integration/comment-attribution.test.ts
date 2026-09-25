@@ -4,19 +4,16 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 beforeEach(resetTestDatabase);
 describe("external comment attribution", () => {
   it.each(["planka", "trello", "jira"])(
     "blocks ordinary member impersonation through %s but allows their own comments",
     async (externalSource) => {
-      const member = await createWorkspaceMember();
+      const member = await createTeamMember();
       const { project } = await createProjectFixture({
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
       });
       const [task] = await db
         .insert(schema.taskTable)
@@ -56,9 +53,9 @@ describe("external comment attribution", () => {
   it.each([false, true])(
     "requires explicit import permission on an admin's API key (granted=%s)",
     async (granted) => {
-      const member = await createWorkspaceMember({ role: "admin" });
+      const member = await createTeamMember({ role: "admin" });
       const { project } = await createProjectFixture({
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
       });
       const [task] = await db
         .insert(schema.taskTable)

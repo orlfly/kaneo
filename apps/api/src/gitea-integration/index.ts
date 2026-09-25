@@ -19,6 +19,7 @@ import {
   requireWorkspacePermission,
 } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
+import { registerVcsRoutes } from "../vcs";
 import createGiteaIntegration from "./controllers/create-gitea-integration";
 import deleteGiteaIntegration from "./controllers/delete-gitea-integration";
 import getGiteaIntegration from "./controllers/get-gitea-integration";
@@ -215,7 +216,7 @@ const importIssuesRoute = createRoute({
   },
 });
 
-const giteaIntegration = apiRouter<BaseVariables & { workspaceId: string }>()
+const giteaIntegration = apiRouter<BaseVariables & { teamId: string }>()
   .openapi(listRepositoriesRoute, async (c) => {
     const { baseUrl, accessToken } = c.req.valid("json");
     const result = await listGiteaRepositories({ baseUrl, accessToken });
@@ -354,5 +355,7 @@ export async function handleGiteaWebhookRoute(c: Context) {
 
   return c.json({ status: "success" });
 }
+
+registerVcsRoutes(giteaIntegration, "gitea");
 
 export default giteaIntegration;

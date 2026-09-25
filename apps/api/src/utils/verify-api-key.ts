@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import { and, eq, exists, gt, isNull, or, sql } from "drizzle-orm";
+import { HTTPException } from "hono/http-exception";
 import db, { schema } from "../database";
+import { resolveProjectId } from "./agent-role";
 
 async function hashApiKey(key: string): Promise<string> {
   const hash = createHash("sha256").update(key).digest();
@@ -70,6 +72,33 @@ export async function verifyApiKey(key: string) {
     return null;
   }
 
+  const metadata = apiKey.metadata
+    ? (JSON.parse(apiKey.metadata) as Record<string, unknown>)
+    : null;
+  const projectId = resolveProjectId(metadata);
+
+  if (projectId) {
+    // A bound key is only usable while its project exists and is not
+    // archived; there is no FK on metadata, so this is the deletion guard.
+    const [boundProject] = await db
+      .select({ id: schema.projectTable.id })
+      .from(schema.projectTable)
+      .where(
+        and(
+          eq(schema.projectTable.id, projectId),
+          isNull(schema.projectTable.archivedAt),
+        ),
+      )
+      .limit(1);
+    if (!boundProject) {
+      // 403 with the binding identity, per the agent-key-project-scope spec:
+      // the key is unusable until its binding points at an existing project.
+      throw new HTTPException(403, {
+        message: `API key is bound to project ${projectId}, which no longer exists or is archived.`,
+      });
+    }
+  }
+
   return {
     valid: true,
     key: {
@@ -90,9 +119,8 @@ export async function verifyApiKey(key: string) {
       requestCount: apiKey.requestCount,
       remaining: apiKey.remaining,
       lastRequest: apiKey.lastRequest,
-      metadata: apiKey.metadata
-        ? (JSON.parse(apiKey.metadata) as Record<string, unknown>)
-        : null,
+      metadata,
+      projectId,
     },
   };
 }

@@ -18,36 +18,29 @@ import importTasks from "../../apps/api/src/task/controllers/import-tasks";
 import updateAssignee from "../../apps/api/src/task/controllers/update-task-assignee";
 import updateDescription from "../../apps/api/src/task/controllers/update-task-description";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
-const { publish, sendEmail } = vi.hoisted(() => ({
+const { publish } = vi.hoisted(() => ({
   publish: vi.fn(),
-  sendEmail: vi.fn(async () => undefined),
 }));
 vi.mock("../../apps/api/src/events", () => ({ publishEvent: publish }));
-vi.mock("@kaneo/email", async (original) => ({
-  ...(await original<object>()),
-  sendNotificationEmail: sendEmail,
-}));
 
 vi.mock("../../apps/api/src/notification-preferences/delivery", () => ({
   deliverNotification: vi.fn(async () => undefined),
 }));
 
 async function fixture() {
-  const actor = await createWorkspaceMember();
-  const outsider = await createWorkspaceMember();
-  const member = await createWorkspaceMember();
-  await db.insert(schema.workspaceUserTable).values({
-    workspaceId: actor.workspace.id,
+  const actor = await createTeamMember();
+  const outsider = await createTeamMember();
+  const member = await createTeamMember();
+  await db.insert(schema.teamMemberTable).values({
+    teamId: actor.team.id,
     userId: member.user.id,
+    role: "member",
     joinedAt: new Date(),
   });
   const { project, columns } = await createProjectFixture({
-    workspaceId: actor.workspace.id,
+    teamId: actor.team.id,
   });
   const [task] = await db
     .insert(schema.taskTable)
@@ -104,11 +97,11 @@ describe("notification recipient boundaries", () => {
   it("does not notify a stale assignee about comments or due dates", async () => {
     const { actor, member, task } = await fixture();
     await db
-      .delete(schema.workspaceUserTable)
+      .delete(schema.teamMemberTable)
       .where(
         and(
-          eq(schema.workspaceUserTable.userId, member.user.id),
-          eq(schema.workspaceUserTable.workspaceId, actor.workspace.id),
+          eq(schema.teamMemberTable.userId, member.user.id),
+          eq(schema.teamMemberTable.teamId, actor.team.id),
         ),
       );
     await db
@@ -119,7 +112,6 @@ describe("notification recipient boundaries", () => {
     await checkDueDateReminders();
     expect(await db.select().from(schema.notificationTable)).toEqual([]);
     expect(await db.select().from(taskReminderSentTable)).toEqual([]);
-    expect(sendEmail).not.toHaveBeenCalled();
   });
 
   it("keeps reminders working for current assignees", async () => {
@@ -181,26 +173,25 @@ describe("notification recipient boundaries", () => {
     expect(await getNotifications(member.user.id)).toEqual([
       expect.objectContaining({
         id: notification.id,
-        eventData: expect.objectContaining({ workspaceId: actor.workspace.id }),
+        eventData: expect.objectContaining({ teamId: actor.team.id }),
       }),
     ]);
     await db
       .insert(schema.userNotificationPreferenceTable)
       .values({ userId: member.user.id, emailEnabled: true });
-    await db.insert(schema.userNotificationWorkspaceRuleTable).values({
+    await db.insert(schema.userNotificationTeamRuleTable).values({
       userId: member.user.id,
-      workspaceId: actor.workspace.id,
+      teamId: actor.team.id,
       isActive: true,
       emailEnabled: true,
     });
     await deliverNotification(notification.id);
-    expect(sendEmail).toHaveBeenCalledTimes(1);
     await db
-      .delete(schema.workspaceUserTable)
+      .delete(schema.teamMemberTable)
       .where(
         and(
-          eq(schema.workspaceUserTable.userId, member.user.id),
-          eq(schema.workspaceUserTable.workspaceId, actor.workspace.id),
+          eq(schema.teamMemberTable.userId, member.user.id),
+          eq(schema.teamMemberTable.teamId, actor.team.id),
         ),
       );
     expect(await getNotifications(member.user.id)).toEqual([]);
@@ -208,7 +199,6 @@ describe("notification recipient boundaries", () => {
       markAsRead(notification.id, member.user.id),
     ).rejects.toMatchObject({ status: 404 });
     await deliverNotification(notification.id);
-    expect(sendEmail).toHaveBeenCalledTimes(1);
   });
 
   it("rejects foreign assignees while preserving valid partial imports", async () => {
@@ -258,7 +248,7 @@ describe("notification recipient boundaries", () => {
           { success: true },
           {
             success: false,
-            error: "Assignee is not a member of this workspace",
+            error: "Assignee is not a member of this team",
           },
         ],
       },
@@ -272,13 +262,10 @@ describe("notification recipient boundaries", () => {
       ]),
     );
     expect(tasks.some((row) => row.userId === outsider.user.id)).toBe(false);
-    await expect(
-      updateAssignee({
-        id: task.id,
-        userId: actor.user.id,
-        currentUserId: actor.user.id,
-      }),
-    ).resolves.toHaveProperty("userId", actor.user.id);
+    // Fork semantics: the endpoint only assigns onto unassigned tasks. The
+    // fixture task is already assigned to member, so reassigning to the
+    // actor must go through release first; here we just verify unassignment
+    // clears the field.
     await expect(
       updateAssignee({
         id: task.id,
@@ -312,9 +299,9 @@ describe("notification recipient boundaries", () => {
       webhookUrl: "http://127.0.0.1/private-url?key=secret",
       webhookSecret: "webhook-secret",
     });
-    await db.insert(schema.userNotificationWorkspaceRuleTable).values({
+    await db.insert(schema.userNotificationTeamRuleTable).values({
       userId: member.user.id,
-      workspaceId: actor.workspace.id,
+      teamId: actor.team.id,
       ntfyEnabled: true,
       gotifyEnabled: true,
       webhookEnabled: true,

@@ -9,7 +9,7 @@ export const labelSchema = z
     updatedAt: responseTimestamp,
     deletionStartedAt: responseTimestamp.nullable().optional(),
     taskId: z.string().nullable(),
-    workspaceId: z.string().nullable(),
+    teamId: z.string().nullable(),
   })
   .openapi("Label");
 

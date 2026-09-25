@@ -95,11 +95,11 @@ export async function handleIssueLabeled(payload: IssueLabeledPayload) {
         },
       });
 
-      if (task?.project?.workspaceId) {
+      if (task?.project?.teamId) {
         const existingLabel = await db.query.labelTable.findFirst({
           where: (table, { and, eq }) =>
             and(
-              eq(table.workspaceId, task.project.workspaceId),
+              eq(table.teamId, task.project.teamId),
               eq(table.name, addedLabel.name),
               eq(table.taskId, task.id),
             ),
@@ -113,7 +113,7 @@ export async function handleIssueLabeled(payload: IssueLabeledPayload) {
               name: addedLabel.name,
               color,
               taskId: task.id,
-              workspaceId: task.project.workspaceId,
+              teamId: task.project.teamId,
             })
             .onConflictDoNothing({
               target: [labelTable.taskId, labelTable.name],

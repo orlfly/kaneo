@@ -25,13 +25,13 @@ import type Task from "@/types/task";
 
 type TaskMovePopoverProps = {
   task: Task;
-  workspaceId: string;
+  teamId: string;
   triggerClassName?: string;
 };
 
 export default function TaskMovePopover({
   task,
-  workspaceId,
+  teamId,
   triggerClassName,
 }: TaskMovePopoverProps) {
   const { t } = useTranslation();
@@ -40,7 +40,7 @@ export default function TaskMovePopover({
   const [isPending, startTransition] = useTransition();
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
-  const { data: projects = [] } = useGetProjects({ workspaceId });
+  const { data: projects = [] } = useGetProjects({ teamId });
   const { mutateAsync: moveTask, isPending: isMovePending } = useMoveTask();
   const destinationProjectId = selectedProjectId || "";
   const {
@@ -108,9 +108,9 @@ export default function TaskMovePopover({
       setOpen(false);
       startTransition(() => {
         navigate({
-          to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+          to: "/dashboard/team/$teamId/project/$projectId/task/$taskId",
           params: {
-            workspaceId,
+            teamId,
             projectId: result.task.projectId,
             taskId: task.id,
           },

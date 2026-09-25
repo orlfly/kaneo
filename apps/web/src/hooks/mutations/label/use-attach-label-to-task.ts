@@ -10,9 +10,9 @@ export default function useAttachLabelToTask() {
     onSuccess: (attachedLabel) => {
       if (!attachedLabel.taskId) return;
 
-      if (attachedLabel.workspaceId) {
+      if (attachedLabel.teamId) {
         queryClient.setQueryData(
-          ["labels", attachedLabel.workspaceId],
+          ["labels", attachedLabel.teamId],
           (existingLabels: Array<typeof attachedLabel> | undefined) => {
             if (!existingLabels) return [attachedLabel];
             if (existingLabels.some((label) => label.id === attachedLabel.id)) {
@@ -44,9 +44,9 @@ export default function useAttachLabelToTask() {
         queryKey: ["labels", attachedLabel.taskId],
       });
 
-      if (attachedLabel.workspaceId) {
+      if (attachedLabel.teamId) {
         void queryClient.invalidateQueries({
-          queryKey: ["labels", attachedLabel.workspaceId],
+          queryKey: ["labels", attachedLabel.teamId],
         });
       }
     },

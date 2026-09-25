@@ -4,10 +4,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 const webhookUrl = "https://127.0.0.1/hooks/mattermost-secret-token";
 
@@ -22,9 +19,9 @@ describe("API integration: Mattermost", () => {
   });
 
   it("preserves webhook validation and settings across the OpenAPI routes", async () => {
-    const owner = await createWorkspaceMember({ role: "owner" });
+    const owner = await createTeamMember({ role: "owner" });
     const { project } = await createProjectFixture({
-      workspaceId: owner.workspace.id,
+      teamId: owner.team.id,
     });
     mockAuthenticatedSession(owner.user);
     const { app } = createApp();
@@ -99,9 +96,9 @@ describe("API integration: Mattermost", () => {
   });
 
   it("retains workspace permission checks for mutations", async () => {
-    const viewer = await createWorkspaceMember({ role: "viewer" });
+    const viewer = await createTeamMember({ role: "viewer" });
     const { project } = await createProjectFixture({
-      workspaceId: viewer.workspace.id,
+      teamId: viewer.team.id,
     });
     mockAuthenticatedSession(viewer.user);
     const { app } = createApp();

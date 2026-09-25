@@ -9,16 +9,13 @@ import {
 } from "../../apps/api/src/task/description-pages";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 beforeEach(resetTestDatabase);
 async function fixture(description: string | null, isPublic = false) {
-  const member = await createWorkspaceMember({ role: "owner" });
+  const member = await createTeamMember({ role: "owner" });
   const { project } = await createProjectFixture({
-    workspaceId: member.workspace.id,
+    teamId: member.team.id,
   });
   if (isPublic)
     await db
@@ -169,9 +166,9 @@ describe("large task descriptions", () => {
   });
   it("enforces workspace access, public project ownership and visibility on every chunk", async () => {
     const { app, project, task } = await fixture("secret ".repeat(20000), true);
-    const other = await createWorkspaceMember();
+    const other = await createTeamMember();
     const { project: otherProject } = await createProjectFixture({
-      workspaceId: other.workspace.id,
+      teamId: other.team.id,
     });
     await db
       .update(schema.projectTable)
@@ -214,7 +211,7 @@ describe("large task descriptions", () => {
   it("finds literal description matches on every bounded page, only within the project", async () => {
     const { app, project, member } = await fixture("needle short");
     const { project: other } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const body = `${"x".repeat(70000)} Needle%_tail`;
     await db.insert(schema.taskTable).values(

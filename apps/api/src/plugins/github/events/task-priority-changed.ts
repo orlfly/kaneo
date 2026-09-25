@@ -1,24 +1,21 @@
 import type { PluginContext, TaskPriorityChangedEvent } from "../../types";
 import { type GitHubConfig, hasVerifiedGitHubBinding } from "../config";
 import { findExternalLinksByTask } from "../services/link-manager";
-import {
-  getGithubApp,
-  getVerifiedInstallationOctokit,
-} from "../utils/github-app";
+import { getRepoOctokit } from "../utils/github-app";
 import { addLabelsToIssue, removeLabel } from "../utils/labels";
 
 export async function handleTaskPriorityChanged(
   event: TaskPriorityChangedEvent,
   context: PluginContext,
 ): Promise<void> {
-  const githubApp = getGithubApp();
-  if (!githubApp) {
-    return;
-  }
-
   const config = context.config as GitHubConfig;
   if (!hasVerifiedGitHubBinding(config)) return;
   const { repositoryOwner, repositoryName } = config;
+
+  const octokit = await getRepoOctokit(config);
+  if (!octokit) {
+    return;
+  }
 
   try {
     const links = await findExternalLinksByTask(event.taskId);
@@ -32,7 +29,10 @@ export async function handleTaskPriorityChanged(
       return;
     }
 
-    const octokit = await getVerifiedInstallationOctokit(config);
+    const octokit = await getRepoOctokit(config);
+    if (!octokit) {
+      return;
+    }
     const issueNumber = Number.parseInt(issueLink.externalId, 10);
 
     if (event.oldPriority && event.oldPriority !== "no-priority") {

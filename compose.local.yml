@@ -2,7 +2,7 @@ services:
   postgres:
     image: postgres:16-alpine
     env_file:
-      - .env.local
+      - .env
     ports:
       - "5432:5432"
     volumes:
@@ -13,6 +13,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - kaneo-net
 
   api:
     build:
@@ -20,14 +22,19 @@ services:
       dockerfile: apps/api/Dockerfile
     ports:
       - "1337:1337"
+    environment:
+      # Explicit; ${POSTGRES_PASSWORD} is interpolated from .env next to this file.
+      - DATABASE_URL=postgres://kaneo:${POSTGRES_PASSWORD}@postgres:5432/kaneo
     env_file:
-      - .env.local
+      - .env
     depends_on:
       postgres:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - kaneo-net
 
-#  Optional
+#  Optional for HA setup
 #  redis:
 #    image: valkey/valkey
 #    ports:
@@ -39,21 +46,23 @@ services:
       dockerfile: apps/web/Dockerfile
     ports:
       - "5173:5173"
+    environment:
+      - KANEO_API_URL=http://192.168.6.32:1337
+      - KANEO_CLIENT_URL=http://192.168.6.32:5173
     env_file:
-      - .env.local
+      - .env
     depends_on:
       - api
     restart: unless-stopped
+    networks:
+      - kaneo-net
 
-  docs:
-    image: node:24.19.0-alpine
-    working_dir: /app/apps/docs
-    command: sh -c "npm install -g mintlify && mintlify dev --disable-openapi"
-    ports:
-      - "3421:3000"
-    volumes:
-      - ./apps/docs:/app/apps/docs
-    restart: unless-stopped
-
+networks:
+  kaneo-net:
+    name: kaneo-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.89.0.0/24
 volumes:
   postgres_data:

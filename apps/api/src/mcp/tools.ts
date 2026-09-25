@@ -1,3 +1,8 @@
+import {
+  AGENT_ROLES,
+  type AgentRole,
+  HUMAN_REQUIRED_ROLE,
+} from "@kaneo/permissions";
 import { z } from "zod";
 
 type McpToolResult = {
@@ -15,13 +20,55 @@ export type McpToolRegistrar = {
     },
     callback: (args: unknown) => Promise<McpToolResult>,
   ): unknown;
+  registerPrompt?(
+    name: string,
+    config: { title?: string; description?: string },
+    callback: (args: unknown) => Promise<McpPromptResult>,
+  ): unknown;
 };
+
+type McpPromptResult = {
+  messages: Array<{
+    role: "assistant" | "user";
+    content: { type: "text"; text: string };
+  }>;
+};
+
+/**
+ * Shared guidance given to agents before they call create_task. Kept in sync
+ * with the tool description and the API validation (see schemas.ts).
+ */
+const CREATE_TASK_GUIDANCE = `Create high-quality tasks that a manager can scan and another agent can execute without access to your checkout.
+
+Title:
+- Write a plain-English, human-readable sentence (at least 8 chars).
+- NEVER use a branch name, ticket id, or commit SHA as the title.
+- Example: "Refactor OAuth refresh-token handling" not "feat/auth".
+
+Description:
+- Do not just link to a document. The agent that picks up this task may not be able to fetch the latest version from version control, so inline the essential context.
+- Structure it with Markdown sections: ## Context, ## Acceptance Criteria, ## Out of Scope.
+- The description MUST include an "Acceptance Criteria" (or 验收标准) section with at least one concrete, testable bullet.
+
+requiredRole:
+- ALWAYS set requiredRole to one of the seven agent roles ("coding", "product-design", "architecture-design", "devops", "ui-design", "testing", "code-review") or "human" for human-only work. If omitted, the API defaults it to the creating agent's own role so the work is routed to the right claimer.
+
+Schedule (startDate/dueDate):
+- ALWAYS schedule the task (ISO 8601). Tasks without dates do not appear on the Gantt chart.
+- A blocked or subordinate task must start on or after its blocker's/parent's dueDate. Check existing tasks' schedules first instead of stacking everything on the same days.
+- Estimated effort over ~3 days or more than ~5 unrelated acceptance criteria means the work should be split into a parent with subtasks, each with its own schedule and role.
+- Put urgency in the priority field and the executing role in requiredRole. Never encode them in the title (no "[coding-P2]" prefixes).`;
 
 type ShapeToolServer = {
   registerTool(
     name: string,
     config: { description: string; inputSchema: z.ZodRawShape },
     callback: (args: unknown) => Promise<McpToolResult>,
+  ): unknown;
+  registerPrompt?(
+    name: string,
+    config: { title?: string; description?: string },
+    callback: (args: unknown) => Promise<McpPromptResult>,
   ): unknown;
 };
 
@@ -36,6 +83,10 @@ export function toMcpToolRegistrar(server: ShapeToolServer): McpToolRegistrar {
         },
         (args) => callback(args),
       ),
+    registerPrompt: (name, config, callback) => {
+      if (!server.registerPrompt) return;
+      return server.registerPrompt(name, config, (args) => callback(args));
+    },
   };
 }
 
@@ -195,6 +246,15 @@ const prioritySchema = z.enum([
   "high",
   "urgent",
 ]);
+
+const agentRoleSchema = z
+  .union([
+    z.enum(AGENT_ROLES as unknown as [AgentRole, ...AgentRole[]]),
+    z.literal(HUMAN_REQUIRED_ROLE),
+  ])
+  .describe(
+    'Required role for the task. Pass an agent role (e.g. "coding") to restrict the task to that role, omit to allow any agent, or pass "human" to reserve the task for human team members only.',
+  );
 const nonEmptyString = z.string().trim().min(1);
 const optionalNonEmptyString = nonEmptyString.optional();
 const nullableOptionalNonEmptyString = nonEmptyString.nullable().optional();
@@ -240,22 +300,23 @@ export function registerMcpTools(
       run(() => client.json("/api/auth/get-session", { method: "GET" })),
   );
 
+  // Back-compat name kept so existing MCP consumers keep working; the
+  // workspace concept was replaced by teams, so the tool lists teams.
   registerTool(
     "list_workspaces",
     {
-      description: "List workspaces the signed-in user can access.",
+      description: "List teams the signed-in user can access.",
       inputSchema: z.object({}),
     },
-    async () =>
-      run(() => client.json("/api/auth/organization/list", { method: "GET" })),
+    async () => run(() => client.json("/api/team", { method: "GET" })),
   );
 
   registerTool(
     "list_projects",
     {
-      description: "List projects in a workspace.",
+      description: "List projects in a team.",
       inputSchema: z.object({
-        workspaceId: nonEmptyString.describe("Workspace ID"),
+        teamId: nonEmptyString.describe("Team ID"),
         includeArchived: z
           .boolean()
           .optional()
@@ -263,7 +324,7 @@ export function registerMcpTools(
       }),
     },
     async (args) => {
-      const qs = new URLSearchParams({ workspaceId: args.workspaceId });
+      const qs = new URLSearchParams({ teamId: args.teamId });
       if (args.includeArchived === true) qs.set("includeArchived", "true");
       return run(() =>
         client.json(`/api/project?${qs.toString()}`, { method: "GET" }),
@@ -284,10 +345,10 @@ export function registerMcpTools(
   registerTool(
     "create_project",
     {
-      description: "Create a project in a workspace.",
+      description: "Create a project in a team.",
       inputSchema: z.object({
         name: nonEmptyString,
-        workspaceId: nonEmptyString,
+        teamId: nonEmptyString,
         icon: nonEmptyString,
         slug: nonEmptyString,
       }),
@@ -298,7 +359,7 @@ export function registerMcpTools(
           method: "POST",
           body: JSON.stringify({
             name: args.name,
-            workspaceId: args.workspaceId,
+            teamId: args.teamId,
             icon: args.icon,
             slug: args.slug,
           }),
@@ -422,7 +483,12 @@ export function registerMcpTools(
   registerTool(
     "create_task",
     {
-      description: "Create a task in a project.",
+      description:
+        "Create a task in a project.\n\n" +
+        "Title: plain-English and human-readable (>=8 chars); never a branch name, ticket id, or SHA.\n" +
+        "Description: inline the essential context with Markdown sections (## Context, ## Acceptance Criteria, ## Out of Scope). The description MUST contain an 'Acceptance Criteria' (or 验收标准) section. Do not rely on links to documents the executing agent may not be able to fetch.\n" +
+        'requiredRole: ALWAYS set it to one of the seven agent roles or "human". If omitted, the API defaults it to the creating agent\'s own role so the work is routed to the right claimer.\n' +
+        'startDate/dueDate: ALWAYS schedule the task (ISO 8601, e.g. "2025-01-15"). Estimate dates from task size, priority, and dependencies; start from today when nothing else is known. Tasks without dates do not appear on the Gantt chart.',
       inputSchema: z.object({
         projectId: nonEmptyString,
         title: nonEmptyString,
@@ -432,6 +498,15 @@ export function registerMcpTools(
         startDate: optionalIsoDateTimeSchema,
         dueDate: optionalIsoDateTimeSchema,
         userId: optionalNonEmptyString,
+        requiredRole: agentRoleSchema.optional(),
+        dependencies: z
+          .array(
+            z.object({
+              targetTaskId: nonEmptyString,
+              relationType: z.enum(["subtask", "blocks", "related"]),
+            }),
+          )
+          .optional(),
       }),
     },
     async (args) => {
@@ -444,12 +519,42 @@ export function registerMcpTools(
       if (args.startDate !== undefined) body.startDate = args.startDate;
       if (args.dueDate !== undefined) body.dueDate = args.dueDate;
       if (args.userId !== undefined) body.userId = args.userId;
-      return run(() =>
-        client.json(`/api/task/${encodeURIComponent(args.projectId)}`, {
-          method: "POST",
-          body: JSON.stringify(body),
-        }),
-      );
+      if (args.requiredRole !== undefined)
+        body.requiredRole = args.requiredRole;
+      return run(async () => {
+        const created = (await client.json(
+          `/api/task/${encodeURIComponent(args.projectId)}`,
+          {
+            method: "POST",
+            body: JSON.stringify(body),
+          },
+        )) as { id: string };
+        const dependencies = args.dependencies ?? [];
+        const createdRelationIds: string[] = [];
+        try {
+          for (const dep of dependencies) {
+            const relation = (await client.json("/api/task-relation", {
+              method: "POST",
+              body: JSON.stringify({
+                sourceTaskId: created.id,
+                targetTaskId: dep.targetTaskId,
+                relationType: dep.relationType,
+              }),
+            })) as { id: string };
+            createdRelationIds.push(relation.id);
+          }
+        } catch (error) {
+          for (const relationId of createdRelationIds) {
+            await client
+              .json(`/api/task-relation/${encodeURIComponent(relationId)}`, {
+                method: "DELETE",
+              })
+              .catch(() => {});
+          }
+          throw error;
+        }
+        return { ...created, dependencies: createdRelationIds.length };
+      });
     },
   );
 
@@ -527,6 +632,130 @@ export function registerMcpTools(
       ),
   );
 
+  // --- Agent collaboration tools ---
+
+  registerTool(
+    "claim_task",
+    {
+      description:
+        "Atomically claim a task for this agent. Implementation roles claim an unassigned to-do task (sets the assignee and moves it to in-progress); a code-review agent instead takes the review lock on an in-review task without touching the implementer's assignee/claimed_by or the status. Returns 409 if the task is already claimed or already under review by another agent.",
+      inputSchema: z.object({ taskId: nonEmptyString }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`/api/task/claim/${encodeURIComponent(args.taskId)}`, {
+          method: "POST",
+        }),
+      ),
+  );
+
+  registerTool(
+    "claim_next_task",
+    {
+      description:
+        "Find and atomically claim the best available task across the caller's team projects. Implementation roles claim the best to-do task: the caller's own assignments are prioritized, then unassigned tasks whose required role matches the caller's role (or is generic). A code-review agent instead claims the best in-review task whose review is not already claimed by another reviewer, and takes the review lock without changing the assignee, claimed_by, or status. Ordering: due date (soonest first), priority (urgent first), creation date (oldest first). Tasks with requiredRole = \"human\" are always excluded for agent callers. If the API key is bound to a project (metadata.projectId), only tasks in that project are considered; one agent session then serves exactly one project. Returns 404 if no matching tasks are available.",
+      inputSchema: z.object({
+        projectId: optionalNonEmptyString,
+        priorities: z.array(z.string()).optional(),
+        requiredRole: agentRoleSchema
+          .optional()
+          .describe(
+            "Only narrow candidates to this role; the API key's agent role remains the trust source and cannot be expanded.",
+          ),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json("/api/task/claim-next", {
+          method: "POST",
+          body: JSON.stringify({
+            ...(args.projectId !== undefined
+              ? { projectId: args.projectId }
+              : {}),
+            ...(args.priorities !== undefined
+              ? { priorities: args.priorities }
+              : {}),
+            ...(args.requiredRole !== undefined
+              ? { requiredRole: args.requiredRole }
+              : {}),
+          }),
+        }),
+      ),
+  );
+
+  registerTool(
+    "pause_task",
+    {
+      description:
+        "Pause a task you have claimed. Requires a reason explaining why the task cannot proceed. The task status changes to 'paused'.",
+      inputSchema: z.object({
+        taskId: nonEmptyString,
+        reason: nonEmptyString,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`/api/task/pause/${encodeURIComponent(args.taskId)}`, {
+          method: "POST",
+          body: JSON.stringify({ reason: args.reason }),
+        }),
+      ),
+  );
+
+  registerTool(
+    "resume_task",
+    {
+      description:
+        "Resume a paused task you have claimed. The task status changes back to 'in-progress' and the pause reason is cleared.",
+      inputSchema: z.object({ taskId: nonEmptyString }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`/api/task/resume/${encodeURIComponent(args.taskId)}`, {
+          method: "POST",
+        }),
+      ),
+  );
+
+  registerTool(
+    "release_task",
+    {
+      description:
+        "Release a task you have claimed back to the unassigned to-do pool. Clears assignee, claim metadata, and any pause reason.",
+      inputSchema: z.object({ taskId: nonEmptyString }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`/api/task/release/${encodeURIComponent(args.taskId)}`, {
+          method: "POST",
+        }),
+      ),
+  );
+
+  registerTool(
+    "list_unclaimed_tasks",
+    {
+      description:
+        'List all unassigned to-do tasks in a project. Optionally narrow to tasks that need a specific agent role, or to tasks reserved for human team members ("human").',
+      inputSchema: z.object({
+        projectId: nonEmptyString,
+        requiredRole: agentRoleSchema.optional(),
+      }),
+    },
+    async (args) => {
+      const query = new URLSearchParams({ unclaimed: "true" });
+      if (args.requiredRole !== undefined) {
+        query.set("requiredRole", args.requiredRole);
+      }
+      return run(() =>
+        client.json(
+          `/api/task/tasks/${encodeURIComponent(args.projectId)}?${query.toString()}`,
+          { method: "GET" },
+        ),
+      );
+    },
+  );
+
   registerTool(
     "list_task_comments",
     {
@@ -594,27 +823,25 @@ export function registerMcpTools(
   registerTool(
     "list_workspace_labels",
     {
-      description: "List labels defined in a workspace.",
-      inputSchema: z.object({ workspaceId: nonEmptyString }),
+      description: "List labels defined in a team.",
+      inputSchema: z.object({ teamId: nonEmptyString }),
     },
     async (args) =>
       run(() =>
-        client.json(
-          `/api/label/workspace/${encodeURIComponent(args.workspaceId)}`,
-          { method: "GET" },
-        ),
+        client.json(`/api/label/team/${encodeURIComponent(args.teamId)}`, {
+          method: "GET",
+        }),
       ),
   );
 
   registerTool(
     "create_label",
     {
-      description:
-        "Create a label in a workspace (optionally attach to a task).",
+      description: "Create a label in a team (optionally attach to a task).",
       inputSchema: z.object({
         name: nonEmptyString,
         color: hexColorSchema,
-        workspaceId: nonEmptyString,
+        teamId: nonEmptyString,
         taskId: optionalNonEmptyString,
       }),
     },
@@ -625,7 +852,7 @@ export function registerMcpTools(
           body: JSON.stringify({
             name: args.name,
             color: args.color,
-            workspaceId: args.workspaceId,
+            teamId: args.teamId,
             ...(args.taskId !== undefined ? { taskId: args.taskId } : {}),
           }),
         }),
@@ -720,39 +947,27 @@ export function registerMcpTools(
   registerTool(
     "delete_label",
     {
-      description:
-        "Delete a label by ID. Only task-associated labels can be deleted; workspace-level labels (taskId null) are rejected by the API.",
+      description: "Delete a label by ID (team-level or task-level).",
       inputSchema: z.object({ id: nonEmptyString }),
     },
     async (args) =>
-      run(async () => {
-        const label = (await client.json(
-          `/api/label/${encodeURIComponent(args.id)}`,
-          { method: "GET" },
-        )) as { taskId?: string | null };
-        if (!label?.taskId) {
-          throw new Error(
-            "Label is not associated with a task and cannot be deleted (workspace-level labels are not deletable via this endpoint).",
-          );
-        }
-        return client.json(`/api/label/${encodeURIComponent(args.id)}`, {
+      run(() =>
+        client.json(`/api/label/${encodeURIComponent(args.id)}`, {
           method: "DELETE",
-        });
-      }),
+        }),
+      ),
   );
 
   registerTool(
     "list_workspace_members",
     {
       description:
-        "List the members of a workspace. Use this to resolve the user ID an assignee tool expects.",
-      inputSchema: z.object({ workspaceId: nonEmptyString }),
+        "List the members of a team. Use this to resolve the user ID an assignee tool expects.",
+      inputSchema: z.object({ teamId: nonEmptyString }),
     },
     async (args) =>
       run(() =>
-        client.json(
-          `/api/workspace/${encodeURIComponent(args.workspaceId)}/members`,
-        ),
+        client.json(`/api/team/${encodeURIComponent(args.teamId)}/members`),
       ),
   );
 
@@ -760,21 +975,14 @@ export function registerMcpTools(
     "search",
     {
       description:
-        "Search across tasks, projects, workspaces, comments, and activities.",
+        "Search across tasks, projects, teams, comments, and activities.",
       inputSchema: z.object({
         q: nonEmptyString.describe("Search query"),
         type: z
-          .enum([
-            "all",
-            "tasks",
-            "projects",
-            "workspaces",
-            "comments",
-            "activities",
-          ])
+          .enum(["all", "tasks", "projects", "teams", "comments", "activities"])
           .optional()
           .describe("Restrict results to one kind. Defaults to all."),
-        workspaceId: optionalNonEmptyString.describe("Limit to one workspace"),
+        teamId: optionalNonEmptyString.describe("Limit to one team"),
         projectId: optionalNonEmptyString.describe("Limit to one project"),
         limit: z
           .number()
@@ -788,7 +996,7 @@ export function registerMcpTools(
     async (args) => {
       const qs = new URLSearchParams({ q: args.q });
       if (args.type) qs.set("type", args.type);
-      if (args.workspaceId) qs.set("workspaceId", args.workspaceId);
+      if (args.teamId) qs.set("teamId", args.teamId);
       if (args.projectId) qs.set("projectId", args.projectId);
       if (args.limit !== undefined) qs.set("limit", String(args.limit));
       return run(() => client.json(`/api/search?${qs.toString()}`));
@@ -826,7 +1034,7 @@ export function registerMcpTools(
     "update_task_assignee",
     {
       description:
-        "Assign a task to a workspace member, or pass a null userId to unassign it.",
+        "Assign a task to a team member, or pass a null userId to unassign it.",
       inputSchema: z.object({
         taskId: nonEmptyString,
         userId: nonEmptyString
@@ -955,5 +1163,561 @@ export function registerMcpTools(
       inputSchema: z.object({}),
     },
     async () => run(() => client.json("/api/notification")),
+  );
+
+  // ---------------------------------------------------------------------------
+  // VCS integration tools (GitHub / GitLab / Gitea)
+  // ---------------------------------------------------------------------------
+  const vcsTypeSchema = z
+    .enum(["github", "gitlab", "gitea"])
+    .describe("The VCS integration type to operate on");
+  const vcsProjectId = nonEmptyString.describe(
+    "Kaneo project ID whose active integration should be used",
+  );
+  const vcsIssueNumber = z
+    .number()
+    .int()
+    .positive()
+    .describe("Issue number in the configured repository");
+  const vcsStateSchema = z
+    .enum(["open", "closed", "all"])
+    .optional()
+    .describe("Issue state filter (defaults to open)");
+
+  const vcsBasePath = (type: string, projectId: string) =>
+    `/api/${type}-integration/vcs/${encodeURIComponent(projectId)}`;
+
+  registerTool(
+    "vcs_list_repositories",
+    {
+      description:
+        "List repositories accessible to the project's active VCS integration.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/repositories`),
+      ),
+  );
+
+  registerTool(
+    "vcs_list_issues",
+    {
+      description:
+        "List issues in the configured repository of the project's active VCS integration.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        state: vcsStateSchema,
+      }),
+    },
+    async (args) => {
+      const qs = args.state ? `?state=${args.state}` : "";
+      return run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/issues${qs}`),
+      );
+    },
+  );
+
+  registerTool(
+    "vcs_get_issue",
+    {
+      description:
+        "Get a single issue by number from the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}`,
+        ),
+      ),
+  );
+
+  registerTool(
+    "vcs_list_issue_comments",
+    {
+      description: "List comments on an issue in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}/comments`,
+        ),
+      ),
+  );
+
+  registerTool(
+    "vcs_list_pull_requests",
+    {
+      description:
+        "List open pull requests in the configured repository of the project's active VCS integration.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/pull-requests`),
+      ),
+  );
+
+  registerTool(
+    "vcs_list_labels",
+    {
+      description: "List labels defined in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/labels`),
+      ),
+  );
+
+  registerTool(
+    "vcs_create_issue",
+    {
+      description: "Create an issue in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        title: nonEmptyString.describe("Issue title"),
+        body: z.string().optional().describe("Issue body"),
+        closed: z.boolean().optional().describe("Create the issue as closed"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/issues`, {
+          method: "POST",
+          body: JSON.stringify({
+            title: args.title,
+            ...(args.body !== undefined ? { body: args.body } : {}),
+            ...(args.closed !== undefined ? { closed: args.closed } : {}),
+          }),
+        }),
+      ),
+  );
+
+  registerTool(
+    "vcs_update_issue",
+    {
+      description:
+        "Update an issue in the configured repository (title, body, or state).",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+        title: z.string().optional().describe("New issue title"),
+        body: z.string().nullable().optional().describe("New issue body"),
+        state: z
+          .enum(["open", "closed"])
+          .optional()
+          .describe("New issue state"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}`,
+          {
+            method: "PATCH",
+            body: JSON.stringify({
+              ...(args.title !== undefined ? { title: args.title } : {}),
+              ...(args.body !== undefined ? { body: args.body } : {}),
+              ...(args.state !== undefined ? { state: args.state } : {}),
+            }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "vcs_create_issue_comment",
+    {
+      description: "Add a comment to an issue in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+        body: nonEmptyString.describe("Comment body"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}/comments`,
+          {
+            method: "POST",
+            body: JSON.stringify({ body: args.body }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "vcs_create_label",
+    {
+      description: "Create a label in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        name: nonEmptyString.describe("Label name"),
+        color: hexColorSchema.describe("Label color as a hex value"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/labels`, {
+          method: "POST",
+          body: JSON.stringify({ name: args.name, color: args.color }),
+        }),
+      ),
+  );
+
+  registerTool(
+    "vcs_add_labels_to_issue",
+    {
+      description: "Add labels to an issue in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+        labelIds: z
+          .array(z.number().int().positive())
+          .describe("Label IDs to add"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}/labels`,
+          {
+            method: "POST",
+            body: JSON.stringify({ labelIds: args.labelIds }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "vcs_replace_issue_labels",
+    {
+      description:
+        "Replace all labels on an issue in the configured repository with the given set.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+        labelIds: z
+          .array(z.number().int().positive())
+          .describe("Label IDs to set on the issue"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}/labels`,
+          {
+            method: "PUT",
+            body: JSON.stringify({ labelIds: args.labelIds }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "vcs_remove_label_from_issue",
+    {
+      description: "Remove a label from an issue in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+        labelId: z.number().int().positive().describe("Label ID to remove"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}/labels`,
+          {
+            method: "DELETE",
+            body: JSON.stringify({ labelId: args.labelId }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "vcs_import_issues",
+    {
+      description:
+        "Import issues from the project's active VCS integration into Kaneo tasks.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`/api/${args.type}-integration/import-issues`, {
+          method: "POST",
+          body: JSON.stringify({ projectId: args.projectId }),
+        }),
+      ),
+  );
+
+  // --- Agent working-directory tools ---
+  // These mirror the conversation tool set (apps/api/src/chat/tools.ts) and
+  // route through the same tool-execute endpoint so both surfaces share the
+  // exact same implementation (working-directory sandboxing, clone, command
+  // gating, etc.).
+
+  registerTool(
+    "agent_clone_repo",
+    {
+      description:
+        "Clone the project's connected version-control repository into the agent working directory. If a clone already exists it is updated (pulled). Use this when asked to read, search, or analyze the project's source code.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({ tool: "agent_clone_repo", args: {} }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "agent_list_files",
+    {
+      description:
+        "List files and directories inside the agent working directory (which holds cloned repos and uploaded files).",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        path: z
+          .string()
+          .optional()
+          .describe(
+            "Relative path inside the working directory (default: root).",
+          ),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_list_files",
+              args: args.path !== undefined ? { path: args.path } : {},
+            }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "agent_read_file",
+    {
+      description:
+        "Read a text file inside the agent working directory. Optionally pass offset/limit to page large files.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        path: nonEmptyString.describe(
+          "Relative file path inside the working directory.",
+        ),
+        offset: z
+          .number()
+          .int()
+          .optional()
+          .describe("Line offset (0-based) for paging."),
+        limit: z
+          .number()
+          .int()
+          .optional()
+          .describe("Max lines to read from the offset."),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_read_file",
+              args: {
+                path: args.path,
+                ...(args.offset !== undefined ? { offset: args.offset } : {}),
+                ...(args.limit !== undefined ? { limit: args.limit } : {}),
+              },
+            }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "agent_write_file",
+    {
+      description:
+        "Write or overwrite a text file inside the agent working directory, creating parent directories as needed.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        path: nonEmptyString.describe(
+          "Relative file path inside the working directory.",
+        ),
+        content: nonEmptyString.describe("File content."),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_write_file",
+              args: { path: args.path, content: args.content },
+            }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "agent_search_files",
+    {
+      description:
+        "Recursively search the agent working directory by filename and/or content keyword. Returns matching files with line numbers for content matches.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        query: z
+          .string()
+          .optional()
+          .describe("Filename substring to match (optional)."),
+        content: z
+          .string()
+          .optional()
+          .describe("Content keyword to search for (optional)."),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_search_files",
+              args: {
+                ...(args.query !== undefined ? { query: args.query } : {}),
+                ...(args.content !== undefined
+                  ? { content: args.content }
+                  : {}),
+              },
+            }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "agent_delete_file",
+    {
+      description: "Delete a file inside the agent working directory.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        path: nonEmptyString.describe(
+          "Relative file path inside the working directory.",
+        ),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_delete_file",
+              args: { path: args.path },
+            }),
+          },
+        ),
+      ),
+  );
+
+  registerTool(
+    "agent_run_command",
+    {
+      description:
+        "Run a shell command with the agent working directory as the working directory. Captures stdout/stderr and exit code. Only available when command execution is enabled.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        command: nonEmptyString.describe("The shell command to run."),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_run_command",
+              args: { command: args.command },
+            }),
+          },
+        ),
+      ),
+  );
+
+  // Reusable checklist agents can pull before creating a task. Registered only
+  // when the underlying server supports prompts (legacy and modern both do).
+  server.registerPrompt?.(
+    "create_task_skill",
+    {
+      title: "Create Task Skill",
+      description:
+        "Checklist and worked example for creating a high-quality Kaneo task",
+    },
+    () =>
+      Promise.resolve({
+        messages: [
+          {
+            role: "user" as const,
+            content: {
+              type: "text" as const,
+              text: `${CREATE_TASK_GUIDANCE}\n\nWorked example:\n{\n  "projectId": "<project-id>",\n  "title": "Refactor OAuth refresh-token handling",\n  "description": "## Context\\nThe current refresh flow does not rotate tokens.\\n\\n## Acceptance Criteria\\n- Token rotation is supported\\n- Old tokens are revoked\\n\\n## Out of Scope\\n- Password reset flow",\n  "priority": "high",\n  "status": "to-do",\n  "requiredRole": "coding"\n}`,
+            },
+          },
+        ],
+      }),
   );
 }

@@ -1,6 +1,4 @@
-import { isSmtpConfigured } from "@kaneo/email";
 import { config } from "dotenv-mono";
-import { isBillingEnabled } from "../billing/config";
 import { isGithubSsoConfigured } from "./github-sso-env";
 
 config();
@@ -13,7 +11,6 @@ function getSettings() {
     disableEmailOtpSignIn: process.env.DISABLE_EMAIL_OTP_SIGN_IN === "true",
     disableWorkspaceCreation: process.env.DISABLE_WORKSPACE_CREATION === "true",
     isDemoMode: process.env.DEMO_MODE === "true",
-    hasSmtp: isSmtpConfigured(),
     hasGithubSignIn: isGithubSsoConfigured(),
     hasGoogleSignIn:
       Boolean(process.env.GOOGLE_CLIENT_ID) &&
@@ -30,10 +27,16 @@ function getSettings() {
       "DISABLE_PASSWORD_REGISTRATION",
       "DISABLE_LOGIN_FORM",
     ].every((key) => process.env[key] !== "true"),
+    // SMTP-backed email (OTP sign-in, magic links) was removed with the email
+    // module; the flag stays for config-shape compatibility.
+    hasSmtp: false,
     disableLoginForm: process.env.DISABLE_LOGIN_FORM === "true",
     customOAuthAutoLogin: process.env.CUSTOM_OAUTH_AUTO_LOGIN === "true",
     customOAuthLogoutUrl: process.env.CUSTOM_OAUTH_LOGOUT_URL || null,
-    billingEnabled: isBillingEnabled(),
+    // Billing was removed alongside the workspace concept. Hardcode to false
+    // so existing consumers don't read a stale value. See change
+    // "introduce-teams-remove-workspaces".
+    billingEnabled: false,
   };
 }
 

@@ -75,7 +75,7 @@ Kaneo supports three Redis deployment modes for WebSocket Pub/Sub. When any Redi
 
 #### SMTP Configuration
 
-For sending emails (workspace invitations, magic links, etc.), configure these variables:
+For sending emails (team invitations, magic links, etc.), configure these variables:
 - `SMTP_HOST` - SMTP server hostname
 - `SMTP_PORT` - SMTP server port
 - `SMTP_USER` - SMTP username
@@ -87,7 +87,7 @@ For sending emails (workspace invitations, magic links, etc.), configure these v
 
 For a private SMTP certificate authority, configure Node's `NODE_EXTRA_CA_CERTS` with the path to a trusted CA PEM file before starting the API. Fix expired certificates or hostname mismatches instead of bypassing validation. When upgrading an existing installation, remove `SMTP_IGNORE_TLS=true` and check SMTP delivery with the corrected trust configuration before rollout.
 
-When SMTP is configured, sign-in uses email verification codes by default. Set `DISABLE_EMAIL_OTP_SIGN_IN=true` to use email/password sign-in instead (workspace invitation emails still use SMTP).
+When SMTP is configured, sign-in uses email verification codes by default. Set `DISABLE_EMAIL_OTP_SIGN_IN=true` to use email/password sign-in instead (team invitation emails still use SMTP).
 
 #### Cloud-mode abuse mitigations
 

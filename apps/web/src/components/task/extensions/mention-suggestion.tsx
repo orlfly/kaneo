@@ -11,7 +11,7 @@ type MentionSuggestionOptions = {
   getMembers: () => MentionMember[];
 };
 
-// Adds an @-triggered autocomplete of workspace members to an editor. On select
+// Adds an @-triggered autocomplete of team members to an editor. On select
 // it inserts a `kaneoMention` node (which round-trips through Markdown). Built on
 // @tiptap/suggestion so it stays self-contained and does not touch the editor's
 // own keyboard/menu handling.

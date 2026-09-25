@@ -4,7 +4,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import { createWorkspaceMember } from "./helpers/fixtures";
+import { createTeamMember } from "./helpers/fixtures";
 
 describe("API integration: project creation", () => {
   beforeEach(async () => {
@@ -21,7 +21,7 @@ describe("API integration: project creation", () => {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        workspaceId: "workspace-missing",
+        teamId: "workspace-missing",
         name: "Unauthorized Project",
         icon: "Folder",
         slug: "unauthorized-project",
@@ -33,7 +33,7 @@ describe("API integration: project creation", () => {
   });
 
   it("creates a project for a workspace member and seeds default columns", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     mockAuthenticatedSession(member.user);
     const { app } = createApp();
 
@@ -43,7 +43,7 @@ describe("API integration: project creation", () => {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
         name: "Roadmap",
         icon: "FolderKanban",
         slug: "roadmap",
@@ -55,7 +55,7 @@ describe("API integration: project creation", () => {
       (await response.json()) as typeof schema.projectTable.$inferSelect;
 
     expect(payload).toMatchObject({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
       name: "Roadmap",
       icon: "FolderKanban",
       slug: "roadmap",
@@ -67,7 +67,7 @@ describe("API integration: project creation", () => {
 
     expect(persistedProject).toMatchObject({
       id: payload.id,
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
       name: "Roadmap",
       slug: "roadmap",
     });
@@ -93,7 +93,7 @@ describe("API integration: project creation", () => {
   });
 
   it("rejects project creation for users outside the workspace", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const outsiderId = "user-outsider";
 
     const [outsider] = await db
@@ -115,7 +115,7 @@ describe("API integration: project creation", () => {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
         name: "Forbidden Project",
         icon: "Folder",
         slug: "forbidden-project",
@@ -123,8 +123,6 @@ describe("API integration: project creation", () => {
     });
 
     expect(response.status).toBe(403);
-    await expect(response.text()).resolves.toBe(
-      "You don't have access to this workspace",
-    );
+    await expect(response.text()).resolves.toBe("Not a member of this team");
   });
 });

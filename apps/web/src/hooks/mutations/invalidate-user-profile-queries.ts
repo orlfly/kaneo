@@ -1,9 +1,10 @@
 import type { QueryClient } from "@tanstack/react-query";
 
 const USER_PROFILE_QUERY_KEYS = [
-  ["active-workspace-users"],
-  ["workspace-users"],
-  ["workspace", "full"],
+  ["team-member", "active"],
+  ["team-members"],
+  ["team", "full"],
+  ["teams"],
   ["activities"],
   ["tasks"],
   ["task"],

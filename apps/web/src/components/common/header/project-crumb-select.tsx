@@ -13,7 +13,7 @@ import {
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 
 type ProjectCrumbSelectProps = {
-  workspaceId: string;
+  teamId: string;
   projectId: string;
   projectName?: string;
   onSelectProject: (projectId: string) => void;
@@ -21,14 +21,14 @@ type ProjectCrumbSelectProps = {
 };
 
 export default function ProjectCrumbSelect({
-  workspaceId,
+  teamId,
   projectId,
   projectName,
   onSelectProject,
   onAddProject,
 }: ProjectCrumbSelectProps) {
   const { t } = useTranslation();
-  const { data: projects = [] } = useGetProjects({ workspaceId });
+  const { data: projects = [] } = useGetProjects({ teamId });
 
   return (
     <DropdownMenu>

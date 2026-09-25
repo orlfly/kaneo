@@ -5,7 +5,7 @@ import { HttpError } from "@/lib/http-error";
 export type GetProjectRequest = InferRequestType<
   (typeof client)["project"][":id"]["$get"]
 >["param"] & {
-  workspaceId: string;
+  teamId: string;
 };
 
 async function getProject({ id }: GetProjectRequest) {

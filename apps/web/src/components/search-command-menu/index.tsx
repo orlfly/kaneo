@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/command";
 import { shortcuts } from "@/constants/shortcuts";
 import useGlobalSearch from "@/hooks/queries/search/use-global-search";
-import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
+import useActiveTeam from "@/hooks/queries/team/use-active-team";
 import { useRegisterShortcuts } from "@/hooks/use-keyboard-shortcuts";
 
 type SearchResultItem = {
@@ -34,9 +34,9 @@ type SearchResultItem = {
   title: string;
   description?: string;
   content?: string;
-  type: "task" | "project" | "workspace" | "comment" | "activity";
+  type: "task" | "project" | "team" | "comment" | "activity";
   projectId?: string;
-  workspaceId?: string;
+  teamId?: string;
   taskNumber?: number;
   projectSlug?: string;
   priority?: string;
@@ -57,7 +57,7 @@ type SearchCommandMenuProps = {
 function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
-  const { data: workspace } = useActiveWorkspace();
+  const { data: team } = useActiveTeam();
   const navigate = useNavigate();
 
   const searchEnabled = query.trim().length >= 3;
@@ -65,7 +65,7 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
   const { data: searchResults } = useGlobalSearch({
     q: query,
     type: "all",
-    workspaceId: workspace?.id,
+    teamId: team?.id,
     limit: 20,
   });
 
@@ -89,11 +89,11 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
 
     switch (item.type) {
       case "task":
-        if (item.projectId && item.id && workspace?.id) {
+        if (item.projectId && item.id && team?.id) {
           navigate({
-            to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+            to: "/dashboard/team/$teamId/project/$projectId/task/$taskId",
             params: {
-              workspaceId: workspace.id,
+              teamId: team.id,
               projectId: item.projectId,
               taskId: item.id,
             },
@@ -101,33 +101,33 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
         }
         break;
       case "project":
-        if (item.id && workspace?.id) {
+        if (item.id && team?.id) {
           navigate({
-            to: "/dashboard/workspace/$workspaceId/project/$projectId/board",
+            to: "/dashboard/team/$teamId/project/$projectId/board",
             params: {
-              workspaceId: workspace.id,
+              teamId: team.id,
               projectId: item.id,
             },
           });
         }
         break;
-      case "workspace":
+      case "team":
         if (item.id) {
           navigate({
-            to: "/dashboard/workspace/$workspaceId",
+            to: "/dashboard/team/$teamId",
             params: {
-              workspaceId: item.id,
+              teamId: item.id,
             },
           });
         }
         break;
       case "comment":
       case "activity":
-        if (item.projectId && item.id && workspace?.id) {
+        if (item.projectId && item.id && team?.id) {
           navigate({
-            to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+            to: "/dashboard/team/$teamId/project/$projectId/task/$taskId",
             params: {
-              workspaceId: workspace.id,
+              teamId: team.id,
               projectId: item.projectId,
               taskId: item.id,
             },
@@ -143,7 +143,7 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
         return Hash;
       case "project":
         return FolderKanban;
-      case "workspace":
+      case "team":
         return Users;
       case "comment":
         return MessageSquare;
@@ -172,8 +172,8 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
           return t("navigation:search.groups.task");
         case "project":
           return t("navigation:search.groups.project");
-        case "workspace":
-          return t("navigation:search.groups.workspace");
+        case "team":
+          return t("navigation:search.groups.team");
         case "comment":
           return t("navigation:search.groups.comment");
         case "activity":

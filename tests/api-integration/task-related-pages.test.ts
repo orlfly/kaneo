@@ -5,16 +5,13 @@ import { createApp } from "../../apps/api/src/index";
 import getTasks from "../../apps/api/src/task/controllers/get-tasks";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 beforeEach(resetTestDatabase);
 async function fixture() {
-  const member = await createWorkspaceMember();
+  const member = await createTeamMember();
   const { project } = await createProjectFixture({
-    workspaceId: member.workspace.id,
+    teamId: member.team.id,
   });
   await db
     .update(schema.projectTable)
@@ -47,7 +44,7 @@ async function fixture() {
     Array.from({ length: 237 }, (_, i) => ({
       id: `label-${String(i).padStart(3, "0")}`,
       taskId: task.id,
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
       name: `Label ${i}`,
       color: "red",
     })),
@@ -139,7 +136,7 @@ describe("bounded board related pages", () => {
       expect(
         (await app.request(`/api/task/tasks/${project.id}?${query}`)).status,
       ).toBe(400);
-    const other = await createWorkspaceMember();
+    const other = await createTeamMember();
     mockAuthenticatedSession(other.user);
     expect(
       (await app.request(`/api/task/tasks/${project.id}?relatedPage=2`)).status,

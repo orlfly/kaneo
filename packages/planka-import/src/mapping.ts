@@ -93,7 +93,10 @@ export function displayName(user: PlankaUser | undefined): string {
   );
 }
 
-export function formatComment(comment: PlankaComment): string {
+export function formatComment(
+  comment: PlankaComment,
+  _author: PlankaUser | undefined,
+): string {
   const date = comment.createdAt
     ? new Date(comment.createdAt).toISOString().slice(0, 10)
     : null;

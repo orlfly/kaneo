@@ -12,7 +12,7 @@ import {
 import { OAUTH_STATE_LIMITS } from "../../apps/api/src/mcp/oauth-store";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import { createWorkspaceMember } from "./helpers/fixtures";
+import { createTeamMember } from "./helpers/fixtures";
 
 const redirectUri = "https://client.example/callback";
 const challenge = createHash("sha256")
@@ -116,7 +116,7 @@ describe("MCP OAuth HTTP resource bounds", () => {
   });
 
   it("allows retrying consent after capacity recovers without issuing multiple codes", async () => {
-    const { user } = await createWorkspaceMember();
+    const { user } = await createTeamMember();
     mockAuthenticatedSession(user);
     const client = await registerClient({ redirectUris: [redirectUri] });
     const id = await createAuthorizationRequest({

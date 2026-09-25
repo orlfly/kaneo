@@ -42,6 +42,7 @@ type Task = {
   labels?: TaskLabel[];
   externalLinks?: TaskExternalLink[];
   customFieldValues?: TaskCustomFieldValue[];
+  requiredRole?: string | null;
 };
 
 export default Task;

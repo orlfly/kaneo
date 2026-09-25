@@ -1,12 +1,12 @@
+import type { AgentRole } from "@kaneo/permissions";
 import { eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
-import { requireEntitlement } from "../billing/require-entitlement-middleware";
 import db from "../database";
 import {
   assetTable,
   projectTable,
   taskTable,
-  workspaceTable,
+  teamTable,
 } from "../database/schema";
 import {
   apiRouter,
@@ -31,6 +31,8 @@ import {
 } from "../utils/validate-dates";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import bulkUpdateTasks from "./controllers/bulk-update-tasks";
+import { claimNextTask } from "./controllers/claim-next-task";
+import claimTask from "./controllers/claim-task";
 import createTask from "./controllers/create-task";
 import deleteTask from "./controllers/delete-task";
 import exportTasks from "./controllers/export-tasks";
@@ -38,11 +40,14 @@ import getTask from "./controllers/get-task";
 import getTasks from "./controllers/get-tasks";
 import importTasks from "./controllers/import-tasks";
 import moveTask from "./controllers/move-task";
+import pauseTask from "./controllers/pause-task";
+import releaseTask from "./controllers/release-task";
 import {
   requireBulkTaskEntitlement,
   requireBulkTaskPermission,
   requireTaskAssigneePermission,
 } from "./controllers/require-task-permission";
+import resumeTask from "./controllers/resume-task";
 import updateTask from "./controllers/update-task";
 import updateTaskAssignee from "./controllers/update-task-assignee";
 import updateTaskDescription from "./controllers/update-task-description";
@@ -69,7 +74,10 @@ import {
 } from "./response";
 import {
   bulkUpdateBody,
+  claimNextBody,
+  claimResultSchema,
   createTaskBody,
+  descHasAcceptanceCriteria,
   descriptionMatchesQuery,
   descriptionPageQuery,
   finalizeImageUploadBody,
@@ -77,6 +85,7 @@ import {
   importTasksBody,
   listTasksQuery,
   moveTaskBody,
+  pauseTaskBody,
   projectIdParam,
   taskParam,
   updateAssigneeBody,
@@ -129,11 +138,9 @@ const bulkUpdateTasksRoute = createRoute({
   },
   responses: {
     200: jsonResponse("Bulk operation result", bulkResultSchema),
-    400: errorResponse(
-      "Invalid body, or the tasks span more than one workspace",
-    ),
+    400: errorResponse("Invalid body, or the tasks span more than one team"),
     403: errorResponse(
-      "No workspace access, or missing the permission the operation needs",
+      "No team access, or missing the permission the operation needs",
     ),
     404: errorResponse("No tasks found"),
   },
@@ -146,11 +153,10 @@ const createTaskRoute = createRoute({
   tags: ["Tasks"],
   summary: "Create task",
   description:
-    "Add a task to a project. It is placed in the column named by `status`.",
+    "Add a task to a project. It is placed in the column named by `status`. Title must be human-readable (≥8 chars, not a branch/ticket/SHA). When authenticated with an API key (agent), the description must include an 'Acceptance Criteria' (or 验收标准) section, and an omitted requiredRole is defaulted to the agent's own role so the work is routed to the right claimer.",
   middleware: [
     workspaceAccess.fromProject("projectId"),
     requireWorkspacePermission({ task: ["create"] }),
-    requireEntitlement,
   ] as const,
   request: {
     params: projectIdParam,
@@ -197,7 +203,6 @@ const moveTaskRoute = createRoute({
   middleware: [
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
-    requireEntitlement,
   ] as const,
   request: {
     params: taskParam,
@@ -231,7 +236,6 @@ const updateTaskRoute = createRoute({
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
     requireTaskAssigneePermission,
-    requireEntitlement,
   ] as const,
   request: {
     params: taskParam,
@@ -279,7 +283,6 @@ const importTasksRoute = createRoute({
   middleware: [
     workspaceAccess.fromProject("projectId"),
     requireWorkspacePermission({ task: ["create"] }),
-    requireEntitlement,
   ] as const,
   request: {
     params: projectIdParam,
@@ -331,7 +334,6 @@ const updateTaskStatusRoute = createRoute({
   middleware: [
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
-    requireEntitlement,
   ] as const,
   request: {
     params: taskParam,
@@ -359,7 +361,6 @@ const updateTaskPriorityRoute = createRoute({
   middleware: [
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
-    requireEntitlement,
   ] as const,
   request: {
     params: taskParam,
@@ -388,7 +389,6 @@ const updateTaskAssigneeRoute = createRoute({
   middleware: [
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["assign"] }),
-    requireEntitlement,
   ] as const,
   request: {
     params: taskParam,
@@ -417,7 +417,6 @@ const updateTaskDueDateRoute = createRoute({
   middleware: [
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
-    requireEntitlement,
   ] as const,
   request: {
     params: taskParam,
@@ -445,7 +444,6 @@ const updateTaskTitleRoute = createRoute({
   middleware: [
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
-    requireEntitlement,
   ] as const,
   request: {
     params: taskParam,
@@ -474,7 +472,6 @@ const createTaskImageUploadRoute = createRoute({
   middleware: [
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
-    requireEntitlement,
   ] as const,
   request: {
     params: taskParam,
@@ -505,7 +502,6 @@ const finalizeTaskImageUploadRoute = createRoute({
   middleware: [
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
-    requireEntitlement,
   ] as const,
   request: {
     params: taskParam,
@@ -536,7 +532,6 @@ const updateTaskDescriptionRoute = createRoute({
   middleware: [
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
-    requireEntitlement,
   ] as const,
   request: {
     params: taskParam,
@@ -587,7 +582,104 @@ const descriptionMatchesRoute = createRoute({
   },
 });
 
-const task = apiRouter<BaseVariables & { workspaceId: string }>()
+const claimTaskRoute = createRoute({
+  method: "post",
+  operationId: "claimTask",
+  path: "/claim/{id}",
+  tags: ["Tasks"],
+  summary: "Claim a task",
+  description: "Atomically claim an unassigned to-do task for the current user",
+  middleware: [
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["update"] }),
+  ] as const,
+  request: { params: taskParam },
+  responses: {
+    200: jsonResponse("Task claimed successfully", claimResultSchema),
+    409: errorResponse("Task is not available for claiming"),
+  },
+});
+
+const claimNextTaskRoute = createRoute({
+  method: "post",
+  operationId: "claimNextTask",
+  path: "/claim-next",
+  tags: ["Tasks"],
+  summary: "Claim the next available task",
+  description:
+    "Find and atomically claim the best available to-do task across the caller's team projects",
+  request: {
+    body: {
+      required: true,
+      content: { "application/json": { schema: claimNextBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("Task claimed successfully", claimResultSchema),
+    404: errorResponse("No unclaimed tasks available"),
+  },
+});
+
+const pauseTaskRoute = createRoute({
+  method: "post",
+  operationId: "pauseTask",
+  path: "/pause/{id}",
+  tags: ["Tasks"],
+  summary: "Pause a claimed task",
+  description: "Pause a task claimed by the current user, with a reason",
+  middleware: [
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["update"] }),
+  ] as const,
+  request: {
+    params: taskParam,
+    body: {
+      required: true,
+      content: { "application/json": { schema: pauseTaskBody } },
+    },
+  },
+  responses: {
+    200: jsonResponse("Task paused successfully", taskSchema),
+    403: errorResponse("Task not claimed by you"),
+  },
+});
+
+const resumeTaskRoute = createRoute({
+  method: "post",
+  operationId: "resumeTask",
+  path: "/resume/{id}",
+  tags: ["Tasks"],
+  summary: "Resume a paused task",
+  description: "Resume a paused task claimed by the current user",
+  middleware: [
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["update"] }),
+  ] as const,
+  request: { params: taskParam },
+  responses: {
+    200: jsonResponse("Task resumed successfully", taskSchema),
+  },
+});
+
+const releaseTaskRoute = createRoute({
+  method: "post",
+  operationId: "releaseTask",
+  path: "/release/{id}",
+  tags: ["Tasks"],
+  summary: "Release a claimed task",
+  description:
+    "Release a task claimed by the current user back to the to-do pool",
+  middleware: [
+    workspaceAccess.fromTask(),
+    requireWorkspacePermission({ task: ["update"] }),
+  ] as const,
+  request: { params: taskParam },
+  responses: {
+    200: jsonResponse("Task released successfully", taskSchema),
+  },
+});
+
+const task = apiRouter<BaseVariables & { teamId: string }>()
   .openapi(descriptionPageRoute, async (c) =>
     c.json(
       await getDescriptionPage(c.req.valid("param").id, c.req.valid("query")),
@@ -612,6 +704,97 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
     const tasks = await getTasks(projectId, filters);
 
     return c.json(tasks, 200);
+  })
+  .openapi(claimTaskRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const userId = c.get("userId");
+    const apiKey = c.get("apiKey");
+
+    const result = await claimTask({
+      taskId: id,
+      userId,
+      agentKeyId: apiKey?.id,
+      agentRole: apiKey?.agentRole,
+    });
+
+    return c.json(result, 200);
+  })
+  .openapi(claimNextTaskRoute, async (c) => {
+    const userId = c.get("userId");
+    const apiKey = c.get("apiKey");
+    const body = c.req.valid("json");
+
+    // The explicit requiredRole parameter may only narrow candidates: a
+    // caller cannot pass a role they themselves do not hold.
+    const requestedRole = body.requiredRole as AgentRole | undefined;
+    const agentRole = apiKey?.agentRole;
+    const effectiveRole =
+      requestedRole && (!agentRole || requestedRole === agentRole)
+        ? requestedRole
+        : agentRole;
+
+    // A project-bound API key is pinned to its project: inject the binding
+    // when no projectId was passed and reject a mismatched explicit one.
+    const boundProjectId = apiKey?.projectId ?? null;
+    if (boundProjectId && body.projectId && body.projectId !== boundProjectId) {
+      throw new HTTPException(403, {
+        message: "This API key is bound to a different project.",
+      });
+    }
+
+    const result = await claimNextTask({
+      userId,
+      agentKeyId: apiKey?.id,
+      projectId: boundProjectId ?? body.projectId,
+      priorities: body.priorities,
+      agentRole: effectiveRole,
+    });
+
+    if (!result) {
+      throw new HTTPException(404, {
+        message: "No unclaimed tasks available",
+      });
+    }
+
+    return c.json(result, 200);
+  })
+  .openapi(pauseTaskRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const { reason } = c.req.valid("json");
+    const currentUserId = c.get("userId");
+
+    const task = await pauseTask({
+      taskId: id,
+      reason,
+      currentUserId,
+    });
+
+    return c.json(task, 200);
+  })
+  .openapi(resumeTaskRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const currentUserId = c.get("userId");
+
+    const task = await resumeTask({
+      taskId: id,
+      currentUserId,
+    });
+
+    return c.json(task, 200);
+  })
+  .openapi(releaseTaskRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const currentUserId = c.get("userId");
+    const apiKey = c.get("apiKey");
+
+    const task = await releaseTask({
+      taskId: id,
+      currentUserId,
+      agentRole: apiKey?.agentRole,
+      agentKeyId: apiKey?.id,
+    });
+
+    return c.json(task, 200);
   })
   .openapi(bulkUpdateTasksRoute, async (c) => {
     const { taskIds, operation, value } = c.req.valid("json");
@@ -650,6 +833,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       priority,
       status,
       userId,
+      requiredRole,
       customFields,
     } = c.req.valid("json");
 
@@ -664,6 +848,17 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
 
     validateDateRange(parsedStartDate, parsedDueDate);
 
+    const apiKey = c.get("apiKey");
+    // Agent-created tasks must carry an Acceptance Criteria section so the
+    // executing agent and the reviewer share an objective done-condition.
+    // Human session callers are prompted but not blocked (see design.md).
+    if (apiKey && description && !descHasAcceptanceCriteria(description)) {
+      throw new HTTPException(400, {
+        message:
+          "description must include an 'Acceptance Criteria' (or 验收标准) section",
+      });
+    }
+
     const task = await createTask({
       projectId,
       currentUserId: c.get("userId"),
@@ -675,6 +870,8 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       priority,
       status,
       customFields,
+      requiredRole: requiredRole ?? null,
+      agentRole: apiKey?.agentRole,
     });
 
     return c.json(task, 200);
@@ -712,6 +909,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       projectId,
       position,
       userId,
+      requiredRole,
     } = c.req.valid("json");
 
     const currentUserId = c.get("userId");
@@ -739,6 +937,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       position,
       userId,
       currentUserId,
+      requiredRole,
     );
 
     return c.json(task, 200);
@@ -771,8 +970,15 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
     const { id } = c.req.valid("param");
     const { status } = c.req.valid("json");
     const currentUserId = c.get("userId");
+    const apiKey = c.get("apiKey");
 
-    const task = await updateTaskStatus({ id, status, currentUserId });
+    const task = await updateTaskStatus({
+      id,
+      status,
+      currentUserId,
+      agentRole: apiKey?.agentRole,
+      agentKeyId: apiKey?.id,
+    });
 
     return c.json(task, 200);
   })
@@ -835,14 +1041,10 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       .select({
         taskId: taskTable.id,
         projectId: taskTable.projectId,
-        workspaceId: workspaceTable.id,
+        teamId: projectTable.teamId,
       })
       .from(taskTable)
       .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-      .innerJoin(
-        workspaceTable,
-        eq(projectTable.workspaceId, workspaceTable.id),
-      )
       .where(eq(taskTable.id, id))
       .limit(1);
 
@@ -852,7 +1054,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
 
     try {
       const upload = await createTaskImageUploadUrl({
-        workspaceId: taskContext.workspaceId,
+        teamId: taskContext.teamId,
         projectId: taskContext.projectId,
         taskId: taskContext.taskId,
         surface,
@@ -891,14 +1093,10 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       .select({
         taskId: taskTable.id,
         projectId: taskTable.projectId,
-        workspaceId: workspaceTable.id,
+        teamId: projectTable.teamId,
       })
       .from(taskTable)
       .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-      .innerJoin(
-        workspaceTable,
-        eq(projectTable.workspaceId, workspaceTable.id),
-      )
       .where(eq(taskTable.id, id))
       .limit(1);
 
@@ -909,7 +1107,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
     const normalizedKey = key.trim();
     if (
       !assertTaskImageKeyMatchesContext(normalizedKey, {
-        workspaceId: taskContext.workspaceId,
+        teamId: taskContext.teamId,
         projectId: taskContext.projectId,
         taskId: taskContext.taskId,
         surface,
@@ -948,7 +1146,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       ? await db
           .update(assetTable)
           .set({
-            workspaceId: taskContext.workspaceId,
+            teamId: taskContext.teamId,
             projectId: taskContext.projectId,
             taskId: taskContext.taskId,
             filename,
@@ -967,7 +1165,7 @@ const task = apiRouter<BaseVariables & { workspaceId: string }>()
       : await db
           .insert(assetTable)
           .values({
-            workspaceId: taskContext.workspaceId,
+            teamId: taskContext.teamId,
             projectId: taskContext.projectId,
             taskId: taskContext.taskId,
             objectKey: normalizedKey,

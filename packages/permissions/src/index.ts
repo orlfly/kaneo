@@ -1,84 +1,71 @@
-import { createAccessControl } from "better-auth/plugins/access";
-import {
-  adminAc,
-  defaultStatements,
-  memberAc,
-  ownerAc,
-} from "better-auth/plugins/organization/access";
+// Fixed team roles. We do not expose an editable role matrix on top of teams:
+// `owner` has full management of the team (and therefore its projects) while
+// `member` participates in projects they belong to.
+//
+// The role names are kept as a plain string union so they are easy to compare
+// in middleware without leaking the better-auth organization plugin into every
+// consumer.
 
-export const statement = {
-  ...defaultStatements,
-  project: ["create", "read", "update", "delete", "share"],
-  task: ["create", "read", "update", "delete", "assign"],
-  label: ["create", "read", "update", "delete"],
-  workspace: ["read", "update", "delete", "manage_settings"],
-} as const;
+export type TeamRole = "owner" | "member";
 
-export const ac = createAccessControl(statement);
+export const TEAM_ROLES: readonly TeamRole[] = ["owner", "member"] as const;
 
-export const viewer = ac.newRole({
-  ...memberAc.statements,
-  project: ["read"],
-  task: ["read"],
-  label: ["read"],
-  workspace: ["read"],
-});
+export const DEFAULT_TEAM_ROLE: TeamRole = "member";
 
-export const member = ac.newRole({
-  ...memberAc.statements,
-  project: ["create", "read"],
-  task: ["create", "read", "update"],
-  label: ["create", "read", "update", "delete"],
-  workspace: ["read"],
-});
-
-export const admin = ac.newRole({
-  ...adminAc.statements,
-  project: ["create", "read", "update", "delete", "share"],
-  task: ["create", "read", "update", "delete", "assign"],
-  label: ["create", "read", "update", "delete"],
-  workspace: ["read", "update", "manage_settings"],
-});
-
-export const owner = ac.newRole({
-  ...ownerAc.statements,
-  project: ["create", "read", "update", "delete", "share"],
-  task: ["create", "read", "update", "delete", "assign"],
-  label: ["create", "read", "update", "delete"],
-  workspace: ["read", "update", "delete", "manage_settings"],
-});
-
-export const builtInRoles = { viewer, member, admin, owner } as const;
-
-export type BuiltInRoleName = keyof typeof builtInRoles;
-
-// Default-role names that the API seeds per workspace. These ARE editable in
-// the UI (their permissions live as rows in `workspace_role`), but their names
-// are reserved and the rows are auto-created on workspace creation /
-// backfilled at boot. `owner` is intentionally NOT in this list because it
-// stays a true static role on the better-auth side.
-export const DEFAULT_ROLE_NAMES = ["viewer", "member", "admin"] as const;
-export type DefaultRoleName = (typeof DEFAULT_ROLE_NAMES)[number];
-
-function toMutablePayload(
-  statements: Record<string, readonly string[]>,
-): Record<string, string[]> {
-  const out: Record<string, string[]> = {};
-  for (const [resource, actions] of Object.entries(statements)) {
-    out[resource] = [...actions];
-  }
-  return out;
+export function isTeamRole(value: unknown): value is TeamRole {
+  return (
+    typeof value === "string" &&
+    (TEAM_ROLES as readonly string[]).includes(value)
+  );
 }
 
-// Plain JSON-serializable permission payloads for the seeded default roles.
-// Mirrors each role's `.statements` (including better-auth's organization/
-// member/team/invitation/ac defaults) so a workspace_role row that uses one
-// of these has parity with the prior static definition.
-export const defaultRolePayloads: Record<
-  DefaultRoleName,
-  Record<string, string[]>
-> = {
-  viewer: toMutablePayload(viewer.statements),
-  member: toMutablePayload(member.statements),
-  admin: toMutablePayload(admin.statements),
-};
+// Agent roles describe which specialist an AI agent claims to be when it
+// picks up tasks. They are orthogonal to team roles: an agent role only
+// narrows which tasks an agent may claim, it never changes team ownership.
+// `coding` is the default so pre-existing agents keep claiming generic work.
+export type AgentRole =
+  | "coding" // 代码开发
+  | "product-design" // 产品设计
+  | "architecture-design" // 架构设计
+  | "devops" // 运维管理
+  | "ui-design" // 界面设计
+  | "testing" // 测试
+  | "code-review"; // 代码评审
+
+export const AGENT_ROLES: readonly AgentRole[] = [
+  "coding",
+  "product-design",
+  "architecture-design",
+  "devops",
+  "ui-design",
+  "testing",
+  "code-review",
+] as const;
+
+export const DEFAULT_AGENT_ROLE: AgentRole = "coding";
+
+export function isAgentRole(value: unknown): value is AgentRole {
+  return (
+    typeof value === "string" &&
+    (AGENT_ROLES as readonly string[]).includes(value)
+  );
+}
+
+// `human` is a marker for the `required_role` column. It is NOT an agent role
+// and MUST NOT be assignable as `metadata.agentRole` on an API key. The value
+// exists so that a task can be reserved for a human team member to claim
+// manually, instead of being picked up by an agent.
+export const HUMAN_REQUIRED_ROLE = "human" as const;
+export type HumanRequiredRole = typeof HUMAN_REQUIRED_ROLE;
+
+/**
+ * The shape of any `requiredRole` value: either one of the seven agent roles,
+ * the `human` marker, or `null` (generic task that any agent may claim).
+ */
+export type TaskRequiredRole = AgentRole | HumanRequiredRole | null;
+
+export function isHumanRequiredRole(
+  value: unknown,
+): value is HumanRequiredRole {
+  return value === HUMAN_REQUIRED_ROLE;
+}

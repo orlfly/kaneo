@@ -2,23 +2,23 @@ import { and, eq, inArray } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db, { schema } from "../database";
 
-const NOT_ASSIGNABLE = "Assignee is not a member of this workspace";
+const NOT_ASSIGNABLE = "Assignee is not a member of this team";
 
 export async function filterAssignableUsers(
   userIds: string[],
-  workspaceId: string,
+  teamId: string,
 ): Promise<Set<string>> {
   if (userIds.length === 0) {
     return new Set();
   }
 
   const memberships = await db
-    .select({ userId: schema.workspaceUserTable.userId })
-    .from(schema.workspaceUserTable)
+    .select({ userId: schema.teamMemberTable.userId })
+    .from(schema.teamMemberTable)
     .where(
       and(
-        inArray(schema.workspaceUserTable.userId, userIds),
-        eq(schema.workspaceUserTable.workspaceId, workspaceId),
+        inArray(schema.teamMemberTable.userId, userIds),
+        eq(schema.teamMemberTable.teamId, teamId),
       ),
     );
 
@@ -48,20 +48,18 @@ export async function filterAssignableUsers(
 
 export async function assertAssignableUser(
   userId: string,
-  workspaceId: string,
+  teamId: string,
 ): Promise<void> {
-  const assignable = await filterAssignableUsers([userId], workspaceId);
+  const assignable = await filterAssignableUsers([userId], teamId);
 
   if (!assignable.has(userId)) {
     throw new HTTPException(403, { message: NOT_ASSIGNABLE });
   }
 }
 
-export async function getProjectWorkspaceId(
-  projectId: string,
-): Promise<string> {
+export async function getProjectTeamId(projectId: string): Promise<string> {
   const [project] = await db
-    .select({ workspaceId: schema.projectTable.workspaceId })
+    .select({ teamId: schema.projectTable.teamId })
     .from(schema.projectTable)
     .where(eq(schema.projectTable.id, projectId))
     .limit(1);
@@ -70,5 +68,5 @@ export async function getProjectWorkspaceId(
     throw new HTTPException(404, { message: "Project not found" });
   }
 
-  return project.workspaceId;
+  return project.teamId;
 }

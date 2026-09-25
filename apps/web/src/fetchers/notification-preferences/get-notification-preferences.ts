@@ -1,12 +1,10 @@
 import { getApiUrl } from "@/fetchers/get-api-url";
 
-import { HttpError } from "@/lib/http-error";
-export type NotificationPreferenceWorkspaceRule = {
+export type NotificationPreferenceTeamRule = {
   id: string;
-  workspaceId: string;
-  workspaceName: string;
+  teamId: string;
+  teamName: string;
   isActive: boolean;
-  emailEnabled: boolean;
   ntfyEnabled: boolean;
   gotifyEnabled: boolean;
   webhookEnabled: boolean;
@@ -17,8 +15,6 @@ export type NotificationPreferenceWorkspaceRule = {
 };
 
 export type NotificationPreferences = {
-  emailAddress: string | null;
-  emailEnabled: boolean;
   ntfyEnabled: boolean;
   ntfyConfigured: boolean;
   ntfyServerUrl: string | null;
@@ -40,7 +36,7 @@ export type NotificationPreferences = {
   taskStatusChangeEnabled: boolean;
   dueDateReminderEnabled: boolean;
   dueDateReminderLeadTimeMinutes: number;
-  workspaces: NotificationPreferenceWorkspaceRule[];
+  teams: NotificationPreferenceTeamRule[];
   createdAt: string | null;
   updatedAt: string | null;
 };
@@ -51,7 +47,8 @@ async function getNotificationPreferences(): Promise<NotificationPreferences> {
   });
 
   if (!response.ok) {
-    throw new HttpError(response.status, await response.text());
+    const error = await response.text();
+    throw new Error(error);
   }
 
   return (await response.json()) as NotificationPreferences;

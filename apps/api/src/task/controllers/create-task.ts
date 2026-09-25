@@ -1,3 +1,4 @@
+import type { AgentRole } from "@kaneo/permissions";
 import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
@@ -11,7 +12,7 @@ import {
 import { publishEvent } from "../../events";
 import {
   assertAssignableUser,
-  getProjectWorkspaceId,
+  getProjectTeamId,
 } from "../../utils/assert-assignable-user";
 import {
   assertRequiredCustomFields,
@@ -19,6 +20,7 @@ import {
 } from "../validate-task-fields";
 import { claimTaskNumber } from "./claim-task-numbers";
 import { nextTaskPosition } from "./next-task-position";
+import { withTaskNumberRetry } from "./with-task-number-retry";
 
 type CustomFieldInput = {
   fieldId: string;
@@ -52,6 +54,8 @@ async function createTask({
   description,
   priority,
   customFields,
+  requiredRole,
+  agentRole,
 }: {
   projectId: string;
   currentUserId: string;
@@ -63,9 +67,14 @@ async function createTask({
   description?: string;
   priority?: string;
   customFields?: CustomFieldInput[];
+  requiredRole?: string | null;
+  agentRole?: AgentRole;
 }) {
   const resolvedStatus = status || "to-do";
   const resolvedPriority = priority || "no-priority";
+  // When an agent creates a task without an explicit requiredRole, default it
+  // to the agent's own role so the same-role agent handles it.
+  const resolvedRequiredRole = requiredRole ?? agentRole ?? null;
   const normalizedCustomFields = deduplicateCustomFields(customFields);
 
   const normalizedUserId = userId?.trim() || undefined;
@@ -101,7 +110,7 @@ async function createTask({
   if (normalizedUserId) {
     await assertAssignableUser(
       normalizedUserId,
-      await getProjectWorkspaceId(projectId),
+      await getProjectTeamId(projectId),
     );
 
     [assignee] = await db
@@ -117,44 +126,59 @@ async function createTask({
     ),
   });
 
-  const createdTask = await db.transaction(async (tx) => {
-    const taskNumber = await claimTaskNumber(projectId, tx);
-    const nextPosition = await nextTaskPosition(
-      tx,
+  const createdTask = await withTaskNumberRetry(
+    () =>
+      db.transaction(async (tx) => {
+        const taskNumber = await claimTaskNumber(projectId, tx);
+        const nextPosition = await nextTaskPosition(
+          tx,
+          projectId,
+          resolvedStatus,
+          column?.id ?? null,
+        );
+
+        const [task] = await tx
+          .insert(taskTable)
+          .values({
+            projectId,
+            userId: normalizedUserId ?? null,
+            title: title || "",
+            status: resolvedStatus,
+            columnId: column?.id ?? null,
+            startDate: startDate || null,
+            dueDate: dueDate || null,
+            description: description || "",
+            priority: resolvedPriority,
+            number: taskNumber,
+            position: nextPosition,
+            requiredRole: resolvedRequiredRole,
+          })
+          .returning();
+
+        if (task && mergedCustomFields.length) {
+          await tx.insert(customFieldValueTable).values(
+            mergedCustomFields.map(({ fieldId, value }) => ({
+              taskId: task.id,
+              fieldId,
+              value: value.trim(),
+            })),
+          );
+        }
+
+        return task;
+      }),
+    {
       projectId,
-      resolvedStatus,
-      column?.id ?? null,
-    );
-
-    const [task] = await tx
-      .insert(taskTable)
-      .values({
-        projectId,
-        userId: normalizedUserId ?? null,
-        title: title || "",
-        status: resolvedStatus,
-        columnId: column?.id ?? null,
-        startDate: startDate || null,
-        dueDate: dueDate || null,
-        description: description || "",
-        priority: resolvedPriority,
-        number: taskNumber,
-        position: nextPosition,
-      })
-      .returning();
-
-    if (task && mergedCustomFields.length) {
-      await tx.insert(customFieldValueTable).values(
-        mergedCustomFields.map(({ fieldId, value }) => ({
-          taskId: task.id,
-          fieldId,
-          value: value.trim(),
-        })),
-      );
-    }
-
-    return task;
-  });
+      onRetry: (attempt) => {
+        if (process.env.NODE_ENV !== "test") {
+          // eslint-disable-next-line no-console
+          console.warn(
+            `[create-task] task_number_retry project=${projectId} attempt=${attempt}`,
+          );
+        }
+      },
+    },
+  );
 
   if (!createdTask) {
     throw new HTTPException(500, {

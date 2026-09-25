@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { format, isValid, parseISO } from "date-fns";
-import { ArrowUpRight, CalendarIcon, X } from "lucide-react";
+import { ArrowUpRight, BotIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Activity from "@/components/activity";
@@ -45,6 +45,7 @@ import { toast } from "@/lib/toast";
 import type { ExternalLink } from "@/types/external-link";
 import TaskDescription from "./task-description";
 import TaskRelations from "./task-relations";
+import TaskRolePopover from "./task-role-popover";
 import TaskSubtasks from "./task-subtasks";
 import TaskTitle from "./task-title";
 
@@ -66,20 +67,20 @@ type CustomFieldDefinition = {
 type TaskDetailsContentProps = {
   taskId: string | undefined;
   projectId: string;
-  workspaceId: string;
+  teamId: string;
   className?: string;
 };
 
 export default function TaskDetailsContent({
   taskId,
   projectId,
-  workspaceId,
+  teamId,
   className,
 }: TaskDetailsContentProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { data: task } = useGetTask(taskId ?? "");
-  const { data: project } = useGetProject({ id: projectId, workspaceId });
+  const { data: project } = useGetProject({ id: projectId, teamId });
   const { data: activities = [] } = useGetActivitiesByTaskId(taskId ?? "");
   const { data: externalLinks = [], isLoading: isLoadingExternalLinks } =
     useExternalLinks(taskId ?? "");
@@ -161,9 +162,9 @@ export default function TaskDetailsContent({
             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors w-fit"
             onClick={() =>
               navigate({
-                to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+                to: "/dashboard/team/$teamId/project/$projectId/task/$taskId",
                 params: {
-                  workspaceId,
+                  teamId,
                   projectId,
                   taskId: parentTask.id,
                 },
@@ -183,6 +184,25 @@ export default function TaskDetailsContent({
         </p>
 
         <TaskTitle taskId={taskId} />
+        {task && (
+          <TaskRolePopover task={task}>
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 rounded border border-border/70 bg-muted/55 px-2 py-1 text-[10px] font-medium text-muted-foreground hover:bg-accent/50 transition-colors w-fit"
+            >
+              <BotIcon className="w-3 h-3" />
+              <span>
+                {task.requiredRole
+                  ? t(`tasks:agentRoles.${task.requiredRole}.name`, {
+                      defaultValue: task.requiredRole,
+                    })
+                  : t("common:modals.createTask.agentRoleGeneric", {
+                      defaultValue: "Any agent",
+                    })}
+              </span>
+            </button>
+          </TaskRolePopover>
+        )}
         <TaskDescription taskId={taskId} />
       </div>
 
@@ -430,18 +450,14 @@ export default function TaskDetailsContent({
           <TaskSubtasks
             taskId={taskId}
             projectId={projectId}
-            workspaceId={workspaceId}
+            teamId={teamId}
             parentStatus={task.status}
           />
         )}
       </div>
 
       <div className="mt-2">
-        <TaskRelations
-          taskId={taskId}
-          projectId={projectId}
-          workspaceId={workspaceId}
-        />
+        <TaskRelations taskId={taskId} projectId={projectId} teamId={teamId} />
       </div>
       <span className="text-sm font-medium text-muted-foreground h-[1px] bg-border w-full block shrink-0" />
       <div className="flex flex-col gap-4">

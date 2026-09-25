@@ -1,6 +1,43 @@
+import { AGENT_ROLES, HUMAN_REQUIRED_ROLE } from "@kaneo/permissions";
 import { z } from "../openapi";
 import { MAX_TASK_POSITION } from "./controllers/next-task-position";
 import { VALID_PRIORITIES } from "./validate-task-fields";
+
+// A `required_role` column accepts either one of the agent roles or the
+// literal "human" marker (reserves the task for a human team member). Omitted
+// means "any agent role may claim". See packages/permissions HUMAN_REQUIRED_ROLE.
+export const requiredRoleSchema = z
+  .union([z.enum(AGENT_ROLES), z.literal(HUMAN_REQUIRED_ROLE)])
+  .nullable()
+  .openapi({
+    description:
+      "Agent role required to claim the task, 'human', or null for any",
+  });
+
+// --- Task-creation quality guards (see openspec improve-task-creation-quality) ---
+
+/** A title is readable when it is not a pure branch name, ticket id, or SHA-like hex. */
+export function titleLooksReadable(title: string): boolean {
+  const t = title.trim();
+  if (t.length < 8) return false;
+  if (/^#?\d+$/.test(t)) return false; // ticket id
+  if (/^[0-9a-f]{7,}$/i.test(t)) return false; // SHA-like
+  if (/^[a-z][\w-]*\/[\w./-]+$/i.test(t)) return false; // branch-like
+  return true;
+}
+
+/** Description must carry an Acceptance Criteria section for reviewers. */
+export function descHasAcceptanceCriteria(description: string): boolean {
+  return /acceptance criteria|验收标准/iu.test(description);
+}
+
+export const humanReadableTitleSchema = z
+  .string()
+  .min(8, "title must be at least 8 characters")
+  .refine(
+    titleLooksReadable,
+    "title must be human-readable (not a branch name, ticket id, or SHA)",
+  );
 
 const pagingNumber = (min: number, max: number) =>
   z
@@ -10,6 +47,21 @@ const pagingNumber = (min: number, max: number) =>
     .pipe(z.number().int().min(min).max(max));
 
 export const taskParam = z.object({ id: z.string() });
+
+export const claimNextBody = z.object({
+  projectId: z.string().optional(),
+  priorities: z.array(z.string()).optional(),
+  requiredRole: requiredRoleSchema.optional(),
+});
+
+export const pauseTaskBody = z.object({ reason: z.string() });
+
+export const claimResultSchema = z.object({
+  taskId: z.string(),
+  title: z.string(),
+  status: z.string(),
+  claimed: z.literal(true),
+});
 
 export const projectIdParam = z.object({ projectId: z.string() });
 
@@ -30,6 +82,14 @@ export const listTasksQuery = z.object({
   sortOrder: z.enum(["asc", "desc"]).optional(),
   dueBefore: z.string().optional(),
   dueAfter: z.string().optional(),
+  unclaimed: z.preprocess((value) => {
+    if (value === "true") return true;
+    if (value === "false" || value === undefined || value === null) {
+      return undefined;
+    }
+    return value;
+  }, z.boolean().optional()),
+  requiredRole: requiredRoleSchema.optional(),
 });
 
 export const bulkUpdateBody = z.object({
@@ -50,13 +110,17 @@ export const bulkUpdateBody = z.object({
 });
 
 export const createTaskBody = z.object({
-  title: z.string(),
+  title: humanReadableTitleSchema,
   description: z.string(),
   startDate: z.string().optional(),
   dueDate: z.string().optional(),
   priority,
   status: z.string().openapi({ description: "The target column's slug." }),
   userId: z.string().optional().openapi({ description: "Assignee, if any." }),
+  requiredRole: requiredRoleSchema.optional().openapi({
+    description:
+      'Agent role needed to claim this task, or the literal "human" marker. Omitted means any agent role may claim.',
+  }),
   customFields: z
     .array(z.object({ fieldId: z.string(), value: z.string() }))
     .optional(),
@@ -75,6 +139,7 @@ export const updateTaskBody = z.object({
   projectId: z.string(),
   position: z.number().int().min(0).max(MAX_TASK_POSITION),
   userId: z.string().optional(),
+  requiredRole: requiredRoleSchema.optional(),
 });
 
 export const moveTaskBody = z.object({

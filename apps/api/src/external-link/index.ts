@@ -31,27 +31,28 @@ const getExternalLinksByTaskRoute = createRoute({
   },
 });
 
-const externalLink = apiRouter<
-  BaseVariables & { workspaceId: string }
->().openapi(getExternalLinksByTaskRoute, async (c) => {
-  const { taskId } = c.req.valid("param");
+const externalLink = apiRouter<BaseVariables & { teamId: string }>().openapi(
+  getExternalLinksByTaskRoute,
+  async (c) => {
+    const { taskId } = c.req.valid("param");
 
-  const links = await db.query.externalLinkTable.findMany({
-    where: eq(externalLinkTable.taskId, taskId),
-    with: {
-      // Never widen this: integration.config holds plaintext provider
-      // secrets and this route is reachable by any workspace member.
-      integration: { columns: { id: true, type: true } },
-    },
-  });
+    const links = await db.query.externalLinkTable.findMany({
+      where: eq(externalLinkTable.taskId, taskId),
+      with: {
+        // Never widen this: integration.config holds plaintext provider
+        // secrets and this route is reachable by any workspace member.
+        integration: { columns: { id: true, type: true } },
+      },
+    });
 
-  return c.json(
-    links.map((link) => ({
-      ...link,
-      metadata: link.metadata ? JSON.parse(link.metadata) : null,
-    })),
-    200,
-  );
-});
+    return c.json(
+      links.map((link) => ({
+        ...link,
+        metadata: link.metadata ? JSON.parse(link.metadata) : null,
+      })),
+      200,
+    );
+  },
+);
 
 export default externalLink;

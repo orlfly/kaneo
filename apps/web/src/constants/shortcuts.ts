@@ -6,7 +6,7 @@ export const shortcuts = {
     create: "c",
     list: "l",
   },
-  workspace: {
+  team: {
     prefix: "w",
     switch: "s",
     create: "c",

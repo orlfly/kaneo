@@ -10,10 +10,7 @@ import { broadcastToUser } from "../../apps/api/src/ws";
 import { handleWebSocketMessage } from "../../apps/api/src/ws/security";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 // Use the actual client from node-ws's installed dependency, without adding a
 // production dependency or connecting to any remote server.
@@ -63,10 +60,10 @@ beforeEach(async () => {
   await resetTestDatabase();
   vi.clearAllMocks();
   vi.stubEnv("CORS_ORIGINS", "https://extra.example.test");
-  const member = await createWorkspaceMember();
+  const member = await createTeamMember();
   userId = member.user.id;
   const { project } = await createProjectFixture({
-    workspaceId: member.workspace.id,
+    teamId: member.team.id,
   });
   projectId = project.id;
   const sessionMock = mockAuthenticatedSession(member.user);
@@ -203,9 +200,9 @@ it("preserves user event delivery after keepalive", async () => {
 });
 
 it("still rejects access to a foreign project with a valid Origin", async () => {
-  const foreign = await createWorkspaceMember();
+  const foreign = await createTeamMember();
   const { project } = await createProjectFixture({
-    workspaceId: foreign.workspace.id,
+    teamId: foreign.team.id,
   });
   expect(
     (

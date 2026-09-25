@@ -5,13 +5,10 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
-async function seedTaskFor(workspaceId: string) {
-  const { project, columns } = await createProjectFixture({ workspaceId });
+async function seedTaskFor(teamId: string) {
+  const { project, columns } = await createProjectFixture({ teamId });
   const [task] = await db
     .insert(schema.taskTable)
     .values({
@@ -51,7 +48,7 @@ beforeEach(async () => {
 
 describe("time entry duration", () => {
   it("records elapsed seconds when the entry is created already closed", async () => {
-    const { user, workspace } = await createWorkspaceMember({ role: "owner" });
+    const { user, team: workspace } = await createTeamMember({ role: "owner" });
     const task = await seedTaskFor(workspace.id);
 
     mockAuthenticatedSession(user);
@@ -76,7 +73,7 @@ describe("time entry duration", () => {
   });
 
   it("leaves duration unset while the entry is still running", async () => {
-    const { user, workspace } = await createWorkspaceMember({ role: "owner" });
+    const { user, team: workspace } = await createTeamMember({ role: "owner" });
     const task = await seedTaskFor(workspace.id);
 
     mockAuthenticatedSession(user);
@@ -99,7 +96,7 @@ describe("time entry duration", () => {
 
 describe("global search", () => {
   it("rejects a search with no workspace", async () => {
-    const { user } = await createWorkspaceMember({ role: "owner" });
+    const { user } = await createTeamMember({ role: "owner" });
 
     mockAuthenticatedSession(user);
     const { app } = createApp();
@@ -112,7 +109,7 @@ describe("global search", () => {
 
 describe("time entry duration backfill", () => {
   it("recomputes closed entries that were written with zero", async () => {
-    const { user, workspace } = await createWorkspaceMember({ role: "owner" });
+    const { user, team: workspace } = await createTeamMember({ role: "owner" });
     const task = await seedTaskFor(workspace.id);
 
     const [entry] = await db
@@ -138,7 +135,7 @@ describe("time entry duration backfill", () => {
   });
 
   it("clears the zero duration on entries that are still running", async () => {
-    const { user, workspace } = await createWorkspaceMember({ role: "owner" });
+    const { user, team: workspace } = await createTeamMember({ role: "owner" });
     const task = await seedTaskFor(workspace.id);
 
     const [entry] = await db
@@ -164,7 +161,7 @@ describe("time entry duration backfill", () => {
   });
 
   it("leaves an already correct entry alone", async () => {
-    const { user, workspace } = await createWorkspaceMember({ role: "owner" });
+    const { user, team: workspace } = await createTeamMember({ role: "owner" });
     const task = await seedTaskFor(workspace.id);
 
     const [entry] = await db
@@ -192,7 +189,7 @@ describe("time entry duration backfill", () => {
 
 describe("time entry validation", () => {
   it("rejects an end time before the start time", async () => {
-    const { user, workspace } = await createWorkspaceMember({ role: "owner" });
+    const { user, team: workspace } = await createTeamMember({ role: "owner" });
     const task = await seedTaskFor(workspace.id);
 
     mockAuthenticatedSession(user);
@@ -214,7 +211,7 @@ describe("time entry validation", () => {
 
 describe("time entry timestamp validation", () => {
   it("rejects an unparseable start time", async () => {
-    const { user, workspace } = await createWorkspaceMember({ role: "owner" });
+    const { user, team: workspace } = await createTeamMember({ role: "owner" });
     const task = await seedTaskFor(workspace.id);
 
     mockAuthenticatedSession(user);
@@ -230,7 +227,7 @@ describe("time entry timestamp validation", () => {
   });
 
   it("rejects a calendar-invalid date instead of rolling it forward", async () => {
-    const { user, workspace } = await createWorkspaceMember({ role: "owner" });
+    const { user, team: workspace } = await createTeamMember({ role: "owner" });
     const task = await seedTaskFor(workspace.id);
 
     mockAuthenticatedSession(user);
@@ -249,7 +246,7 @@ describe("time entry timestamp validation", () => {
   });
 
   it("rejects a non-ISO date format", async () => {
-    const { user, workspace } = await createWorkspaceMember({ role: "owner" });
+    const { user, team: workspace } = await createTeamMember({ role: "owner" });
     const task = await seedTaskFor(workspace.id);
 
     mockAuthenticatedSession(user);
@@ -265,7 +262,7 @@ describe("time entry timestamp validation", () => {
   });
 
   it("rejects an unparseable end time", async () => {
-    const { user, workspace } = await createWorkspaceMember({ role: "owner" });
+    const { user, team: workspace } = await createTeamMember({ role: "owner" });
     const task = await seedTaskFor(workspace.id);
 
     mockAuthenticatedSession(user);
@@ -287,7 +284,7 @@ describe("time entry timestamp validation", () => {
 
 describe("time entry duration limits", () => {
   it("rejects a span that would overflow the duration column", async () => {
-    const { user, workspace } = await createWorkspaceMember({ role: "owner" });
+    const { user, team: workspace } = await createTeamMember({ role: "owner" });
     const task = await seedTaskFor(workspace.id);
 
     mockAuthenticatedSession(user);
@@ -309,7 +306,7 @@ describe("time entry duration limits", () => {
 
 describe("backfill tolerates legacy rows the API would now reject", () => {
   it("leaves an oversized legacy span alone rather than failing the migration", async () => {
-    const { user, workspace } = await createWorkspaceMember({ role: "owner" });
+    const { user, team: workspace } = await createTeamMember({ role: "owner" });
     const task = await seedTaskFor(workspace.id);
 
     const [entry] = await db
@@ -337,7 +334,7 @@ describe("backfill tolerates legacy rows the API would now reject", () => {
 
 describe("backfill repairs every invalid legacy state", () => {
   it("sets a zero-length closed entry to 0 rather than leaving it null", async () => {
-    const { user, workspace } = await createWorkspaceMember({ role: "owner" });
+    const { user, team: workspace } = await createTeamMember({ role: "owner" });
     const task = await seedTaskFor(workspace.id);
     const at = new Date("2026-01-01T09:00:00.000Z");
 
@@ -364,7 +361,7 @@ describe("backfill repairs every invalid legacy state", () => {
   });
 
   it("clears a non-zero duration on an entry that is still running", async () => {
-    const { user, workspace } = await createWorkspaceMember({ role: "owner" });
+    const { user, team: workspace } = await createTeamMember({ role: "owner" });
     const task = await seedTaskFor(workspace.id);
 
     const [entry] = await db

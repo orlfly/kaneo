@@ -7,10 +7,7 @@ import { initialImportState } from "../../apps/api/src/github-integration/import
 import { createApp } from "../../apps/api/src/index";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 const { verify } = vi.hoisted(() => ({ verify: vi.fn() }));
 vi.mock(
@@ -22,9 +19,9 @@ beforeEach(async () => {
   verify.mockReset();
 });
 async function setup() {
-  const member = await createWorkspaceMember({ role: "admin" });
+  const member = await createTeamMember({ role: "admin" });
   const { project } = await createProjectFixture({
-    workspaceId: member.workspace.id,
+    teamId: member.team.id,
   });
   const config = {
     repositoryOwner: "owner",

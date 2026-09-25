@@ -4,10 +4,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { formatIssueBody } from "../../apps/api/src/plugins/github/utils/format";
 import { handleIssueEdited } from "../../apps/api/src/plugins/github/webhooks/issue-edited";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 const m = vi.hoisted(() => ({
   find: vi.fn(),
@@ -27,8 +24,10 @@ beforeEach(async () => {
 });
 
 async function setup() {
-  const { workspace } = await createWorkspaceMember();
-  const { project } = await createProjectFixture({ workspaceId: workspace.id });
+  const { team: workspace } = await createTeamMember();
+  const { project } = await createProjectFixture({
+    teamId: workspace.id,
+  });
   const [task] = await db
     .insert(schema.taskTable)
     .values({

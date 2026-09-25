@@ -6,11 +6,17 @@ import { publishEvent } from "../../events";
 import { deleteOrphanedAssets } from "../../storage/cleanup-assets";
 import {
   assertAssignableUser,
-  getProjectWorkspaceId,
+  getProjectTeamId,
 } from "../../utils/assert-assignable-user";
 import { boardDescription, descriptionDeferred } from "../description-pages";
 import { assertValidTaskStatus } from "../validate-task-fields";
 import { assertTaskPosition } from "./next-task-position";
+
+// Once a task is actively being worked on or under review, the role contract
+// with the current worker is fixed: changing requiredRole at that stage would
+// silently invalidate the claim and confuse integrations that rely on the
+// role (e.g. claim-next filters). Only to-do tasks remain editable.
+const LOCKED_STATUSES = new Set(["in-progress", "in-review"]);
 
 async function updateTask(
   id: string,
@@ -24,6 +30,7 @@ async function updateTask(
   position: number,
   userId?: string,
   currentUserId?: string,
+  requiredRole?: string | null,
 ) {
   assertTaskPosition(position);
 
@@ -34,6 +41,7 @@ async function updateTask(
         description === undefined ? sql<null>`null` : taskTable.description,
       status: taskTable.status,
       projectId: taskTable.projectId,
+      requiredRole: taskTable.requiredRole,
     })
     .from(taskTable)
     .where(eq(taskTable.id, id))
@@ -53,13 +61,17 @@ async function updateTask(
 
   await assertValidTaskStatus(status, projectId);
 
-  const normalizedUserId = userId?.trim() || undefined;
-
-  if (normalizedUserId) {
-    await assertAssignableUser(
-      normalizedUserId,
-      await getProjectWorkspaceId(projectId),
-    );
+  // Reject requiredRole changes once the task is locked to an active worker.
+  // requiredRole is the only field on which the worker contract depends at
+  // runtime, so we allow the status/assignee/priority to keep moving while
+  // the role remains pinned.
+  const nextRequiredRole = requiredRole ?? null;
+  const roleChanged = nextRequiredRole !== existingTask.requiredRole;
+  if (roleChanged && LOCKED_STATUSES.has(existingTask.status)) {
+    throw new HTTPException(409, {
+      message:
+        "Cannot change requiredRole while the task is in-progress or in-review",
+    });
   }
 
   const column = await db.query.columnTable.findFirst({
@@ -68,6 +80,16 @@ async function updateTask(
       eq(columnTable.slug, status),
     ),
   });
+
+  // Upstream security hardening: the generic update endpoint must not
+  // bypass the assignee membership check used by the dedicated endpoint.
+  const normalizedUserId = userId?.trim() || undefined;
+  if (normalizedUserId) {
+    await assertAssignableUser(
+      normalizedUserId,
+      await getProjectTeamId(projectId),
+    );
+  }
 
   const [updatedTask] = await db
     .update(taskTable)
@@ -81,7 +103,8 @@ async function updateTask(
       description,
       priority,
       position,
-      userId: normalizedUserId ?? null,
+      userId: userId || null,
+      requiredRole: requiredRole ?? null,
     })
     .where(eq(taskTable.id, id))
     .returning({

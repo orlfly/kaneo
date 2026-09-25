@@ -4,10 +4,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 describe("API integration: task comments", () => {
   beforeEach(async () => {
@@ -15,9 +12,9 @@ describe("API integration: task comments", () => {
   });
 
   it("shares comments between the activity UI and comment API", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const [task] = await db
       .insert(schema.taskTable)
@@ -35,12 +32,10 @@ describe("API integration: task comments", () => {
     mockAuthenticatedSession(member.user);
     const { app } = createApp();
 
-    const formattedComment =
-      "First paragraph\n\n\n\n- List item\n\n\n\nAfter list";
     const uiResponse = await app.request("/api/activity/comment", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ taskId: task.id, comment: formattedComment }),
+      body: JSON.stringify({ taskId: task.id, comment: "Created in the UI" }),
     });
     expect(uiResponse.status).toBe(200);
 
@@ -48,7 +43,7 @@ describe("API integration: task comments", () => {
     expect(commentApiResponse.status).toBe(200);
     await expect(commentApiResponse.json()).resolves.toEqual([
       expect.objectContaining({
-        content: formattedComment,
+        content: "Created in the UI",
         taskId: task.id,
       }),
     ]);
@@ -69,7 +64,7 @@ describe("API integration: task comments", () => {
     expect(activities).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          content: formattedComment,
+          content: "Created in the UI",
           type: "comment",
         }),
         expect.objectContaining({
@@ -97,131 +92,10 @@ describe("API integration: task comments", () => {
     expect(legacyComments).toHaveLength(0);
   });
 
-  it.each([
-    { length: 10_000, status: 200 },
-    { length: 10_001, status: 400 },
-  ])(
-    "returns $status when creating a $length-character comment",
-    async ({ length, status }) => {
-      const member = await createWorkspaceMember();
-      const { project, columns } = await createProjectFixture({
-        workspaceId: member.workspace.id,
-      });
-      const [task] = await db
-        .insert(schema.taskTable)
-        .values({
-          projectId: project.id,
-          title: "Comment length limit",
-          status: "to-do",
-          columnId: columns.todo.id,
-          priority: "medium",
-          number: 1,
-          position: 1,
-        })
-        .returning();
-
-      mockAuthenticatedSession(member.user);
-      const { app } = createApp();
-
-      const comment = "x".repeat(length);
-      const response = await app.request("/api/activity/comment", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ taskId: task.id, comment }),
-      });
-
-      expect(response.status).toBe(status);
-    },
-  );
-
-  it.each([
-    { length: 10_000, status: 200 },
-    { length: 10_001, status: 400 },
-  ])(
-    "returns $status when updating a $length-character comment",
-    async ({ length, status }) => {
-      const member = await createWorkspaceMember();
-      const { project, columns } = await createProjectFixture({
-        workspaceId: member.workspace.id,
-      });
-      const [task] = await db
-        .insert(schema.taskTable)
-        .values({
-          projectId: project.id,
-          title: "Comment length limit",
-          status: "to-do",
-          columnId: columns.todo.id,
-          priority: "medium",
-          number: 1,
-          position: 1,
-        })
-        .returning();
-      mockAuthenticatedSession(member.user);
-      const { app } = createApp();
-      const createResponse = await app.request("/api/activity/comment", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ taskId: task.id, comment: "Short comment" }),
-      });
-      expect(createResponse.status).toBe(200);
-      const createdComment = (await createResponse.json()) as { id: string };
-      const comment = "x".repeat(length);
-
-      const response = await app.request("/api/activity/comment", {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          activityId: createdComment.id,
-          comment,
-        }),
-      });
-
-      expect(response.status).toBe(status);
-    },
-  );
-
-  it("rejects comments through the generic activity endpoint", async () => {
-    const member = await createWorkspaceMember();
+  it("records an external author for an authorized team owner", async () => {
+    const member = await createTeamMember({ role: "owner" });
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
-    });
-    const [task] = await db
-      .insert(schema.taskTable)
-      .values({
-        projectId: project.id,
-        title: "Generic comment activity",
-        status: "to-do",
-        columnId: columns.todo.id,
-        priority: "medium",
-        number: 1,
-        position: 1,
-      })
-      .returning();
-    mockAuthenticatedSession(member.user);
-    const { app } = createApp();
-
-    const response = await app.request("/api/activity/create", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        taskId: task.id,
-        userId: member.user.id,
-        message: "Comment through generic endpoint",
-        type: "comment",
-      }),
-    });
-
-    expect(response.status).toBe(400);
-    expect(response.headers.get("content-type")).toContain("application/json");
-    expect(await response.json()).toEqual({
-      message: "Use the comment endpoint to create comments",
-    });
-  });
-
-  it("records an external author for an authorized workspace administrator", async () => {
-    const member = await createWorkspaceMember({ role: "admin" });
-    const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const [task] = await db
       .insert(schema.taskTable)
@@ -259,9 +133,9 @@ describe("API integration: task comments", () => {
   });
 
   it("ignores an external name with no source, so it cannot look like a real user", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const [task] = await db
       .insert(schema.taskTable)
@@ -293,9 +167,9 @@ describe("API integration: task comments", () => {
   });
 
   it("rejects an unknown external source", async () => {
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     const [task] = await db
       .insert(schema.taskTable)

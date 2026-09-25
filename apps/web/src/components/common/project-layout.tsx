@@ -1,15 +1,14 @@
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import {
   CalendarDays,
-  CalendarRange,
+  MessageCircle,
   SquareKanban,
   SquircleDashed,
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
-import { useTranslation } from "react-i18next";
 import MobileProjectNav from "@/components/common/header/mobile-project-nav";
 import ProjectCrumbSelect from "@/components/common/header/project-crumb-select";
-import WorkspaceCrumbSelect from "@/components/common/header/workspace-crumb-select";
+import TeamCrumbSelect from "@/components/common/header/team-crumb-select";
 import Layout from "@/components/common/layout";
 import CreateProjectModal from "@/components/shared/modals/create-project-modal";
 import { Button } from "@/components/ui/button";
@@ -28,25 +27,24 @@ import { cn } from "@/lib/cn";
 
 type ProjectLayoutProps = {
   projectId: string;
-  workspaceId: string;
+  teamId: string;
   headerActions?: ReactNode;
   children: ReactNode;
   showViewSwitcher?: boolean;
-  activeView?: "backlog" | "board" | "calendar" | "gantt";
+  activeView?: "backlog" | "board" | "gantt" | "chat";
 };
 
 export default function ProjectLayout({
   projectId,
-  workspaceId,
+  teamId,
   headerActions,
   children,
   showViewSwitcher = true,
   activeView,
 }: ProjectLayoutProps) {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: project } = useGetProject({ id: projectId, workspaceId });
+  const { data: project } = useGetProject({ id: projectId, teamId });
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] =
     useState(false);
 
@@ -56,37 +54,37 @@ export default function ProjectLayout({
     activeView ??
     (location.pathname.includes("/backlog")
       ? "backlog"
-      : location.pathname.includes("/calendar")
-        ? "calendar"
-        : location.pathname.includes("/gantt")
-          ? "gantt"
+      : location.pathname.includes("/gantt")
+        ? "gantt"
+        : location.pathname.includes("/chat")
+          ? "chat"
           : "board");
 
   const handleNavigateToBacklog = () => {
     navigate({
-      to: "/dashboard/workspace/$workspaceId/project/$projectId/backlog",
-      params: { workspaceId, projectId },
+      to: "/dashboard/team/$teamId/project/$projectId/backlog",
+      params: { teamId, projectId },
     });
   };
 
   const handleNavigateToBoard = () => {
     navigate({
-      to: "/dashboard/workspace/$workspaceId/project/$projectId/board",
-      params: { workspaceId, projectId },
-    });
-  };
-
-  const handleNavigateToCalendar = () => {
-    navigate({
-      to: "/dashboard/workspace/$workspaceId/project/$projectId/calendar",
-      params: { workspaceId, projectId },
+      to: "/dashboard/team/$teamId/project/$projectId/board",
+      params: { teamId, projectId },
     });
   };
 
   const handleNavigateToGantt = () => {
     navigate({
-      to: "/dashboard/workspace/$workspaceId/project/$projectId/gantt",
-      params: { workspaceId, projectId },
+      to: "/dashboard/team/$teamId/project/$projectId/gantt",
+      params: { teamId, projectId },
+    });
+  };
+
+  const handleNavigateToChat = () => {
+    navigate({
+      to: "/dashboard/team/$teamId/project/$projectId/chat",
+      params: { teamId, projectId },
     });
   };
 
@@ -94,14 +92,14 @@ export default function ProjectLayout({
     navigate({
       to:
         resolvedView === "backlog"
-          ? "/dashboard/workspace/$workspaceId/project/$projectId/backlog"
-          : resolvedView === "calendar"
-            ? "/dashboard/workspace/$workspaceId/project/$projectId/calendar"
-            : resolvedView === "gantt"
-              ? "/dashboard/workspace/$workspaceId/project/$projectId/gantt"
-              : "/dashboard/workspace/$workspaceId/project/$projectId/board",
+          ? "/dashboard/team/$teamId/project/$projectId/backlog"
+          : resolvedView === "gantt"
+            ? "/dashboard/team/$teamId/project/$projectId/gantt"
+            : resolvedView === "chat"
+              ? "/dashboard/team/$teamId/project/$projectId/chat"
+              : "/dashboard/team/$teamId/project/$projectId/board",
       params: {
-        workspaceId,
+        teamId,
         projectId: nextProjectId,
       },
     });
@@ -134,10 +132,10 @@ export default function ProjectLayout({
             <div className="h-4 w-px shrink-0 bg-border/80" />
 
             <div className="hidden min-w-0 items-center gap-1 md:flex">
-              <WorkspaceCrumbSelect />
+              <TeamCrumbSelect />
               <span className="text-foreground/30 text-xs">/</span>
               <ProjectCrumbSelect
-                workspaceId={workspaceId}
+                teamId={teamId}
                 projectId={projectId}
                 projectName={project?.name}
                 onSelectProject={handleProjectSwitch}
@@ -147,13 +145,13 @@ export default function ProjectLayout({
 
             <div className="md:hidden">
               <MobileProjectNav
-                workspaceId={workspaceId}
+                teamId={teamId}
                 projectId={projectId}
                 activeView={resolvedView}
                 onSelectBacklog={handleNavigateToBacklog}
                 onSelectBoard={handleNavigateToBoard}
-                onSelectCalendar={handleNavigateToCalendar}
                 onSelectGantt={handleNavigateToGantt}
+                onSelectChat={handleNavigateToChat}
                 onSelectProject={handleProjectSwitch}
                 onAddProject={() => setIsCreateProjectModalOpen(true)}
               />
@@ -183,19 +181,7 @@ export default function ProjectLayout({
                   )}
                 >
                   <SquareKanban className="size-3.5" />
-                  {t("tasks:title")}
-                </Button>
-                <Button
-                  variant={resolvedView === "calendar" ? "secondary" : "ghost"}
-                  size="xs"
-                  onClick={handleNavigateToCalendar}
-                  className={cn(
-                    "h-6 gap-1.5 rounded-md px-2 text-xs",
-                    resolvedView !== "calendar" && "text-muted-foreground",
-                  )}
-                >
-                  <CalendarRange className="size-3.5" />
-                  {t("tasks:calendar.title")}
+                  Tasks
                 </Button>
                 <Button
                   variant={resolvedView === "gantt" ? "secondary" : "ghost"}
@@ -208,6 +194,18 @@ export default function ProjectLayout({
                 >
                   <CalendarDays className="size-3.5" />
                   Gantt
+                </Button>
+                <Button
+                  variant={resolvedView === "chat" ? "secondary" : "ghost"}
+                  size="xs"
+                  onClick={handleNavigateToChat}
+                  className={cn(
+                    "h-6 gap-1.5 rounded-md px-2 text-xs",
+                    resolvedView !== "chat" && "text-muted-foreground",
+                  )}
+                >
+                  <MessageCircle className="size-3.5" />
+                  Chat
                 </Button>
               </div>
             )}

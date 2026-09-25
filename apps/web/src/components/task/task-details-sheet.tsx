@@ -19,14 +19,14 @@ import TaskPropertiesSidebar from "./task-properties-sidebar";
 type TaskDetailsSheetProps = {
   taskId: string | undefined;
   projectId: string;
-  workspaceId: string;
+  teamId: string;
   onClose: () => void;
 };
 
 export default function TaskDetailsSheet({
   taskId,
   projectId,
-  workspaceId,
+  teamId,
   onClose,
 }: TaskDetailsSheetProps) {
   const { t } = useTranslation();
@@ -36,7 +36,7 @@ export default function TaskDetailsSheet({
   );
 
   const { data: task } = useGetTask(currentTaskId ?? "");
-  const { data: project } = useGetProject({ id: projectId, workspaceId });
+  const { data: project } = useGetProject({ id: projectId, teamId });
 
   useEffect(() => {
     if (taskId) {
@@ -54,14 +54,14 @@ export default function TaskDetailsSheet({
   const handleOpenFullPage = useCallback(() => {
     if (!currentTaskId) return;
     navigate({
-      to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+      to: "/dashboard/team/$teamId/project/$projectId/task/$taskId",
       params: {
-        workspaceId,
+        teamId,
         projectId,
         taskId: currentTaskId,
       },
     });
-  }, [navigate, workspaceId, projectId, currentTaskId]);
+  }, [navigate, teamId, projectId, currentTaskId]);
 
   return (
     <Sheet open={!!taskId} onOpenChange={(open) => !open && onClose()}>
@@ -114,7 +114,7 @@ export default function TaskDetailsSheet({
           <TaskPropertiesSidebar
             taskId={currentTaskId}
             projectId={projectId}
-            workspaceId={workspaceId}
+            teamId={teamId}
             className="w-full bg-sidebar border-b border-border flex flex-col gap-0 overflow-y-auto shrink-0"
             compact={true}
           />
@@ -124,7 +124,7 @@ export default function TaskDetailsSheet({
               <TaskDetailsContent
                 taskId={currentTaskId}
                 projectId={projectId}
-                workspaceId={workspaceId}
+                teamId={teamId}
                 className="flex flex-col gap-3"
               />
             </div>

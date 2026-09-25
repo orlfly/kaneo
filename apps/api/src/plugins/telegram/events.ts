@@ -4,8 +4,8 @@ import db from "../../database";
 import {
   projectTable,
   taskTable,
+  teamTable,
   userTable,
-  workspaceTable,
 } from "../../database/schema";
 import { safeOutboundError } from "../../utils/outbound-request";
 import type {
@@ -68,7 +68,7 @@ function getSafeTelegramTargetIdentifier(config: TelegramConfig): string {
 
 function getTaskUrl(
   clientUrl: string | undefined,
-  workspaceId: string,
+  teamId: string,
   projectId: string,
   taskId: string,
 ): string | null {
@@ -79,7 +79,7 @@ function getTaskUrl(
 
   try {
     return new URL(
-      `/dashboard/workspace/${workspaceId}/project/${projectId}/task/${taskId}`,
+      `/dashboard/team/${teamId}/project/${projectId}/task/${taskId}`,
       normalizedClientUrl,
     ).toString();
   } catch {
@@ -100,11 +100,11 @@ async function getTelegramEventData(
       priority: taskTable.priority,
       projectName: projectTable.name,
       projectId: projectTable.id,
-      workspaceId: workspaceTable.id,
+      teamId: teamTable.id,
     })
     .from(taskTable)
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-    .innerJoin(workspaceTable, eq(projectTable.workspaceId, workspaceTable.id))
+    .innerJoin(teamTable, eq(projectTable.teamId, teamTable.id))
     .where(and(eq(taskTable.id, taskId), eq(projectTable.id, projectId)))
     .limit(1);
 
@@ -128,7 +128,7 @@ async function getTelegramEventData(
     projectName: taskRow.projectName,
     taskUrl: getTaskUrl(
       process.env.KANEO_CLIENT_URL,
-      taskRow.workspaceId,
+      taskRow.teamId,
       taskRow.projectId,
       taskId,
     ),

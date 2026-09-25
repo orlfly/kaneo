@@ -22,7 +22,7 @@ async function seedMcpOauthStateRow(): Promise<string> {
 
 async function seedTaskReminderSentRow(): Promise<string> {
   const userId = `user-${randomUUID()}`;
-  const workspaceId = `workspace-${randomUUID()}`;
+  const teamId = `team-${randomUUID()}`;
   const projectId = `project-${randomUUID()}`;
   const columnId = `column-${randomUUID()}`;
   const taskId = `task-${randomUUID()}`;
@@ -34,21 +34,21 @@ async function seedTaskReminderSentRow(): Promise<string> {
     emailVerified: true,
     name: "Reminder Test User",
   });
-  await db.insert(schema.workspaceTable).values({
-    id: workspaceId,
+  await db.insert(schema.teamTable).values({
+    id: teamId,
     createdAt: new Date(),
-    name: "Reminder Workspace",
-    slug: `workspace-${randomUUID()}`,
+    name: "Reminder Team",
+    slug: `team-${randomUUID()}`,
   });
-  await db.insert(schema.workspaceUserTable).values({
-    workspaceId,
+  await db.insert(schema.teamMemberTable).values({
+    teamId,
     userId,
     role: "admin",
     joinedAt: new Date(),
   });
   await db.insert(schema.projectTable).values({
     id: projectId,
-    workspaceId,
+    teamId,
     name: "Reminder Project",
     icon: "Folder",
     slug: `project-${randomUUID()}`,

@@ -49,7 +49,7 @@ describe("useTaskFiltersWithLabelsSupport", () => {
       isPublic: false,
       createdAt: "2026-04-16T00:00:00.000Z",
       updatedAt: "2026-04-16T00:00:00.000Z",
-      workspaceId: "workspace-1",
+      teamId: "workspace-1",
       columns: [
         {
           id: "todo",
@@ -108,6 +108,7 @@ describe("useTaskFiltersWithLabelsSupport", () => {
         },
       ],
       plannedTasks: [],
+      pausedTasks: [],
       archivedTasks: [],
     };
 
@@ -140,7 +141,7 @@ describe("useTaskFiltersWithLabelsSupport", () => {
         isPublic: false,
         createdAt: "2026-04-16T00:00:00.000Z",
         updatedAt: "2026-04-16T00:00:00.000Z",
-        workspaceId: "workspace-1",
+        teamId: "workspace-1",
         columns: [
           {
             id: "todo",
@@ -193,6 +194,7 @@ describe("useTaskFiltersWithLabelsSupport", () => {
           },
         ],
         plannedTasks: [],
+        pausedTasks: [],
         archivedTasks: [],
       };
 

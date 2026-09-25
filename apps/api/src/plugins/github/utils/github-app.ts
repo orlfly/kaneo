@@ -111,6 +111,38 @@ export async function getInstallationIdForRepo(
   return installation.id;
 }
 
+/**
+ * Resolve an Octokit client for a stored integration. Prefers a personal
+ * access token when the config carries one (PAT mode, no GitHub App needed);
+ * otherwise falls back to the GitHub App installation flow. Returns null
+ * when neither credential is available so callers can skip silently.
+ */
+export async function getRepoOctokit(
+  config: Pick<
+    GitHubConfig,
+    "repositoryOwner" | "repositoryName" | "installationId" | "accessToken"
+  >,
+): Promise<Octokit | null> {
+  const token = config.accessToken?.trim();
+  if (token) {
+    return new Octokit({ auth: token });
+  }
+
+  const app = getGithubApp();
+  if (!app) {
+    return null;
+  }
+
+  let installationId = config.installationId;
+  if (!installationId) {
+    installationId = await getInstallationIdForRepo(
+      config.repositoryOwner,
+      config.repositoryName,
+    );
+  }
+  return app.getInstallationOctokit(installationId);
+}
+
 /** Prevent name reuse or transfer from redirecting writes to a different repository. */
 export async function getVerifiedInstallationOctokit(
   config: GitHubConfig,

@@ -1,7 +1,6 @@
 import { eq } from "drizzle-orm";
 import type { Context, Next } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { requireEntitlement } from "../../billing/require-entitlement-middleware";
 import db from "../../database";
 import { taskTable } from "../../database/schema";
 import { requireWorkspacePermission } from "../../utils/require-workspace-permission";
@@ -66,17 +65,10 @@ export async function requireBulkTaskPermission(c: Context, next: Next) {
 }
 
 export async function requireBulkTaskEntitlement(c: Context, next: Next) {
-  const operation = await bulkOperation(c);
-
-  if (
-    operation === "delete" ||
-    operation === "addLabel" ||
-    operation === "removeLabel"
-  ) {
-    return next();
-  }
-
-  return requireEntitlement(c, next);
+  // Billing was removed alongside the workspace concept. Operations that used
+  // to gate on entitlement now pass through without re-checking.
+  void c;
+  return next();
 }
 
 export async function requireTaskAssigneePermission(c: Context, next: Next) {

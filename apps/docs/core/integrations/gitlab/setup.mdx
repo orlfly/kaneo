@@ -1,0 +1,57 @@
+---
+title: GitLab Setup
+description: Connect Kaneo to a GitLab project (issues, merge requests, webhooks).
+---
+
+## Overview
+
+The GitLab integration links a Kaneo project to a project on your GitLab instance (gitlab.com or self-hosted). Tasks sync with issues, and webhooks keep Kaneo updated when issues, merge requests, or pushes change.
+
+You need:
+
+- **GitLab base URL**: e.g. `https://gitlab.com` or `https://git.example.com`.
+- **Personal access token** with the `api` scope (read/write issues and project contents) for the target project.
+- **Project namespace and name**: same as the project path shown in the GitLab UI (e.g. `acme/my-app`, or `group/subgroup/my-app` for nested groups).
+
+## Personal access token
+
+1. In GitLab, open **User Settings → Access Tokens** (or **Profile → Access Tokens**).
+2. Create a token with the **`api`** scope. The `api` scope covers reading and writing issues, notes, labels, and merge requests.
+3. Set an expiry as required by your policy, copy the token, and store it securely. Paste it into Kaneo's GitLab integration settings. Kaneo only sends the token to your GitLab instance and shows a masked version in the UI.
+
+## Webhook in GitLab
+
+Kaneo verifies incoming webhooks with a **secret token** stored per integration. GitLab sends this token verbatim in the `X-Gitlab-Token` header (GitLab does not sign webhook payloads).
+
+### Where to create the webhook in GitLab
+
+1. Log in to GitLab and **open the same project** you linked in Kaneo.
+2. Open **Project Settings → Webhooks**.
+3. You need at least **Maintainer** access to the project to add webhooks.
+
+**Direct URL pattern** (replace host, namespace, and project):
+
+`https://<your-gitlab-host>/<namespace>/<project>/-/settings/webhooks`
+
+Example: `https://gitlab.com/acme/my-app/-/settings/webhooks`
+
+### Configure the webhook
+
+1. Connect the project in Kaneo **Project → Integrations → GitLab** and save.
+2. Copy the **Webhook URL** and **Secret** shown in Kaneo (after saving).
+3. In GitLab: **Webhooks → Add new webhook**.
+4. Set **URL** to the Kaneo webhook URL.
+5. Set **Secret token** to the exact value from Kaneo.
+6. Enable events:
+
+   - **Push events**
+   - **Issues events** (open, close, reopen, edit, label)
+   - **Merge request events** (open, close, merge)
+   - **Note events** (issue comments)
+   - **Label events** (label creation)
+
+7. Save the webhook.
+
+The webhook URL includes your integration id, for example:
+
+`https://your-kaneo-host/api/gitlab-integration/webhook/<integrationId>`

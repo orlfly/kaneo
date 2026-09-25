@@ -1,136 +1,242 @@
+import { Hono } from "hono";
+import { describeRoute, resolver, validator } from "hono-openapi";
+import * as v from "valibot";
+import { notificationPreferenceSchema } from "../schemas";
 import {
-  apiRouter,
-  createRoute,
-  errorResponse,
-  jsonResponse,
-} from "../openapi";
-import { notificationPreferenceSchema } from "./response";
-import {
-  updatePreferencesBody,
-  upsertWorkspaceRuleBody,
-  workspaceIdParam,
-} from "./schema";
-import {
-  deleteWorkspaceRule,
+  deleteTeamRule,
   getNotificationPreferences,
   updateNotificationPreferences,
-  upsertWorkspaceRule,
+  upsertTeamRule,
 } from "./service";
 
-const preferencesResponse = (description: string) =>
-  jsonResponse(description, notificationPreferenceSchema);
+const httpErrorSchema = v.object({ message: v.string() });
 
-const getPreferencesRoute = createRoute({
-  method: "get",
-  operationId: "getNotificationPreferences",
-  path: "/",
-  tags: ["Notification Preferences"],
-  summary: "Get notification preferences",
-  description:
-    "Get how the current user is notified, globally and per workspace. Configured secrets are reported as booleans plus a masked preview, never in full.",
-  responses: {
-    200: preferencesResponse("Notification preferences"),
-  },
+const teamRuleSchema = v.object({
+  isActive: v.boolean(),
+  emailEnabled: v.boolean(),
+  ntfyEnabled: v.boolean(),
+  gotifyEnabled: v.boolean(),
+  webhookEnabled: v.boolean(),
+  projectMode: v.picklist(["all", "selected"] as const),
+  selectedProjectIds: v.optional(v.array(v.string())),
 });
 
-const updatePreferencesRoute = createRoute({
-  method: "put",
-  operationId: "updateNotificationPreferences",
-  path: "/",
-  tags: ["Notification Preferences"],
-  summary: "Update notification preferences",
-  description:
-    "Update the global delivery settings. Omitted fields are left unchanged; a secret sent as null is cleared.",
-  request: {
-    body: {
-      required: true,
-      content: { "application/json": { schema: updatePreferencesBody } },
+const notificationPreferences = new Hono<{
+  Variables: {
+    userId: string;
+    userEmail: string;
+  };
+}>();
+
+notificationPreferences
+  .get(
+    "/",
+    describeRoute({
+      operationId: "getNotificationPreferences",
+      tags: ["Notification Preferences"],
+      description: "Get notification delivery preferences for the current user",
+      responses: {
+        200: {
+          description: "Notification preferences",
+          content: {
+            "application/json": {
+              schema: resolver(notificationPreferenceSchema),
+            },
+          },
+        },
+        400: {
+          description: "Validation error",
+          content: {
+            "application/json": { schema: resolver(httpErrorSchema) },
+          },
+        },
+        401: {
+          description: "Unauthorized",
+          content: {
+            "application/json": { schema: resolver(httpErrorSchema) },
+          },
+        },
+        403: {
+          description: "Forbidden",
+          content: {
+            "application/json": { schema: resolver(httpErrorSchema) },
+          },
+        },
+      },
+    }),
+    async (c) => {
+      const userId = c.get("userId");
+      const userEmail = c.get("userEmail");
+      return c.json(
+        await getNotificationPreferences(userId, userEmail || null),
+      );
     },
-  },
-  responses: {
-    200: preferencesResponse("The updated preferences"),
-    400: errorResponse("Invalid request"),
-  },
-});
+  )
+  .put(
+    "/",
+    describeRoute({
+      operationId: "updateNotificationPreferences",
+      tags: ["Notification Preferences"],
+      description: "Update global notification delivery preferences",
+      responses: {
+        200: {
+          description: "Updated notification preferences",
+          content: {
+            "application/json": {
+              schema: resolver(notificationPreferenceSchema),
+            },
+          },
+        },
+        400: {
+          description: "Validation error",
+          content: {
+            "application/json": { schema: resolver(httpErrorSchema) },
+          },
+        },
+        401: {
+          description: "Unauthorized",
+          content: {
+            "application/json": { schema: resolver(httpErrorSchema) },
+          },
+        },
+        403: {
+          description: "Forbidden",
+          content: {
+            "application/json": { schema: resolver(httpErrorSchema) },
+          },
+        },
+      },
+    }),
+    validator(
+      "json",
+      v.object({
+        emailEnabled: v.optional(v.boolean()),
+        ntfyEnabled: v.optional(v.boolean()),
+        ntfyServerUrl: v.optional(v.nullable(v.string())),
+        ntfyTopic: v.optional(v.nullable(v.string())),
+        ntfyToken: v.optional(v.nullable(v.string())),
+        gotifyEnabled: v.optional(v.boolean()),
+        gotifyServerUrl: v.optional(v.nullable(v.string())),
+        gotifyToken: v.optional(v.nullable(v.string())),
+        webhookEnabled: v.optional(v.boolean()),
+        webhookUrl: v.optional(v.nullable(v.string())),
+        webhookSecret: v.optional(v.nullable(v.string())),
+        taskAssignmentEnabled: v.optional(v.boolean()),
+        taskCommentEnabled: v.optional(v.boolean()),
+        taskStatusChangeEnabled: v.optional(v.boolean()),
+        dueDateReminderEnabled: v.optional(v.boolean()),
+        dueDateReminderLeadTimeMinutes: v.optional(
+          v.pipe(v.number(), v.integer(), v.minValue(5), v.maxValue(43_200)),
+        ),
+      }),
+    ),
+    async (c) => {
+      const userId = c.get("userId");
+      const userEmail = c.get("userEmail");
+      const body = c.req.valid("json");
 
-const upsertWorkspaceRuleRoute = createRoute({
-  method: "put",
-  operationId: "upsertNotificationPreferenceWorkspaceRule",
-  path: "/workspaces/{workspaceId}",
-  tags: ["Notification Preferences"],
-  summary: "Upsert workspace rule",
-  description:
-    "Create or replace the notification rule for one workspace, overriding the global settings there.",
-  request: {
-    params: workspaceIdParam,
-    body: {
-      required: true,
-      content: { "application/json": { schema: upsertWorkspaceRuleBody } },
+      return c.json(
+        await updateNotificationPreferences(userId, userEmail || null, body),
+      );
     },
-  },
-  responses: {
-    200: preferencesResponse("The updated preferences"),
-    400: errorResponse("Invalid request"),
-    403: errorResponse("No access to the workspace"),
-  },
-});
+  )
+  .put(
+    "/teams/:teamId",
+    describeRoute({
+      operationId: "upsertNotificationPreferenceTeamRule",
+      tags: ["Notification Preferences"],
+      description: "Create or update a team notification rule",
+      responses: {
+        200: {
+          description: "Updated notification preferences",
+          content: {
+            "application/json": {
+              schema: resolver(notificationPreferenceSchema),
+            },
+          },
+        },
+        400: {
+          description: "Validation error",
+          content: {
+            "application/json": { schema: resolver(httpErrorSchema) },
+          },
+        },
+        401: {
+          description: "Unauthorized",
+          content: {
+            "application/json": { schema: resolver(httpErrorSchema) },
+          },
+        },
+        403: {
+          description: "Forbidden",
+          content: {
+            "application/json": { schema: resolver(httpErrorSchema) },
+          },
+        },
+      },
+    }),
+    validator("param", v.object({ teamId: v.string() })),
+    validator("json", teamRuleSchema),
+    async (c) => {
+      const userId = c.get("userId");
+      const userEmail = c.get("userEmail");
+      const { teamId } = c.req.valid("param");
+      const body = c.req.valid("json");
 
-const deleteWorkspaceRuleRoute = createRoute({
-  method: "delete",
-  operationId: "deleteNotificationPreferenceWorkspaceRule",
-  path: "/workspaces/{workspaceId}",
-  tags: ["Notification Preferences"],
-  summary: "Delete workspace rule",
-  description:
-    "Remove a workspace's rule so the workspace falls back to the global settings.",
-  request: { params: workspaceIdParam },
-  responses: {
-    200: preferencesResponse("The updated preferences"),
-    403: errorResponse("No access to the workspace"),
-    404: errorResponse("Workspace rule not found"),
-  },
-});
+      return c.json(
+        await upsertTeamRule(userId, teamId, userEmail || null, body),
+      );
+    },
+  )
+  .delete(
+    "/teams/:teamId",
+    describeRoute({
+      operationId: "deleteNotificationPreferenceTeamRule",
+      tags: ["Notification Preferences"],
+      description: "Delete a team notification rule",
+      responses: {
+        200: {
+          description: "Updated notification preferences",
+          content: {
+            "application/json": {
+              schema: resolver(notificationPreferenceSchema),
+            },
+          },
+        },
+        400: {
+          description: "Validation error",
+          content: {
+            "application/json": { schema: resolver(httpErrorSchema) },
+          },
+        },
+        401: {
+          description: "Unauthorized",
+          content: {
+            "application/json": { schema: resolver(httpErrorSchema) },
+          },
+        },
+        403: {
+          description: "Forbidden",
+          content: {
+            "application/json": { schema: resolver(httpErrorSchema) },
+          },
+        },
+        404: {
+          description: "Team rule not found",
+          content: {
+            "application/json": { schema: resolver(httpErrorSchema) },
+          },
+        },
+      },
+    }),
+    validator("param", v.object({ teamId: v.string() })),
+    async (c) => {
+      const userId = c.get("userId");
+      const userEmail = c.get("userEmail");
+      const { teamId } = c.req.valid("param");
 
-const notificationPreferences = apiRouter()
-  .openapi(getPreferencesRoute, async (c) =>
-    c.json(
-      await getNotificationPreferences(
-        c.get("userId"),
-        c.get("userEmail") || null,
-      ),
-      200,
-    ),
-  )
-  .openapi(updatePreferencesRoute, async (c) =>
-    c.json(
-      await updateNotificationPreferences(
-        c.get("userId"),
-        c.get("userEmail") || null,
-        c.req.valid("json"),
-      ),
-      200,
-    ),
-  )
-  .openapi(upsertWorkspaceRuleRoute, async (c) =>
-    c.json(
-      await upsertWorkspaceRule(
-        c.get("userId"),
-        c.req.valid("param").workspaceId,
-        c.get("userEmail") || null,
-        c.req.valid("json"),
-      ),
-      200,
-    ),
-  )
-  .openapi(deleteWorkspaceRuleRoute, async (c) =>
-    c.json(
-      await deleteWorkspaceRule(
-        c.get("userId"),
-        c.req.valid("param").workspaceId,
-        c.get("userEmail") || null,
-      ),
-      200,
-    ),
+      return c.json(await deleteTeamRule(userId, teamId, userEmail || null));
+    },
   );
 
 export default notificationPreferences;

@@ -1,16 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import getProject from "@/fetchers/project/get-project";
 
-function useGetProject({
-  id,
-  workspaceId,
-}: {
-  id: string;
-  workspaceId: string;
-}) {
+function useGetProject({ id, teamId }: { id: string; teamId: string }) {
   return useQuery({
-    queryFn: () => getProject({ id, workspaceId }),
-    queryKey: ["projects", workspaceId, id],
+    queryFn: () => getProject({ id, teamId }),
+    queryKey: ["projects", teamId, id],
     enabled: !!id,
   });
 }

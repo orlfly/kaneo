@@ -1,11 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import db from "../../database";
-import {
-  projectTable,
-  taskTable,
-  userTable,
-  workspaceTable,
-} from "../../database/schema";
+import { projectTable, taskTable, userTable } from "../../database/schema";
 import type {
   PluginContext,
   TaskCommentCreatedEvent,
@@ -68,11 +63,10 @@ async function getMattermostEventData(
       priority: taskTable.priority,
       projectName: projectTable.name,
       projectId: projectTable.id,
-      workspaceId: workspaceTable.id,
+      teamId: projectTable.teamId,
     })
     .from(taskTable)
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-    .innerJoin(workspaceTable, eq(projectTable.workspaceId, workspaceTable.id))
     .where(and(eq(taskTable.id, taskId), eq(projectTable.id, projectId)))
     .limit(1);
 
@@ -89,7 +83,7 @@ async function getMattermostEventData(
     : [];
 
   const clientUrl = process.env.KANEO_CLIENT_URL || "http://localhost:5173";
-  const taskUrl = `${clientUrl}/dashboard/workspace/${taskRow.workspaceId}/project/${taskRow.projectId}/task/${taskId}`;
+  const taskUrl = `${clientUrl}/dashboard/team/${taskRow.teamId}/project/${taskRow.projectId}/task/${taskId}`;
 
   return {
     taskTitle: taskRow.title,

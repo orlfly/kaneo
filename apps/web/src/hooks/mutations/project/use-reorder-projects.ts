@@ -10,7 +10,7 @@ import reorderProjects from "@/fetchers/project/reorder-projects";
 type ProjectList = NonNullable<Awaited<ReturnType<typeof getProjects>>>;
 
 type ReorderProjectsVariables = {
-  workspaceId: string;
+  teamId: string;
   projects: ProjectList;
   previousProjects?: ProjectList;
 };
@@ -19,18 +19,18 @@ function useReorderProjects() {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: ({ workspaceId, projects }: ReorderProjectsVariables) =>
+    mutationFn: ({ teamId, projects }: ReorderProjectsVariables) =>
       reorderProjects(
-        workspaceId,
+        teamId,
         projects.map((project, index) => ({ id: project.id, position: index })),
       ),
-    onError: (_error, { workspaceId, previousProjects }) => {
+    onError: (_error, { teamId, previousProjects }) => {
       if (previousProjects) {
-        queryClient.setQueryData(["projects", workspaceId], previousProjects);
+        queryClient.setQueryData(["projects", teamId], previousProjects);
       }
     },
-    onSettled: (_data, _error, { workspaceId }) => {
-      queryClient.invalidateQueries({ queryKey: ["projects", workspaceId] });
+    onSettled: (_data, _error, { teamId }) => {
+      queryClient.invalidateQueries({ queryKey: ["projects", teamId] });
     },
   });
 
@@ -38,11 +38,11 @@ function useReorderProjects() {
   // and lands a render later than dnd-kit's own state clear.
   const reorder = useCallback(
     (
-      workspaceId: string,
+      teamId: string,
       orderedProjects: ProjectList,
       options?: MutateOptions<unknown, Error, ReorderProjectsVariables>,
     ) => {
-      const queryKey = ["projects", workspaceId];
+      const queryKey = ["projects", teamId];
       const previousProjects = queryClient.getQueryData<ProjectList>(queryKey);
 
       queryClient.setQueryData<ProjectList>(
@@ -60,7 +60,7 @@ function useReorderProjects() {
       queryClient.cancelQueries({ queryKey });
 
       mutation.mutate(
-        { workspaceId, projects: orderedProjects, previousProjects },
+        { teamId, projects: orderedProjects, previousProjects },
         options,
       );
     },

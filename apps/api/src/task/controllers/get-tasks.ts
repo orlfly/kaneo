@@ -6,6 +6,7 @@ import {
   getTableColumns,
   gte,
   inArray,
+  isNull,
   lte,
   type SQL,
   sql,
@@ -36,6 +37,8 @@ export type GetTasksOptions = {
   page?: number;
   relatedPage?: number;
   priority?: string;
+  unclaimed?: boolean;
+  requiredRole?: string | null;
   sortBy?:
     | "createdAt"
     | "priority"
@@ -112,6 +115,16 @@ async function getTasksPage(
     conditions.push(eq(taskTable.userId, options.assigneeId));
   }
 
+  if (options.unclaimed) {
+    conditions.push(isNull(taskTable.userId));
+  }
+
+  if (options.requiredRole !== undefined && options.requiredRole !== null) {
+    // Filter by an exact required role. To also include generic (no-role)
+    // tasks when the caller asked for "any role", they pass null instead.
+    conditions.push(eq(taskTable.requiredRole, options.requiredRole));
+  }
+
   if (options.dueBefore) {
     conditions.push(lte(taskTable.dueDate, new Date(options.dueBefore)));
   }
@@ -154,10 +167,15 @@ async function getTasksPage(
     position: taskTable.position,
     createdAt: taskTable.createdAt,
     userId: taskTable.userId,
+    claimedBy: taskTable.claimedBy,
+    claimedAt: taskTable.claimedAt,
+    reviewClaimedBy: taskTable.reviewClaimedBy,
+    reviewClaimedAt: taskTable.reviewClaimedAt,
     assigneeName: userTable.name,
     assigneeId: userTable.id,
     assigneeImage: userTable.image,
     projectId: taskTable.projectId,
+    requiredRole: taskTable.requiredRole,
   };
 
   const query = db
@@ -328,6 +346,14 @@ async function getTasksPage(
       externalLinks: taskExternalLinksMap.get(task.id) || [],
     }));
 
+  const pausedTasks = paginatedTasks
+    .filter((task) => task.status === "paused")
+    .map((task) => ({
+      ...task,
+      labels: taskLabelsMap.get(task.id) || [],
+      externalLinks: taskExternalLinksMap.get(task.id) || [],
+    }));
+
   return {
     data: {
       id: project.id,
@@ -337,10 +363,11 @@ async function getTasksPage(
       description: project.description,
       descriptionDeferred: project.descriptionDeferred,
       isPublic: project.isPublic,
-      workspaceId: project.workspaceId,
+      teamId: project.teamId,
       columns,
       archivedTasks,
       plannedTasks,
+      pausedTasks,
     },
     pagination: {
       total,

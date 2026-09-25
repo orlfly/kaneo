@@ -5,10 +5,7 @@ import { createApp } from "../../apps/api/src/index";
 import deleteLabel from "../../apps/api/src/label/controllers/delete-label";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 const { syncGithub, syncGitea, removeGithub, removeGitea, publish } =
   vi.hoisted(() => ({
@@ -32,9 +29,9 @@ vi.mock("../../apps/api/src/events", async (original) => ({
 }));
 
 async function context() {
-  const member = await createWorkspaceMember();
+  const member = await createTeamMember();
   const { project } = await createProjectFixture({
-    workspaceId: member.workspace.id,
+    teamId: member.team.id,
   });
   const [task] = await db
     .insert(schema.taskTable)
@@ -57,11 +54,11 @@ function request(path: string, method: string, body?: unknown) {
         }),
   });
 }
-async function label(workspaceId: string, taskId: string | null) {
+async function label(teamId: string, taskId: string | null) {
   const [row] = await db
     .insert(schema.labelTable)
     .values({
-      workspaceId,
+      teamId,
       taskId,
       name: "bug",
       color: "#ff0000",
@@ -84,7 +81,7 @@ describe("tenant resource boundaries", () => {
       const response = await request("/label", "POST", {
         name: "bug",
         color: "#ff0000",
-        workspaceId: own.workspace.id,
+        teamId: own.team.id,
         taskId,
       });
       expect(response.status).toBe(404);
@@ -99,7 +96,7 @@ describe("tenant resource boundaries", () => {
         await request("/label", "POST", {
           name: "bug",
           color: "#ff0000",
-          workspaceId: own.workspace.id,
+          teamId: own.team.id,
           taskId: own.task.id,
         })
       ).status,
@@ -111,7 +108,7 @@ describe("tenant resource boundaries", () => {
   it("rejects legacy cross-workspace label rows at every label-ID endpoint", async () => {
     const own = await context();
     const foreign = await context();
-    const forged = await label(own.workspace.id, foreign.task.id);
+    const forged = await label(own.team.id, foreign.task.id);
     mockAuthenticatedSession(own.user);
     for (const [suffix, method, body] of [
       ["", "GET", undefined],
@@ -138,10 +135,10 @@ describe("tenant resource boundaries", () => {
   it("does not sync or publish foreign tasks when cleaning up a workspace label", async () => {
     const own = await context();
     const foreign = await context();
-    const root = await label(own.workspace.id, null);
-    await label(own.workspace.id, own.task.id);
-    await label(own.workspace.id, foreign.task.id);
-    const untouched = await label(foreign.workspace.id, null);
+    const root = await label(own.team.id, null);
+    await label(own.team.id, own.task.id);
+    await label(own.team.id, foreign.task.id);
+    const untouched = await label(foreign.team.id, null);
     mockAuthenticatedSession(own.user);
     expect((await request(`/label/${root.id}`, "DELETE")).status).toBe(200);
     expect(await db.select().from(schema.labelTable)).toEqual([untouched]);
@@ -180,7 +177,7 @@ describe("tenant resource boundaries", () => {
     ).toEqual(own.task);
     expect(publish).not.toHaveBeenCalled();
     const { project } = await createProjectFixture({
-      workspaceId: own.workspace.id,
+      teamId: own.team.id,
     });
     const response = await request(`/task/move/${own.task.id}`, "PUT", {
       destinationProjectId: project.id,

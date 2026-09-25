@@ -1,20 +1,12 @@
 import type { PluginContext, TaskCommentCreatedEvent } from "../../types";
 import { type GitHubConfig, hasVerifiedGitHubBinding } from "../config";
 import { findExternalLinkByTaskAndType } from "../services/link-manager";
-import {
-  getGithubApp,
-  getVerifiedInstallationOctokit,
-} from "../utils/github-app";
+import { getRepoOctokit } from "../utils/github-app";
 
 export async function handleTaskCommentCreated(
   event: TaskCommentCreatedEvent,
   context: PluginContext,
 ): Promise<void> {
-  const githubApp = getGithubApp();
-  if (!githubApp) {
-    return;
-  }
-
   const config = context.config as GitHubConfig;
   if (!hasVerifiedGitHubBinding(config)) return;
   const { repositoryOwner, repositoryName } = config;
@@ -30,7 +22,10 @@ export async function handleTaskCommentCreated(
   }
 
   try {
-    const octokit = await getVerifiedInstallationOctokit(config);
+    const octokit = await getRepoOctokit(config);
+    if (!octokit) {
+      return;
+    }
 
     const issueNumber = Number.parseInt(existingLink.externalId, 10);
 

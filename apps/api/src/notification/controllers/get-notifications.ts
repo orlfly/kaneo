@@ -4,7 +4,7 @@ import {
   notificationTable,
   projectTable,
   taskTable,
-  workspaceTable,
+  teamTable,
 } from "../../database/schema";
 
 import { notificationResourceAccess } from "../resource-access";
@@ -14,7 +14,7 @@ async function getNotifications(userId: string) {
     .select({
       notification: notificationTable,
       projectId: projectTable.id,
-      workspaceId: workspaceTable.id,
+      teamId: teamTable.id,
     })
     .from(notificationTable)
     .leftJoin(
@@ -25,7 +25,7 @@ async function getNotifications(userId: string) {
       ),
     )
     .leftJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-    .leftJoin(workspaceTable, eq(projectTable.workspaceId, workspaceTable.id))
+    .leftJoin(teamTable, eq(projectTable.teamId, teamTable.id))
     .where(
       and(
         eq(notificationTable.userId, userId),
@@ -39,8 +39,8 @@ async function getNotifications(userId: string) {
     .orderBy(desc(notificationTable.createdAt))
     .limit(50);
 
-  return rows.map(({ notification, projectId, workspaceId }) => {
-    if (!projectId && !workspaceId) {
+  return rows.map(({ notification, projectId, teamId }) => {
+    if (!projectId && !teamId) {
       return notification;
     }
 
@@ -56,7 +56,7 @@ async function getNotifications(userId: string) {
       eventData: {
         ...existing,
         projectId: projectId ?? existing.projectId ?? null,
-        workspaceId: workspaceId ?? existing.workspaceId ?? null,
+        teamId: teamId ?? existing.teamId ?? null,
       },
     };
   });

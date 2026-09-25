@@ -32,7 +32,7 @@ const { checkProjectWebhookReminders } = await import(
   "../../apps/api/src/scheduler/project-webhook-reminders"
 );
 const { resetTestDatabase } = await import("./helpers/database");
-const { createProjectFixture, createWorkspaceMember } = await import(
+const { createProjectFixture, createTeamMember } = await import(
   "./helpers/fixtures"
 );
 
@@ -49,9 +49,9 @@ function dueDateInsideReminderWindow() {
 type Scene = Awaited<ReturnType<typeof seedScene>>;
 
 async function seedScene() {
-  const { user, workspace } = await createWorkspaceMember({ role: "owner" });
+  const { user, team: workspace } = await createTeamMember({ role: "owner" });
   const { project, columns } = await createProjectFixture({
-    workspaceId: workspace.id,
+    teamId: workspace.id,
   });
 
   return { user, workspace, project, columns };

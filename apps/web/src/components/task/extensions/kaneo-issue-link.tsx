@@ -16,11 +16,11 @@ function parseTaskRouteFromUrl(url: string) {
   try {
     const parsed = new URL(url);
     const match = parsed.pathname.match(
-      /\/dashboard\/workspace\/([^/]+)\/project\/([^/]+)\/task\/([^/]+)(?:\/|$)/i,
+      /\/dashboard\/(?:workspace|team)\/([^/]+)\/project\/([^/]+)\/task\/([^/]+)(?:\/|$)/i,
     );
     if (!match) return null;
     return {
-      workspaceId: match[1],
+      teamId: match[1],
       projectId: match[2],
       taskId: match[3],
     };
@@ -46,16 +46,16 @@ function KaneoIssueLinkView({ node }: NodeViewProps) {
   const { data: project } = useQuery({
     queryKey: [
       "projects",
-      taskRoute?.workspaceId,
+      taskRoute?.teamId,
       taskRoute?.projectId,
       "kaneo-issue-link",
     ],
     queryFn: () =>
       getProject({
         id: taskRoute?.projectId ?? "",
-        workspaceId: taskRoute?.workspaceId ?? "",
+        teamId: taskRoute?.teamId ?? "",
       }),
-    enabled: Boolean(taskRoute?.workspaceId && taskRoute?.projectId),
+    enabled: Boolean(taskRoute?.teamId && taskRoute?.projectId),
     staleTime: 1000 * 60,
   });
 
@@ -72,8 +72,8 @@ function KaneoIssueLinkView({ node }: NodeViewProps) {
     : t("tasks:priority.no-priority");
   const assignee = task?.assigneeName || t("tasks:assignee.unassigned");
   const resolvedHref =
-    taskRoute?.workspaceId && taskRoute?.projectId && task?.id
-      ? `/dashboard/workspace/${taskRoute.workspaceId}/project/${taskRoute.projectId}/task/${task.id}`
+    taskRoute?.teamId && taskRoute?.projectId && task?.id
+      ? `/dashboard/team/${taskRoute.teamId}/project/${taskRoute.projectId}/task/${task.id}`
       : url;
   const isInternal = resolvedHref.startsWith("/");
   const href = isInternal || isValidUrl(resolvedHref) ? resolvedHref : "";

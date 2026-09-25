@@ -49,7 +49,7 @@ async function createComment(
       assigneeId: taskTable.userId,
       projectId: taskTable.projectId,
       title: taskTable.title,
-      workspaceId: projectTable.workspaceId,
+      teamId: projectTable.teamId,
     })
     .from(taskTable)
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
@@ -63,7 +63,7 @@ async function createComment(
     });
   }
 
-  // Notify any workspace members @mentioned in the comment (not the author).
+  // Notify any team members @mentioned in the comment (not the author).
   const mentionedIds = parseMentionIds(content).filter((id) => id !== userId);
   for (const mentionedId of mentionedIds) {
     await createNotification({
@@ -73,7 +73,7 @@ async function createComment(
         taskTitle: task?.title ?? null,
         mentionerName: user?.name ?? null,
         projectId: task?.projectId ?? null,
-        workspaceId: task?.workspaceId ?? null,
+        teamId: task?.teamId ?? null,
       },
       resourceId: taskId,
       resourceType: "task",
@@ -93,7 +93,7 @@ async function createComment(
         commenterName: user?.name ?? null,
         commentPreview: content.slice(0, 160),
         projectId: task.projectId,
-        workspaceId: task.workspaceId,
+        teamId: task.teamId,
       },
       resourceId: taskId,
       resourceType: "task",

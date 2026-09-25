@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import db from "../../../database";
 import { externalLinkTable } from "../../../database/schema";
 import { type GitHubConfig, hasVerifiedGitHubBinding } from "../config";
-import { getVerifiedInstallationOctokit } from "./github-app";
+import { getRepoOctokit } from "./github-app";
 
 const namedColorToHex: Record<string, string> = {
   red: "EF4444",
@@ -68,14 +68,12 @@ async function getGitHubContext(taskId: string) {
     return null;
   }
 
-  if (!hasVerifiedGitHubBinding(config) || !config.installationId) {
+  if (!hasVerifiedGitHubBinding(config)) {
     return null;
   }
 
-  let octokit: Awaited<ReturnType<typeof getVerifiedInstallationOctokit>>;
-  try {
-    octokit = await getVerifiedInstallationOctokit(config);
-  } catch {
+  const octokit = await getRepoOctokit(config);
+  if (!octokit) {
     return null;
   }
 

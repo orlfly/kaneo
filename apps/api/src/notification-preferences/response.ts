@@ -1,13 +1,13 @@
 import { nullableResponseTimestamp, responseTimestamp, z } from "../openapi";
 
 // Secrets are never returned: each is a *Configured boolean plus a masked preview.
-export const workspaceRuleSchema = z
+export const teamRuleSchema = z
   .object({
     id: z.string(),
-    workspaceId: z.string(),
-    workspaceName: z.string(),
+    teamId: z.string(),
+    teamName: z.string(),
     isActive: z.boolean().openapi({
-      description: "Turn all notifications for this workspace on or off.",
+      description: "Turn all notifications for this team on or off.",
     }),
     emailEnabled: z.boolean(),
     ntfyEnabled: z.boolean(),
@@ -15,13 +15,13 @@ export const workspaceRuleSchema = z
     webhookEnabled: z.boolean(),
     projectMode: z.enum(["all", "selected"]).openapi({
       description:
-        "`all` notifies for every project in the workspace; `selected` restricts it to selectedProjectIds.",
+        "`all` notifies for every project in the team; `selected` restricts it to selectedProjectIds.",
     }),
     selectedProjectIds: z.array(z.string()),
     createdAt: responseTimestamp,
     updatedAt: responseTimestamp,
   })
-  .openapi("NotificationPreferenceWorkspaceRule");
+  .openapi("NotificationPreferenceTeamRule");
 
 export const notificationPreferenceSchema = z
   .object({
@@ -50,9 +50,9 @@ export const notificationPreferenceSchema = z
     dueDateReminderLeadTimeMinutes: z.number().openapi({
       description: "How long before a due date the reminder fires, in minutes.",
     }),
-    workspaces: z.array(workspaceRuleSchema).openapi({
+    teams: z.array(teamRuleSchema).openapi({
       description:
-        "Per-workspace overrides. A workspace with no rule follows the global settings.",
+        "Per-team overrides. A team with no rule follows the global settings.",
     }),
     createdAt: nullableResponseTimestamp,
     updatedAt: nullableResponseTimestamp,

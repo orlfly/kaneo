@@ -8,26 +8,22 @@ import {
 } from "../../database/schema";
 import { publishEvent } from "../../events";
 
-async function deleteTaskRelation(
-  id: string,
-  userId: string,
-  workspaceId: string,
-) {
-  const workspaceTasks = db
+async function deleteTaskRelation(id: string, userId: string, teamId: string) {
+  // Check both endpoints in the delete statement itself. Legacy cross-tenant
+  // rows must not bypass the same boundary enforced on creation and reads.
+  const teamTasks = db
     .select({ id: taskTable.id })
     .from(taskTable)
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-    .where(eq(projectTable.workspaceId, workspaceId));
+    .where(eq(projectTable.teamId, teamId));
 
-  // Check both endpoints in the delete statement itself. Legacy cross-tenant
-  // rows must not bypass the same boundary enforced on creation and reads.
   const [relation] = await db
     .delete(taskRelationTable)
     .where(
       and(
         eq(taskRelationTable.id, id),
-        inArray(taskRelationTable.sourceTaskId, workspaceTasks),
-        inArray(taskRelationTable.targetTaskId, workspaceTasks),
+        inArray(taskRelationTable.sourceTaskId, teamTasks),
+        inArray(taskRelationTable.targetTaskId, teamTasks),
       ),
     )
     .returning();
@@ -45,7 +41,7 @@ async function deleteTaskRelation(
     .where(
       and(
         eq(taskTable.id, relation.sourceTaskId),
-        eq(projectTable.workspaceId, workspaceId),
+        eq(projectTable.teamId, teamId),
       ),
     )
     .limit(1);
@@ -54,6 +50,8 @@ async function deleteTaskRelation(
     await publishEvent("task-relation.deleted", {
       ...relation,
       taskId: relation.sourceTaskId,
+      sourceTaskId: relation.sourceTaskId,
+      targetTaskId: relation.targetTaskId,
       projectId: task.projectId,
       userId,
     });

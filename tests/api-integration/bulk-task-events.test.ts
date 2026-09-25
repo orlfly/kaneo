@@ -2,10 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import db, { schema } from "../../apps/api/src/database";
 import bulkUpdateTasks from "../../apps/api/src/task/controllers/bulk-update-tasks";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 const publish = vi.hoisted(() => vi.fn(async () => undefined));
 vi.mock("../../apps/api/src/events", () => ({ publishEvent: publish }));
@@ -17,9 +14,9 @@ beforeEach(async () => {
 
 describe("bulk task event snapshots", () => {
   it("preserves each task's old status, title and assignee for reopening and notifications", async () => {
-    const { user, workspace } = await createWorkspaceMember();
+    const { user, team: workspace } = await createTeamMember();
     const { project } = await createProjectFixture({
-      workspaceId: workspace.id,
+      teamId: workspace.id,
     });
     const tasks = await db
       .insert(schema.taskTable)
@@ -63,9 +60,9 @@ describe("bulk task event snapshots", () => {
   });
 
   it("preserves differing old priorities and titles in a single bulk operation", async () => {
-    const { user, workspace } = await createWorkspaceMember();
+    const { user, team: workspace } = await createTeamMember();
     const { project } = await createProjectFixture({
-      workspaceId: workspace.id,
+      teamId: workspace.id,
     });
     const tasks = await db
       .insert(schema.taskTable)

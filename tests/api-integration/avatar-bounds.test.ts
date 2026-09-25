@@ -8,11 +8,11 @@ import {
 } from "../../apps/api/src/user/avatar";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import { createWorkspaceMember } from "./helpers/fixtures";
+import { createTeamMember } from "./helpers/fixtures";
 
 beforeEach(resetTestDatabase);
 async function fixture() {
-  const member = await createWorkspaceMember({ role: "viewer" });
+  const member = await createTeamMember({ role: "viewer" });
   mockAuthenticatedSession(member.user);
   return createApp().app;
 }

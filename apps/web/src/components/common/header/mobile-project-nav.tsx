@@ -1,12 +1,11 @@
 import {
   CalendarDays,
-  CalendarRange,
   Check,
   Menu,
+  MessageCircle,
   Plus,
   SquareKanban,
 } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -18,30 +17,29 @@ import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import { cn } from "@/lib/cn";
 
 type MobileProjectNavProps = {
-  workspaceId: string;
+  teamId: string;
   projectId: string;
-  activeView: "backlog" | "board" | "calendar" | "gantt";
+  activeView: "backlog" | "board" | "gantt" | "chat";
   onSelectBoard: () => void;
   onSelectBacklog: () => void;
-  onSelectCalendar: () => void;
   onSelectGantt: () => void;
+  onSelectChat: () => void;
   onSelectProject: (projectId: string) => void;
   onAddProject: () => void;
 };
 
 export default function MobileProjectNav({
-  workspaceId,
+  teamId,
   projectId,
   activeView,
   onSelectBoard,
   onSelectBacklog,
-  onSelectCalendar,
   onSelectGantt,
+  onSelectChat,
   onSelectProject,
   onAddProject,
 }: MobileProjectNavProps) {
-  const { t } = useTranslation();
-  const { data: projects = [] } = useGetProjects({ workspaceId });
+  const { data: projects = [] } = useGetProjects({ teamId });
 
   return (
     <Popover>
@@ -90,19 +88,6 @@ export default function MobileProjectNav({
               </button>
               <button
                 type="button"
-                onClick={onSelectCalendar}
-                className={cn(
-                  "flex w-full items-center justify-center gap-1 whitespace-nowrap rounded-md border px-2 py-1.5 text-xs font-medium transition-colors",
-                  activeView === "calendar"
-                    ? "border-border bg-secondary text-foreground"
-                    : "border-transparent text-muted-foreground hover:bg-accent",
-                )}
-              >
-                <CalendarRange className="size-3.5" />
-                {t("tasks:calendar.title")}
-              </button>
-              <button
-                type="button"
                 onClick={onSelectGantt}
                 className={cn(
                   "flex w-full items-center justify-center gap-1 whitespace-nowrap rounded-md border px-2 py-1.5 text-xs font-medium transition-colors",
@@ -113,6 +98,19 @@ export default function MobileProjectNav({
               >
                 <CalendarDays className="size-3.5" />
                 Gantt
+              </button>
+              <button
+                type="button"
+                onClick={onSelectChat}
+                className={cn(
+                  "flex w-full items-center justify-center gap-1 whitespace-nowrap rounded-md border px-2 py-1.5 text-xs font-medium transition-colors",
+                  activeView === "chat"
+                    ? "border-border bg-secondary text-foreground"
+                    : "border-transparent text-muted-foreground hover:bg-accent",
+                )}
+              >
+                <MessageCircle className="size-3.5" />
+                Chat
               </button>
             </div>
           </div>

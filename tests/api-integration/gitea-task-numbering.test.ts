@@ -5,10 +5,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { importGiteaIssues } from "../../apps/api/src/gitea-integration/controllers/import-gitea-issues";
 import createTask from "../../apps/api/src/task/controllers/create-task";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 vi.mock("../../apps/api/src/events", () => ({
   publishEvent: vi.fn(async () => undefined),
@@ -40,8 +37,10 @@ beforeEach(async () => {
   await resetTestDatabase();
 });
 async function setup() {
-  const { user, workspace } = await createWorkspaceMember();
-  const { project } = await createProjectFixture({ workspaceId: workspace.id });
+  const { user, team: workspace } = await createTeamMember();
+  const { project } = await createProjectFixture({
+    teamId: workspace.id,
+  });
   await db.insert(schema.integrationTable).values({
     projectId: project.id,
     type: "gitea",

@@ -184,7 +184,7 @@ const deleteDiscordIntegrationRoute = createRoute({
   },
 });
 
-const discordIntegration = apiRouter<BaseVariables & { workspaceId: string }>()
+const discordIntegration = apiRouter<BaseVariables & { teamId: string }>()
   .openapi(getDiscordIntegrationRoute, async (c) => {
     const { projectId } = c.req.valid("param");
     const integration = await getDiscordIntegration(projectId);

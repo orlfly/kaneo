@@ -5,11 +5,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { resetTestDatabase } from "./helpers/database";
-import { createWorkspaceMember } from "./helpers/fixtures";
+import { createTeamMember } from "./helpers/fixtures";
 
 beforeEach(async () => {
   await resetTestDatabase();
-  await createWorkspaceMember();
+  await createTeamMember();
 });
 afterEach(() => vi.unstubAllEnvs());
 describe("Better Auth session IP with trusted transport", () => {

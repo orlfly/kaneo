@@ -1,6 +1,6 @@
 ---
 title: Account Notifications
-description: Deliver your personal Kaneo notifications by email, ntfy, Gotify, or a custom webhook with workspace and project scoping
+description: Deliver your personal Kaneo notifications by email, ntfy, Gotify, or a custom webhook with team and project scoping
 ---
 
 Kaneo can keep the normal in-app notification inbox and also forward matching notifications to external channels for the signed-in user.
@@ -20,7 +20,7 @@ Users can forward matching notifications through:
 - `Gotify`
 - `Custom webhook`
 
-These settings are personal to the signed-in account. They do not change notification routing for other users in the workspace.
+These settings are personal to the signed-in account. They do not change notification routing for other users in the team.
 
 ## How it works
 
@@ -32,7 +32,7 @@ Important rules:
 - outbound delivery only applies to newly created notifications
 - historical notifications are not replayed
 - delivery failures do not block notification creation
-- delivery can be scoped by workspace and, optionally, by selected projects
+- delivery can be scoped by team and, optionally, by selected projects
 
 ## Global channels
 
@@ -43,7 +43,7 @@ The Notifications page includes separate connection cards for:
 - `ntfy`
 - `Custom webhook`
 
-Configure each channel once at the account level, then decide which workspaces are allowed to use it.
+Configure each channel once at the account level, then decide which teams are allowed to use it.
 
 ### Email
 
@@ -85,18 +85,18 @@ Custom webhook requires:
 
 When a signing secret is configured, Kaneo sends an `X-Kaneo-Signature` header containing the `HMAC-SHA256` hex digest of the raw JSON body.
 
-## Workspace delivery rules
+## Team delivery rules
 
-Below the global channel cards, Kaneo shows workspace delivery rules.
+Below the global channel cards, Kaneo shows team delivery rules.
 
-Each workspace rule can:
+Each team rule can:
 
 - be active or paused
 - enable or disable `Email`, `Gotify`, `ntfy`, and `Custom webhook`
 - apply to `All projects`
 - or apply to `Selected projects` only
 
-This lets a user receive notifications from one workspace in ntfy, another by email, and ignore the rest.
+This lets a user receive notifications from one team in ntfy, another by email, and ignore the rest.
 
 ## Supported notification sources
 
@@ -105,12 +105,12 @@ V1 forwards the same notification types that currently create inbox notification
 That includes:
 
 - `task_created`
-- `workspace_created`
+- `team_created`
 - `task_status_changed`
 - `task_assignee_changed`
 - `time_entry_created`
 
-If Kaneo cannot resolve a notification to a workspace or project context, that notification stays inbox-only.
+If Kaneo cannot resolve a notification to a team or project context, that notification stays inbox-only.
 
 ## Reachability and security
 
@@ -141,9 +141,9 @@ If your receiver only exists on a private network, set `KANEO_ALLOW_PRIVATE_WEBH
 Check that:
 
 - the global channel is configured and enabled
-- a workspace rule exists for the notification workspace
-- the workspace rule is active
-- the channel is enabled on that workspace rule
+- a team rule exists for the notification team
+- the team rule is active
+- the channel is enabled on that team rule
 - the project is included when using `Selected projects`
 
 ### Email is enabled but nothing is sent
@@ -164,5 +164,5 @@ Check that:
 
 ## Next
 
-- [Personalize Your Workspace](/core/functional/personalize-your-workspace)
+- [Personalize Your Team](/core/functional/personalize-your-team)
 - [Outgoing webhooks](/core/integrations/outgoing-webhooks)

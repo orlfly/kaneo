@@ -47,7 +47,7 @@ export function LoadingSkeleton({ className }: LoadingSkeletonProps) {
             <div className="ml-4 space-y-1">
               {["issues", "projects", "views", "settings"].map((item) => (
                 <div
-                  key={`workspace-item-${item}`}
+                  key={`team-item-${item}`}
                   className="flex items-center gap-2 p-1"
                 >
                   <div className="w-4 h-4 bg-muted rounded animate-pulse" />

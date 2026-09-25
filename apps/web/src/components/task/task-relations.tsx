@@ -43,8 +43,8 @@ import useDeleteTaskRelation from "@/hooks/mutations/task-relation/use-delete-ta
 import useGetProject from "@/hooks/queries/project/use-get-project";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
 import useGetTaskRelations from "@/hooks/queries/task-relation/use-get-task-relations";
-import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
-import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
+import useActiveTeam from "@/hooks/queries/team/use-active-team";
+import { useGetActiveTeamMembers } from "@/hooks/queries/team-member/use-get-active-team-members";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { getColumnIcon } from "@/lib/column";
 import { getInitials } from "@/lib/get-initials";
@@ -56,7 +56,7 @@ import SubtaskStatusPopover from "./subtask-status-popover";
 type TaskRelationsProps = {
   taskId: string;
   projectId: string;
-  workspaceId: string;
+  teamId: string;
 };
 
 type TaskItem = {
@@ -75,7 +75,7 @@ type TaskGroup = {
 export default function TaskRelations({
   taskId,
   projectId,
-  workspaceId,
+  teamId,
 }: TaskRelationsProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -88,11 +88,9 @@ export default function TaskRelations({
 
   const { data: relations = [] } = useGetTaskRelations(taskId);
   const { data: projectData } = useGetTasks(projectId);
-  const { data: project } = useGetProject({ id: projectId, workspaceId });
-  const { data: workspace } = useActiveWorkspace();
-  const { data: workspaceUsers } = useGetActiveWorkspaceUsers(
-    workspace?.id ?? "",
-  );
+  const { data: project } = useGetProject({ id: projectId, teamId });
+  const { data: team } = useActiveTeam();
+  const { data: teamUsers } = useGetActiveTeamMembers(team?.id ?? "");
   const createRelation = useCreateTaskRelation();
   const deleteRelation = useDeleteTaskRelation(taskId);
   const { canUpdateTasks } = useWorkspacePermission();
@@ -226,14 +224,14 @@ export default function TaskRelations({
 
   const handleNavigateToTask = (linkedTaskId: string) => {
     navigate({
-      to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
-      params: { workspaceId, projectId, taskId: linkedTaskId },
+      to: "/dashboard/team/$teamId/project/$projectId/task/$taskId",
+      params: { teamId, projectId, taskId: linkedTaskId },
     });
   };
 
   const getAssignee = (userId: string | null) => {
-    if (!userId || !workspaceUsers?.members) return null;
-    return workspaceUsers.members.find((member) => member.userId === userId);
+    if (!userId || !teamUsers) return null;
+    return teamUsers.find((member) => member.id === userId);
   };
 
   const buildTaskObject = (item: {
@@ -342,7 +340,7 @@ export default function TaskRelations({
 
                           <SubtaskAssigneePopover
                             tasks={[taskObj]}
-                            workspaceId={workspaceId}
+                            teamId={teamId}
                           >
                             <button
                               type="button"
@@ -351,11 +349,11 @@ export default function TaskRelations({
                               {item.task.userId && assignee ? (
                                 <Avatar className="h-5 w-5">
                                   <AvatarImage
-                                    src={assignee?.user?.image ?? ""}
-                                    alt={assignee?.user?.name || ""}
+                                    src={assignee?.image ?? ""}
+                                    alt={assignee?.name || ""}
                                   />
                                   <AvatarFallback className="text-[9px] font-medium border border-border/30">
-                                    {getInitials(assignee?.user?.name)}
+                                    {getInitials(assignee?.name)}
                                   </AvatarFallback>
                                 </Avatar>
                               ) : (

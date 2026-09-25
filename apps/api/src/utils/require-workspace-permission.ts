@@ -1,100 +1,62 @@
-import { type BuiltInRoleName, builtInRoles } from "@kaneo/permissions";
 import { and, eq } from "drizzle-orm";
 import type { Context, Next } from "hono";
 import { HTTPException } from "hono/http-exception";
 import db, { schema } from "../database";
 import { isInstanceAdmin } from "./is-instance-admin";
 
+// Back-compat shim for the old workspace permission vocabulary. The team
+// model collapses viewer/member/admin/owner into a binary owner/member
+// distinction, so team membership satisfies every permission the routes
+// still declare. Two deliberate exceptions keep meaningful boundaries:
+//
+// 1. API key scoping: a key with an explicit permission map is constrained
+//    to that map, so integrations can mint narrowly scoped keys even though
+//    human members have no per-action permissions.
+// 2. workspace:manage_settings maps to the owner role (admins included),
+//    matching the old admin/owner-only gating for integration settings and
+//    external-author impersonation.
 type PermissionMap = Record<string, string[]>;
 
-function builtInRoleStatements(
-  role: string,
-): Record<string, readonly string[]> | null {
-  if (role in builtInRoles) {
-    return builtInRoles[role as BuiltInRoleName].statements as Record<
-      string,
-      readonly string[]
-    >;
-  }
-  return null;
-}
-
-function parsePermissionStatements(
-  raw: string,
-): Record<string, readonly string[]> | null {
-  let value: unknown;
-  try {
-    value = JSON.parse(raw);
-  } catch {
-    return null;
-  }
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return null;
-  }
-
-  // Only keep entries shaped like { [resource: string]: string[] }.
-  // Anything malformed is dropped so `satisfies()` never calls
-  // `.includes()` on a non-array.
-  const result: Record<string, string[]> = {};
-  for (const [resource, actions] of Object.entries(
-    value as Record<string, unknown>,
-  )) {
-    if (!Array.isArray(actions)) continue;
-    const filtered = actions.filter(
-      (action): action is string => typeof action === "string",
-    );
-    if (filtered.length > 0) {
-      result[resource] = filtered;
-    }
-  }
-  return result;
-}
-
-async function customRoleStatements(
-  workspaceId: string,
-  role: string,
-): Promise<Record<string, readonly string[]> | null> {
-  const [row] = await db
-    .select({ permission: schema.workspaceRoleTable.permission })
-    .from(schema.workspaceRoleTable)
-    .where(
-      and(
-        eq(schema.workspaceRoleTable.workspaceId, workspaceId),
-        eq(schema.workspaceRoleTable.role, role),
-      ),
-    )
-    .limit(1);
-
-  if (!row?.permission) return null;
-
-  return parsePermissionStatements(row.permission);
-}
+const MANAGE_SETTINGS: PermissionMap = { workspace: ["manage_settings"] };
 
 function satisfies(
-  statements: Record<string, readonly string[]>,
+  granted: Record<string, string[]>,
   required: PermissionMap,
 ): boolean {
   for (const [resource, actions] of Object.entries(required)) {
-    const granted = statements[resource];
-    if (!granted) return false;
+    const allowed = granted[resource];
+    if (!allowed) return false;
     for (const action of actions) {
-      if (!granted.includes(action)) return false;
+      if (!allowed.includes(action)) return false;
     }
   }
   return true;
+}
+
+// A key without a permissions map is unscoped and keeps full member powers;
+// a key with a map is constrained to exactly what it grants.
+function apiKeyScopeSatisfied(
+  apiKey: { permissions?: Record<string, string[]> | null } | undefined,
+  permissions: PermissionMap,
+): boolean {
+  if (!apiKey?.permissions) return true;
+  return satisfies(apiKey.permissions, permissions);
+}
+
+function getApiKey(c: Context) {
+  return c.get("apiKey") as
+    | { permissions?: Record<string, string[]> | null }
+    | undefined;
 }
 
 export async function hasWorkspacePermission(
   c: Context,
   permissions: PermissionMap,
 ) {
-  const workspaceId = c.get("workspaceId");
-  if (!workspaceId) return false;
+  const teamId = c.get("teamId");
+  if (!teamId) return false;
 
-  const apiKey = c.get("apiKey") as
-    | { permissions?: Record<string, string[]> | null }
-    | undefined;
-  if (apiKey?.permissions && !satisfies(apiKey.permissions, permissions)) {
+  if (!apiKeyScopeSatisfied(getApiKey(c), permissions)) {
     return false;
   }
 
@@ -106,50 +68,68 @@ export async function hasWorkspacePermission(
   if (!userId) return false;
 
   const [member] = await db
-    .select({ role: schema.workspaceUserTable.role })
-    .from(schema.workspaceUserTable)
+    .select({ role: schema.teamMemberTable.role })
+    .from(schema.teamMemberTable)
     .where(
       and(
-        eq(schema.workspaceUserTable.workspaceId, workspaceId),
-        eq(schema.workspaceUserTable.userId, userId),
+        eq(schema.teamMemberTable.teamId, teamId),
+        eq(schema.teamMemberTable.userId, userId),
       ),
     )
     .limit(1);
 
   if (!member?.role) return false;
 
-  // Prefer the DB row when present so admin-edited defaults
-  // (viewer/member/admin) take effect immediately. Falls back to the
-  // compiled-in static definitions only when no row exists, which protects
-  // viewer/member/admin users from a 403 if their workspace somehow
-  // missed the seed (e.g., seed failed during workspace creation and
-  // the boot-time backfill hasn't run yet).
-  const statements =
-    (await customRoleStatements(workspaceId, member.role)) ??
-    builtInRoleStatements(member.role);
+  if (satisfies(MANAGE_SETTINGS, permissions)) {
+    // Integration settings and impersonation stay owner-tier in the team
+    // model; plain members do not pass.
+    return ["owner", "admin"].includes(member.role);
+  }
 
-  return Boolean(statements && satisfies(statements, permissions));
+  return true;
 }
 
 export function requireWorkspacePermission(permissions: PermissionMap) {
   return async (c: Context, next: Next) => {
-    if (!c.get("workspaceId")) {
+    const teamId = c.get("teamId");
+    if (!teamId) {
       throw new HTTPException(500, {
-        message: "workspaceId not set in context",
+        message: "teamId not set in context",
       });
     }
 
-    const apiKey = c.get("apiKey") as
-      | { permissions?: Record<string, string[]> | null }
-      | undefined;
-    if (apiKey?.permissions && !satisfies(apiKey.permissions, permissions)) {
+    if (!apiKeyScopeSatisfied(getApiKey(c), permissions)) {
       throw new HTTPException(403, { message: "Insufficient API key scope" });
     }
 
-    if (!(await hasWorkspacePermission(c, permissions))) {
-      if (!c.get("userId")) {
-        throw new HTTPException(401, { message: "Unauthorized" });
-      }
+    if (await isInstanceAdmin(c)) {
+      return next();
+    }
+
+    const userId = c.get("userId");
+    if (!userId) {
+      throw new HTTPException(401, { message: "Unauthorized" });
+    }
+
+    const [member] = await db
+      .select({ role: schema.teamMemberTable.role })
+      .from(schema.teamMemberTable)
+      .where(
+        and(
+          eq(schema.teamMemberTable.teamId, teamId),
+          eq(schema.teamMemberTable.userId, userId),
+        ),
+      )
+      .limit(1);
+
+    if (!member?.role) {
+      throw new HTTPException(403, { message: "Insufficient permissions" });
+    }
+
+    if (
+      satisfies(MANAGE_SETTINGS, permissions) &&
+      !["owner", "admin"].includes(member.role)
+    ) {
       throw new HTTPException(403, { message: "Insufficient permissions" });
     }
 

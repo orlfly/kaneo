@@ -5,10 +5,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 describe("custom fields API", () => {
   beforeEach(async () => {
@@ -16,10 +13,10 @@ describe("custom fields API", () => {
   });
 
   async function createFixture() {
-    const member = await createWorkspaceMember({ role: "admin" });
+    const member = await createTeamMember({ role: "admin" });
 
     const { project } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
 
     mockAuthenticatedSession(member.user);
@@ -324,12 +321,12 @@ describe("custom fields API", () => {
   it("rejects a field belonging to another project", async () => {
     const first = await createFixture();
 
-    const secondMember = await createWorkspaceMember({
+    const secondMember = await createTeamMember({
       role: "admin",
     });
 
     const { project: secondProject } = await createProjectFixture({
-      workspaceId: secondMember.workspace.id,
+      teamId: secondMember.team.id,
     });
 
     const fieldResponse = await first.app.request("/api/custom-field", {

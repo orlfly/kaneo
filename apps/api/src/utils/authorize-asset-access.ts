@@ -3,7 +3,7 @@ import { resolveAssetBearerOrCookie } from "./authenticate-api-request";
 import { validateWorkspaceAccess } from "./validate-workspace-access";
 
 type AssetAccessTarget = {
-  workspaceId: string;
+  teamId: string;
   isPublic: boolean | null;
   surface: string;
 };
@@ -13,6 +13,15 @@ export function isPublicAsset(asset: AssetAccessTarget): boolean {
   return asset.isPublic === true && asset.surface === "description";
 }
 
+/**
+ * Authorizes a request for a stored asset.
+ *
+ * Assets that belong to a public project are readable by anyone, so the
+ * credential check must be skipped entirely for them:
+ * `resolveAssetBearerOrCookie` throws a 401 for anonymous callers rather than
+ * returning an empty user, so calling it first makes the public case
+ * unreachable.
+ */
 export async function authorizeAssetAccess(
   c: Context,
   asset: AssetAccessTarget,
@@ -22,5 +31,5 @@ export async function authorizeAssetAccess(
   }
 
   const { userId, apiKeyId } = await resolveAssetBearerOrCookie(c);
-  await validateWorkspaceAccess(userId, asset.workspaceId, apiKeyId);
+  await validateWorkspaceAccess(userId, asset.teamId, apiKeyId);
 }

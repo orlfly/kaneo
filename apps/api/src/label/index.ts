@@ -1,268 +1,255 @@
-import {
-  apiRouter,
-  createRoute,
-  errorResponse,
-  jsonResponse,
-} from "../openapi";
-import { requireWorkspacePermission } from "../utils/require-workspace-permission";
-import { workspaceAccess } from "../utils/workspace-access-middleware";
+import { Hono } from "hono";
+import { describeRoute, resolver, validator } from "hono-openapi";
+import * as v from "valibot";
+import { z } from "../openapi";
+import { labelSchema } from "../schemas";
+import { requireTeamRole } from "../utils/require-team-role";
+import { teamAccess } from "../utils/team-access-middleware";
 import assignLabelToTask from "./controllers/assign-label-to-task";
 import createLabel from "./controllers/create-label";
 import deleteLabel from "./controllers/delete-label";
 import getLabel from "./controllers/get-label";
 import getLabelsByTaskId from "./controllers/get-labels-by-task-id";
-import getLabelsByWorkspaceId from "./controllers/get-labels-by-workspace-id";
+import getLabelsByTeamId from "./controllers/get-labels-by-team-id";
 import unassignLabelFromTask from "./controllers/unassign-label-from-task";
 import updateLabel from "./controllers/update-label";
-import {
-  labelListSchema,
-  labelSchema,
-  pendingLabelDeletionSchema,
-} from "./response";
-import {
-  attachLabelBody,
-  createLabelBody,
-  labelParam,
-  taskIdParam,
-  updateLabelBody,
-  workspaceIdParam,
-} from "./schema";
+import { pendingLabelDeletionSchema } from "./response";
 
-const getTaskLabelsRoute = createRoute({
-  method: "get",
-  operationId: "getTaskLabels",
-  path: "/task/{taskId}",
-  tags: ["Labels"],
-  summary: "Get task labels",
-  description: "Get all labels assigned to a specific task",
-  middleware: [workspaceAccess.fromTaskId()] as const,
-  request: { params: taskIdParam },
-  responses: {
-    200: jsonResponse("List of labels for the task", labelListSchema),
-    400: errorResponse(
-      "Unknown task, or its workspace could not be determined",
-    ),
-    403: errorResponse("No access to the task's workspace"),
-  },
-});
-
-const getWorkspaceLabelsRoute = createRoute({
-  method: "get",
-  operationId: "getWorkspaceLabels",
-  path: "/workspace/{workspaceId}",
-  tags: ["Labels"],
-  summary: "Get workspace labels",
-  description: "Get all labels for a specific workspace",
-  middleware: [workspaceAccess.fromParam()] as const,
-  request: { params: workspaceIdParam },
-  responses: {
-    200: jsonResponse("List of labels in the workspace", labelListSchema),
-    400: errorResponse("Workspace ID could not be determined"),
-    403: errorResponse("No access to the workspace"),
-  },
-});
-
-const createLabelRoute = createRoute({
-  method: "post",
-  operationId: "createLabel",
-  path: "/",
-  tags: ["Labels"],
-  summary: "Create label",
-  description: "Create a new label in a workspace",
-  middleware: [
-    workspaceAccess.fromBody(),
-    requireWorkspacePermission({ label: ["create"] }),
-  ] as const,
-  request: {
-    body: {
-      required: true,
-      content: { "application/json": { schema: createLabelBody } },
+const label = new Hono<{
+  Variables: {
+    userId: string;
+  };
+}>()
+  .get(
+    "/task/:taskId",
+    describeRoute({
+      operationId: "getTaskLabels",
+      tags: ["Labels"],
+      description: "Get all labels assigned to a specific task",
+      responses: {
+        200: {
+          description: "List of labels for the task",
+          content: {
+            "application/json": { schema: resolver(v.array(labelSchema)) },
+          },
+        },
+      },
+    }),
+    validator("param", v.object({ taskId: v.string() })),
+    teamAccess.fromTaskId(),
+    async (c) => {
+      const { taskId } = c.req.valid("param");
+      const labels = await getLabelsByTaskId(taskId);
+      return c.json(labels);
     },
-  },
-  responses: {
-    200: jsonResponse("Label created successfully", labelSchema),
-    400: errorResponse("Invalid body, or workspace ID could not be determined"),
-    403: errorResponse(
-      "No workspace access, or missing label:create permission",
-    ),
-    404: errorResponse("Task not found"),
-    409: errorResponse("The workspace label is being deleted"),
-  },
-});
-
-const getLabelRoute = createRoute({
-  method: "get",
-  operationId: "getLabel",
-  path: "/{id}",
-  tags: ["Labels"],
-  summary: "Get label",
-  description: "Get a specific label by ID",
-  middleware: [workspaceAccess.fromLabel()] as const,
-  request: { params: labelParam },
-  responses: {
-    200: jsonResponse("Label details", labelSchema),
-    400: errorResponse(
-      "Unknown label, or its workspace could not be determined",
-    ),
-    403: errorResponse("No access to the label's workspace"),
-  },
-});
-
-const attachLabelToTaskRoute = createRoute({
-  method: "put",
-  operationId: "attachLabelToTask",
-  path: "/{id}/task",
-  tags: ["Labels"],
-  summary: "Attach label to task",
-  description: "Attach an existing label to a task",
-  middleware: [
-    workspaceAccess.fromLabel(),
-    requireWorkspacePermission({ label: ["update"] }),
-  ] as const,
-  request: {
-    params: labelParam,
-    body: {
-      required: true,
-      content: { "application/json": { schema: attachLabelBody } },
+  )
+  .get(
+    "/team/:teamId",
+    describeRoute({
+      operationId: "getTeamLabels",
+      tags: ["Labels"],
+      description: "Get all labels for a specific team",
+      responses: {
+        200: {
+          description: "List of labels in the team",
+          content: {
+            "application/json": { schema: resolver(v.array(labelSchema)) },
+          },
+        },
+      },
+    }),
+    validator("param", v.object({ teamId: v.string() })),
+    teamAccess.fromTeam(),
+    async (c) => {
+      const { teamId } = c.req.valid("param");
+      const labels = await getLabelsByTeamId(teamId);
+      return c.json(labels);
     },
-  },
-  responses: {
-    200: jsonResponse("Label attached to task successfully", labelSchema),
-    400: errorResponse(
-      "Unknown label, or label and task belong to different workspaces",
+  )
+  .post(
+    "/",
+    describeRoute({
+      operationId: "createLabel",
+      tags: ["Labels"],
+      description: "Create a new label in a team",
+      responses: {
+        200: {
+          description: "Label created successfully",
+          content: {
+            "application/json": { schema: resolver(labelSchema) },
+          },
+        },
+      },
+    }),
+    validator(
+      "json",
+      v.object({
+        name: v.string(),
+        color: v.string(),
+        teamId: v.string(),
+        taskId: v.optional(v.string()),
+      }),
     ),
-    403: errorResponse(
-      "No workspace access, or missing label:update permission",
-    ),
-    404: errorResponse("Task not found"),
-    409: errorResponse("The workspace label is being deleted"),
-  },
-});
-
-const detachLabelFromTaskRoute = createRoute({
-  method: "delete",
-  operationId: "detachLabelFromTask",
-  path: "/{id}/task",
-  tags: ["Labels"],
-  summary: "Detach label from task",
-  description: "Detach a label from its current task",
-  middleware: [
-    workspaceAccess.fromLabel(),
-    requireWorkspacePermission({ label: ["update"] }),
-  ] as const,
-  request: { params: labelParam },
-  responses: {
-    200: jsonResponse("Label detached from task successfully", labelSchema),
-    400: errorResponse("Unknown label, or label is not assigned to a task"),
-    403: errorResponse(
-      "No workspace access, or missing label:update permission",
-    ),
-    404: errorResponse("Task not found"),
-  },
-});
-
-const updateLabelRoute = createRoute({
-  method: "put",
-  operationId: "updateLabel",
-  path: "/{id}",
-  tags: ["Labels"],
-  summary: "Update label",
-  description: "Update an existing label",
-  middleware: [
-    workspaceAccess.fromLabel(),
-    requireWorkspacePermission({ label: ["update"] }),
-  ] as const,
-  request: {
-    params: labelParam,
-    body: {
-      required: true,
-      content: { "application/json": { schema: updateLabelBody } },
+    teamAccess.fromBody(),
+    requireTeamRole("member"),
+    async (c) => {
+      const { name, color, teamId, taskId } = c.req.valid("json");
+      const userId = c.get("userId");
+      const label = await createLabel(name, color, taskId, teamId, userId);
+      return c.json(label);
     },
-  },
-  responses: {
-    200: jsonResponse("Label updated successfully", labelSchema),
-    409: errorResponse("The workspace label is being deleted"),
-    400: errorResponse("Invalid body, or unknown label"),
-    403: errorResponse(
-      "No workspace access, or missing label:update permission",
+  )
+  .get(
+    "/:id",
+    describeRoute({
+      operationId: "getLabel",
+      tags: ["Labels"],
+      description: "Get a specific label by ID",
+      responses: {
+        200: {
+          description: "Label details",
+          content: {
+            "application/json": { schema: resolver(labelSchema) },
+          },
+        },
+      },
+    }),
+    validator("param", v.object({ id: v.string() })),
+    teamAccess.fromLabel(),
+    async (c) => {
+      const { id } = c.req.valid("param");
+      const label = await getLabel(id);
+      return c.json(label);
+    },
+  )
+  .put(
+    "/:id/task",
+    describeRoute({
+      operationId: "attachLabelToTask",
+      tags: ["Labels"],
+      description: "Attach an existing label to a task",
+      responses: {
+        200: {
+          description: "Label attached to task successfully",
+          content: {
+            "application/json": { schema: resolver(labelSchema) },
+          },
+        },
+      },
+    }),
+    validator("param", v.object({ id: v.string() })),
+    validator("json", v.object({ taskId: v.string() })),
+    teamAccess.fromLabel(),
+    requireTeamRole("member"),
+    async (c) => {
+      const { id } = c.req.valid("param");
+      const { taskId } = c.req.valid("json");
+      const userId = c.get("userId");
+      const label = await assignLabelToTask(id, taskId, userId);
+      return c.json(label);
+    },
+  )
+  .delete(
+    "/:id/task",
+    describeRoute({
+      operationId: "detachLabelFromTask",
+      tags: ["Labels"],
+      description: "Detach a label from its current task",
+      responses: {
+        200: {
+          description: "Label detached from task successfully",
+          content: {
+            "application/json": { schema: resolver(labelSchema) },
+          },
+        },
+      },
+    }),
+    validator("param", v.object({ id: v.string() })),
+    teamAccess.fromLabel(),
+    requireTeamRole("member"),
+    async (c) => {
+      const { id } = c.req.valid("param");
+      const userId = c.get("userId");
+      const label = await unassignLabelFromTask(id, userId);
+      return c.json(label);
+    },
+  )
+  .put(
+    "/:id",
+    describeRoute({
+      operationId: "updateLabel",
+      tags: ["Labels"],
+      description: "Update an existing label",
+      responses: {
+        200: {
+          description: "Label updated successfully",
+          content: {
+            "application/json": { schema: resolver(labelSchema) },
+          },
+        },
+      },
+    }),
+    validator("param", v.object({ id: v.string() })),
+    validator(
+      "json",
+      v.object({
+        name: v.string(),
+        color: v.string(),
+      }),
     ),
-  },
-});
-
-const deleteLabelRoute = createRoute({
-  method: "delete",
-  operationId: "deleteLabel",
-  path: "/{id}",
-  tags: ["Labels"],
-  summary: "Delete label",
-  description:
-    "Delete a label by ID. Large workspace cascades remove at most 25 task copies per request. Repeat DELETE with the same ID after HTTP 202 until HTTP 200 completes the operation. The persisted start boundary allows safe resumption after a disconnect. HTTP 429 asks the caller to retry later.",
-  middleware: [
-    workspaceAccess.fromLabel(),
-    requireWorkspacePermission({ label: ["delete"] }),
-  ] as const,
-  request: { params: labelParam },
-  responses: {
-    200: jsonResponse("Label deleted successfully", labelSchema),
-    202: jsonResponse(
-      "Deletion has more batches; repeat the same request",
-      pendingLabelDeletionSchema,
-    ),
-    429: errorResponse("Deletion capacity is busy; retry after Retry-After"),
-    400: errorResponse(
-      "Unknown label, or its workspace could not be determined",
-    ),
-    403: errorResponse(
-      "No workspace access, or missing label:delete permission",
-    ),
-    404: errorResponse("The label's task no longer exists"),
-  },
-});
-
-const label = apiRouter()
-  .openapi(getTaskLabelsRoute, async (c) => {
-    const { taskId } = c.req.valid("param");
-    return c.json(await getLabelsByTaskId(taskId), 200);
-  })
-  .openapi(getWorkspaceLabelsRoute, async (c) => {
-    const { workspaceId } = c.req.valid("param");
-    return c.json(await getLabelsByWorkspaceId(workspaceId), 200);
-  })
-  .openapi(createLabelRoute, async (c) => {
-    const { name, color, workspaceId, taskId } = c.req.valid("json");
-    const userId = c.get("userId");
-    return c.json(
-      await createLabel(name, color, taskId, workspaceId, userId),
-      200,
-    );
-  })
-  .openapi(getLabelRoute, async (c) => {
-    const { id } = c.req.valid("param");
-    return c.json(await getLabel(id), 200);
-  })
-  .openapi(attachLabelToTaskRoute, async (c) => {
-    const { id } = c.req.valid("param");
-    const { taskId } = c.req.valid("json");
-    const userId = c.get("userId");
-    return c.json(await assignLabelToTask(id, taskId, userId), 200);
-  })
-  .openapi(detachLabelFromTaskRoute, async (c) => {
-    const { id } = c.req.valid("param");
-    const userId = c.get("userId");
-    return c.json(await unassignLabelFromTask(id, userId), 200);
-  })
-  .openapi(updateLabelRoute, async (c) => {
-    const { id } = c.req.valid("param");
-    const { name, color } = c.req.valid("json");
-    return c.json(await updateLabel(id, name, color), 200);
-  })
-  .openapi(deleteLabelRoute, async (c) => {
-    const { id } = c.req.valid("param");
-    const userId = c.get("userId");
-    const result = await deleteLabel(id, userId);
-    if (result.pendingDeletion)
-      return c.json({ ...result, pendingDeletion: true as const }, 202);
-    return c.json(result, 200);
-  });
+    teamAccess.fromLabel(),
+    requireTeamRole("member"),
+    async (c) => {
+      const { id } = c.req.valid("param");
+      const { name, color } = c.req.valid("json");
+      const label = await updateLabel(id, name, color);
+      return c.json(label);
+    },
+  )
+  .delete(
+    "/:id",
+    describeRoute({
+      operationId: "deleteLabel",
+      tags: ["Labels"],
+      description:
+        "Delete a label by ID. Large cascades remove at most 25 task copies per request. Repeat DELETE with the same ID after HTTP 202 until HTTP 200 completes the operation. The persisted start boundary allows safe resumption after a disconnect. HTTP 429 asks the caller to retry later.",
+      responses: {
+        200: {
+          description: "Label deleted successfully",
+          content: {
+            "application/json": { schema: resolver(labelSchema) },
+          },
+        },
+        202: {
+          description: "Deletion has more batches; repeat the same request",
+          content: {
+            "application/json": {
+              schema: resolver(pendingLabelDeletionSchema),
+            },
+          },
+        },
+        429: {
+          description: "Deletion capacity is busy; retry after Retry-After",
+          content: {
+            "text/plain": { schema: resolver(z.string()) },
+            "application/json": {
+              schema: resolver(z.object({ message: z.string() })),
+            },
+          },
+        },
+      },
+    }),
+    validator("param", v.object({ id: v.string() })),
+    teamAccess.fromLabel(),
+    requireTeamRole("member"),
+    async (c) => {
+      const { id } = c.req.valid("param");
+      const userId = c.get("userId");
+      const result = await deleteLabel(id, userId);
+      if (result.pendingDeletion)
+        return c.json({ ...result, pendingDeletion: true as const }, 202);
+      return c.json(result);
+    },
+  );
 
 export default label;

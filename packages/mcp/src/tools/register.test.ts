@@ -49,6 +49,37 @@ describe("registerTools", () => {
     );
   });
 
+  it("registers the VCS integration tools", () => {
+    const { server } = createServerMock();
+    const client = { json: vi.fn() };
+
+    registerTools(server as never, { client: client as never });
+
+    const vcsTools = [
+      "vcs_list_repositories",
+      "vcs_list_issues",
+      "vcs_get_issue",
+      "vcs_list_issue_comments",
+      "vcs_list_pull_requests",
+      "vcs_list_labels",
+      "vcs_create_issue",
+      "vcs_update_issue",
+      "vcs_create_issue_comment",
+      "vcs_create_label",
+      "vcs_add_labels_to_issue",
+      "vcs_replace_issue_labels",
+      "vcs_remove_label_from_issue",
+      "vcs_import_issues",
+    ];
+    for (const name of vcsTools) {
+      expect(server.registerTool).toHaveBeenCalledWith(
+        name,
+        expect.any(Object),
+        expect.any(Function),
+      );
+    }
+  });
+
   it("builds the expected query string for list_tasks", async () => {
     const { server, tools } = createServerMock();
     const client = {
@@ -283,42 +314,79 @@ describe("registerTools", () => {
     });
   });
 
-  it("deletes a task-associated label after a preflight check", async () => {
+  it("deletes a label directly via the API", async () => {
     const { server, tools } = createServerMock();
-    const client = {
-      json: vi
-        .fn()
-        .mockResolvedValueOnce({ id: "label-1", taskId: "task-1" })
-        .mockResolvedValueOnce({ id: "label-1" }),
-    };
+    const client = { json: vi.fn().mockResolvedValue({ id: "label-1" }) };
 
     registerTools(server as never, { client: client as never });
 
     const result = await tools.get("delete_label")?.handler({ id: "label-1" });
 
-    expect(client.json).toHaveBeenNthCalledWith(1, "/api/label/label-1", {
-      method: "GET",
-    });
-    expect(client.json).toHaveBeenNthCalledWith(2, "/api/label/label-1", {
+    expect(client.json).toHaveBeenCalledWith("/api/label/label-1", {
       method: "DELETE",
     });
     expect(result?.isError).toBe(false);
   });
 
-  it("refuses to delete a workspace label (taskId null)", async () => {
-    const { server, tools } = createServerMock();
-    const client = {
-      json: vi.fn().mockResolvedValue({ id: "label-1", taskId: null }),
-    };
+  describe("Agent working-directory tools", () => {
+    it("registers all agent working-directory tools", () => {
+      const { server } = createServerMock();
+      const client = { json: vi.fn() };
 
-    registerTools(server as never, { client: client as never });
+      registerTools(server as never, { client: client as never });
 
-    const result = await tools.get("delete_label")?.handler({ id: "label-1" });
+      const agentTools = [
+        "agent_clone_repo",
+        "agent_list_files",
+        "agent_read_file",
+        "agent_write_file",
+        "agent_search_files",
+        "agent_delete_file",
+        "agent_run_command",
+      ];
+      for (const name of agentTools) {
+        expect(server.registerTool).toHaveBeenCalledWith(
+          name,
+          expect.any(Object),
+          expect.any(Function),
+        );
+      }
+    });
 
-    expect(result?.isError).toBe(true);
-    expect(client.json).toHaveBeenCalledTimes(1);
-    expect(client.json).toHaveBeenCalledWith("/api/label/label-1", {
-      method: "GET",
+    it("routes agent_clone_repo to the tool-execute endpoint", async () => {
+      const { server, tools } = createServerMock();
+      const client = { json: vi.fn().mockResolvedValue({ ok: true }) };
+
+      registerTools(server as never, { client: client as never });
+
+      await tools.get("agent_clone_repo")?.handler({ projectId: "p1" });
+
+      expect(client.json).toHaveBeenCalledWith("/api/chat/project/p1/tool", {
+        method: "POST",
+        body: JSON.stringify({ tool: "agent_clone_repo", args: {} }),
+      });
+    });
+
+    it("routes agent_read_file with paging args", async () => {
+      const { server, tools } = createServerMock();
+      const client = { json: vi.fn().mockResolvedValue({ ok: true }) };
+
+      registerTools(server as never, { client: client as never });
+
+      await tools.get("agent_read_file")?.handler({
+        projectId: "p1",
+        path: "src/index.ts",
+        offset: 0,
+        limit: 10,
+      });
+
+      expect(client.json).toHaveBeenCalledWith("/api/chat/project/p1/tool", {
+        method: "POST",
+        body: JSON.stringify({
+          tool: "agent_read_file",
+          args: { path: "src/index.ts", offset: 0, limit: 10 },
+        }),
+      });
     });
   });
 });

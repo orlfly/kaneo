@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { resetTestDatabase } from "./helpers/database";
-import { createWorkspaceMember } from "./helpers/fixtures";
+import { createTeamMember } from "./helpers/fixtures";
 
 const endpoints = [
   [
@@ -50,7 +50,7 @@ function post(path: string, body: unknown, token?: string) {
 describe("server-side auth CAPTCHA enforcement", () => {
   beforeEach(async () => {
     await resetTestDatabase();
-    await createWorkspaceMember();
+    await createTeamMember();
     vi.stubEnv("TURNSTILE_SECRET_KEY", "test-only-secret");
   });
   afterEach(() => {

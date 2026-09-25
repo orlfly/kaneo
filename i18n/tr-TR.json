@@ -11,7 +11,12 @@
 			"remove": "Kaldır",
 			"reset": "Sıfırla",
 			"filter": "Filtrele",
-			"clearAllFilters": "Tüm filtreleri temizle"
+			"clearAllFilters": "Tüm filtreleri temizle",
+			"adding": "Adding…",
+			"claim": "Claim",
+			"release": "Release",
+			"pause": "Pause",
+			"resume": "Resume"
 		},
 		"a11y": {
 			"toggleSidebar": "Kenar çubuğunu aç/kapat"
@@ -35,18 +40,6 @@
 			"label": "Navigasyon",
 			"more": "Daha fazla"
 		},
-		"language": {
-			"english": "İngilizce",
-			"german": "Almanca",
-			"greek": "Yunanca",
-			"macedonian": "Makedonca",
-			"french": "Fransızca",
-			"spanish": "İspanyolca",
-			"dutch": "Hollandaca",
-			"korean": "Korece",
-			"chinese": "Çince",
-			"italian": "İtalyanca"
-		},
 		"people": {
 			"someone": "Biri",
 			"unknown": "Bilinmiyor"
@@ -56,30 +49,7 @@
 			"troubleshooting": "Sorun giderme adımları:",
 			"tryAgain": "Tekrar dene",
 			"viewDeploymentGuide": "Dağıtım Kılavuzunu Görüntüle",
-			"refreshPage": "Sayfayı Yenile",
-			"description": "The page crashed unexpectedly. Refreshing usually fixes it.",
-			"messages": {
-				"auth": "Authentication failed. Please sign in again.",
-				"cors": "Unable to connect to the server. This might be due to CORS configuration issues.",
-				"network": "Network error. Please check your internet connection and try again.",
-				"server": "Server error. Please try again later.",
-				"unknown": "An unexpected error occurred."
-			},
-			"troubleshootingSteps": {
-				"cors": {
-					"checkAccessibility": "Check that your API server is accessible from your browser",
-					"checkApiRunning": "Make sure your API server is running",
-					"checkApiUrl": "Check that VITE_API_URL in your frontend .env matches your API server URL",
-					"checkProtocol": "Ensure both frontend and API are using the same protocol (http/https)",
-					"verifyCorsOrigins": "Verify CORS_ORIGINS in your API .env includes your frontend URL"
-				},
-				"network": {
-					"checkConnection": "Check your internet connection",
-					"checkFirewall": "Check if there are any firewall or proxy issues",
-					"tryRefresh": "Try refreshing the page",
-					"verifyApiRunning": "Verify the API server is running and accessible"
-				}
-			}
+			"refreshPage": "Sayfayı Yenile"
 		},
 		"formats": {
 			"never": "Asla"
@@ -88,7 +58,6 @@
 			"createProject": {
 				"title": "Yeni proje oluştur",
 				"breadcrumbNew": "Yeni proje oluştur",
-				"workspaceFallback": "ÇALIŞMA ALANI",
 				"description": "Bir ad, anahtar ve simge girerek çalışma alanınızda yeni bir proje oluşturun.",
 				"pickIcon": "Simge seç",
 				"searchIcons": "Simge ara...",
@@ -97,17 +66,12 @@
 				"keyHint": "Talep kimlikleri için kullanılır (örn. {{example}}-123)",
 				"createButton": "Proje Oluştur",
 				"successToast": "Proje başarıyla oluşturuldu",
-				"errorToast": "Proje oluşturulamadı"
-			},
-			"createWorkspace": {
-				"breadcrumbKaneo": "KANEO",
-				"title": "Yeni çalışma alanı oluştur",
-				"description": "Çalışma alanınız için bir ad girerek yeni bir çalışma alanı oluşturun.",
-				"namePlaceholder": "Çalışma alanı adı",
-				"descriptionPlaceholder": "Açıklama ekle...",
-				"createButton": "Çalışma Alanı Oluştur",
-				"successToast": "Çalışma alanı başarıyla oluşturuldu",
-				"errorToast": "Çalışma alanı oluşturulamadı"
+				"errorToast": "Proje oluşturulamadı",
+				"manageTeams": "Go to team management",
+				"noTeams": "You don't have any teams yet. Create or join a team before creating a project.",
+				"teamLabel": "Team",
+				"teamPlaceholder": "Select a team",
+				"teamFallback": "ÇALIŞMA ALANI"
 			},
 			"createTask": {
 				"breadcrumbTask": "TALEP",
@@ -122,7 +86,6 @@
 				"successUpdated": "Talep başarıyla güncellendi",
 				"createError": "Talep oluşturulamadı",
 				"priority": "Öncelik",
-				"statusFallback": "Devam Ediyor",
 				"startDate": "Başlangıç tarihi",
 				"dueDate": "Bitiş tarihi",
 				"clearStartDate": "Başlangıç tarihini temizle",
@@ -139,9 +102,6 @@
 				"labelCreateError": "Etiket oluşturulamadı",
 				"createMore": "Daha fazla oluştur",
 				"createButton": "Talep Oluştur",
-				"discardTitle": "Kaydedilmemiş talep taslağı silinsin mi?",
-				"discardDescription": "Kaydedilmemiş talep ayrıntıları kaybolacak.",
-				"discardButton": "Talep taslağını sil",
 				"untitledTask": "Başlıksız talep",
 				"labelColors": {
 					"stone": "Taş",
@@ -153,14 +113,23 @@
 					"terracotta": "Terakota",
 					"rose": "Gül Kurusu",
 					"crimson": "Koyu Kırmızı"
-				}
+				},
+				"agentRole": "Required agent role",
+				"agentRoleGeneric": "Any agent"
+			},
+			"createTeam": {
+				"breadcrumbKaneo": "KANEO",
+				"createButton": "Create Team",
+				"description": "Create a new team by providing a name for your team.",
+				"errorToast": "Failed to create team",
+				"namePlaceholder": "Team name",
+				"successToast": "Team created successfully",
+				"title": "Create a new team"
 			}
 		},
-		"boolean": {
-			"false": "False",
-			"notSet": "Not Set",
-			"true": "True",
-			"undefined": "Undefined"
+		"states": {
+			"loading": "Loading…",
+			"paused": "Paused"
 		}
 	},
 	"auth": {
@@ -168,43 +137,17 @@
 			"pageTitle": "Giriş Yap",
 			"title": "Tekrar hoş geldiniz",
 			"subtitle": "Çalışma alanınıza erişmek için kimlik bilgilerinizi girin",
-			"invitationSubtitle": "Davetinizi kabul etmek için giriş yapın",
-			"invitationAlert": "Giriş yaptıktan sonra çalışma alanı davetinizi kabul edebileceksiniz.",
-			"signingIn": "Giriş yapılıyor...",
-			"continueWithGoogle": "Google ile devam et",
-			"continueWithGithub": "GitHub ile devam et",
-			"continueWithDiscord": "Discord ile devam et",
-			"continueWithOidc": "OIDC ile devam et",
-			"lastUsed": "Son kullanılan",
-			"registrationDisabled": "Genel kayıt devre dışı. Hesap oluşturmak için bir davet kullanın.",
-			"passwordRegistrationDisabled": "Parola kaydı devre dışı. Hesap oluşturmak için yapılandırılmış bir sosyal veya OIDC giriş yöntemi kullanın.",
-			"toggleMessage": "Hesabınız yok mu?",
-			"toggleLink": "Hesap oluştur",
-			"guestSuccess": "Misafir olarak giriş yapıldı",
-			"guestError": "Misafir olarak giriş yapılamadı",
-			"oidcError": "OIDC ile giriş yapılamadı",
-			"googleError": "Google ile giriş yapılamadı",
-			"githubError": "GitHub ile giriş yapılamadı",
-			"discordError": "Discord ile giriş yapılamadı",
-			"errors": {
-				"oauth_code_verification_failed": "OAuth doğrulaması başarısız. Lütfen tekrar deneyin.",
-				"registration_is_currently_disabled_you_need_a_valid_invitation_to_create_an_account_": "Kayıt şu anda devre dışı. Hesap oluşturmak için geçerli bir davet gereklidir.",
-				"account_not_linked": "Bu kimlik mevcut hesapla ilişkilendirilemedi. Hesabı doğrulamak için e-posta ile giriş yapın, ardından SSO'yu tekrar deneyin. E-posta ile giriş kullanılamıyorsa yöneticinizle iletişime geçin."
-			},
+			"registrationDisabled": "Public registration is disabled. Ask an administrator to create your account.",
 			"instanceStatusError": "Sunucuya ulaşılamadı. Lütfen birazdan tekrar deneyin."
-		},
-		"providers": {
-			"google": "Google",
-			"discord": "Discord"
 		},
 		"forms": {
 			"or": "veya",
-			"email": "E-posta",
 			"password": "Parola",
-			"emailPlaceholder": "ben@example.com",
 			"passwordPlaceholder": "••••••••",
 			"showPassword": "Parolayı göster",
-			"hidePassword": "Parolayı gizle"
+			"hidePassword": "Parolayı gizle",
+			"username": "Username",
+			"usernamePlaceholder": "Enter your username"
 		},
 		"checkEmail": {
 			"pageTitle": "E-postanızı Kontrol Edin",
@@ -213,114 +156,11 @@
 			"emailFallback": "e-posta adresiniz",
 			"backToLogin": "Girişe dön"
 		},
-		"signUp": {
-			"pageTitle": "Hesap Oluştur",
-			"title": "Hesap oluştur",
-			"subtitleInvitation": "Davetinizi kabul etmek için bir hesap oluşturun",
-			"subtitleRegistrationDisabled": "Kayıt bir davet gerektirir",
-			"subtitlePasswordDisabled": "Hesap oluşturmak için sosyal veya OIDC giriş yöntemini kullanın",
-			"subtitleDefault": "Çalışma alanınızla başlayın",
-			"invitationAlert": "Hesabınızı oluşturduktan sonra çalışma alanı davetinizi kabul edebileceksiniz.",
-			"registrationDisabledAlert": "Kayıt şu anda devre dışı. Davet edildiyseniz, hesap oluşturmak için davetin gönderildiği e-posta adresini girin.",
-			"passwordDisabledAlert": "Parola tabanlı hesap oluşturma devre dışı. Giriş sayfasından yapılandırılmış bir sosyal veya OIDC giriş yöntemi kullanın.",
-			"signingIn": "Giriş yapılıyor...",
-			"continueAsGuest": "Misafir olarak devam et",
-			"toggleMessage": "Zaten hesabınız var mı?",
-			"toggleLink": "Giriş yap",
-			"instanceStatusError": "Sunucuya ulaşılamadı. Lütfen birazdan tekrar deneyin.",
-			"instanceAdminTitle": "Kaneo örneğinizi kurun",
-			"instanceAdminSubtitle": "Bu hesap, tam erişime sahip örnek yöneticisi olur."
-		},
-		"verifyOtp": {
-			"pageTitle": "Kodu Doğrula",
-			"title": "Doğrulama kodunu girin",
-			"subtitle": "Devam etmek için e-postanıza gönderilen 6 haneli kodu kullanın",
-			"codeSentTo": "Kod {{email}} adresine gönderildi",
-			"verificationCodeLabel": "Doğrulama Kodu",
-			"verifying": "Doğrulanıyor...",
-			"verifyAndSignIn": "Doğrula ve Giriş Yap",
-			"changeEmail": "E-postayı değiştir",
-			"resend": "Yeniden gönder",
-			"validation": {
-				"codeLength": "Kod 6 haneli olmalıdır"
-			},
-			"toast": {
-				"invalidCode": "Geçersiz doğrulama kodu",
-				"signedInSuccess": "Başarıyla giriş yapıldı!",
-				"verifyFailed": "Kod doğrulanamadı",
-				"resendFailed": "Kod yeniden gönderilemedi",
-				"resendSuccess": "Yeni doğrulama kodu gönderildi!"
-			}
-		},
-		"otpSignIn": {
-			"sendFailed": "Doğrulama kodu gönderilemedi",
-			"codeSent": "Doğrulama kodu gönderildi! E-postanızı kontrol edin.",
-			"sending": "Gönderiliyor...",
-			"sendVerificationCode": "Doğrulama Kodu Gönder"
-		},
 		"signInForm": {
 			"failedSignIn": "Giriş başarısız",
 			"signedInSuccess": "Başarıyla giriş yapıldı",
 			"signingIn": "Giriş Yapılıyor...",
 			"signIn": "Giriş Yap"
-		},
-		"signUpForm": {
-			"fullName": "Ad Soyad",
-			"namePlaceholder": "John Doe",
-			"failedSignUp": "Kayıt başarısız",
-			"accountCreated": "Hesap başarıyla oluşturuldu",
-			"passwordTooShort": "Parola çok kısa",
-			"creatingAccount": "Hesap Oluşturuluyor...",
-			"createAccount": "Hesap Oluştur"
-		},
-		"invitation": {
-			"pageTitleAccept": "Daveti Kabul Et",
-			"pageTitleError": "Davet Hatası",
-			"pageTitleInvalid": "Geçersiz Davet",
-			"loadingTitle": "Davet yükleniyor...",
-			"errorTitle": "Davet Hatası",
-			"invalidTitle": "Geçersiz Davet",
-			"invitationExpired": "Davetin Süresi Doldu",
-			"errorLoadDescription": "Davet ayrıntıları yüklenemedi. Davet geçersiz veya süresi dolmuş olabilir.",
-			"goToSignIn": "Girişe Git",
-			"workspaceLabel": "Çalışma alanı: {{workspaceName}}",
-			"joinWorkspace": "{{workspaceName}} çalışma alanına katıl",
-			"inviteBodySignedIn": "<inviter>{{inviterName}}</inviter> sizi çalışma alanına katılmaya davet etti.",
-			"inviteBodySignedOut": "<inviter>{{inviterName}}</inviter> sizi Kaneo üzerindeki çalışma alanına katılmaya davet etti.",
-			"createAccountOrSignIn": "Bu daveti kabul etmek için bir hesap oluşturun veya zaten hesabınız varsa giriş yapın.",
-			"createAccount": "Hesap Oluştur",
-			"accepting": "Kabul ediliyor...",
-			"acceptInvitation": "Daveti Kabul Et",
-			"goToDashboard": "Panele Git",
-			"signedInAs": "<email>{{email}}</email> olarak giriş yapıldı",
-			"youveBeenInvited": "Davet edildiniz!",
-			"invitationFor": "Davet: <email>{{email}}</email>",
-			"signIn": "Giriş Yap",
-			"toast": {
-				"acceptFailed": "Davet kabul edilemedi",
-				"acceptSuccess": "Davet kabul edildi! Aramıza hoş geldiniz."
-			}
-		},
-		"onboarding": {
-			"pageTitle": "Kaneo'ya Hoş Geldiniz",
-			"workspacePageTitle": "Çalışma Alanı Oluştur",
-			"createWorkspaceTitle": "Çalışma alanı oluştur",
-			"createWorkspaceSubtitle": "Projeleri yönetmeye başlamak için çalışma alanınızı kurun",
-			"workspaceName": "Çalışma alanı adı",
-			"workspaceNamePlaceholder": "örn. Acme Inc, Ekibim",
-			"descriptionOptional": "Açıklama (isteğe bağlı)",
-			"descriptionPlaceholder": "Ekibiniz ne üzerinde çalışıyor?",
-			"creating": "Oluşturuluyor...",
-			"createWorkspace": "Çalışma alanı oluştur",
-			"workspaceCreatedTitle": "Çalışma alanı oluşturuldu",
-			"redirectingToWorkspace": "Sizi <name>{{name}}</name> çalışma alanına götürüyorum...",
-			"toast": {
-				"workspaceCreated": "Çalışma alanı başarıyla oluşturuldu",
-				"createFailed": "Çalışma alanı oluşturulamadı"
-			},
-			"validation": {
-				"workspaceNameRequired": "Çalışma alanı adı gereklidir"
-			}
 		},
 		"profileSetup": {
 			"pageTitle": "Profili Tamamla",
@@ -380,7 +220,7 @@
 			"deleteAccount": {
 				"confirm": "Delete account",
 				"confirmLabel": "Confirm your email address",
-				"description": "Workspaces only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
+				"description": "Teams only you belong to are deleted with your account. Elsewhere, your tasks stay and become unassigned, and your comments are removed.",
 				"error": "Failed to delete account",
 				"modalDescription": "This cannot be undone. Type {{email}} to confirm.",
 				"modalTitle": "Delete your account?",
@@ -432,13 +272,6 @@
 			"webhookSecretHintConfigured": "Bir imzalama gizli anahtarı zaten yapılandırılmış ({{masked}}). Değiştirmek için yeni bir tane girin.",
 			"webhookSecretHintOptional": "İsteğe bağlı. Bir gizli anahtar ayarlandığında Kaneo istek gövdesini imzalar.",
 			"connectWebhook": "Webhook bağla",
-			"workspaceRulesTitle": "Çalışma alanı teslim kuralları",
-			"workspaceRulesDescription": "Genel kanallarınızı yeniden kullanın, ardından hangi çalışma alanlarının ve projelerin hesap bildirimleri göndermesine izin verileceğine karar verin.",
-			"workspaceCardHint": "Bu çalışma alanının hesap bildirimleri için hangi kanalları kullanabileceğini seçin.",
-			"workspaceCardLabelEmail": "E-posta",
-			"workspaceCardLabelNtfy": "ntfy",
-			"workspaceCardLabelGotify": "Gotify",
-			"workspaceCardLabelWebhook": "Özel webhook",
 			"emailChannelHintEnabled": "Eşleşen çalışma alanı bildirimlerini e-posta ile gönder.",
 			"emailChannelHintDisabled": "Önce e-postayı genel olarak yapılandırın ve etkinleştirin.",
 			"ntfyChannelHintEnabled": "Eşleşen çalışma alanı bildirimlerini ntfy'ye gönder.",
@@ -453,32 +286,14 @@
 			"allProjectsDescription": "Bu çalışma alanındaki tüm projelerden bildirimleri teslim et.",
 			"selectedProjects": "Seçili projeler",
 			"selectedProjectsDescription": "Yalnızca seçilen projelerden bildirimleri teslim et.",
-			"noProjectsInWorkspace": "Bu çalışma alanında henüz proje yok.",
 			"createRule": "Kural oluştur",
 			"removeRule": "Kuralı kaldır",
-			"toastEmailSaved": "E-posta bildirim ayarları kaydedildi",
-			"toastEmailSaveFailed": "E-posta ayarları kaydedilemedi",
-			"toastNtfySaved": "ntfy ayarları kaydedildi",
-			"toastNtfySaveFailed": "ntfy ayarları kaydedilemedi",
-			"toastNtfyDisconnected": "ntfy bağlantısı kesildi",
-			"toastNtfyDisconnectFailed": "ntfy bağlantısı kesilemedi",
-			"toastGotifySaved": "Gotify ayarları kaydedildi",
-			"toastGotifySaveFailed": "Gotify ayarları kaydedilemedi",
-			"toastGotifyDisconnected": "Gotify bağlantısı kesildi",
-			"toastGotifyDisconnectFailed": "Gotify bağlantısı kesilemedi",
-			"toastWebhookSaved": "Webhook ayarları kaydedildi",
-			"toastWebhookSaveFailed": "Webhook ayarları kaydedilemedi",
-			"toastWebhookDisconnected": "Webhook bağlantısı kesildi",
-			"toastWebhookDisconnectFailed": "Webhook bağlantısı kesilemedi",
-			"toastRuleSaved": "{{workspaceName}} için bildirim kuralı kaydedildi",
 			"toastRuleSaveFailed": "Çalışma alanı bildirim kuralı kaydedilemedi",
-			"toastRuleRemoved": "{{workspaceName}} için bildirim kuralı kaldırıldı",
 			"toastRuleRemoveFailed": "Çalışma alanı bildirim kuralı kaldırılamadı",
 			"toastPreferencesSaved": "Bildirim tercihleri kaydedildi",
 			"toastPreferencesSaveFailed": "Bildirim tercihleri kaydedilemedi",
 			"toastRuleSavedGeneric": "Çalışma alanı bildirim kuralı kaydedildi",
 			"toastRuleRemovedGeneric": "Çalışma alanı bildirim kuralı kaldırıldı",
-			"workspaceEnabledLabel": "{{workspaceName}} için bildirimleri etkinleştir",
 			"eventPreferencesTitle": "Bana bildirim gönder",
 			"eventPreferencesDescription": "Hangi talep olaylarının uygulama içi bildirim oluşturacağını ve bağlı kanallarınıza iletilebileceğini seçin.",
 			"eventTaskAssignments": "Talep atamaları",
@@ -491,7 +306,16 @@
 			"reminderLeadTimeUnitHours": "Saat",
 			"reminderLeadTimeUnitDays": "Gün",
 			"reminderLeadTimeInvalid": "1 ile {{max}} arasında bir tam sayı girin.",
-			"saveEventPreferences": "Bildirim türlerini kaydet"
+			"saveEventPreferences": "Bildirim türlerini kaydet",
+			"noProjectsInTeam": "No projects available for this team yet.",
+			"teamCardHint": "Choose which channels this team can use for account notifications.",
+			"teamCardLabelEmail": "Email",
+			"teamCardLabelGotify": "Gotify",
+			"teamCardLabelNtfy": "ntfy",
+			"teamCardLabelWebhook": "Custom webhook",
+			"teamEnabledLabel": "Enable notifications for {{teamName}}",
+			"teamRulesDescription": "Reuse your global channels, then decide which teams and projects are allowed to send account notifications.",
+			"teamRulesTitle": "Team delivery rules"
 		},
 		"preferencesPage": {
 			"title": "Tercihler",
@@ -518,7 +342,6 @@
 			"selectViewMode": "Bir görünüm modu seçin",
 			"board": "Pano",
 			"list": "Liste",
-			"gantt": "Gantt",
 			"sidebarDefault": "Kenar Çubuğu Varsayılanı",
 			"sidebarDefaultDescription": "Başlangıçta kenar çubuğunu geniş tut",
 			"displayOptions": "Görüntüleme seçenekleri",
@@ -545,102 +368,71 @@
 		},
 		"apiKey": {
 			"createdModal": {
-				"title": "API Anahtarı Oluşturuldu",
-				"description": "\"{{keyName}}\" API anahtarınız başarıyla oluşturuldu.",
-				"yourApiKey": "API Anahtarınız",
-				"copy": "Kopyala",
-				"copied": "Kopyalandı",
-				"toastCopied": "API anahtarı panoya kopyalandı",
-				"alertTitle": "Başarılı! API anahtarınız oluşturuldu",
-				"alertDescription": "Bu anahtarı hemen kopyalayın. Tekrar göremezsiniz.",
-				"done": "Bitti",
-				"copyToContinue": "Devam etmek için anahtarı kopyalayın"
+				"title": "API Key Created",
+				"description": "Your API key \"{{keyName}}\" has been created successfully.",
+				"yourApiKey": "Your API Key",
+				"copy": "Copy",
+				"copied": "Copied",
+				"toastCopied": "API key copied to clipboard",
+				"alertTitle": "Success! Your API key has been created",
+				"alertDescription": "Copy this key now. You won't be able to see it again.",
+				"done": "Done",
+				"copyToContinue": "Copy key to continue"
 			},
 			"table": {
-				"loading": "API anahtarları yükleniyor...",
-				"empty": "Henüz API anahtarı yok. Başlamak için bir tane oluşturun.",
-				"columnName": "Ad",
-				"columnKey": "Anahtar",
-				"columnCreated": "Oluşturulma",
-				"columnExpires": "Süre Sonu",
-				"columnActions": "İşlemler",
-				"unnamedKey": "İsimsiz Anahtar",
-				"expiredBadge": "Süresi dolmuş {{label}}",
-				"deleteConfirmTitle": "API anahtarı silinsin mi?",
-				"deleteConfirmDescription": "Bu işlem geri alınamaz. {{name}} kalıcı olarak silinecek.",
-				"deleteFallbackName": "bu API anahtarı",
-				"delete": "Sil",
-				"deleting": "Siliniyor...",
-				"deleteAria": "{{name}} anahtarını sil",
-				"deleteAriaFallback": "API anahtarı",
-				"toastDeleted": "API anahtarı başarıyla silindi",
-				"toastDeleteError": "API anahtarı silinemedi"
+				"loading": "Loading API keys...",
+				"empty": "No API keys yet. Create one to get started.",
+				"columnName": "Name",
+				"columnKey": "Key",
+				"columnCreated": "Created",
+				"columnExpires": "Expires",
+				"columnActions": "Actions",
+				"unnamedKey": "Unnamed Key",
+				"expiredBadge": "Expired {{label}}",
+				"deleteConfirmTitle": "Delete API key?",
+				"deleteConfirmDescription": "This action cannot be undone. This will permanently delete {{name}}.",
+				"deleteFallbackName": "this API key",
+				"delete": "Delete",
+				"deleting": "Deleting...",
+				"deleteAria": "Delete {{name}}",
+				"deleteAriaFallback": "API key",
+				"toastDeleted": "API key deleted successfully",
+				"toastDeleteError": "Failed to delete API key"
 			},
 			"createDialog": {
-				"title": "API Anahtarı Oluştur",
-				"description": "Kaneo API'sine programlı erişim için yeni bir API anahtarı oluşturun.",
-				"nameLabel": "Ad",
-				"namePlaceholder": "API Anahtarım",
-				"nameDescription": "Bu API anahtarı için açıklayıcı bir ad",
-				"expirationLabel": "Süre Sonu",
-				"expirationPlaceholder": "Süre sonu seçin",
-				"expirationDescription": "Bu API anahtarının ne kadar süreyle geçerli olacağını seçin. Asla seçeneği, otomatik süre sonu olmayan bir anahtar oluşturur.",
-				"expiration1d": "1 gün",
-				"expiration7d": "7 gün",
-				"expiration30d": "30 gün",
-				"expiration90d": "90 gün",
-				"expirationNever": "Asla",
-				"create": "Oluştur",
-				"creating": "Oluşturuluyor...",
-				"failedCreate": "API anahtarı oluşturulamadı",
+				"title": "Create API Key",
+				"description": "Create a new API key to access the Kaneo API programmatically.",
+				"nameLabel": "Name",
+				"namePlaceholder": "My API Key",
+				"nameDescription": "A descriptive name for this API key",
+				"expirationLabel": "Expiration",
+				"expirationPlaceholder": "Select expiration",
+				"expirationDescription": "Choose how long this API key should remain valid. Never will create a key without an automatic expiry.",
+				"expiration1d": "1 day",
+				"expiration7d": "7 days",
+				"expiration30d": "30 days",
+				"expiration90d": "90 days",
+				"expirationNever": "Never",
+				"create": "Create",
+				"creating": "Creating...",
+				"failedCreate": "Failed to create API key",
 				"validation": {
-					"nameRequired": "Ad gereklidir",
-					"nameShort": "Ad en az 3 karakter olmalıdır",
-					"expirationRequired": "Süre sonu gereklidir"
+					"nameRequired": "Name is required",
+					"nameShort": "Name must be at least 3 characters",
+					"expirationRequired": "Expiration is required"
+				},
+				"roleLabel": "Agent role",
+				"rolePlaceholder": "Choose an agent role",
+				"roleDescription": "Tasks with this role are the ones this key claims.",
+				"roleCoding": "Coding (default)",
+				"role": {
+					"product-design": "Product Design",
+					"architecture-design": "Architecture Design",
+					"devops": "Devops",
+					"ui-design": "UI Design",
+					"testing": "Testing",
+					"code-review": "Code Review"
 				}
-			}
-		},
-		"workspaceGeneral": {
-			"pageTitle": "Genel Ayarlar",
-			"title": "Genel Ayarlar",
-			"subtitle": "Çalışma alanı adınızı ve açıklamanızı yönetin.",
-			"workspaceInfoTitle": "Çalışma Alanı Bilgileri",
-			"workspaceInfoSubtitle": "Çalışma alanı ayrıntılarınızı ve tercihlerinizi yapılandırın.",
-			"nameLabel": "Çalışma alanı adı",
-			"nameHint": "Çalışma alanınızın adı",
-			"namePlaceholder": "Çalışma alanı adını girin",
-			"descriptionLabel": "Açıklama",
-			"descriptionHint": "Çalışma alanınızın kısa bir açıklaması",
-			"descriptionPlaceholder": "Çalışma alanı açıklamasını girin",
-			"dangerZone": "Tehlikeli bölge",
-			"dangerZoneSubtitle": "Geri alınamaz ve yıkıcı işlemler.",
-			"deleteWorkspace": "Çalışma alanını sil",
-			"deleteWorkspaceDescription": "Çalışma alanının kalıcı olarak silinmesini planla",
-			"deleteModalTitle": "Çalışma Alanı Silinsin mi?",
-			"deleteModalDescription": "Bu, \"{{name}}\" çalışma alanını ve tüm verilerini kalıcı olarak silecek. Bu işlem geri alınamaz.",
-			"deleteModalConfirm": "Çalışma Alanını Sil",
-			"toastUpdated": "Çalışma alanı başarıyla güncellendi",
-			"toastUpdateError": "Çalışma alanı güncellenemedi",
-			"toastDeleted": "Çalışma alanı başarıyla silindi",
-			"toastDeleteError": "Çalışma alanı silinemedi",
-			"validation": {
-				"nameRequired": "Çalışma alanı adı gereklidir",
-				"nameShort": "Çalışma alanı adı en az 2 karakter olmalıdır"
-			},
-			"transferOwnership": {
-				"toastSuccess": "Sahiplik devredildi",
-				"toastError": "Sahiplik devredilemedi",
-				"title": "Sahipliği devret",
-				"subtitle": "Bu çalışma alanını başka bir üyeye devredin. Yönetici rolüne düşürülecek ve yalnızca sahibe özel yetkileri kaybedeceksiniz.",
-				"pickerLabel": "Yeni sahip",
-				"noEligibleMembers": "Sahipliği devredebilmek için önce en az bir üye daha davet edin.",
-				"pickerHint": "Seçilen üye bu çalışma alanının tek sahibi olur.",
-				"pickerPlaceholder": "Bir üye seçin",
-				"button": "Devret",
-				"dialogTitle": "Sahiplik devredilsin mi?",
-				"dialogDescription": "{{name}}, {{workspace}} çalışma alanının tek sahibi olacak. Yönetici erişiminiz sürecek ancak çalışma alanını silme veya yeniden devretme gibi yalnızca sahibe özel yetkileri kaybedeceksiniz.",
-				"transferring": "Devrediliyor…",
-				"confirm": "Sahipliği devret"
 			}
 		},
 		"projectGeneral": {
@@ -698,8 +490,8 @@
 			"slackSectionSubtitle": "Proje talep güncellemelerini gelen bir webhook ile Slack kanalına gönderin.",
 			"telegramSectionTitle": "Telegram Entegrasyonu",
 			"telegramSectionSubtitle": "Proje talep güncellemelerini bir bot ile Telegram sohbetine veya konusuna gönderin.",
-			"mattermostSectionSubtitle": "Send project task updates into a Mattermost channel with an incoming webhook.",
-			"mattermostSectionTitle": "Mattermost Integration"
+			"gitlabSectionTitle": "GitLab Entegrasyonu",
+			"gitlabSectionSubtitle": "Talepleri kendi sunucunuzda barındırılan bir GitLab örneğiyle senkronize edin (sorunlar, PR'lar, webhook'lar)."
 		},
 		"projectVisibility": {
 			"pageTitle": "Proje Görünürlüğü",
@@ -723,9 +515,7 @@
 			"columnsTitle": "Sütunlar",
 			"columnsDescription": "Panonuzda görünecek sütunları yönetin. Yeniden sıralamak için sürükleyin. Tamamlanmış işleri temsil eden aşamalar için \"Tamamlandı sütunu\"nu açın.",
 			"automationTitle": "Otomasyon Kuralları",
-			"automationDescription": "Entegrasyon olaylarını sütunlarla eşleştirin. Bir olay gerçekleştiğinde, bağlı talep belirtilen sütuna taşınır.",
-			"customFieldsDescription": "Manage the custom fields for this project. Drag  to reorder.",
-			"customFieldsTitle": "Custom Fields"
+			"automationDescription": "Entegrasyon olaylarını sütunlarla eşleştirin. Bir olay gerçekleştiğinde, bağlı talep belirtilen sütuna taşınır."
 		},
 		"projectSwitcher": {
 			"selectProject": "Proje seç",
@@ -812,13 +602,7 @@
 			"importSectionHint": "GitHub deponuzdan mevcut sorunları talep olarak içe aktarın",
 			"importing": "İçe aktarılıyor...",
 			"importIssues": "Sorunları İçe Aktar",
-			"importDisabledHint": "İçe aktarmayı etkinleştirmek için yukarıdaki depo yapılandırmasını tamamlayın",
-			"accountVerificationHint": "Bu depoyu yönettiğinizi doğrulamak için GitHub hesabınızı bağlayın.",
-			"enableGithubSignInHint": "Örnek yöneticinizden GitHub ile oturum açmayı etkinleştirmesini isteyin.",
-			"reverifyHint": "Erişimi doğrulamak ve eşitlemeyi sürdürmek için bu depoyu yeniden bağlayın.",
-			"resumeImport": "Resume import",
-			"importPaused": "This import has saved progress. You can resume it.",
-			"importSummary": "Created: {{imported}} · Updated: {{updated}} · Skipped: {{skipped}}"
+			"importDisabledHint": "İçe aktarmayı etkinleştirmek için yukarıdaki depo yapılandırmasını tamamlayın"
 		},
 		"giteaIntegration": {
 			"validation": {
@@ -931,7 +715,6 @@
 			},
 			"connect": "Slack bağla",
 			"saveChanges": "Değişiklikleri kaydet",
-			"update": "Slack'i güncelle",
 			"disconnect": "Bağlantıyı kes"
 		},
 		"discordIntegration": {
@@ -969,7 +752,6 @@
 			},
 			"connect": "Discord bağla",
 			"saveChanges": "Değişiklikleri kaydet",
-			"update": "Discord'u güncelle",
 			"disconnect": "Bağlantıyı kes"
 		},
 		"genericWebhookIntegration": {
@@ -1127,215 +909,7 @@
 			"draft": "Taslak",
 			"open": "Açık"
 		},
-		"workspaceRoles": {
-			"pageTitle": "Roller",
-			"title": "Roller",
-			"subtitle": "{{workspaceName}} içinde üyelerin hangi işlemleri yapabileceğini tanımlayın.",
-			"thisWorkspace": "bu çalışma alanı",
-			"noAccess": "Çalışma alanı rollerini yönetmek için yönetici veya sahip izinleri gereklidir.",
-			"sectionTitle": "Çalışma alanı rolleri",
-			"sectionSubtitle": "Varsayılan rolleri düzenleyin veya özel bir rol ekleyin. Üyeler, düzenlemeler boyunca atanmış rol adlarını korur.",
-			"newRole": "Yeni rol",
-			"loading": "Yükleniyor…",
-			"loadError": "Roller yüklenemedi.",
-			"emptyTitle": "Henüz rol yok",
-			"emptyDescription": "Varsayılan roller, bu çalışma alanı için oluşturulduktan sonra burada görünecek.",
-			"defaultBadge": "Varsayılan",
-			"permissionCount_one": "{{count}} izin",
-			"permissionCount_other": "{{count}} izin",
-			"nameLabel": "Ad",
-			"nameHint": "Küçük harf. Daha sonra değiştirilemez.",
-			"namePlaceholder": "örn. inceleyici",
-			"discard": "Vazgeç",
-			"createRole": "Rol oluştur",
-			"deleteRole": "Rolü sil",
-			"defaultRoleHelp": "Varsayılan rol: adı ayrılmıştır ve bu satır silinemez.",
-			"unsavedChanges": "Kaydedilmemiş değişiklikleriniz var",
-			"allChangesSaved": "Tüm değişiklikler kaydedildi",
-			"saveChanges": "Değişiklikleri kaydet",
-			"defaultRoleDescriptions": {
-				"viewer": "Talepleri görüntüleyebilir ve yorum yapabilir.",
-				"member": "Talep ve proje oluşturabilir ve yönetebilir.",
-				"admin": "Çalışma alanına tam erişimi vardır."
-			},
-			"resources": {
-				"project": "Projeler",
-				"task": "Talepler",
-				"label": "Etiketler",
-				"workspace": "Çalışma alanı",
-				"organization": "Workspace administration",
-				"member": "Members",
-				"invitation": "Invitations",
-				"team": "Teams",
-				"ac": "Roles and permissions"
-			},
-			"permissions": {
-				"project": {
-					"create": {
-						"label": "Oluşturma",
-						"description": "Yeni proje oluşturabilir"
-					},
-					"read": {
-						"label": "Okuma",
-						"description": "Projeleri görüntüleyebilir"
-					},
-					"update": {
-						"label": "Güncelleme",
-						"description": "Proje ayarlarını düzenleyebilir"
-					},
-					"delete": {
-						"label": "Silme",
-						"description": "Projeleri silebilir"
-					},
-					"share": {
-						"label": "Paylaşma",
-						"description": "Projeleri paylaşabilir"
-					}
-				},
-				"task": {
-					"create": {
-						"label": "Oluşturma",
-						"description": "Talep oluşturabilir"
-					},
-					"read": {
-						"label": "Okuma",
-						"description": "Talepleri görüntüleyebilir"
-					},
-					"update": {
-						"label": "Güncelleme",
-						"description": "Talepleri düzenleyebilir"
-					},
-					"delete": {
-						"label": "Silme",
-						"description": "Talepleri silebilir"
-					},
-					"assign": {
-						"label": "Atama",
-						"description": "Talepleri üyelere atayabilir"
-					}
-				},
-				"label": {
-					"create": {
-						"label": "Oluşturma",
-						"description": "Etiket oluşturabilir"
-					},
-					"read": {
-						"label": "Okuma",
-						"description": "Etiketleri görüntüleyebilir"
-					},
-					"update": {
-						"label": "Güncelleme",
-						"description": "Etiketleri düzenleyebilir"
-					},
-					"delete": {
-						"label": "Silme",
-						"description": "Etiketleri silebilir"
-					}
-				},
-				"workspace": {
-					"read": {
-						"label": "Okuma",
-						"description": "Çalışma alanı ayarlarını görüntüleyebilir"
-					},
-					"update": {
-						"label": "Güncelleme",
-						"description": "Çalışma alanı ayarlarını güncelleyebilir"
-					},
-					"delete": {
-						"label": "Silme",
-						"description": "Çalışma alanını silebilir"
-					},
-					"manage_settings": {
-						"label": "Ayarları Yönetme",
-						"description": "Çalışma alanı ayarlarını yönetebilir"
-					}
-				},
-				"organization": {
-					"update": {
-						"label": "Edit workspace administration",
-						"description": "Change workspace settings through the account service."
-					},
-					"delete": {
-						"label": "Delete workspace",
-						"description": "Permanently delete the workspace through the account service."
-					}
-				},
-				"member": {
-					"create": {
-						"label": "Add members",
-						"description": "Add users to this workspace."
-					},
-					"update": {
-						"label": "Change member roles",
-						"description": "Change the roles assigned to workspace members."
-					},
-					"delete": {
-						"label": "Remove members",
-						"description": "Remove users from this workspace."
-					}
-				},
-				"invitation": {
-					"create": {
-						"label": "Invite members",
-						"description": "Send workspace invitations."
-					},
-					"cancel": {
-						"label": "Cancel invitations",
-						"description": "Revoke pending workspace invitations."
-					}
-				},
-				"team": {
-					"create": {
-						"label": "Create teams",
-						"description": "Create teams in this workspace."
-					},
-					"update": {
-						"label": "Edit teams",
-						"description": "Change teams and team membership."
-					},
-					"delete": {
-						"label": "Delete teams",
-						"description": "Delete teams in this workspace."
-					}
-				},
-				"ac": {
-					"create": {
-						"label": "Create roles",
-						"description": "Create workspace roles and assign their permissions."
-					},
-					"read": {
-						"label": "View roles",
-						"description": "Read the workspace roles and their permissions."
-					},
-					"update": {
-						"label": "Change role permissions",
-						"description": "Change role permissions, including administrative access."
-					},
-					"delete": {
-						"label": "Delete roles",
-						"description": "Delete custom workspace roles."
-					}
-				}
-			},
-			"validation": {
-				"nameRequired": "Rol adı gereklidir",
-				"nameExists": "Bu ada sahip bir rol zaten var",
-				"permissionRequired": "En az bir izin seçilmelidir"
-			},
-			"toast": {
-				"created": "Rol oluşturuldu",
-				"createError": "Rol oluşturulamadı",
-				"updated": "Rol güncellendi",
-				"updateError": "Rol güncellenemedi",
-				"deleted": "Rol silindi",
-				"deleteError": "Rol silinemedi"
-			},
-			"deleteDialog": {
-				"title": "Rolü sil",
-				"description": "Bu, \"{{role}}\" rolünü kalıcı olarak silecek. Bu role atanmış üyeler rolün izinlerini kaybedecek."
-			}
-		},
-		"workspaceLabels": {
+		"teamLabels": {
 			"pageTitle": "Etiket Ayarları",
 			"title": "Etiketler",
 			"subtitle": "Çalışma alanı düzeyinde etiketler oluşturun, düzenleyin ve silin.",
@@ -1358,73 +932,89 @@
 			"createError": "Etiket oluşturulamadı",
 			"updateError": "Etiket güncellenemedi",
 			"deleteError": "Etiket silinemedi",
-			"nameRequired": "Etiket adı gereklidir",
-			"deletionPending": "Deletion pending",
-			"resumeDeletion": "Resume deletion"
+			"nameRequired": "Etiket adı gereklidir"
 		},
-		"mattermostIntegration": {
-			"channelHint": "Optional label for your reference. Mattermost controls the actual destination channel from the webhook setup.",
-			"channelLabel": "Channel name",
-			"channelPlaceholder": "#team-updates",
-			"connect": "Connect Mattermost",
-			"connected": "Connected",
-			"connectionHint": "Paste a Mattermost incoming webhook URL and choose which task events should be posted.",
-			"connectionTitle": "Mattermost webhook connection",
-			"disconnect": "Disconnect",
-			"events": {
-				"taskCommentCreated": "New comments",
-				"taskCreated": "New tasks",
-				"taskDescriptionChanged": "Description changes",
-				"taskPriorityChanged": "Priority changes",
-				"taskStatusChanged": "Status changes",
-				"taskTitleChanged": "Title changes"
-			},
-			"eventsHint": "Choose which project changes should post to Mattermost.",
-			"eventsTitle": "Event notifications",
-			"paused": "Paused",
-			"saveChanges": "Save changes",
-			"toast": {
-				"disabled": "Mattermost notifications paused",
-				"enabled": "Mattermost notifications enabled",
-				"removed": "Mattermost integration removed successfully",
-				"removeError": "Failed to remove Mattermost integration",
-				"saved": "Mattermost integration saved successfully",
-				"saveError": "Failed to save Mattermost integration",
-				"updateError": "Failed to update Mattermost integration"
-			},
-			"update": "Update Mattermost",
+		"gitlabIntegration": {
 			"validation": {
-				"webhookInvalid": "Enter a valid Mattermost webhook URL"
+				"baseUrlRequired": "GitLab temel URL'si gereklidir",
+				"baseUrlInvalid": "Geçerli bir URL girin (örn. https://gitlab.example.com)",
+				"ownerRequired": "Depo sahibi gereklidir",
+				"ownerInvalid": "Geçersiz depo sahibi biçimi",
+				"nameRequired": "Depo adı gereklidir",
+				"nameInvalid": "Geçersiz depo adı biçimi"
 			},
-			"webhookHint": "Create an Incoming Webhook in Mattermost and paste the generated URL here.",
-			"webhookLabel": "Incoming webhook URL",
-			"webhookPlaceholder": "https://your-mattermost-server.com/hooks/..."
-		},
-		"customFields": {
-			"addButton": "Add",
-			"createError": "Failed to create custom field.",
-			"createSuccess": "Custom field created.",
-			"creating": "Creating...",
-			"defaultLabel": "Default",
-			"defaultValuePlaceholder": "Default value",
-			"deleteButton": "Delete",
-			"deleteError": "Failed to delete custom field.",
-			"deleteSuccess": "Custom field deleted.",
-			"deleting": "Deleting...",
-			"empty": "No custom fields configured yet.",
-			"loading": "Loading custom fields...",
-			"namePlaceholder": "Field name",
-			"noOptionsPlaceholder": "No options",
-			"optionsPlaceholder": "Options separated by commas",
-			"required": "Required",
-			"typePlaceholder": "Select field type",
-			"types": {
-				"boolean": "Boolean",
-				"date": "Date",
-				"dropdown": "Dropdown",
-				"number": "Number",
-				"text": "Text"
-			}
+			"toast": {
+				"verifyOk": "GitLab belirteci bu depoya erişebiliyor",
+				"verifyWarning": "Belirteç izinlerini veya depo erişimini kontrol edin",
+				"repoNotFound": "Depo bulunamadı veya erişilemiyor",
+				"verifyError": "GitLab erişimi doğrulanamadı",
+				"tokenRequired": "Kişisel erişim belirteci gereklidir",
+				"tokenRequiredVerify": "Doğrulamak için bir belirteç girin",
+				"verifyFirst": "Erişim doğrulanamadı. URL, belirteç ve depoyu kontrol edin",
+				"updated": "GitLab entegrasyonu kaydedildi",
+				"updateError": "GitLab entegrasyonu kaydedilemedi",
+				"removed": "GitLab entegrasyonu kaldırıldı",
+				"removeError": "GitLab entegrasyonu kaldırılamadı",
+				"issuesImported": "Sorunlar başarıyla içe aktarıldı",
+				"importError": "Sorunlar içe aktarılamadı",
+				"commentOnEnabled": "Kaneo yeni sorunlara talep bağlantısıyla yorum yapacak",
+				"commentOnDisabled": "Yeni sorunlardaki talep bağlantısı yorumları kapatıldı",
+				"settingsUpdateError": "GitLab entegrasyonu güncellenemedi",
+				"secretCopied": "Kopyalandı",
+				"unableToCopySecret": "Gizli anahtar kopyalanamıyor",
+				"notGitLabInstance": "The URL does not point to a GitLab instance",
+				"redirected": "GitLab URL redirected (usually to HTTPS). Use the final URL directly."
+			},
+			"webhookShow": "Göster",
+			"webhookHide": "Gizle",
+			"webhookCopy": "Kopyala",
+			"connectionStatus": "Bağlantı durumu",
+			"connectedActive": "Depo bağlı ve aktif",
+			"notConnectedHint": "Bağlı GitLab deposu yok",
+			"badgeConnected": "Bağlı",
+			"badgeNotConnected": "Bağlı değil",
+			"repository": "Depo",
+			"repositoryHint": "Bağlı GitLab deposu",
+			"commentTaskLinkTitle": "Yeni sorunlara Kaneo bağlantısı yorumu yap",
+			"commentTaskLinkHint": "Etkinleştirildiğinde, Kaneo her yeni sorununa talep bağlantısı içeren bir yorum gönderir.",
+			"webhookTitle": "Webhook",
+			"webhookHint": "GitLab deponuzda bu URL ve gizli anahtar ile bir webhook ekleyin. Push, pull request, sorunlar, sorun yorumları ve create (etiketler için) olaylarını etkinleştirin.",
+			"webhookSecretLabel": "Gizli anahtar (GitLab'daki webhook gizli anahtarıyla eşleşmelidir)",
+			"baseUrlLabel": "GitLab URL'si",
+			"baseUrlHint": "GitLab örneğinizin kök URL'si",
+			"tokenLabel": "Kişisel erişim belirteci",
+			"tokenHint": "Repo ve sorun erişimi olan belirteç",
+			"tokenPlaceholder": "Belirteci yapıştır",
+			"tokenPlaceholderUpdate": "Yeni belirteç için yapıştır",
+			"currentToken": "kaydedildi",
+			"ownerLabel": "Sahip",
+			"ownerHint": "Kullanıcı veya organizasyon adı",
+			"repoNameLabel": "Depo adı",
+			"repoNameHint": "Yalnızca depo adı (sahip yok)",
+			"actionsTitle": "İşlemler",
+			"actionsHint": "Erişimi doğrulayın ve bağlanın",
+			"browse": "Göz at",
+			"verify": "Doğrula",
+			"update": "Güncelle",
+			"connect": "Bağlan",
+			"disconnect": "Bağlantıyı kes",
+			"importSectionTitle": "GitLab sorunlarını içe aktar",
+			"importSectionHint": "Depodan açık sorunları ve pull request'leri içe aktar",
+			"importing": "İçe aktarılıyor…",
+			"importIssues": "Sorunları içe aktar",
+			"importDisabledHint": "İçe aktarmayı etkinleştirmek için yukarıdaki depoyu doğrulayın",
+			"browseModalTitle": "Depolarınız",
+			"browseModalHint": "Belirtecinizin erişebileceği depolar",
+			"searchRepos": "Ara…",
+			"browseNeedsCredentials": "Göz atmak için GitLab URL'si ve belirteci girin",
+			"loadingRepos": "Depolar yükleniyor…",
+			"retry": "Tekrar dene",
+			"authedAs": "Authenticated as",
+			"repoPrivate": "Private",
+			"repoPublic": "Public",
+			"repoVisibility": "Visibility",
+			"tokenScopes": "Token scopes",
+			"tokenScopesEmpty": "Not advertised by the GitLab instance (common for personal access tokens)."
 		}
 	},
 	"navigation": {
@@ -1436,7 +1026,6 @@
 			"members": "Üyeler",
 			"createTask": "Talep oluştur",
 			"createProject": "Proje oluştur",
-			"createWorkspace": "Çalışma alanı oluştur",
 			"lightTheme": "Açık tema",
 			"darkTheme": "Koyu tema",
 			"systemTheme": "Sistem teması",
@@ -1447,14 +1036,14 @@
 				"navigate": "Gezin",
 				"open": "Aç",
 				"close": "Kapat"
-			}
+			},
+			"createTeam": "Create team"
 		},
 		"notifications": "Bildirimler",
 		"sidebar": {
 			"overview": "Genel Bakış",
 			"projects": "Projeler",
 			"members": "Üyeler",
-			"invitations": "Davetler",
 			"more": "Daha fazla",
 			"backToBoard": "Panoya dön"
 		},
@@ -1475,10 +1064,10 @@
 			"groups": {
 				"task": "Talepler",
 				"project": "Projeler",
-				"workspace": "Çalışma Alanları",
 				"comment": "Yorumlar",
 				"activity": "Aktiviteler",
-				"fallback": "Sonuçlar"
+				"fallback": "Sonuçlar",
+				"team": "Teams"
 			}
 		},
 		"settingsLayout": {
@@ -1493,17 +1082,10 @@
 			"signingOut": "Çıkış yapılıyor...",
 			"logOut": "Çıkış yap"
 		},
-		"workspaceSwitcher": {
-			"workspaces": "Çalışma Alanları",
-			"switching": "Geçiliyor...",
-			"addWorkspace": "Çalışma alanı ekle",
-			"selectWorkspace": "Çalışma alanı seç"
-		},
 		"page": {
 			"projectsTitle": "Projeler",
 			"settingsTitle": "Ayarlar",
-			"backToWorkspace": "Çalışma Alanına Dön",
-			"settingsWorkspaceTab": "Çalışma Alanı"
+			"backToTeam": "Çalışma Alanına Dön"
 		},
 		"projectSettings": {
 			"projectLabel": "Proje"
@@ -1528,7 +1110,6 @@
 				"closeModal": "Modal/açılır pencereyi kapat",
 				"createTask": "Talep oluştur",
 				"createProject": "Proje oluştur",
-				"createWorkspace": "Çalışma alanı oluştur",
 				"boardView": "Pano görünümüne geç",
 				"listView": "Liste görünümüne geç",
 				"backlogView": "Backlog görünümüne geç",
@@ -1536,14 +1117,18 @@
 				"prevTask": "Önceki talep",
 				"openTask": "Seçili talebi aç",
 				"quickSelectNumber": "Numarayla seçenek seç",
-				"calendarView": "Switch to calendar view"
+				"createTeam": "Create team"
 			}
+		},
+		"teamSwitcher": {
+			"addTeam": "Add team",
+			"selectTeam": "Select a team",
+			"switching": "Switching...",
+			"teams": "Teams"
 		}
 	},
 	"notifications": {
 		"title": "Bildirimler",
-		"newCount_one": "{{count}} yeni",
-		"newCount_other": "{{count}} yeni",
 		"emptyTitle": "Henüz bildirim yok",
 		"emptySubtitle": "Güncellemeleri ve aktiviteleri burada göreceksiniz.",
 		"clearAll": "Tüm bildirimleri temizle",
@@ -1556,10 +1141,6 @@
 			"task_created": {
 				"title": "Yeni Talep Oluşturuldu",
 				"content": "\"{{taskTitle}}\" talebi oluşturuldu"
-			},
-			"workspace_created": {
-				"title": "Çalışma alanı oluşturuldu",
-				"content": "\"{{workspaceName}}\" çalışma alanınız başarıyla oluşturuldu"
 			},
 			"task_status_changed": {
 				"title": "Talep durumu değişti",
@@ -1710,13 +1291,10 @@
 				"mermaid": {
 					"renderFailed": "Mermaid diyagramı oluşturulamadı"
 				}
-			},
-			"importedFrom": "Imported from {{source}}",
-			"importedBy": "Imported by {{name}}"
+			}
 		}
 	},
 	"tasks": {
-		"title": "Görevler",
 		"status": {
 			"label": "Durum",
 			"to-do": "Yapılacak",
@@ -1743,8 +1321,7 @@
 			"selectTask": "Talep seç",
 			"loadingTask": "Talep yükleniyor...",
 			"taskNotFound": "Talep bulunamadı",
-			"taskNotFoundDescription": "Aradığınız talep mevcut değil veya silinmiş.",
-			"customFields": "Custom Fields"
+			"taskNotFoundDescription": "Aradığınız talep mevcut değil veya silinmiş."
 		},
 		"detail": {
 			"subtaskOf": "Şunun alt talebi:",
@@ -1846,13 +1423,8 @@
 						"onlyYoutube": "Yalnızca YouTube bağlantıları gömülebilir."
 					},
 					"onlyYoutubeInline": "Yalnızca YouTube URL'leri gömülebilir. Bağlantı modunu kullanın."
-				},
-				"mermaid": {
-					"renderFailed": "Mermaid diyagramı oluşturulamadı"
 				}
-			},
-			"customFieldUpdated": "Field updated",
-			"selectOption": "Select option"
+			}
 		},
 		"entity": {
 			"task": "Talep"
@@ -2011,11 +1583,7 @@
 			"operators": {
 				"isAnyOf": "herhangi biri",
 				"includeAnyOf": "herhangi birini içer"
-			},
-			"all": "All",
-			"allCustomFieldValues": "All values",
-			"noCustomFieldValues": "No custom field values",
-			"noValuesUsedYet": "No values used yet"
+			}
 		},
 		"gantt": {
 			"pageTitle": "{{name}} – Gantt",
@@ -2031,12 +1599,7 @@
 			"updateDatesError": "Talep tarihleri güncellenemedi",
 			"resizeStart": "Başlangıç tarihini yeniden boyutlandır",
 			"resizeDue": "Bitiş tarihini yeniden boyutlandır",
-			"taskAriaLabel": "{{title}}: açmak veya taşımak için sürükleyin",
-			"jumpToToday": "Jump to today",
-			"previousPeriod": "Previous period",
-			"nextPeriod": "Next period",
-			"periodStart": "Timeline start date",
-			"showTaskDates": "Show task dates"
+			"taskAriaLabel": "{{title}}: açmak veya taşımak için sürükleyin"
 		},
 		"delete": {
 			"title": "Talep Silinsin mi?",
@@ -2136,56 +1699,58 @@
 				"deleteTable": "Tabloyu sil"
 			}
 		},
-		"calendar": {
-			"dayTasksAriaLabel": "Show all tasks for {{date}}",
-			"moreTasks": "+{{count}} more",
-			"nextMonth": "Next month",
-			"noTasks": "No scheduled tasks",
-			"noTasksSubtitle": "Add a start date, due date, or both to tasks to place them on the calendar.",
-			"pageTitle": "{{name}} – Calendar",
-			"previousMonth": "Previous month",
-			"taskAriaLabel": "{{title}}, {{range}}: open task",
-			"title": "Calendar",
-			"today": "Today",
-			"loadError": "Failed to load tasks."
-		},
-		"descriptionSearchLoading": "Searching full descriptions…",
-		"descriptionSearchError": "Description search failed. Results may be incomplete.",
-		"descriptionRetry": "Retry",
-		"descriptionLoading": "Loading description…",
-		"descriptionLoadError": "The description could not be loaded. Retry to load the current version."
-	},
-	"invitations": {
-		"pageTitle": "Davetler",
-		"pendingInvitations": "Bekleyen Davetler",
-		"acceptSubtitle": "Çalışma alanlarına katılmak için davetleri kabul edin",
-		"noPendingTitle": "Bekleyen davet yok",
-		"noPendingDescription": "Şu anda bekleyen çalışma alanı davetiniz yok.",
-		"continueToSetup": "Kuruluma Devam Et",
-		"skipForNow": "Şimdilik atla",
-		"table": {
-			"workspace": "Çalışma Alanı",
-			"invitedBy": "Davet Eden",
-			"expires": "Süre Sonu"
-		},
-		"toast": {
-			"acceptError": "Davet kabul edilemedi",
-			"acceptSuccess": "Davet kabul edildi! Aramıza hoş geldiniz.",
-			"rejectError": "Davet reddedilemedi",
-			"rejectSuccess": "Davet reddedildi"
-		},
-		"email": {
-			"subject": "{{inviterName}}, sizi Kaneo'da {{workspaceName}} çalışma alanına davet etti",
-			"preview": "Kaneo'da {{workspaceName}} çalışma alanına davet edildiniz",
-			"title": "{{workspaceName}} çalışma alanına katılın",
-			"subtitle": "{{inviterName}} ({{inviterEmail}}) sizi Kaneo'da birlikte çalışmaya davet etti.",
-			"cta": "Daveti kabul et",
-			"sameEmail": "Daveti, bu mesajı alan e-posta adresiyle kabul edebilirsiniz.",
-			"ignore": "Bu davet beklenmedikse bu e-postayı güvenle yok sayabilirsiniz.",
-			"footer": "Kaneo çalışma alanı daveti"
+		"agentRoles": {
+			"coding": {
+				"name": "Coding"
+			},
+			"product-design": {
+				"name": "Product Design"
+			},
+			"architecture-design": {
+				"name": "Architecture Design"
+			},
+			"devops": {
+				"name": "Devops"
+			},
+			"ui-design": {
+				"name": "UI Design"
+			},
+			"testing": {
+				"name": "Testing"
+			},
+			"code-review": {
+				"name": "Code Review"
+			}
 		}
 	},
-	"workspace": {
+	"team": {
+		"roles": {
+			"owner": "Sahip",
+			"admin": "Yönetici",
+			"member": "Üye",
+			"viewer": "Görüntüleyici"
+		},
+		"members": {
+			"pageTitle": "Üyeler",
+			"you": "Siz"
+		},
+		"membersTable": {
+			"emptyTitle": "Henüz ekip üyesi yok",
+			"emptyDescription": "Ask an admin to add members to this team.",
+			"columns": {
+				"name": "Ad",
+				"role": "Rol",
+				"joined": "Katılım"
+			},
+			"ariaRemoveMember": "Üyeyi kaldır",
+			"removeDialogTitle": "Ekip Üyesi Kaldırılsın mı?",
+			"removeDialogDescription": "{{name}} kişisini çalışma alanından kaldırmak istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+			"removeMember": "Üyeyi Kaldır",
+			"removeSuccess": "Ekip üyesi başarıyla kaldırıldı",
+			"removeError": "Ekip üyesi kaldırılamadı",
+			"roleUpdateSuccess": "Rol güncellendi",
+			"roleUpdateError": "Rol güncellenemedi"
+		},
 		"projects": {
 			"pageTitle": "Projeler",
 			"createProject": "Proje oluştur",
@@ -2203,7 +1768,6 @@
 				"inProgress": "Devam ediyor"
 			},
 			"noDueDate": "Bitiş tarihi yok",
-			"reorderHandle": "Projeyi yeniden sırala",
 			"reorderError": "Projeler yeniden sıralanamadı"
 		},
 		"search": {
@@ -2229,73 +1793,13 @@
 			"pageTitle": "Çalışma Alanı Oluştur",
 			"heading": "Yeni çalışma alanı oluştur",
 			"subtitle": "Çalışma alanları, ekiplerin projeler, döngüler ve sorunlar üzerinde çalışabileceği paylaşılan ortamlardır.",
-			"nameLabel": "Çalışma Alanı Adı",
 			"namePlaceholder": "Çalışma alanı adını girin",
-			"descriptionLabel": "Açıklama (isteğe bağlı)",
-			"descriptionPlaceholder": "Çalışma alanınız için bir açıklama ekleyin",
 			"required": "Gereklidir",
 			"creating": "Oluşturuluyor...",
 			"submit": "Çalışma alanı oluştur",
 			"success": "Çalışma alanı başarıyla oluşturuldu",
-			"error": "Çalışma alanı oluşturulamadı"
-		}
-	},
-	"team": {
-		"roles": {
-			"owner": "Sahip",
-			"admin": "Yönetici",
-			"member": "Üye",
-			"viewer": "Görüntüleyici"
-		},
-		"members": {
-			"pageTitle": "Üyeler",
-			"inviteMember": "Üye davet et",
-			"you": "Siz"
-		},
-		"invitations": {
-			"linkLabel": "Davet bağlantısı",
-			"copyLink": "Bağlantıyı kopyala",
-			"linkCopied": "Davet bağlantısı kopyalandı",
-			"copyFailed": "Otomatik olarak kopyalanamadı. Bağlantıyı seçip Ctrl+C tuşlarına basın.",
-			"pendingBadge": "beklemede",
-			"expires": "{{date}} tarihinde sona erer"
-		},
-		"inviteModal": {
-			"title": "Ekip Üyesi Davet Et",
-			"emailLabel": "E-posta",
-			"emailPlaceholder": "arkadas@sirket.com",
-			"sendInvitation": "Davet Gönder",
-			"success": "Davet başarıyla gönderildi",
-			"error": "Ekip üyesi davet edilemedi",
-			"createdTitle": "Davet oluşturuldu",
-			"shareLinkDescription": "Bu bağlantıyı {{email}} ile paylaşın, böylece çalışma alanına katılabilir.",
-			"done": "Bitti"
-		},
-		"membersTable": {
-			"emptyTitle": "Henüz ekip üyesi yok",
-			"emptyDescription": "Başlamak için ilk ekip üyenizi davet edin.",
-			"columns": {
-				"name": "Ad",
-				"role": "Rol",
-				"joined": "Katılım",
-				"actions": "İşlemler"
-			},
-			"memberRolePending": "{{role}} (Beklemede)",
-			"ariaCancelInvitation": "Daveti iptal et",
-			"ariaRemoveMember": "Üyeyi kaldır",
-			"removeDialogTitle": "Ekip Üyesi Kaldırılsın mı?",
-			"removeDialogDescription": "{{name}} kişisini çalışma alanından kaldırmak istediğinizden emin misiniz? Bu işlem geri alınamaz.",
-			"cancelDialogTitle": "Davet İptal Edilsin mi?",
-			"cancelDialogDescription": "{{email}} için daveti iptal etmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
-			"removeMember": "Üyeyi Kaldır",
-			"cancelInvitation": "Daveti İptal Et",
-			"removeSuccess": "Ekip üyesi başarıyla kaldırıldı",
-			"removeError": "Ekip üyesi kaldırılamadı",
-			"cancelInviteSuccess": "Davet başarıyla iptal edildi",
-			"cancelInviteError": "Davet iptal edilemedi",
-			"roleUpdateSuccess": "Rol güncellendi",
-			"roleUpdateError": "Rol güncellenemedi",
-			"ariaInvitationActions": "Davet işlemleri"
+			"error": "Çalışma alanı oluşturulamadı",
+			"nameLabel": "Team Name"
 		}
 	},
 	"publicProject": {
@@ -2312,7 +1816,6 @@
 		"taskDetail": {
 			"labels": "Etiketler",
 			"externalLinks": "Dış Bağlantılar",
-			"pullRequestFallback": "Pull Request",
 			"issueFallback": "Sorun",
 			"prStatusMerged": "Birleştirildi",
 			"prStatusDraft": "Taslak",
@@ -2335,140 +1838,187 @@
 			"poweredBy": "Tarafından desteklenmektedir"
 		}
 	},
-	"press": {
-		"title": "Press kit",
-		"headline": "Kaneo press kit",
-		"intro": "Kaneo logos and product screenshots for articles, videos, and other media.",
-		"description": "Kaneo press resources: product information, logos, screenshots, and contact details for journalists and creators.",
-		"downloadKit": "Download all assets",
-		"boilerplateTitle": "About Kaneo",
-		"boilerplate": "Kaneo is an open-source project management platform created by Andrej Acevski. Teams can organize tasks in board and list views, assign work, set priorities and due dates, and connect GitHub. Kaneo is available under the MIT license for self-hosting, or as a managed service through Kaneo Cloud.",
-		"logosTitle": "Logos",
-		"darkLogo": "Dark wordmark",
-		"darkLogoAlt": "Dark Kaneo logo on a light background",
-		"darkLogoDetail": "SVG",
-		"lightLogo": "Light wordmark",
-		"lightLogoAlt": "Light Kaneo logo on a dark background",
-		"lightLogoDetail": "SVG",
-		"icon": "App icon",
-		"iconAlt": "Kaneo app icon",
-		"iconDetail": "PNG, 512 × 512",
-		"download": "Download",
-		"screenshotsTitle": "Screenshots",
-		"lightScreenshot": "Board (light)",
-		"lightScreenshotAlt": "Kaneo board in light theme, with task cards arranged by status",
-		"darkScreenshot": "Board (dark)",
-		"darkScreenshotAlt": "Kaneo board in dark theme, with task cards arranged by status",
-		"contactTitle": "Press enquiries",
-		"contactBody": "Contact the Kaneo team for product questions, interviews, or additional materials.",
-		"usageContrast": "Choose the light wordmark for dark backgrounds and the dark wordmark for light backgrounds.",
-		"usageProportions": "Keep the original proportions and colours, without stretching or adding effects.",
-		"usageSpace": "Leave enough space around the logo to keep it clear and readable.",
-		"darkListScreenshot": "List (dark)",
-		"darkListScreenshotAlt": "Kaneo task list in dark theme, grouped by status with assignees, priorities, labels, and due dates",
-		"darkTaskScreenshot": "Task details (dark)",
-		"darkTaskScreenshotAlt": "Kaneo task details in dark theme, with a description, checklist, team comment, and task properties",
-		"darkTimelineScreenshot": "Timeline (dark)",
-		"darkTimelineScreenshotAlt": "Kaneo Gantt timeline in dark theme, showing scheduled tasks and their durations",
-		"lightListScreenshot": "List (light)",
-		"lightListScreenshotAlt": "Kaneo task list in light theme, grouped by status with assignees, priorities, labels, and due dates",
-		"lightTaskScreenshot": "Task details (light)",
-		"lightTaskScreenshotAlt": "Kaneo task details in light theme, with a description, checklist, team comment, and task properties",
-		"lightTimelineScreenshot": "Timeline (light)",
-		"lightTimelineScreenshotAlt": "Kaneo Gantt timeline in light theme, showing scheduled tasks and their durations"
-	},
-	"landing": {
-		"founder": {
-			"title": "Why Kaneo exists",
-			"intro": "I'm Andrej, and I created Kaneo because I was tired of project management tools that got in the way more than they helped. After years of using bloated, overcomplicated platforms that distracted from actual work, I knew there had to be a better way.",
-			"problem": "The problem wasn't that these tools lacked features - it was that they had too many. Every notification, every unnecessary button, every complex workflow was pulling my team away from what mattered: building great products.",
-			"principle": "I believe the best tools are invisible. They should amplify your team's natural workflow, not force you to adapt to theirs. Kaneo is built on the principle that less is more - every feature exists because it solves a real problem, not because it looks impressive in a demo."
+	"admin": {
+		"actions": {
+			"delete": "Delete user",
+			"demote": "Demote to user",
+			"disable": "Disable account",
+			"enable": "Enable account",
+			"error": "Action failed",
+			"promote": "Promote to admin",
+			"resetPassword": "Reset password",
+			"successRole": "Role updated",
+			"successStatus": "Account status updated",
+			"manageTeams": "Manage teams"
 		},
-		"hero": {
-			"cloudCta": "Try Kaneo Cloud",
-			"selfHostCta": "Self-host Kaneo",
-			"trialNote": "14-day cloud trial. No credit card required.",
-			"github": "GitHub",
-			"productHunt": "Product Hunt"
+		"columns": {
+			"created": "Created",
+			"role": "Role",
+			"status": "Status",
+			"user": "User"
 		},
-		"navigation": {
-			"product": "Product",
-			"pricing": "Pricing",
-			"resources": "Resources",
-			"docs": "Documentation",
-			"blog": "Blog",
-			"guides": "Guides",
-			"comparisons": "Compare tools",
-			"roadmap": "Roadmap",
-			"menu": "Menu",
-			"closeMenu": "Close menu",
-			"home": "Kaneo home",
-			"signIn": "Sign In",
-			"getStarted": "Get Started"
+		"create": {
+			"description": "Create a new account. The user can sign in with the username and password.",
+			"email": "Email (optional)",
+			"emailPlaceholder": "e.g. jane@example.com",
+			"error": "Failed to create user",
+			"name": "Name",
+			"namePlaceholder": "e.g. Jane Doe",
+			"password": "Password",
+			"passwordPlaceholder": "At least 8 characters",
+			"role": "Role",
+			"submit": "Create user",
+			"success": "User created",
+			"title": "Create user",
+			"username": "Username",
+			"usernamePlaceholder": "e.g. jane",
+			"validation": {
+				"nameRequired": "Name is required",
+				"passwordShort": "Password must be at least 8 characters",
+				"usernameInvalid": "Only lowercase letters, numbers and underscores (1-30 characters)",
+				"usernameRequired": "Username is required"
+			},
+			"team": "Team (optional)",
+			"teamNone": "No team",
+			"teamPlaceholder": "Choose a team…"
 		},
-		"showcase": {
-			"label": "Kaneo product views",
-			"controls": "Choose a product view",
-			"play": "Play product views",
-			"pause": "Pause product views",
-			"board": "Board",
-			"list": "Backlog",
-			"gantt": "Gantt"
+		"deleteDialog": {
+			"confirm": "Delete",
+			"description": "Delete {{name}} ({{username}})? This cannot be undone.",
+			"success": "User deleted",
+			"title": "Delete user"
 		},
-		"features": {
-			"tasks": {
-				"label": "Subtasks & context",
-				"title": "Big tasks. Clear next steps.",
-				"description": "Break work into subtasks, assign each one, and track progress without losing the original brief. Every detail stays with the work."
+		"page": {
+			"createUser": "Create user",
+			"currentUserBadge": "you",
+			"description": "Create and manage user accounts.",
+			"emptyDescription": "Create the first user account to get started.",
+			"emptyTitle": "No users",
+			"title": "User Management"
+		},
+		"resetPassword": {
+			"description": "Set a new password for {{username}}.",
+			"password": "New password",
+			"submit": "Reset password",
+			"success": "Password updated",
+			"title": "Reset password"
+		},
+		"role": {
+			"admin": "Admin",
+			"user": "User"
+		},
+		"status": {
+			"active": "Active",
+			"disabled": "Disabled"
+		},
+		"tab": "System",
+		"teams": {
+			"columns": {
+				"actions": "Actions",
+				"members": "Members",
+				"name": "Name",
+				"role": "Your role"
 			},
-			"github": {
-				"label": "GitHub integration",
-				"title": "From pull request to done.",
-				"description": "Issues and labels sync both ways. Linked pull requests move tasks through review to done as your code is opened and merged.",
-				"link": "Set up GitHub"
+			"create": "Create team",
+			"createDialogDescription": "Teams group users who collaborate on shared projects.",
+			"createDialogTitle": "Create a team",
+			"delete": "Delete team",
+			"deleteDialogDescription": "The team, its projects, and its memberships will be permanently deleted.",
+			"deleteDialogTitle": "Delete this team?",
+			"description": "Create and manage teams. Users join teams via invitation.",
+			"empty": "No teams yet. Create the first one to get started.",
+			"enter": "Enter team",
+			"hint": "As a system administrator, create the teams your users will join.",
+			"nameLabel": "Team name",
+			"namePlaceholder": "e.g. Acme",
+			"pageTitle": "Team management",
+			"tab": "Teams",
+			"title": "Teams",
+			"toast": {
+				"created": "Team \"{{name}}\" created",
+				"createError": "Failed to create team",
+				"deleted": "Team deleted",
+				"deleteError": "Failed to delete team",
+				"renamed": "Team renamed",
+				"renameError": "Failed to rename team"
 			},
-			"hosting": {
-				"title": "Run it on your own server.",
-				"description": "Deploy with Docker and keep your workspace on infrastructure you control.",
-				"link": "Self-host Kaneo"
+			"labels": "Labels",
+			"rename": "Rename",
+			"renameDialogDescription": "Change the name of this team.",
+			"renameDialogTitle": "Rename team",
+			"userTeamsAdd": "Add to team",
+			"userTeamsAddButton": "Add",
+			"userTeamsChoose": "Choose a team…",
+			"userTeamsCurrent": "Current teams",
+			"userTeamsDescription": "Manage which teams this user belongs to.",
+			"userTeamsEmpty": "This user is not a member of any team.",
+			"userTeamsNoAvailable": "This user is already in every team.",
+			"userTeamsRemove": "Remove from team",
+			"userTeamsTitle": "Teams of {{name}}",
+			"manageMembers": "Manage members",
+			"membersAdd": "Add user to team",
+			"membersAddButton": "Add",
+			"membersChooseUser": "Choose a user…",
+			"membersCurrent": "Current members",
+			"membersDescription": "Manage which users belong to this team.",
+			"membersEmpty": "This team has no members yet.",
+			"membersNoAvailable": "All users are already in this team.",
+			"membersRemove": "Remove from team",
+			"membersTitle": "Members of {{name}}"
+		},
+		"users": {
+			"tab": "Users"
+		},
+		"ai": {
+			"apiKeyHelp": "Stored encrypted. Sent as Bearer token. Never returned in responses.",
+			"apiKeyLabel": "API key",
+			"baseUrlHelp": "OpenAI-compatible endpoint. The client appends /v1/chat/completions.",
+			"baseUrlLabel": "API base URL",
+			"enableDescription": "When disabled, the Chat tab shows a placeholder and the API returns 503.",
+			"enableLabel": "Enable AI assistant",
+			"modelHelp": "Any model name accepted by your API. Default: gpt-4o.",
+			"modelLabel": "Model",
+			"pageDescription": "Configure the AI assistant used by project chat. Kaneo uses an OpenAI-compatible API.",
+			"pageTitle": "AI Assistant",
+			"save": "Save",
+			"saving": "Saving…",
+			"tab": "AI",
+			"toast": {
+				"error": "Failed to save settings",
+				"saved": "AI settings saved"
 			},
-			"source": {
-				"title": "The code is open, too.",
-				"description": "Read the source, report an issue, or contribute a change. Development happens on GitHub.",
-				"link": "View the source"
-			},
-			"preview": {
-				"taskAlt": "Interactive Kaneo task and subtask preview.",
-				"githubAlt": "Interactive preview of a GitHub merge updating a Kaneo task.",
-				"taskTitle": "Publish the new homepage",
-				"taskDescription": "Update the copy and check the layout before the next release.",
-				"checklistDone": "Review the copy",
-				"checklistOpen": "Check the mobile layout",
-				"inProgress": "In Progress",
-				"high": "High",
-				"date": "Oct 12",
-				"design": "design",
-				"done": "Done",
-				"relationsAlt": "Interactive Kaneo task dependencies preview.",
-				"inReview": "In Review",
-				"trySubtasks": "Try checking off a subtask.",
-				"tryGithub": "Preview a merge to see the task update.",
-				"tryRelations": "Open a linked task to follow the connection.",
-				"mergeAction": "Preview merge",
-				"resetAction": "Reset preview",
-				"mergedHint": "Pull request merged. Task moved to Done.",
-				"progress": "{{completed}} of {{total}} subtasks complete",
-				"backToTask": "Back to the homepage task",
-				"releaseNotes": "Write the release notes",
-				"dependencyDescription": "The homepage is waiting on the mobile review. Keep the launch notes linked for context.",
-				"mobileDescription": "Check the new homepage on narrow screens before it goes live.",
-				"notesDescription": "Capture what changed for the launch announcement."
-			},
-			"relations": {
-				"label": "Linked tasks & dependencies",
-				"title": "See what’s holding things up.",
-				"description": "Connect blockers, follow dependencies, and keep related work close. Open a linked task to see the context behind the next step."
-			}
+			"commandTimeoutHelp": "Max run time for agent_run_command. Default: 60000ms.",
+			"commandTimeoutLabel": "Command timeout (ms)",
+			"enableCommandDescription": "Allow pi-agent to run shell commands in the project working directory. Enable only if you trust the models and the environment.",
+			"enableCommandLabel": "Enable command execution",
+			"workdirRootHelp": "Server-side directory where pi-agent clones repos and stores uploaded files. Each project is isolated under agent-<projectId>.",
+			"workdirRootLabel": "Agent working directory root"
 		}
+	},
+	"chat": {
+		"errorFailed": "Failed to send message",
+		"errorTimeout": "Request timed out. Please try again.",
+		"notEnabledDescription": "The pi-agent AI assistant has not been configured for this instance. Please contact an administrator to enable it.",
+		"notEnabledTitle": "AI assistant not enabled",
+		"pageTitle": "Chat",
+		"placeholder": "Send a message to pi-agent…",
+		"send": "Send",
+		"streaming": "pi-agent is typing…",
+		"welcomeDescription": "Ask me to create tasks, check project status, or analyze progress. I'm your AI project management assistant.",
+		"welcomeTitle": "Chat with pi-agent",
+		"you": "You",
+		"clearHistory": "Clear history",
+		"clearHistoryConfirm": "Clear history",
+		"clearHistoryDescription": "This will permanently delete all messages in this project's chat. This cannot be undone.",
+		"clearHistoryTitle": "Clear chat history?",
+		"historyCleared": "Chat history cleared",
+		"historyClearError": "Failed to clear chat history",
+		"attachFile": "Upload a file",
+		"fileUploaded": "Uploaded",
+		"uploadError": "Failed to upload file",
+		"progressAriaLabel": "Agent working steps",
+		"progressItemAriaLabel": "Agent is {{label}}",
+		"errorNoResult": "No response received. Please try again.",
+		"errorStalled": "The connection was interrupted and no result arrived. Please try again."
 	}
 }

@@ -5,22 +5,14 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 beforeEach(resetTestDatabase);
 
-async function fixture(permissions: Record<string, string[]>) {
-  const member = await createWorkspaceMember({ role: "limited" });
+async function fixture() {
+  const member = await createTeamMember();
   const { project } = await createProjectFixture({
-    workspaceId: member.workspace.id,
-  });
-  await db.insert(schema.workspaceRoleTable).values({
-    workspaceId: member.workspace.id,
-    role: "limited",
-    permission: JSON.stringify(permissions),
+    teamId: member.team.id,
   });
   mockAuthenticatedSession(member.user);
   const { app } = createApp();
@@ -43,59 +35,49 @@ async function fixture(permissions: Record<string, string[]>) {
         .from(schema.projectTable)
         .where(eq(schema.projectTable.id, project.id))
     )[0]?.isPublic;
-  return { put, stored, project };
+  return { put, stored, project, member };
 }
 
 describe("project visibility authorization", () => {
-  it("refuses to publish a private project without project:share", async () => {
-    const { put, stored } = await fixture({ project: ["read", "update"] });
+  it("allows a team member to publish a private project", async () => {
+    const { put, stored } = await fixture();
     const response = await put({ isPublic: true });
-    expect(response.status).toBe(403);
-    expect(await stored()).toBe(false);
+    expect(response.status).toBe(200);
+    expect(await stored()).toBe(true);
   });
 
-  it("allows an unrelated edit without project:share", async () => {
-    const { put, stored } = await fixture({ project: ["read", "update"] });
+  it("allows unrelated edits without touching visibility", async () => {
+    const { put, stored } = await fixture();
     const response = await put({ name: "Renamed", isPublic: false });
     expect(response.status).toBe(200);
     expect(await stored()).toBe(false);
   });
 
-  it("allows publishing with project:share", async () => {
-    const { put, stored } = await fixture({
-      project: ["read", "update", "share"],
-    });
-    expect((await put({ isPublic: true })).status).toBe(200);
-    expect(await stored()).toBe(true);
-  });
-
-  it("refuses to unpublish a public project without project:share", async () => {
-    const { put, stored, project } = await fixture({
-      project: ["read", "update"],
-    });
+  it("allows unpublishing a public project", async () => {
+    const { put, stored, project } = await fixture();
     await db
       .update(schema.projectTable)
       .set({ isPublic: true })
       .where(eq(schema.projectTable.id, project.id));
-    expect((await put({ isPublic: false })).status).toBe(403);
-    expect(await stored()).toBe(true);
+    expect((await put({ isPublic: false })).status).toBe(200);
+    expect(await stored()).toBe(false);
   });
 
-  it("applies the same rule to a scoped API key", async () => {
-    const member = await createWorkspaceMember({ role: "admin" });
-    const { project } = await createProjectFixture({
-      workspaceId: member.workspace.id,
-    });
+  it("rejects a non-member regardless of API key permissions", async () => {
+    const { project } = await fixture();
+    const outsider = await createTeamMember();
     mockAnonymousSession();
     const key = `kaneo_test_${randomUUID()}`;
     await db.insert(schema.apikeyTable).values({
-      referenceId: member.user.id,
-      userId: member.user.id,
+      referenceId: outsider.user.id,
+      userId: outsider.user.id,
       key: createHash("sha256").update(key).digest("base64url"),
-      name: "update-only key",
+      name: "outsider key",
       createdAt: new Date(),
       updatedAt: new Date(),
-      permissions: JSON.stringify({ project: ["read", "update"] }),
+      permissions: JSON.stringify({
+        project: ["read", "update", "share"],
+      }),
       enabled: true,
     });
     const { app } = createApp();
@@ -114,5 +96,13 @@ describe("project visibility authorization", () => {
       }),
     });
     expect(response.status).toBe(403);
+    expect(
+      (
+        await db
+          .select({ isPublic: schema.projectTable.isPublic })
+          .from(schema.projectTable)
+          .where(eq(schema.projectTable.id, project.id))
+      )[0]?.isPublic,
+    ).toBe(false);
   });
 });

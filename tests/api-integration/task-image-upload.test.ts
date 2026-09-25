@@ -5,10 +5,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 describe("API integration: task image upload finalize", () => {
   beforeEach(async () => {
@@ -37,9 +34,9 @@ describe("API integration: task image upload finalize", () => {
     });
     process.env.KANEO_API_URL = "http://kaneo.test:1337";
 
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
 
     const [task] = await db
@@ -59,7 +56,7 @@ describe("API integration: task image upload finalize", () => {
     mockAuthenticatedSession(member.user);
     const { app } = createApp();
 
-    const key = `workspace/${member.workspace.id}/project/${project.id}/task/${task.id}/descriptions/test-image.png`;
+    const key = `workspace/${member.team.id}/project/${project.id}/task/${task.id}/descriptions/test-image.png`;
 
     const response = await app.request(
       `/api/task/image-upload/${task.id}/finalize`,
@@ -91,9 +88,9 @@ describe("API integration: task image upload finalize", () => {
     });
     process.env.KANEO_API_URL = "https://proxy.kaneo.internal";
 
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
 
     const [task] = await db
@@ -113,7 +110,7 @@ describe("API integration: task image upload finalize", () => {
     mockAuthenticatedSession(member.user);
     const { app } = createApp();
 
-    const key = `workspace/${member.workspace.id}/project/${project.id}/task/${task.id}/descriptions/proxy-image.png`;
+    const key = `workspace/${member.team.id}/project/${project.id}/task/${task.id}/descriptions/proxy-image.png`;
 
     const response = await app.request(
       `/api/task/image-upload/${task.id}/finalize`,
@@ -145,9 +142,9 @@ describe("API integration: task image upload finalize", () => {
     });
     delete process.env.KANEO_API_URL;
 
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
 
     const [task] = await db
@@ -167,7 +164,7 @@ describe("API integration: task image upload finalize", () => {
     mockAuthenticatedSession(member.user);
     const { app } = createApp();
 
-    const key = `workspace/${member.workspace.id}/project/${project.id}/task/${task.id}/descriptions/fallback-image.png`;
+    const key = `workspace/${member.team.id}/project/${project.id}/task/${task.id}/descriptions/fallback-image.png`;
 
     const response = await app.request(
       `https://app.kaneo.test/api/task/image-upload/${task.id}/finalize`,
@@ -197,9 +194,9 @@ describe("API integration: task image upload finalize", () => {
     });
     process.env.KANEO_API_URL = "http://localhost:1337";
 
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
 
     const [task] = await db
@@ -219,7 +216,7 @@ describe("API integration: task image upload finalize", () => {
     mockAuthenticatedSession(member.user);
     const { app } = createApp();
 
-    const key = `workspace/${member.workspace.id}/project/${project.id}/task/${task.id}/descriptions/persist-asset.png`;
+    const key = `workspace/${member.team.id}/project/${project.id}/task/${task.id}/descriptions/persist-asset.png`;
 
     const response = await app.request(
       `/api/task/image-upload/${task.id}/finalize`,
@@ -251,7 +248,7 @@ describe("API integration: task image upload finalize", () => {
     expect(asset?.size).toBe(45678);
     expect(asset?.kind).toBe("image");
     expect(asset?.surface).toBe("description");
-    expect(asset?.workspaceId).toBe(member.workspace.id);
+    expect(asset?.teamId).toBe(member.team.id);
     expect(asset?.projectId).toBe(project.id);
     expect(asset?.taskId).toBe(task.id);
     expect(asset?.createdBy).toBe(member.user.id);
@@ -264,9 +261,9 @@ describe("API integration: task image upload finalize", () => {
     });
     process.env.KANEO_API_URL = "http://localhost:1337";
 
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
 
     const [task] = await db
@@ -286,7 +283,7 @@ describe("API integration: task image upload finalize", () => {
     mockAuthenticatedSession(member.user);
     const { app } = createApp();
 
-    const key = `workspace/${member.workspace.id}/project/${project.id}/task/${task.id}/descriptions/report.pdf`;
+    const key = `workspace/${member.team.id}/project/${project.id}/task/${task.id}/descriptions/report.pdf`;
 
     const response = await app.request(
       `/api/task/image-upload/${task.id}/finalize`,
@@ -315,9 +312,9 @@ describe("API integration: task image upload finalize", () => {
   it("rejects key that does not match the task context", async () => {
     process.env.KANEO_API_URL = "http://localhost:1337";
 
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
 
     const [task] = await db
@@ -360,9 +357,9 @@ describe("API integration: task image upload finalize", () => {
   it("rejects unauthenticated requests", async () => {
     process.env.KANEO_API_URL = "http://localhost:1337";
 
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
 
     const [task] = await db
@@ -403,7 +400,7 @@ describe("API integration: task image upload finalize", () => {
   it("rejects requests from users outside the workspace", async () => {
     process.env.KANEO_API_URL = "http://localhost:1337";
 
-    const member = await createWorkspaceMember();
+    const member = await createTeamMember();
     const outsiderId = `user-${randomUUID()}`;
 
     const [outsider] = await db
@@ -417,7 +414,7 @@ describe("API integration: task image upload finalize", () => {
       .returning();
 
     const { project, columns } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
 
     const [task] = await db
@@ -443,7 +440,7 @@ describe("API integration: task image upload finalize", () => {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          key: `workspace/${member.workspace.id}/project/${project.id}/task/${task.id}/descriptions/rbac-test.png`,
+          key: `workspace/${member.team.id}/project/${project.id}/task/${task.id}/descriptions/rbac-test.png`,
           filename: "rbac-test.png",
           contentType: "image/png",
           size: 100,
@@ -453,8 +450,6 @@ describe("API integration: task image upload finalize", () => {
     );
 
     expect(response.status).toBe(403);
-    await expect(response.text()).resolves.toBe(
-      "You don't have access to this workspace",
-    );
+    await expect(response.text()).resolves.toBe("Not a member of this team");
   });
 });

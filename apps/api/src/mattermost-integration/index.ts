@@ -182,9 +182,7 @@ const deleteMattermostIntegrationRoute = createRoute({
   },
 });
 
-const mattermostIntegration = apiRouter<
-  BaseVariables & { workspaceId: string }
->()
+const mattermostIntegration = apiRouter<BaseVariables & { teamId: string }>()
   .openapi(getMattermostIntegrationRoute, async (c) => {
     const { projectId } = c.req.valid("param");
     const integration = await getMattermostIntegration(projectId);

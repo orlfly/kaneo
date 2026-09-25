@@ -3,13 +3,17 @@ import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { columnTable, projectTable, taskTable } from "../../database/schema";
 import { publishEvent } from "../../events";
-import { filterAssignableUsers } from "../../utils/assert-assignable-user";
+import {
+  filterAssignableUsers,
+  getProjectTeamId,
+} from "../../utils/assert-assignable-user";
 import {
   coercePriority,
   coerceStatus,
   getValidTaskStatuses,
 } from "../validate-task-fields";
 import { claimTaskNumber } from "./claim-task-numbers";
+import { withTaskNumberRetry } from "./with-task-number-retry";
 
 export type ImportTask = {
   title: string;
@@ -36,6 +40,11 @@ async function importTasks(
     });
   }
 
+  const validStatuses = await getValidTaskStatuses(projectId);
+
+  // Upstream security hardening: imported rows must not assign tasks to
+  // non-members. Pre-computed so a foreign assignee becomes a per-row
+  // failure instead of aborting the whole import.
   const assigneeIds = [
     ...new Set(
       tasksToImport
@@ -43,13 +52,10 @@ async function importTasks(
         .filter((id): id is string => Boolean(id)),
     ),
   ];
-
   const assignableIds = await filterAssignableUsers(
     assigneeIds,
-    project.workspaceId,
+    await getProjectTeamId(projectId),
   );
-
-  const validStatuses = await getValidTaskStatuses(projectId);
 
   const results = [];
 
@@ -59,7 +65,7 @@ async function importTasks(
     if (assigneeId && !assignableIds.has(assigneeId)) {
       results.push({
         success: false,
-        error: "Assignee is not a member of this workspace",
+        error: "Assignee is not a member of this team",
         task: taskData,
       });
       continue;
@@ -82,27 +88,46 @@ async function importTasks(
         ),
       });
 
-      const createdTask = await db.transaction(async (tx) => {
-        const taskNumber = await claimTaskNumber(projectId, tx);
+      // Same retry guard as createTask: if an external writer races a
+      // (projectId, number) unique-constraint conflict, the claim step will
+      // skip forward and the insert will succeed on the next attempt.
+      const createdTask = await withTaskNumberRetry(
+        () =>
+          db.transaction(async (tx) => {
+            const taskNumber = await claimTaskNumber(projectId, tx);
 
-        const [task] = await tx
-          .insert(taskTable)
-          .values({
-            projectId,
-            userId: assigneeId,
-            title: taskData.title,
-            status,
-            columnId: column?.id ?? null,
-            startDate: taskData.startDate ? new Date(taskData.startDate) : null,
-            dueDate: taskData.dueDate ? new Date(taskData.dueDate) : null,
-            description: taskData.description || "",
-            priority,
-            number: taskNumber,
-          })
-          .returning();
+            const [task] = await tx
+              .insert(taskTable)
+              .values({
+                projectId,
+                userId: assigneeId,
+                title: taskData.title,
+                status,
+                columnId: column?.id ?? null,
+                startDate: taskData.startDate
+                  ? new Date(taskData.startDate)
+                  : null,
+                dueDate: taskData.dueDate ? new Date(taskData.dueDate) : null,
+                description: taskData.description || "",
+                priority,
+                number: taskNumber,
+              })
+              .returning();
 
-        return task;
-      });
+            return task;
+          }),
+        {
+          projectId,
+          onRetry: (attempt) => {
+            if (process.env.NODE_ENV !== "test") {
+              // eslint-disable-next-line no-console
+              console.warn(
+                `[import-tasks] task_number_retry project=${projectId} attempt=${attempt}`,
+              );
+            }
+          },
+        },
+      );
 
       if (createdTask) {
         await publishEvent("task.created", {

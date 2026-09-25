@@ -10,7 +10,7 @@ async function deleteCustomField(id: string) {
   const [field] = await db
     .select({
       projectId: customFieldDefinitionTable.projectId,
-      workspaceId: projectTable.workspaceId,
+      teamId: projectTable.teamId,
     })
     .from(customFieldDefinitionTable)
     .innerJoin(
@@ -23,12 +23,6 @@ async function deleteCustomField(id: string) {
   if (!field) {
     throw new HTTPException(404, {
       message: "Custom field or project not found",
-    });
-  }
-
-  if (!field.workspaceId) {
-    throw new HTTPException(400, {
-      message: "The project is not associated with a workspace",
     });
   }
 
@@ -45,7 +39,7 @@ async function deleteCustomField(id: string) {
 
   return {
     ...deleted,
-    workspaceId: field.workspaceId,
+    teamId: field.teamId,
   };
 }
 

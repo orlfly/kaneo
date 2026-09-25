@@ -16,14 +16,14 @@ async function notifyDeletion(label: Label, userId: string) {
     .select({
       id: taskTable.id,
       projectId: taskTable.projectId,
-      workspaceId: projectTable.workspaceId,
+      teamId: projectTable.teamId,
     })
     .from(taskTable)
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
     .where(
       and(
         eq(taskTable.id, label.taskId),
-        eq(projectTable.workspaceId, label.workspaceId ?? ""),
+        eq(projectTable.teamId, label.teamId ?? ""),
       ),
     )
     .limit(1);
@@ -64,12 +64,12 @@ async function deleteLabel(
 
     if (label.taskId) {
       const [task] = await db
-        .select({ workspaceId: projectTable.workspaceId })
+        .select({ teamId: projectTable.teamId })
         .from(taskTable)
         .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
         .where(eq(taskTable.id, label.taskId))
         .limit(1);
-      if (!task || task.workspaceId !== label.workspaceId)
+      if (!task || task.teamId !== label.teamId)
         throw new HTTPException(404, { message: "Task not found" });
       const [deleted] = await db
         .delete(labelTable)
@@ -91,9 +91,9 @@ async function deleteLabel(
       .where(eq(labelTable.id, id))
       .returning();
     if (!root) throw new HTTPException(404, { message: "Label not found" });
-    if (root.workspaceId) {
+    if (root.teamId) {
       const predicate = and(
-        eq(labelTable.workspaceId, root.workspaceId),
+        eq(labelTable.teamId, root.teamId),
         eq(labelTable.name, root.name),
         isNotNull(labelTable.taskId),
         lte(
@@ -116,7 +116,7 @@ async function deleteLabel(
         if (deleted) await notifyDeletion(deleted, userId);
       }
       if (rows.length > LABEL_DELETE_BATCH_SIZE)
-        return { ...root, pendingDeletion: true };
+        return { ...root, pendingDeletion: true as const };
     }
     const [deleted] = await db
       .delete(labelTable)

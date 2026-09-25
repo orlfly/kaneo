@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.5.4/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.5.7/schema.json",
 	"vcs": {
 		"enabled": false,
 		"clientKind": "git",
@@ -25,9 +25,14 @@
 			"!**/.cache",
 			"!**/coverage",
 			"!**/.claude",
+			"!**/.agents",
+			"!**/.jcode",
 			"!**/.pi",
 			"!**/.pi-subagents",
-			"!**/openapi.json"
+			"!**/openapi.json",
+			"!skills",
+			"!apps/api/data",
+			"!apps/api/drizzle/meta/_journal.json"
 		]
 	},
 	"formatter": {
@@ -60,6 +65,22 @@
 		}
 	},
 	"overrides": [
+		{
+			"includes": ["tests/**"],
+			"linter": {
+				"rules": {
+					"suspicious": { "noUndeclaredEnvVars": "off" }
+				}
+			}
+		},
+		{
+			"includes": ["apps/site/components/landing/sponsors.tsx"],
+			"linter": {
+				"rules": {
+					"performance": { "noImgElement": "off" }
+				}
+			}
+		},
 		{
 			"includes": ["release.config.js", "scripts/release/*.mjs"],
 			"linter": {

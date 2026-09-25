@@ -97,7 +97,7 @@ async function moveTask({
   const destinationProject = await db.query.projectTable.findFirst({
     where: and(
       eq(projectTable.id, destinationProjectId),
-      eq(projectTable.workspaceId, sourceProject.workspaceId),
+      eq(projectTable.teamId, sourceProject.teamId),
     ),
   });
   if (!destinationProject) {

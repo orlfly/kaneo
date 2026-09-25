@@ -5,10 +5,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 const { readObject } = vi.hoisted(() => ({
   readObject: vi.fn(async () => ({
@@ -29,10 +26,10 @@ describe("API integration: public project asset visibility", () => {
   });
 
   it("serves public descriptions but denies anonymous and other-workspace access to comment assets", async () => {
-    const member = await createWorkspaceMember();
-    const outsider = await createWorkspaceMember();
+    const member = await createTeamMember();
+    const outsider = await createTeamMember();
     const { project } = await createProjectFixture({
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
     });
     await db
       .update(schema.projectTable)
@@ -42,7 +39,7 @@ describe("API integration: public project asset visibility", () => {
       .insert(schema.assetTable)
       .values(
         ["description", "comment"].map((surface) => ({
-          workspaceId: member.workspace.id,
+          teamId: member.team.id,
           projectId: project.id,
           objectKey: randomUUID(),
           filename: "image.png",

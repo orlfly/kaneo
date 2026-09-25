@@ -12,10 +12,7 @@ import {
 } from "../../apps/api/src/label/deletion-lock";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 const { github, gitea } = vi.hoisted(() => ({
   github: vi.fn(async (_id: string, _name: string) => {}),
@@ -54,13 +51,13 @@ beforeEach(async () => {
   eventCalls = [];
 });
 async function fixture(count: number) {
-  const member = await createWorkspaceMember({ role: "admin" });
+  const member = await createTeamMember({ role: "admin" });
   const { project } = await createProjectFixture({
-    workspaceId: member.workspace.id,
+    teamId: member.team.id,
   });
   const [root] = await db
     .insert(schema.labelTable)
-    .values({ workspaceId: member.workspace.id, name: "bug", color: "red" })
+    .values({ teamId: member.team.id, name: "bug", color: "red" })
     .returning();
   const tasks = count
     ? await db
@@ -78,7 +75,7 @@ async function fixture(count: number) {
   if (tasks.length)
     await db.insert(schema.labelTable).values(
       tasks.map((task) => ({
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
         taskId: task.id,
         name: "bug",
         color: "red",
@@ -88,11 +85,11 @@ async function fixture(count: number) {
   const { app } = createApp();
   return { member, project, root, tasks, app };
 }
-async function labelsFor(workspaceId: string) {
+async function labelsFor(teamId: string) {
   return db
     .select()
     .from(schema.labelTable)
-    .where(eq(schema.labelTable.workspaceId, workspaceId));
+    .where(eq(schema.labelTable.teamId, teamId));
 }
 
 describe("bounded, resumable label deletion", () => {
@@ -111,7 +108,7 @@ describe("bounded, resumable label deletion", () => {
     expect(github).toHaveBeenCalledTimes(LABEL_DELETE_BATCH_SIZE);
     expect(gitea).toHaveBeenCalledTimes(LABEL_DELETE_BATCH_SIZE);
     expect(eventCalls).toHaveLength(LABEL_DELETE_BATCH_SIZE);
-    const remaining = await labelsFor(member.workspace.id);
+    const remaining = await labelsFor(member.team.id);
     expect(remaining).toHaveLength(LABEL_DELETE_BATCH_SIZE + 4);
     const marker = remaining.find(
       (label) => label.id === root.id,
@@ -123,14 +120,13 @@ describe("bounded, resumable label deletion", () => {
     });
     expect(second.status).toBe(202);
     expect(
-      (await labelsFor(member.workspace.id)).find(
-        (label) => label.id === root.id,
-      )?.deletionStartedAt,
+      (await labelsFor(member.team.id)).find((label) => label.id === root.id)
+        ?.deletionStartedAt,
     ).toEqual(marker);
     expect(
       (await app.request(`/api/label/${root.id}`, { method: "DELETE" })).status,
     ).toBe(200);
-    expect(await labelsFor(member.workspace.id)).toEqual([]);
+    expect(await labelsFor(member.team.id)).toEqual([]);
     expect(github).toHaveBeenCalledTimes(LABEL_DELETE_BATCH_SIZE * 2 + 3);
     expect(new Set(eventCalls).size).toBe(eventCalls.length);
   });
@@ -161,7 +157,7 @@ describe("bounded, resumable label deletion", () => {
     try {
       await vi.waitFor(() => expect(eventCalls).toHaveLength(1));
       expect(github).toHaveBeenCalledTimes(1);
-      expect(await labelsFor(member.workspace.id)).toHaveLength(3); // root plus two copies
+      expect(await labelsFor(member.team.id)).toHaveLength(3); // root plus two copies
     } finally {
       gate.resolve();
     }
@@ -177,7 +173,7 @@ describe("bounded, resumable label deletion", () => {
     const [newLabel] = await db
       .insert(schema.labelTable)
       .values({
-        workspaceId: member.workspace.id,
+        teamId: member.team.id,
         taskId: deletedTask,
         name: "bug",
         color: "blue",
@@ -185,7 +181,7 @@ describe("bounded, resumable label deletion", () => {
       })
       .returning();
     await deleteLabel(root.id, member.user.id);
-    expect(await labelsFor(member.workspace.id)).toEqual([newLabel]);
+    expect(await labelsFor(member.team.id)).toEqual([newLabel]);
     expect(github).toHaveBeenCalledTimes(tasks.length);
   });
   it("prevents root renaming and reassignment while a deletion is pending", async () => {
@@ -200,7 +196,7 @@ describe("bounded, resumable label deletion", () => {
         "/api/label",
         "POST",
         {
-          workspaceId: member.workspace.id,
+          teamId: member.team.id,
           name: "bug",
           color: "red",
           taskId: tasks[0].id,
@@ -217,9 +213,8 @@ describe("bounded, resumable label deletion", () => {
         ).status,
       ).toBe(409);
     expect(
-      (await labelsFor(member.workspace.id)).find(
-        (label) => label.id === root.id,
-      )?.name,
+      (await labelsFor(member.team.id)).find((label) => label.id === root.id)
+        ?.name,
     ).toBe("bug");
   });
   it("completes an empty cascade without provider calls or events", async () => {
@@ -227,7 +222,7 @@ describe("bounded, resumable label deletion", () => {
     expect(
       (await deleteLabel(root.id, member.user.id)).pendingDeletion,
     ).toBeUndefined();
-    expect(await labelsFor(member.workspace.id)).toHaveLength(0);
+    expect(await labelsFor(member.team.id)).toHaveLength(0);
     expect(github).not.toHaveBeenCalled();
     expect(gitea).not.toHaveBeenCalled();
     expect(eventCalls).toHaveLength(0);
@@ -240,13 +235,13 @@ describe("bounded, resumable label deletion", () => {
       .where(
         and(
           eq(schema.labelTable.taskId, tasks[0].id),
-          eq(schema.labelTable.workspaceId, member.workspace.id),
+          eq(schema.labelTable.teamId, member.team.id),
         ),
       );
     await deleteLabel(copy.id, member.user.id);
-    expect((await labelsFor(member.workspace.id)).map((row) => row.id)).toEqual(
-      [root.id],
-    );
+    expect((await labelsFor(member.team.id)).map((row) => row.id)).toEqual([
+      root.id,
+    ]);
     expect(github).toHaveBeenCalledWith(tasks[0].id, "bug");
     expect(gitea).toHaveBeenCalledWith(tasks[0].id, "bug");
     expect(eventCalls).toEqual([tasks[0].id]);
@@ -275,9 +270,7 @@ describe("bounded, resumable label deletion", () => {
       });
       expect(response.status).toBe(429);
       expect(response.headers.get("Retry-After")).toBe("1");
-      expect(
-        (await labelsFor(member.workspace.id))[0].deletionStartedAt,
-      ).toBeNull();
+      expect((await labelsFor(member.team.id))[0].deletionStartedAt).toBeNull();
     } finally {
       await other.query("SELECT pg_advisory_unlock_all()");
       other.release();
@@ -292,12 +285,12 @@ describe("bounded, resumable label deletion", () => {
     expect(
       (await app.request(`/api/label/${root.id}`, { method: "DELETE" })).status,
     ).toBe(202);
-    const other = await createWorkspaceMember({ role: "admin" });
+    const other = await createTeamMember({ role: "admin" });
     mockAuthenticatedSession(other.user);
     expect(
       (await app.request(`/api/label/${root.id}`, { method: "DELETE" })).status,
     ).toBe(403);
-    expect(await labelsFor(member.workspace.id)).toHaveLength(2);
+    expect(await labelsFor(member.team.id)).toHaveLength(2);
     expect(github).toHaveBeenCalledTimes(LABEL_DELETE_BATCH_SIZE);
     mockAuthenticatedSession(member.user);
     expect(
@@ -311,7 +304,7 @@ describe("bounded, resumable label deletion", () => {
     github.mockRejectedValueOnce(new Error("provider unavailable"));
     try {
       await deleteLabel(root.id, member.user.id);
-      expect(await labelsFor(member.workspace.id)).toHaveLength(0);
+      expect(await labelsFor(member.team.id)).toHaveLength(0);
       expect(github).toHaveBeenCalledTimes(3);
       expect(gitea).toHaveBeenCalledTimes(3);
       expect(eventCalls).toHaveLength(3);

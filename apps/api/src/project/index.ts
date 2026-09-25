@@ -1,4 +1,3 @@
-import { requireEntitlement } from "../billing/require-entitlement-middleware";
 import {
   apiRouter,
   type BaseVariables,
@@ -7,10 +6,7 @@ import {
   jsonResponse,
   z,
 } from "../openapi";
-import {
-  hasWorkspacePermission,
-  requireWorkspacePermission,
-} from "../utils/require-workspace-permission";
+import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import archiveProjectCtrl from "./controllers/archive-project";
 import createProjectCtrl from "./controllers/create-project";
@@ -26,8 +22,8 @@ import {
   listProjectsQuery,
   projectParam,
   reorderProjectsBody,
+  teamIdQuery,
   updateProjectBody,
-  workspaceIdQuery,
 } from "./schema";
 
 const listProjectsRoute = createRoute({
@@ -58,7 +54,6 @@ const createProjectRoute = createRoute({
   middleware: [
     workspaceAccess.fromBody(),
     requireWorkspacePermission({ project: ["create"] }),
-    requireEntitlement,
   ] as const,
   request: {
     body: {
@@ -106,7 +101,7 @@ const reorderProjectsRoute = createRoute({
     requireWorkspacePermission({ project: ["update"] }),
   ] as const,
   request: {
-    query: workspaceIdQuery,
+    query: teamIdQuery,
     body: {
       required: true,
       content: { "application/json": { schema: reorderProjectsBody } },
@@ -222,38 +217,35 @@ const unarchiveProjectRoute = createRoute({
   },
 });
 
-const project = apiRouter<BaseVariables & { workspaceId: string }>()
+const project = apiRouter<BaseVariables & { teamId: string }>()
   .openapi(listProjectsRoute, async (c) => {
-    const workspaceId = c.get("workspaceId");
+    const teamId = c.get("teamId");
     const { includeArchived } = c.req.valid("query");
-    const projects = await getProjectsCtrl(
-      workspaceId,
-      includeArchived === "true",
-    );
+    const projects = await getProjectsCtrl(teamId, includeArchived === "true");
     return c.json(projects, 200);
   })
   .openapi(createProjectRoute, async (c) => {
     const { name, icon, slug } = c.req.valid("json");
-    const workspaceId = c.get("workspaceId");
-    const newProject = await createProjectCtrl(workspaceId, name, icon, slug);
+    const teamId = c.get("teamId");
+    const newProject = await createProjectCtrl(teamId, name, icon, slug);
     return c.json(newProject, 200);
   })
   .openapi(getProjectRoute, async (c) => {
     const { id } = c.req.valid("param");
-    const workspaceId = c.get("workspaceId");
-    const projectData = await getProjectCtrl(id, workspaceId);
+    const teamId = c.get("teamId");
+    const projectData = await getProjectCtrl(id, teamId);
     return c.json(projectData, 200);
   })
   .openapi(reorderProjectsRoute, async (c) => {
-    const workspaceId = c.get("workspaceId");
+    const teamId = c.get("teamId");
     const { projects } = c.req.valid("json");
-    const reordered = await reorderProjectsCtrl(workspaceId, projects);
+    const reordered = await reorderProjectsCtrl(teamId, projects);
     return c.json(reordered, 200);
   })
   .openapi(updateProjectRoute, async (c) => {
     const { id } = c.req.valid("param");
     const { name, icon, slug, description, isPublic } = c.req.valid("json");
-    const workspaceId = c.get("workspaceId");
+    const teamId = c.get("teamId");
     const updatedProject = await updateProjectCtrl(
       id,
       name,
@@ -261,27 +253,26 @@ const project = apiRouter<BaseVariables & { workspaceId: string }>()
       slug,
       description,
       isPublic,
-      workspaceId,
-      await hasWorkspacePermission(c, { project: ["share"] }),
+      teamId,
     );
     return c.json(updatedProject, 200);
   })
   .openapi(deleteProjectRoute, async (c) => {
     const { id } = c.req.valid("param");
-    const workspaceId = c.get("workspaceId");
-    const deletedProject = await deleteProjectCtrl(id, workspaceId);
+    const teamId = c.get("teamId");
+    const deletedProject = await deleteProjectCtrl(id, teamId);
     return c.json(deletedProject, 200);
   })
   .openapi(archiveProjectRoute, async (c) => {
     const { id } = c.req.valid("param");
-    const workspaceId = c.get("workspaceId");
-    const archivedProject = await archiveProjectCtrl(id, workspaceId);
+    const teamId = c.get("teamId");
+    const archivedProject = await archiveProjectCtrl(id, teamId);
     return c.json(archivedProject, 200);
   })
   .openapi(unarchiveProjectRoute, async (c) => {
     const { id } = c.req.valid("param");
-    const workspaceId = c.get("workspaceId");
-    const unarchivedProject = await unarchiveProjectCtrl(id, workspaceId);
+    const teamId = c.get("teamId");
+    const unarchivedProject = await unarchiveProjectCtrl(id, teamId);
     return c.json(unarchivedProject, 200);
   });
 

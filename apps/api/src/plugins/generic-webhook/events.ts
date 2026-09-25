@@ -5,8 +5,8 @@ import {
   integrationTable,
   projectTable,
   taskTable,
+  teamTable,
   userTable,
-  workspaceTable,
 } from "../../database/schema";
 import { safeOutboundError } from "../../utils/outbound-request";
 import type {
@@ -36,7 +36,7 @@ type GenericWebhookTaskData = {
   priority: string | null;
   projectId: string;
   projectName: string;
-  workspaceId: string;
+  teamId: string;
   taskUrl: string;
 };
 
@@ -61,11 +61,11 @@ async function getTaskData(
       columnName: columnTable.name,
       projectId: projectTable.id,
       projectName: projectTable.name,
-      workspaceId: workspaceTable.id,
+      teamId: teamTable.id,
     })
     .from(taskTable)
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-    .innerJoin(workspaceTable, eq(projectTable.workspaceId, workspaceTable.id))
+    .innerJoin(teamTable, eq(projectTable.teamId, teamTable.id))
     .leftJoin(
       columnTable,
       and(
@@ -86,7 +86,7 @@ async function getTaskData(
     ...taskRow,
     status: taskRow.status,
     statusName: taskRow.columnName ?? taskRow.status,
-    taskUrl: `${clientUrl}/dashboard/workspace/${taskRow.workspaceId}/project/${taskRow.projectId}/task/${taskId}`,
+    taskUrl: `${clientUrl}/dashboard/team/${taskRow.teamId}/project/${taskRow.projectId}/task/${taskId}`,
   };
 }
 
@@ -222,7 +222,7 @@ async function sendEvent(
     project: {
       id: task.projectId,
       name: task.projectName,
-      workspaceId: task.workspaceId,
+      teamId: task.teamId,
     },
     task: {
       id: task.id,
@@ -405,7 +405,7 @@ async function sendTaskDeletedEvent(
     .select({
       id: projectTable.id,
       name: projectTable.name,
-      workspaceId: projectTable.workspaceId,
+      teamId: projectTable.teamId,
     })
     .from(projectTable)
     .where(eq(projectTable.id, event.projectId))
@@ -429,7 +429,7 @@ async function sendTaskDeletedEvent(
       project: {
         id: project.id,
         name: project.name,
-        workspaceId: project.workspaceId,
+        teamId: project.teamId,
       },
       task: {
         id: event.taskId,

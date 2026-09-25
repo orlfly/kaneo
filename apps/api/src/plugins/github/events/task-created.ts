@@ -12,21 +12,13 @@ import {
   formatIssueTitle,
   getLabelsForIssue,
 } from "../utils/format";
-import {
-  getGithubApp,
-  getVerifiedInstallationOctokit,
-} from "../utils/github-app";
+import { getRepoOctokit } from "../utils/github-app";
 import { addLabelsToIssue } from "../utils/labels";
 
 export async function handleTaskCreated(
   event: TaskCreatedEvent,
   context: PluginContext,
 ): Promise<void> {
-  const githubApp = getGithubApp();
-  if (!githubApp) {
-    return;
-  }
-
   const config = context.config as GitHubConfig;
   if (!hasVerifiedGitHubBinding(config)) return;
   const { repositoryOwner, repositoryName } = config;
@@ -42,7 +34,10 @@ export async function handleTaskCreated(
   }
 
   try {
-    const octokit = await getVerifiedInstallationOctokit(config);
+    const octokit = await getRepoOctokit(config);
+    if (!octokit) {
+      return;
+    }
 
     const createdIssue = await octokit.rest.issues.create({
       owner: repositoryOwner,
@@ -81,7 +76,7 @@ export async function handleTaskCreated(
       if (project) {
         const clientUrl =
           process.env.KANEO_CLIENT_URL || "http://localhost:5173";
-        const taskUrl = `${clientUrl}/dashboard/workspace/${project.workspaceId}/project/${event.projectId}/task/${event.taskId}`;
+        const taskUrl = `${clientUrl}/dashboard/team/${project.teamId}/project/${event.projectId}/task/${event.taskId}`;
         const taskIdentifier = `${project.slug.toUpperCase()}-${event.number}`;
 
         await octokit.rest.issues.createComment({

@@ -116,7 +116,7 @@ export const boardSchema = z
             "True when a project description above 64 KiB is omitted; use project detail or public project description pages for full text.",
         }),
         isPublic: z.boolean().nullable(),
-        workspaceId: z.string(),
+        teamId: z.string(),
         columns: z.array(boardColumnSchema),
         archivedTasks: z.array(boardTaskSchema),
         plannedTasks: z.array(boardTaskSchema),

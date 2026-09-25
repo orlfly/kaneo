@@ -13,10 +13,14 @@ import { Hono } from "hono";
 import { compress } from "hono/compress";
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
+import { generateSpecs, openAPIRouteHandler } from "hono-openapi";
 import activity from "./activity";
+import adminRoutes from "./admin";
+import agentConfig from "./agent/agents";
 import { auth } from "./auth";
 import { organizationRoutes } from "./auth-openapi";
-import billing from "./billing";
+import chat from "./chat";
+import chatPublic from "./chat/public";
 import column from "./column";
 import comment from "./comment";
 import config from "./config";
@@ -32,8 +36,10 @@ import giteaIntegration, { handleGiteaWebhookRoute } from "./gitea-integration";
 import githubIntegration, {
   handleGithubWebhookRoute,
 } from "./github-integration";
+import gitlabIntegration, {
+  handleGitLabWebhookRoute,
+} from "./gitlab-integration";
 import getInstanceStatus from "./instance/controllers/get-instance-status";
-import invitation from "./invitation";
 import label from "./label";
 import mattermostIntegration from "./mattermost-integration";
 import mcpRoutes, { mcpWellKnownRoutes } from "./mcp";
@@ -58,6 +64,7 @@ import {
 import { boardSchema, descriptionPageSchema } from "./task/response";
 import { descriptionPageQuery, listTasksQuery } from "./task/schema";
 import taskRelation from "./task-relation";
+import team from "./team";
 import telegramIntegration from "./telegram-integration";
 import timeEntry from "./time-entry";
 import user from "./user";
@@ -67,17 +74,26 @@ import {
   authorizeAssetAccess,
   isPublicAsset,
 } from "./utils/authorize-asset-access";
-import { getInvitationDetails } from "./utils/check-registration-allowed";
 import { clientIpMiddleware } from "./utils/client-ip";
+import { ensureAdminUser } from "./utils/ensure-admin-user";
 import { migrateApiKeyReferenceId } from "./utils/migrate-apikey-reference-id";
 import { migrateNotificationPreferencesSchema } from "./utils/migrate-notification-preferences-schema";
 import { migrateSessionColumn } from "./utils/migrate-session-column";
 import { migrateWorkspaceUserEmail } from "./utils/migrate-workspace-user-email";
-import { normalizeApiServerUrl } from "./utils/openapi-spec";
-import { seedDefaultWorkspaceRoles } from "./utils/seed-default-workspace-roles";
-import { validateWorkspaceAccess } from "./utils/validate-workspace-access";
+import { migrateWorkspacesToTeams } from "./utils/migrate-workspaces-to-teams";
+import {
+  dedupeOperationIds,
+  ensureOperationSummaries,
+  markOptionalSchemaFieldsNullable,
+  mergeOpenApiSpecs,
+  normalizeApiServerUrl,
+  normalizeEmptyAndEnumSchemas,
+  normalizeEmptyRequiredArrays,
+  normalizeMalformedPropertySchemas,
+  normalizeNullableSchemasForOpenApi30,
+  normalizeOrganizationAuthOperations,
+} from "./utils/openapi-spec";
 import workflowRule from "./workflow-rule";
-import workspace from "./workspace";
 import {
   addConnection,
   addUserConnection,
@@ -97,6 +113,9 @@ type ApiKey = {
   userId: string;
   enabled: boolean;
   permissions: Record<string, string[]> | null;
+  metadata: Record<string, unknown> | null;
+  agentRole: import("./utils/agent-role").ApiKeyContext["agentRole"];
+  projectId: string | null;
 };
 
 type AppVariables = {
@@ -372,11 +391,10 @@ export function createApp() {
     handleGiteaWebhookRoute,
   );
 
-  const invitationPublicApi = api.get("/invitation/public/:id", async (c) => {
-    const { id } = c.req.param();
-    const result = await getInvitationDetails(id);
-    return c.json(result);
-  });
+  api.post(
+    "/gitlab-integration/webhook/:integrationId",
+    handleGitLabWebhookRoute,
+  );
 
   api.openapi(
     createRoute({
@@ -426,9 +444,9 @@ export function createApp() {
           objectKey: schema.assetTable.objectKey,
           mimeType: schema.assetTable.mimeType,
           filename: schema.assetTable.filename,
-          surface: schema.assetTable.surface,
-          workspaceId: schema.assetTable.workspaceId,
+          teamId: schema.assetTable.teamId,
           isPublic: schema.projectTable.isPublic,
+          surface: schema.assetTable.surface,
         })
         .from(schema.assetTable)
         .innerJoin(
@@ -527,6 +545,7 @@ export function createApp() {
   );
 
   const configApi = api.route("/config", config);
+  const agentConfigApi = api.route("/agent/agents-config", agentConfig);
 
   api.openAPIRegistry.registerComponent("securitySchemes", "bearerAuth", {
     type: "http",
@@ -535,9 +554,9 @@ export function createApp() {
   });
   organizationRoutes(api.openAPIRegistry);
 
-  api.get("/openapi", (c) => {
-    const document = api.getOpenAPI31Document({
-      openapi: "3.1.0",
+  const honoOpenApiHandler = openAPIRouteHandler(api, {
+    documentation: {
+      openapi: "3.0.3",
       info: {
         title: "Kaneo API",
         version: "1.0.0",
@@ -552,46 +571,76 @@ export function createApp() {
           description: "Kaneo API Server",
         },
       ],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            description: "API key or session token (Bearer)",
+          },
+        },
+      },
       security: [{ bearerAuth: [] }],
-    });
+    },
+  });
 
-    // Every authenticated route sits behind the same app-wide
-    // authenticateApiRequest middleware, so the shared 401 is injected here
-    // rather than repeated on all ~120 route definitions. Routes that opt out
-    // of auth declare `security: []` and are skipped.
-    const httpMethods = [
-      "get",
-      "post",
-      "put",
-      "delete",
-      "patch",
-      "options",
-      "head",
-      "trace",
-    ];
-    const paths = (document.paths ?? {}) as Record<
-      string,
-      Record<
+  api.get("/openapi", async (c) => {
+    const maybeResponse = await honoOpenApiHandler(c, async () => {});
+    const honoSpecResponse = maybeResponse ?? c.res;
+    const honoSpec = (await honoSpecResponse.json()) as Record<string, unknown>;
+
+    let authSpec: Record<string, unknown> = {};
+    try {
+      authSpec = (await auth.api.generateOpenAPISchema()) as Record<
         string,
-        { responses?: Record<string, unknown>; security?: unknown[] }
-      >
-    >;
-    for (const operations of Object.values(paths)) {
-      for (const [method, operation] of Object.entries(operations)) {
-        if (!httpMethods.includes(method) || !operation.responses) continue;
-        if (
-          Array.isArray(operation.security) &&
-          operation.security.length === 0
-        ) {
-          continue;
-        }
-        operation.responses["401"] ??= {
-          description: "Missing or invalid credentials",
-        };
-      }
+        unknown
+      >;
+    } catch (error) {
+      console.error("Failed to generate Better Auth OpenAPI schema:", error);
     }
 
-    return c.json(document);
+    const normalizedAuthSpec = normalizeOrganizationAuthOperations(authSpec);
+
+    // chatPublic routes are mounted on the top-level app at /api/chat (outside
+    // the authenticated `api` router), so they are not captured by the Hono
+    // OpenAPI handler above. Generate their spec explicitly and prefix the
+    // paths with /chat to match the real mount point.
+    const chatPublicSpec = await generateSpecs(chatPublic);
+    const chatPublicPaths = (chatPublicSpec.paths || {}) as Record<
+      string,
+      unknown
+    >;
+    const prefixedChatPaths = Object.fromEntries(
+      Object.entries(chatPublicPaths).map(([path, item]) => [
+        path === "/" ? "/chat" : `/chat${path}`,
+        item,
+      ]),
+    );
+    const chatPublicSpecPrefixed = {
+      ...chatPublicSpec,
+      paths: prefixedChatPaths,
+    };
+
+    return c.json(
+      ensureOperationSummaries(
+        dedupeOperationIds(
+          markOptionalSchemaFieldsNullable(
+            normalizeNullableSchemasForOpenApi30(
+              normalizeEmptyAndEnumSchemas(
+                normalizeEmptyRequiredArrays(
+                  normalizeMalformedPropertySchemas(
+                    mergeOpenApiSpecs(
+                      mergeOpenApiSpecs(honoSpec, chatPublicSpecPrefixed),
+                      normalizedAuthSpec,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   });
 
   // Better Auth serves GET /auth/device as JSON. Browsers that open the API URL
@@ -649,6 +698,36 @@ export function createApp() {
     const apiKeyHeader = c.req.header("x-api-key");
     const bearerToken = authHeader?.match(/^Bearer\s+(\S+)$/i)?.[1];
 
+    // The better-auth api-key plugin writes keys via the raw adapter, which
+    // bypasses `databaseHooks.apikey.create.before`. Enforce the guard here so
+    // an API key can never be created with `metadata.agentRole = "human"` (the
+    // reserved required_role marker, not an agent role).
+    if (c.req.method === "POST" && c.req.path.endsWith("/api-key/create")) {
+      // Clone before reading: c.req.json() consumes the underlying body
+      // stream, so the request we hand to auth.handler must be a fresh
+      // clone (better-auth re-reads the body via better-call).
+      const guardParsed = await c.req.raw
+        .clone()
+        .json()
+        .catch(() => null);
+      const metadata = guardParsed?.metadata;
+      if (
+        metadata &&
+        typeof metadata === "object" &&
+        "agentRole" in metadata &&
+        (metadata as Record<string, unknown>).agentRole === "human"
+      ) {
+        return c.json(
+          {
+            message:
+              '"human" is a required_role marker, not an agent role. Use one of: coding, product-design, architecture-design, devops, ui-design, testing, code-review.',
+            code: "HUMAN_NOT_AGENT_ROLE",
+          },
+          400,
+        );
+      }
+    }
+
     if (bearerToken && !apiKeyHeader) {
       const session = await auth.api.getSession({
         headers: c.req.raw.headers,
@@ -678,11 +757,7 @@ export function createApp() {
 
   api.use("*", async (c, next) => {
     const path = c.req.path;
-    if (
-      path.startsWith("/api/mcp") ||
-      path.startsWith("/api/.well-known/") ||
-      path === "/api/billing/webhook"
-    ) {
+    if (path.startsWith("/api/mcp") || path.startsWith("/api/.well-known/")) {
       return next();
     }
     return Sentry.withIsolationScope(async () => {
@@ -707,7 +782,6 @@ export function createApp() {
 
   const oauthApi = api.route("/oauth", oauth);
 
-  const billingApi = api.route("/billing", billing);
   const projectApi = api.route("/project", project);
   const taskApi = api.route("/task", task);
   const columnApi = api.route("/column", column);
@@ -726,6 +800,10 @@ export function createApp() {
     githubIntegration,
   );
   const giteaIntegrationApi = api.route("/gitea-integration", giteaIntegration);
+  const gitlabIntegrationApi = api.route(
+    "/gitlab-integration",
+    gitlabIntegration,
+  );
   const genericWebhookIntegrationApi = api.route(
     "/generic-webhook-integration",
     genericWebhookIntegration,
@@ -746,10 +824,11 @@ export function createApp() {
   const taskRelationApi = api.route("/task-relation", taskRelation);
   const externalLinkApi = api.route("/external-link", externalLink);
   const workflowRuleApi = api.route("/workflow-rule", workflowRule);
-  const invitationApi = api.route("/invitation", invitation);
-  const workspaceApi = api.route("/workspace", workspace);
+  const teamApi = api.route("/team", team);
+  const chatApi = api.route("/chat", chat);
   const customFieldApi = api.route("/custom-field", customField);
   const userApi = api.route("/user", user);
+  const adminApi = api.route("/admin", adminRoutes);
 
   app.route(
     "/",
@@ -816,7 +895,7 @@ export function createApp() {
 
       if (projectId) {
         const [project] = await db
-          .select({ workspaceId: schema.projectTable.workspaceId })
+          .select({ teamId: schema.projectTable.teamId })
           .from(schema.projectTable)
           .where(eq(schema.projectTable.id, projectId))
           .limit(1);
@@ -825,7 +904,12 @@ export function createApp() {
           throw new HTTPException(401, { message: "Unauthorized" });
         }
 
-        await validateWorkspaceAccess(userId, project.workspaceId);
+        if (project.teamId) {
+          const { validateTeamAccess } = await import(
+            "./utils/validate-team-access"
+          );
+          await validateTeamAccess(userId, project.teamId);
+        }
       }
 
       const windowId = c.req.query("windowId");
@@ -848,6 +932,7 @@ export function createApp() {
     }),
   );
 
+  app.route("/api/chat", chatPublic);
   app.route("/api", api);
 
   return {
@@ -855,7 +940,8 @@ export function createApp() {
     api,
     injectWebSocket,
     activityApi,
-    billingApi,
+    adminApi,
+    agentConfigApi,
     columnApi,
     commentApi,
     configApi,
@@ -864,8 +950,7 @@ export function createApp() {
     genericWebhookIntegrationApi,
     githubIntegrationApi,
     giteaIntegrationApi,
-    invitationApi,
-    invitationPublicApi,
+    gitlabIntegrationApi,
     labelApi,
     notificationApi,
     notificationPreferencesApi,
@@ -876,11 +961,12 @@ export function createApp() {
     slackIntegrationApi,
     taskApi,
     taskRelationApi,
+    teamApi,
+    chatApi,
     telegramIntegrationApi,
     timeEntryApi,
     userApi,
     workflowRuleApi,
-    workspaceApi,
     customFieldApi,
     oauthApi,
   };
@@ -916,7 +1002,8 @@ export async function runStartupTasks() {
   await migrateNotificationPreferencesSchema();
   await migrateGitHubIntegration();
   await migrateColumns();
-  await seedDefaultWorkspaceRoles();
+  await migrateWorkspacesToTeams();
+  await ensureAdminUser();
 
   initializePlugins();
   initializeScheduler();
@@ -975,7 +1062,8 @@ const {
   app,
   injectWebSocket,
   activityApi,
-  billingApi,
+  adminApi,
+  agentConfigApi,
   columnApi,
   commentApi,
   configApi,
@@ -984,8 +1072,7 @@ const {
   genericWebhookIntegrationApi,
   githubIntegrationApi,
   giteaIntegrationApi,
-  invitationApi,
-  invitationPublicApi,
+  gitlabIntegrationApi,
   labelApi,
   mattermostIntegrationApi,
   notificationApi,
@@ -996,11 +1083,12 @@ const {
   slackIntegrationApi,
   taskApi,
   taskRelationApi,
+  teamApi,
+  chatApi,
   telegramIntegrationApi,
   timeEntryApi,
   userApi,
   workflowRuleApi,
-  workspaceApi,
   customFieldApi,
   oauthApi,
 } = createdApp;
@@ -1016,12 +1104,13 @@ if (isMainModule) {
 }
 
 export type AppType =
-  | typeof billingApi
   | typeof configApi
   | typeof projectApi
   | typeof taskApi
   | typeof columnApi
   | typeof activityApi
+  | typeof adminApi
+  | typeof agentConfigApi
   | typeof commentApi
   | typeof timeEntryApi
   | typeof labelApi
@@ -1030,6 +1119,7 @@ export type AppType =
   | typeof searchApi
   | typeof githubIntegrationApi
   | typeof giteaIntegrationApi
+  | typeof gitlabIntegrationApi
   | typeof genericWebhookIntegrationApi
   | typeof discordIntegrationApi
   | typeof mattermostIntegrationApi
@@ -1038,12 +1128,11 @@ export type AppType =
   | typeof taskRelationApi
   | typeof externalLinkApi
   | typeof workflowRuleApi
-  | typeof invitationApi
-  | typeof workspaceApi
+  | typeof teamApi
+  | typeof chatApi
   | typeof customFieldApi
   | typeof userApi
   | typeof publicProjectApi
-  | typeof invitationPublicApi
   | typeof oauthApi;
 
 export default app;

@@ -4,10 +4,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 const m = vi.hoisted(() => ({ publish: vi.fn(async () => undefined) }));
 vi.mock("../../apps/api/src/events", async (original) => ({
@@ -19,9 +16,9 @@ beforeEach(async () => {
   vi.clearAllMocks();
 });
 async function context() {
-  const member = await createWorkspaceMember();
+  const member = await createTeamMember();
   const { project } = await createProjectFixture({
-    workspaceId: member.workspace.id,
+    teamId: member.team.id,
   });
   const [task] = await db
     .insert(schema.taskTable)
@@ -113,7 +110,7 @@ describe("task relation tenant boundaries", () => {
   it("keeps same-workspace cross-project relations fully usable", async () => {
     const own = await context();
     const { project } = await createProjectFixture({
-      workspaceId: own.workspace.id,
+      teamId: own.team.id,
     });
     const [target] = await db
       .insert(schema.taskTable)

@@ -1,0 +1,504 @@
+import { and, eq, inArray, max, notInArray } from "drizzle-orm";
+import { HTTPException } from "hono/http-exception";
+import db from "../../database";
+import {
+  activityTable,
+  integrationTable,
+  labelTable,
+  projectTable,
+  taskTable,
+} from "../../database/schema";
+import { publishEvent } from "../../events";
+import {
+  createExternalLink,
+  findExternalLink,
+} from "../../plugins/github/services/link-manager";
+import { findTaskByNumber } from "../../plugins/github/services/task-service";
+import {
+  extractIssuePriority,
+  extractIssueStatus,
+} from "../../plugins/github/utils/extract-priority";
+import { formatTaskDescriptionFromIssue } from "../../plugins/github/utils/format";
+import type { GitLabConfig } from "../../plugins/gitlab/config";
+import { extractTaskNumberGitLab } from "../../plugins/gitlab/utils/branch-matcher";
+import {
+  createGitLabClient,
+  type GitLabIssue,
+  type GitLabLabel,
+  type GitLabPullRequest,
+} from "../../plugins/gitlab/utils/gitlab-api";
+
+type ImportResult = {
+  imported: number;
+  updated: number;
+  skipped: number;
+  errors?: string[];
+};
+
+type LabelLike = { name?: string };
+
+function toPriorityLabels(labels: GitLabLabel[]): LabelLike[] {
+  return labels.map((label) => ({ name: label.name }));
+}
+
+export async function importGitLabIssues(
+  projectId: string,
+): Promise<ImportResult> {
+  const errors: string[] = [];
+  let imported = 0;
+  let updated = 0;
+  let skipped = 0;
+
+  const project = await db.query.projectTable.findFirst({
+    where: eq(projectTable.id, projectId),
+  });
+
+  if (!project) {
+    throw new HTTPException(404, { message: "Project not found" });
+  }
+
+  const integration = await db.query.integrationTable.findFirst({
+    where: and(
+      eq(integrationTable.projectId, projectId),
+      eq(integrationTable.type, "gitlab"),
+    ),
+  });
+
+  if (!integration) {
+    throw new HTTPException(404, { message: "GitLab integration not found" });
+  }
+
+  if (!integration.isActive) {
+    throw new HTTPException(400, {
+      message: "GitLab integration is not active",
+    });
+  }
+
+  let config: GitLabConfig;
+  try {
+    config = JSON.parse(integration.config) as GitLabConfig;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn("Invalid GitLab integration config JSON", {
+      integrationId: integration.id,
+      error,
+    });
+    throw new HTTPException(400, {
+      message: `Invalid GitLab integration config: ${message}`,
+    });
+  }
+
+  if (!config.accessToken || !config.baseUrl) {
+    throw new HTTPException(400, {
+      message: "GitLab access token or base URL not configured",
+    });
+  }
+
+  const client = createGitLabClient(config);
+
+  const allIssues: GitLabIssue[] = [];
+  let page = 1;
+
+  while (true) {
+    const issues = await client.listIssues(
+      config.repositoryOwner,
+      config.repositoryName,
+      page,
+      "open",
+    );
+
+    if (issues.length === 0) break;
+
+    const issuesOnly = issues.filter((issue) => !issue.pull_request);
+    allIssues.push(...issuesOnly);
+
+    if (issues.length < 100) break;
+    page++;
+  }
+
+  for (const issue of allIssues) {
+    try {
+      const result = await importSingleIssue(
+        issue,
+        integration.id,
+        projectId,
+        project.teamId,
+        config,
+        client,
+      );
+
+      if (result === "imported") {
+        imported++;
+      } else if (result === "updated") {
+        updated++;
+      } else {
+        skipped++;
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      errors.push(`Issue #${issue.number}: ${errorMessage}`);
+    }
+  }
+
+  const allPRs: GitLabPullRequest[] = [];
+  page = 1;
+
+  while (true) {
+    const pulls = await client.listPulls(
+      config.repositoryOwner,
+      config.repositoryName,
+      page,
+    );
+
+    if (pulls.length === 0) break;
+
+    allPRs.push(...pulls);
+
+    if (pulls.length < 100) break;
+    page++;
+  }
+
+  for (const pr of allPRs) {
+    try {
+      if (!pr.head?.ref) {
+        continue;
+      }
+      await linkPullRequestToTask(
+        {
+          ...pr,
+          head: { ref: pr.head.ref },
+        },
+        integration.id,
+        projectId,
+        project.slug,
+        config,
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      errors.push(`PR #${pr.number}: ${errorMessage}`);
+    }
+  }
+
+  return {
+    imported,
+    updated,
+    skipped,
+    ...(errors.length > 0 ? { errors } : {}),
+  };
+}
+
+async function importSingleIssue(
+  issue: GitLabIssue,
+  integrationId: string,
+  projectId: string,
+  teamId: string,
+  config: GitLabConfig,
+  client: ReturnType<typeof createGitLabClient>,
+): Promise<"imported" | "updated" | "skipped"> {
+  const existingLink = await findExternalLink(
+    integrationId,
+    "issue",
+    issue.number.toString(),
+  );
+
+  const labels = issue.labels ?? [];
+  const adaptedLabels = toPriorityLabels(labels);
+  const priority = extractIssuePriority(adaptedLabels);
+  const status = extractIssueStatus(adaptedLabels);
+
+  if (existingLink) {
+    const updateData: Record<string, unknown> = {
+      title: issue.title,
+      description: formatTaskDescriptionFromIssue(issue.body),
+    };
+
+    if (priority) updateData.priority = priority;
+    if (status) updateData.status = status;
+
+    await db
+      .update(taskTable)
+      .set(updateData)
+      .where(eq(taskTable.id, existingLink.taskId));
+
+    await importLabelsForTask(labels, existingLink.taskId, teamId);
+
+    await importCommentsForTask(
+      issue.number,
+      existingLink.taskId,
+      config,
+      client,
+    );
+
+    return "updated";
+  }
+
+  const createdTask = await db.transaction(async (tx) => {
+    const [lockedProject] = await tx
+      .select()
+      .from(projectTable)
+      .where(eq(projectTable.id, projectId))
+      .for("update");
+
+    if (!lockedProject) {
+      throw new Error("Project not found");
+    }
+
+    const [result] = await tx
+      .select({ maxNumber: max(taskTable.number) })
+      .from(taskTable)
+      .where(eq(taskTable.projectId, projectId));
+
+    const nextNumber = (result?.maxNumber ?? 0) + 1;
+
+    const taskValues: typeof taskTable.$inferInsert = {
+      projectId,
+      userId: null,
+      title: issue.title,
+      description: formatTaskDescriptionFromIssue(issue.body),
+      status: status || "to-do",
+      priority: priority ?? "low",
+      number: nextNumber,
+    };
+
+    const [created] = await tx.insert(taskTable).values(taskValues).returning();
+
+    if (!created) {
+      throw new Error("Failed to create task");
+    }
+
+    return created;
+  });
+
+  await createExternalLink({
+    taskId: createdTask.id,
+    integrationId,
+    resourceType: "issue",
+    externalId: issue.number.toString(),
+    url: issue.html_url,
+    title: issue.title,
+    metadata: {
+      state: issue.state,
+      createdFrom: "gitlab-import",
+      author: issue.user?.login ?? issue.user?.username,
+    },
+  });
+
+  await importLabelsForTask(labels, createdTask.id, teamId);
+
+  await importCommentsForTask(issue.number, createdTask.id, config, client);
+
+  await publishEvent("task.created", {
+    ...createdTask,
+    taskId: createdTask.id,
+    userId: createdTask.userId ?? "",
+    type: "task",
+    content: null,
+    source: "gitlab-import",
+    integrationId,
+    externalId: issue.number.toString(),
+  });
+
+  return "imported";
+}
+
+async function importLabelsForTask(
+  issueLabels: GitLabIssue["labels"],
+  taskId: string,
+  teamId: string,
+): Promise<void> {
+  const nonSystemLabels = (issueLabels ?? [])
+    .map((label) => {
+      if (typeof label === "string") {
+        return { name: label, color: "#6B7280" };
+      }
+      return {
+        name: label.name,
+        color: label.color
+          ? `#${String(label.color).replace(/^#/, "")}`
+          : "#6B7280",
+      };
+    })
+    .filter(
+      (label) =>
+        label.name &&
+        !label.name.startsWith("priority:") &&
+        !label.name.startsWith("status:"),
+    ) as Array<{ name: string; color: string }>;
+
+  const expectedNames = nonSystemLabels.map((label) => label.name);
+
+  if (expectedNames.length > 0) {
+    await db
+      .delete(labelTable)
+      .where(
+        and(
+          eq(labelTable.taskId, taskId),
+          notInArray(labelTable.name, expectedNames),
+        ),
+      );
+  } else {
+    await db.delete(labelTable).where(eq(labelTable.taskId, taskId));
+  }
+
+  const existingLabelsOnTask = await db.query.labelTable.findMany({
+    where:
+      expectedNames.length > 0
+        ? and(
+            eq(labelTable.taskId, taskId),
+            inArray(labelTable.name, expectedNames),
+          )
+        : eq(labelTable.taskId, taskId),
+  });
+
+  for (const labelData of nonSystemLabels) {
+    const existingLabelOnTask = existingLabelsOnTask.find(
+      (label) => label.name === labelData.name,
+    );
+
+    if (existingLabelOnTask) {
+      continue;
+    }
+
+    const existingTeamLabel = await db.query.labelTable.findFirst({
+      where: and(
+        eq(labelTable.teamId, teamId),
+        eq(labelTable.name, labelData.name),
+      ),
+    });
+
+    const colorToUse = existingTeamLabel?.color || labelData.color;
+
+    await db
+      .insert(labelTable)
+      .values({
+        name: labelData.name,
+        color: colorToUse,
+        taskId,
+        teamId,
+      })
+      .onConflictDoNothing({
+        target: [labelTable.taskId, labelTable.name],
+      });
+  }
+}
+
+async function importCommentsForTask(
+  issueNumber: number,
+  taskId: string,
+  config: GitLabConfig,
+  client: ReturnType<typeof createGitLabClient>,
+): Promise<void> {
+  const allComments: Array<{
+    id: number;
+    body: string;
+    html_url: string;
+    user?: { login?: string; username?: string; avatar_url?: string } | null;
+  }> = [];
+  let page = 1;
+
+  while (true) {
+    const comments = await client.listIssueComments(
+      config.repositoryOwner,
+      config.repositoryName,
+      issueNumber,
+      page,
+      100,
+    );
+
+    if (comments.length === 0) break;
+
+    allComments.push(...comments);
+
+    if (comments.length < 100) break;
+    page++;
+  }
+
+  for (const comment of allComments) {
+    const username = comment.user?.login ?? comment.user?.username ?? "";
+    if (username.endsWith("[bot]")) {
+      continue;
+    }
+
+    await db
+      .insert(activityTable)
+      .values({
+        taskId,
+        type: "comment",
+        content: comment.body,
+        externalUserName: username || "Unknown",
+        externalUserAvatar: comment.user?.avatar_url ?? null,
+        externalSource: "gitlab",
+        externalUrl: comment.html_url,
+        eventData: {
+          externalCommentId: comment.id,
+        },
+      })
+      .onConflictDoNothing({
+        target: [
+          activityTable.taskId,
+          activityTable.externalSource,
+          activityTable.externalUrl,
+        ],
+      });
+  }
+}
+
+async function linkPullRequestToTask(
+  pr: {
+    number: number;
+    title: string;
+    body: string | null;
+    html_url: string;
+    state: string;
+    head: { ref: string };
+    user?: { login?: string; username?: string; avatar_url?: string } | null;
+  },
+  integrationId: string,
+  projectId: string,
+  projectSlug: string,
+  config: GitLabConfig,
+): Promise<void> {
+  const taskNumber = extractTaskNumberGitLab(
+    pr.head.ref,
+    pr.title,
+    pr.body ?? undefined,
+    config,
+    projectSlug,
+  );
+
+  if (!taskNumber) {
+    return;
+  }
+
+  const task = await findTaskByNumber(projectId, taskNumber);
+
+  if (!task) {
+    return;
+  }
+
+  const existingLink = await findExternalLink(
+    integrationId,
+    "pull_request",
+    pr.number.toString(),
+  );
+
+  if (existingLink) {
+    return;
+  }
+
+  await createExternalLink({
+    taskId: task.id,
+    integrationId,
+    resourceType: "pull_request",
+    externalId: pr.number.toString(),
+    url: pr.html_url,
+    title: pr.title,
+    metadata: {
+      state: pr.state,
+      branch: pr.head.ref,
+      author: pr.user?.login ?? pr.user?.username,
+    },
+  });
+}

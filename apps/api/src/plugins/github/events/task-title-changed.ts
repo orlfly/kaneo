@@ -4,23 +4,20 @@ import {
   findExternalLinksByTask,
   updateExternalLink,
 } from "../services/link-manager";
-import {
-  getGithubApp,
-  getVerifiedInstallationOctokit,
-} from "../utils/github-app";
+import { getRepoOctokit } from "../utils/github-app";
 
 export async function handleTaskTitleChanged(
   event: TaskTitleChangedEvent,
   context: PluginContext,
 ): Promise<void> {
-  const githubApp = getGithubApp();
-  if (!githubApp) {
-    return;
-  }
-
   const config = context.config as GitHubConfig;
   if (!hasVerifiedGitHubBinding(config)) return;
   const { repositoryOwner, repositoryName } = config;
+
+  const octokit = await getRepoOctokit(config);
+  if (!octokit) {
+    return;
+  }
 
   try {
     const links = await findExternalLinksByTask(event.taskId);
@@ -59,7 +56,10 @@ export async function handleTaskTitleChanged(
       }
     }
 
-    const octokit = await getVerifiedInstallationOctokit(config);
+    const octokit = await getRepoOctokit(config);
+    if (!octokit) {
+      return;
+    }
     const issueNumber = Number.parseInt(issueLink.externalId, 10);
 
     await octokit.rest.issues.update({

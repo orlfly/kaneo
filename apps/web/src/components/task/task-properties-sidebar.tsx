@@ -1,4 +1,5 @@
 import {
+  BotIcon,
   Calendar,
   CalendarClock,
   CalendarDays,
@@ -25,7 +26,7 @@ import useGetLabelsByTask from "@/hooks/queries/label/use-get-labels-by-task";
 import useGetProject from "@/hooks/queries/project/use-get-project";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import useGetTask from "@/hooks/queries/task/use-get-task";
-import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
+import { useGetActiveTeamMembers } from "@/hooks/queries/team-member/use-get-active-team-members";
 import { cn } from "@/lib/cn";
 import { getColumnIcon } from "@/lib/column";
 import {
@@ -44,6 +45,7 @@ import TaskDueDatePopover from "./task-due-date-popover";
 import TaskLabelsPopover from "./task-labels-popover";
 import TaskMovePopover from "./task-move-popover";
 import TaskPriorityPopover from "./task-priority-popover";
+import TaskRolePopover from "./task-role-popover";
 import TaskStartDatePopover from "./task-start-date-popover";
 import TaskStatusPopover from "./task-status-popover";
 
@@ -72,7 +74,7 @@ function generateBranchName(
 type TaskPropertiesSidebarProps = {
   taskId: string | undefined;
   projectId: string;
-  workspaceId: string;
+  teamId: string;
   className?: string;
   compact?: boolean;
 };
@@ -80,22 +82,22 @@ type TaskPropertiesSidebarProps = {
 export default function TaskPropertiesSidebar({
   taskId,
   projectId,
-  workspaceId,
+  teamId,
   className,
   compact = false,
 }: TaskPropertiesSidebarProps) {
   const { t } = useTranslation();
   const { data: task } = useGetTask(taskId ?? "");
-  const { data: project } = useGetProject({ id: projectId, workspaceId });
+  const { data: project } = useGetProject({ id: projectId, teamId });
   const { data: columns = [] } = useGetColumns(projectId);
   const taskIsCompleted = isTaskCompleted(task?.status ?? "", columns);
-  const { data: workspaceUsers } = useGetActiveWorkspaceUsers(workspaceId);
+  const { data: teamUsers } = useGetActiveTeamMembers(teamId);
   const { data: taskLabels = [] } = useGetLabelsByTask(taskId ?? "");
   const { data: githubIntegration } = useGetGithubIntegration(projectId);
   const { data: giteaIntegration } = useGetGiteaIntegration(projectId);
-  const { data: workspaceProjects = [] } = useGetProjects({ workspaceId });
+  const { data: teamProjects = [] } = useGetProjects({ teamId });
   const canMoveTask =
-    Boolean(task) && workspaceProjects.some((p) => p.id !== task?.projectId);
+    Boolean(task) && teamProjects.some((p) => p.id !== task?.projectId);
   const statusColumn = columns.find(
     (column) => column.slug === task?.status || column.id === task?.status,
   );
@@ -113,13 +115,11 @@ export default function TaskPropertiesSidebar({
     giteaIntegration?.branchPattern ||
     "{slug}-{number}";
 
-  const assignee = workspaceUsers?.members?.find(
-    (member) => member.userId === task?.userId,
-  );
+  const assignee = teamUsers?.find((member) => member.id === task?.userId);
 
   const handleCopyTaskLink = () => {
     navigator.clipboard.writeText(
-      `${window.location.origin}/dashboard/workspace/${workspaceId}/project/${projectId}/task/${taskId}`,
+      `${window.location.origin}/dashboard/team/${teamId}/project/${projectId}/task/${taskId}`,
     );
     toast.message(t("tasks:properties.copyTaskLink"));
   };
@@ -145,7 +145,7 @@ export default function TaskPropertiesSidebar({
               {task && canMoveTask && (
                 <TaskMovePopover
                   task={task}
-                  workspaceId={workspaceId}
+                  teamId={teamId}
                   triggerClassName="rounded-l-md rounded-r-none border-r-0"
                 />
               )}
@@ -228,7 +228,7 @@ export default function TaskPropertiesSidebar({
                 </TaskPriorityPopover>
               )}
               {task && (
-                <TaskAssigneePopover task={task} workspaceId={workspaceId}>
+                <TaskAssigneePopover task={task} teamId={teamId}>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -237,13 +237,11 @@ export default function TaskPropertiesSidebar({
                     {task.userId ? (
                       <Avatar className="h-[16px] w-[16px]">
                         <AvatarImage
-                          src={assignee?.user?.image ?? ""}
-                          alt={assignee?.user?.name || ""}
+                          src={assignee?.image ?? ""}
+                          alt={assignee?.name || ""}
                         />
                         <AvatarFallback className="text-[9px] font-medium border border-border/30 flex-shrink-0 h-[16px] w-[16px]">
-                          {getInitials(
-                            assignee?.user?.name || task.assigneeName,
-                          )}
+                          {getInitials(assignee?.name || task.assigneeName)}
                         </AvatarFallback>
                       </Avatar>
                     ) : (
@@ -255,7 +253,7 @@ export default function TaskPropertiesSidebar({
                       </div>
                     )}
                     <span className="text-xs font-semibold truncate max-w-[100px]">
-                      {assignee?.user?.name ||
+                      {assignee?.name ||
                         task.assigneeName ||
                         t("tasks:popover.assignee.unassigned")}
                     </span>
@@ -324,6 +322,25 @@ export default function TaskPropertiesSidebar({
                   </Button>
                 </TaskDueDatePopover>
               )}
+              {task && (
+                <TaskRolePopover task={task}>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 rounded border border-border/70 bg-muted/55 px-2 py-1 text-[10px] font-medium text-muted-foreground hover:bg-accent/50 transition-colors"
+                  >
+                    <BotIcon className="w-3 h-3" />
+                    <span>
+                      {task.requiredRole
+                        ? t(`tasks:agentRoles.${task.requiredRole}.name`, {
+                            defaultValue: task.requiredRole,
+                          })
+                        : t("common:modals.createTask.agentRoleGeneric", {
+                            defaultValue: "Any agent",
+                          })}
+                    </span>
+                  </button>
+                </TaskRolePopover>
+              )}
             </div>
           </div>
         )}
@@ -336,7 +353,7 @@ export default function TaskPropertiesSidebar({
                 {task && canMoveTask && (
                   <TaskMovePopover
                     task={task}
-                    workspaceId={workspaceId}
+                    teamId={teamId}
                     triggerClassName="rounded-l-md rounded-r-none border-r-0"
                   />
                 )}
@@ -419,7 +436,7 @@ export default function TaskPropertiesSidebar({
                   </TaskPriorityPopover>
                 )}
                 {task && (
-                  <TaskAssigneePopover task={task} workspaceId={workspaceId}>
+                  <TaskAssigneePopover task={task} teamId={teamId}>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -428,13 +445,11 @@ export default function TaskPropertiesSidebar({
                       {task.userId ? (
                         <Avatar className="h-[16px] w-[16px]">
                           <AvatarImage
-                            src={assignee?.user?.image ?? ""}
-                            alt={assignee?.user?.name || ""}
+                            src={assignee?.image ?? ""}
+                            alt={assignee?.name || ""}
                           />
                           <AvatarFallback className="text-[9px] font-medium border border-border/30 shrink-0 h-[16px] w-[16px]">
-                            {getInitials(
-                              assignee?.user?.name || task.assigneeName,
-                            )}
+                            {getInitials(assignee?.name || task.assigneeName)}
                           </AvatarFallback>
                         </Avatar>
                       ) : (
@@ -446,7 +461,7 @@ export default function TaskPropertiesSidebar({
                         </div>
                       )}
                       <span className="text-xs font-semibold truncate max-w-[100px]">
-                        {assignee?.user?.name ||
+                        {assignee?.name ||
                           task.assigneeName ||
                           t("tasks:popover.assignee.unassigned")}
                       </span>
@@ -515,6 +530,25 @@ export default function TaskPropertiesSidebar({
                     </Button>
                   </TaskDueDatePopover>
                 )}
+                {task && (
+                  <TaskRolePopover task={task}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 rounded border border-border/70 bg-muted/55 px-2 py-1 text-[10px] font-medium text-muted-foreground hover:bg-accent/50 transition-colors"
+                    >
+                      <BotIcon className="w-3 h-3" />
+                      <span>
+                        {task.requiredRole
+                          ? t(`tasks:agentRoles.${task.requiredRole}.name`, {
+                              defaultValue: task.requiredRole,
+                            })
+                          : t("common:modals.createTask.agentRoleGeneric", {
+                              defaultValue: "Any agent",
+                            })}
+                      </span>
+                    </button>
+                  </TaskRolePopover>
+                )}
               </div>
             </div>
 
@@ -528,7 +562,7 @@ export default function TaskPropertiesSidebar({
                   {task && canMoveTask && (
                     <TaskMovePopover
                       task={task}
-                      workspaceId={workspaceId}
+                      teamId={teamId}
                       triggerClassName="rounded-l-md rounded-r-none border-r-0"
                     />
                   )}
@@ -612,7 +646,7 @@ export default function TaskPropertiesSidebar({
                   </TaskPriorityPopover>
                 )}
                 {task && (
-                  <TaskAssigneePopover task={task} workspaceId={workspaceId}>
+                  <TaskAssigneePopover task={task} teamId={teamId}>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -621,13 +655,11 @@ export default function TaskPropertiesSidebar({
                       {task.userId ? (
                         <Avatar className="h-[16px] w-[16px]">
                           <AvatarImage
-                            src={assignee?.user?.image ?? ""}
-                            alt={assignee?.user?.name || ""}
+                            src={assignee?.image ?? ""}
+                            alt={assignee?.name || ""}
                           />
                           <AvatarFallback className="text-[9px] font-medium border border-border/30 shrink-0 h-[16px] w-[16px]">
-                            {getInitials(
-                              assignee?.user?.name || task.assigneeName,
-                            )}
+                            {getInitials(assignee?.name || task.assigneeName)}
                           </AvatarFallback>
                         </Avatar>
                       ) : (
@@ -639,7 +671,7 @@ export default function TaskPropertiesSidebar({
                         </div>
                       )}
                       <span className="text-xs font-semibold truncate max-w-[100px]">
-                        {assignee?.user?.name ||
+                        {assignee?.name ||
                           task.assigneeName ||
                           t("tasks:popover.assignee.unassigned")}
                       </span>
@@ -708,6 +740,25 @@ export default function TaskPropertiesSidebar({
                     </Button>
                   </TaskDueDatePopover>
                 )}
+                {task && (
+                  <TaskRolePopover task={task}>
+                    <button
+                      type="button"
+                      className="justify-start h-7 px-1.5 gap-1.5 w-full inline-flex items-center"
+                    >
+                      <BotIcon className="w-3.5 h-3.5" />
+                      <span className="text-xs font-semibold truncate">
+                        {task.requiredRole
+                          ? t(`tasks:agentRoles.${task.requiredRole}.name`, {
+                              defaultValue: task.requiredRole,
+                            })
+                          : t("common:modals.createTask.agentRoleGeneric", {
+                              defaultValue: "Any agent",
+                            })}
+                      </span>
+                    </button>
+                  </TaskRolePopover>
+                )}
               </div>
             </div>
           </>
@@ -726,7 +777,7 @@ export default function TaskPropertiesSidebar({
                     <TaskLabelsPopover
                       key={`edit-${label.id}`}
                       task={task}
-                      workspaceId={workspaceId}
+                      teamId={teamId}
                       triggerNativeButton={false}
                     >
                       <Badge
@@ -748,7 +799,7 @@ export default function TaskPropertiesSidebar({
                 )}
 
               {task && (
-                <TaskLabelsPopover task={task} workspaceId={workspaceId}>
+                <TaskLabelsPopover task={task} teamId={teamId}>
                   <Button
                     variant="ghost"
                     size="sm"

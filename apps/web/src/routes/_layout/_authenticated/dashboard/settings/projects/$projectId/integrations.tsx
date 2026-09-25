@@ -1,22 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  Bot,
   ChevronDown,
   FolderGit,
+  GitFork,
   MessageCircle,
   Radio,
   Send,
-  Server,
   Webhook,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { GithubIcon } from "@/components/icons/github-icon";
 import PageTitle from "@/components/page-title";
+import { AgentConfigPanel } from "@/components/project/agent-config-panel";
 import { DiscordIntegrationSettings } from "@/components/project/discord-integration-settings";
 import { GenericWebhookIntegrationSettings } from "@/components/project/generic-webhook-integration-settings";
 import { GiteaIntegrationSettings } from "@/components/project/gitea-integration-settings";
 import { GitHubIntegrationSettings } from "@/components/project/github-integration-settings";
-import { MattermostIntegrationSettings } from "@/components/project/mattermost-integration-settings";
+import { GitLabIntegrationSettings } from "@/components/project/gitlab-integration-settings";
 import { SlackIntegrationSettings } from "@/components/project/slack-integration-settings";
 import { TelegramIntegrationSettings } from "@/components/project/telegram-integration-settings";
 import {
@@ -50,6 +52,23 @@ function RouteComponent() {
 
         <div className="space-y-6">
           <IntegrationSection
+            icon={<Bot className="size-4" />}
+            subtitle={t(
+              "settings:projectIntegrations.agentConfigSectionSubtitle",
+              {
+                defaultValue:
+                  "Agent role definitions and shared skills for code agents",
+              },
+            )}
+            title={t("settings:projectIntegrations.agentConfigSectionTitle", {
+              defaultValue: "Agent Configuration",
+            })}
+            defaultOpen
+          >
+            <AgentConfigPanel projectId={projectId} />
+          </IntegrationSection>
+
+          <IntegrationSection
             icon={<GithubIcon className="size-4" />}
             subtitle={t("settings:projectIntegrations.githubSectionSubtitle")}
             title={t("settings:projectIntegrations.githubSectionTitle")}
@@ -63,6 +82,14 @@ function RouteComponent() {
             title={t("settings:projectIntegrations.giteaSectionTitle")}
           >
             <GiteaIntegrationSettings projectId={projectId} />
+          </IntegrationSection>
+
+          <IntegrationSection
+            icon={<GitFork className="size-4" />}
+            subtitle={t("settings:projectIntegrations.gitlabSectionSubtitle")}
+            title={t("settings:projectIntegrations.gitlabSectionTitle")}
+          >
+            <GitLabIntegrationSettings projectId={projectId} />
           </IntegrationSection>
 
           <IntegrationSection
@@ -89,16 +116,6 @@ function RouteComponent() {
             title={t("settings:projectIntegrations.slackSectionTitle")}
           >
             <SlackIntegrationSettings projectId={projectId} />
-          </IntegrationSection>
-
-          <IntegrationSection
-            icon={<Server className="size-4" />}
-            subtitle={t(
-              "settings:projectIntegrations.mattermostSectionSubtitle",
-            )}
-            title={t("settings:projectIntegrations.mattermostSectionTitle")}
-          >
-            <MattermostIntegrationSettings projectId={projectId} />
           </IntegrationSection>
 
           <IntegrationSection

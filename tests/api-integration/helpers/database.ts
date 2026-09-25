@@ -79,36 +79,46 @@ export async function ensureTestDatabaseMigrated() {
   }
 }
 
-// Ponytail: query Postgres directly. The catalog is the canonical source of
-// what tables actually exist after migrations run. Reflecting on the schema
-// object in apps/api/src/database misses any table that is not exported from
-// the index.ts registry (for example mcp_oauth_state and task_reminder_sent).
-async function listPublicTableNames(): Promise<string[]> {
-  const result = await db.execute<{ table_name: string }>(sql`
-    SELECT table_name
-    FROM information_schema.tables
-    WHERE table_schema = 'public'
-      AND table_type = 'BASE TABLE'
-    ORDER BY table_name
-  `);
-
-  return result.rows.map((row) => row.table_name);
-}
-
 export async function resetTestDatabase() {
   await ensureTestDatabaseMigrated();
 
-  const tableNames = await listPublicTableNames();
-
-  if (tableNames.length === 0) {
-    throw new Error(
-      "resetTestDatabase found no tables to truncate. Did migrations run?",
-    );
-  }
-
-  const formattedTableNames = tableNames.map(quoteIdentifier).join(", ");
-
   await db.execute(
-    sql.raw(`TRUNCATE TABLE ${formattedTableNames} RESTART IDENTITY CASCADE`),
+    sql.raw(`
+      TRUNCATE TABLE
+        "account",
+        "activity",
+        "apikey",
+        "asset",
+        "chat_config",
+        "chat_message",
+        "column",
+        "comment",
+        "custom_field_definition",
+        "custom_field_value",
+        "device_code",
+        "external_link",
+        "github_integration",
+        "integration",
+        "job_lease",
+        "label",
+        "mcp_oauth_state",
+        "notification",
+        "project",
+        "session",
+        "task",
+        "task_relation",
+        "task_reminder_sent",
+        "team",
+        "team_member",
+        "time_entry",
+        "user",
+        "user_avatar",
+        "user_notification_preference",
+        "user_notification_team_project",
+        "user_notification_team_rule",
+        "verification",
+        "workflow_rule"
+      RESTART IDENTITY CASCADE
+    `),
   );
 }

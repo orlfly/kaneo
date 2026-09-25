@@ -1,6 +1,0 @@
-.next
-node_modules
-next-env.d.ts
-
-# Intermediate OG artwork; the committed PNGs in public/images/blog are the output.
-scripts/og/*.svg

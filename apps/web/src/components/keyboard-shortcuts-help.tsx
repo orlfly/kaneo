@@ -66,10 +66,8 @@ function useShortcutCategories(): ShortcutCategory[] {
             description: t("navigation:keyboardShortcuts.items.createProject"),
           },
           {
-            keys: [shortcuts.workspace.prefix, shortcuts.workspace.create],
-            description: t(
-              "navigation:keyboardShortcuts.items.createWorkspace",
-            ),
+            keys: [shortcuts.team.prefix, shortcuts.team.create],
+            description: t("navigation:keyboardShortcuts.items.createTeam"),
           },
         ],
       },

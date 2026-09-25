@@ -3,10 +3,10 @@ import { HTTPException } from "hono/http-exception";
 import db from "../database";
 import {
   projectTable,
+  teamMemberTable,
   userNotificationPreferenceTable,
-  userNotificationWorkspaceProjectTable,
-  userNotificationWorkspaceRuleTable,
-  workspaceUserTable,
+  userNotificationTeamProjectTable,
+  userNotificationTeamRuleTable,
 } from "../database/schema";
 import { assertPublicWebhookDestination } from "../plugins/generic-webhook/config";
 import { decryptSecret, encryptSecret } from "./secrets";
@@ -37,10 +37,10 @@ export type NotificationPreferenceResponse = {
   taskStatusChangeEnabled: boolean;
   dueDateReminderEnabled: boolean;
   dueDateReminderLeadTimeMinutes: number;
-  workspaces: Array<{
+  teams: Array<{
     id: string;
-    workspaceId: string;
-    workspaceName: string;
+    teamId: string;
+    teamName: string;
     isActive: boolean;
     emailEnabled: boolean;
     ntfyEnabled: boolean;
@@ -74,7 +74,7 @@ export type UpdateNotificationPreferenceInput = {
   dueDateReminderLeadTimeMinutes?: number;
 };
 
-export type UpsertWorkspaceRuleInput = {
+export type UpsertTeamRuleInput = {
   isActive: boolean;
   emailEnabled: boolean;
   ntfyEnabled: boolean;
@@ -84,7 +84,7 @@ export type UpsertWorkspaceRuleInput = {
   selectedProjectIds?: string[];
 };
 
-type WorkspaceRuleChannelState = {
+type TeamRuleChannelState = {
   emailEnabled: boolean;
   ntfyEnabled: boolean;
   gotifyEnabled: boolean;
@@ -116,27 +116,27 @@ function normalizeSecretInput(
   return normalizeOptionalString(inputValue);
 }
 
-async function assertWorkspaceMembership(userId: string, workspaceId: string) {
+async function assertTeamMembership(userId: string, teamId: string) {
   const [membership] = await db
-    .select({ workspaceId: workspaceUserTable.workspaceId })
-    .from(workspaceUserTable)
+    .select({ teamId: teamMemberTable.teamId })
+    .from(teamMemberTable)
     .where(
       and(
-        eq(workspaceUserTable.userId, userId),
-        eq(workspaceUserTable.workspaceId, workspaceId),
+        eq(teamMemberTable.userId, userId),
+        eq(teamMemberTable.teamId, teamId),
       ),
     )
     .limit(1);
 
   if (!membership) {
     throw new HTTPException(403, {
-      message: "You don't have access to this workspace",
+      message: "You don't have access to this team",
     });
   }
 }
 
 export async function validateProjectSelection(
-  workspaceId: string,
+  teamId: string,
   selectedProjectIds: string[],
 ) {
   if (selectedProjectIds.length === 0) {
@@ -150,7 +150,7 @@ export async function validateProjectSelection(
     .from(projectTable)
     .where(
       and(
-        eq(projectTable.workspaceId, workspaceId),
+        eq(projectTable.teamId, teamId),
         inArray(projectTable.id, selectedProjectIds),
       ),
     );
@@ -179,10 +179,10 @@ export async function getNotificationPreferences(
       }
     : null;
 
-  const rules = await db.query.userNotificationWorkspaceRuleTable.findMany({
-    where: eq(userNotificationWorkspaceRuleTable.userId, userId),
+  const rules = await db.query.userNotificationTeamRuleTable.findMany({
+    where: eq(userNotificationTeamRuleTable.userId, userId),
     with: {
-      workspace: true,
+      team: true,
       selectedProjects: true,
     },
     orderBy: (table, { asc }) => [asc(table.createdAt)],
@@ -217,10 +217,10 @@ export async function getNotificationPreferences(
     dueDateReminderEnabled: preference?.dueDateReminderEnabled ?? true,
     dueDateReminderLeadTimeMinutes:
       preference?.dueDateReminderLeadTimeMinutes ?? 1440,
-    workspaces: rules.map((rule) => ({
+    teams: rules.map((rule) => ({
       id: rule.id,
-      workspaceId: rule.workspaceId,
-      workspaceName: rule.workspace.name,
+      teamId: rule.teamId,
+      teamName: rule.team.name,
       isActive: rule.isActive ?? true,
       emailEnabled: rule.emailEnabled ?? false,
       ntfyEnabled: rule.ntfyEnabled ?? false,
@@ -291,7 +291,7 @@ export async function updateNotificationPreferences(
   const webhookEnabled =
     input.webhookEnabled ?? decryptedExisting?.webhookEnabled ?? false;
 
-  const enabledRuleCascade: WorkspaceRuleChannelState = {
+  const enabledRuleCascade: TeamRuleChannelState = {
     emailEnabled: false,
     ntfyEnabled: false,
     gotifyEnabled: false,
@@ -474,14 +474,14 @@ export async function updateNotificationPreferences(
 
   const ruleEnableCascade = Object.fromEntries(
     Object.entries(enabledRuleCascade).filter(([, value]) => value),
-  ) as Partial<WorkspaceRuleChannelState>;
+  ) as Partial<TeamRuleChannelState>;
 
   if (
     Object.keys(ruleCascade).length > 0 ||
     Object.keys(ruleEnableCascade).length > 0
   ) {
     await db
-      .update(userNotificationWorkspaceRuleTable)
+      .update(userNotificationTeamRuleTable)
       .set({
         ...ruleEnableCascade,
         ...ruleCascade,
@@ -489,13 +489,13 @@ export async function updateNotificationPreferences(
       })
       .where(
         and(
-          eq(userNotificationWorkspaceRuleTable.userId, userId),
-          eq(userNotificationWorkspaceRuleTable.isActive, true),
+          eq(userNotificationTeamRuleTable.userId, userId),
+          eq(userNotificationTeamRuleTable.isActive, true),
           or(
-            eq(userNotificationWorkspaceRuleTable.emailEnabled, true),
-            eq(userNotificationWorkspaceRuleTable.ntfyEnabled, true),
-            eq(userNotificationWorkspaceRuleTable.gotifyEnabled, true),
-            eq(userNotificationWorkspaceRuleTable.webhookEnabled, true),
+            eq(userNotificationTeamRuleTable.emailEnabled, true),
+            eq(userNotificationTeamRuleTable.ntfyEnabled, true),
+            eq(userNotificationTeamRuleTable.gotifyEnabled, true),
+            eq(userNotificationTeamRuleTable.webhookEnabled, true),
           ),
         ),
       );
@@ -504,16 +504,16 @@ export async function updateNotificationPreferences(
   return getNotificationPreferences(userId, emailAddress);
 }
 
-export async function upsertWorkspaceRule(
+export async function upsertTeamRule(
   userId: string,
-  workspaceId: string,
+  teamId: string,
   emailAddress: string | null,
-  input: UpsertWorkspaceRuleInput,
+  input: UpsertTeamRuleInput,
 ): Promise<NotificationPreferenceResponse> {
-  await assertWorkspaceMembership(userId, workspaceId);
+  await assertTeamMembership(userId, teamId);
 
   if (input.projectMode === "selected") {
-    await validateProjectSelection(workspaceId, input.selectedProjectIds ?? []);
+    await validateProjectSelection(teamId, input.selectedProjectIds ?? []);
   }
 
   const preference = await db.query.userNotificationPreferenceTable.findFirst({
@@ -557,10 +557,10 @@ export async function upsertWorkspaceRule(
     });
   }
 
-  const existing = await db.query.userNotificationWorkspaceRuleTable.findFirst({
+  const existing = await db.query.userNotificationTeamRuleTable.findFirst({
     where: and(
-      eq(userNotificationWorkspaceRuleTable.userId, userId),
-      eq(userNotificationWorkspaceRuleTable.workspaceId, workspaceId),
+      eq(userNotificationTeamRuleTable.userId, userId),
+      eq(userNotificationTeamRuleTable.teamId, teamId),
     ),
   });
 
@@ -568,7 +568,7 @@ export async function upsertWorkspaceRule(
 
   if (existing) {
     await db
-      .update(userNotificationWorkspaceRuleTable)
+      .update(userNotificationTeamRuleTable)
       .set({
         isActive: input.isActive,
         emailEnabled: input.emailEnabled,
@@ -578,13 +578,13 @@ export async function upsertWorkspaceRule(
         projectMode: input.projectMode,
         updatedAt: new Date(),
       })
-      .where(eq(userNotificationWorkspaceRuleTable.id, existing.id));
+      .where(eq(userNotificationTeamRuleTable.id, existing.id));
   } else {
     const [createdRule] = await db
-      .insert(userNotificationWorkspaceRuleTable)
+      .insert(userNotificationTeamRuleTable)
       .values({
         userId,
-        workspaceId,
+        teamId,
         isActive: input.isActive,
         emailEnabled: input.emailEnabled,
         ntfyEnabled: input.ntfyEnabled,
@@ -592,32 +592,27 @@ export async function upsertWorkspaceRule(
         webhookEnabled: input.webhookEnabled,
         projectMode: input.projectMode,
       })
-      .returning({ id: userNotificationWorkspaceRuleTable.id });
+      .returning({ id: userNotificationTeamRuleTable.id });
     ruleId = createdRule?.id;
   }
 
   if (!ruleId) {
     throw new HTTPException(500, {
-      message: "Failed to save notification workspace rule",
+      message: "Failed to save notification team rule",
     });
   }
 
-  const workspaceRuleId = ruleId;
+  const teamRuleId = ruleId;
 
   await db
-    .delete(userNotificationWorkspaceProjectTable)
-    .where(
-      eq(
-        userNotificationWorkspaceProjectTable.workspaceRuleId,
-        workspaceRuleId,
-      ),
-    );
+    .delete(userNotificationTeamProjectTable)
+    .where(eq(userNotificationTeamProjectTable.teamRuleId, teamRuleId));
 
   if (input.projectMode === "selected") {
-    await db.insert(userNotificationWorkspaceProjectTable).values(
+    await db.insert(userNotificationTeamProjectTable).values(
       (input.selectedProjectIds ?? []).map((projectId) => ({
-        workspaceId,
-        workspaceRuleId,
+        teamId,
+        teamRuleId: teamRuleId,
         projectId,
       })),
     );
@@ -626,29 +621,29 @@ export async function upsertWorkspaceRule(
   return getNotificationPreferences(userId, emailAddress);
 }
 
-export async function deleteWorkspaceRule(
+export async function deleteTeamRule(
   userId: string,
-  workspaceId: string,
+  teamId: string,
   emailAddress: string | null,
 ): Promise<NotificationPreferenceResponse> {
-  await assertWorkspaceMembership(userId, workspaceId);
+  await assertTeamMembership(userId, teamId);
 
-  const existing = await db.query.userNotificationWorkspaceRuleTable.findFirst({
+  const existing = await db.query.userNotificationTeamRuleTable.findFirst({
     where: and(
-      eq(userNotificationWorkspaceRuleTable.userId, userId),
-      eq(userNotificationWorkspaceRuleTable.workspaceId, workspaceId),
+      eq(userNotificationTeamRuleTable.userId, userId),
+      eq(userNotificationTeamRuleTable.teamId, teamId),
     ),
   });
 
   if (!existing) {
     throw new HTTPException(404, {
-      message: "Workspace notification rule not found",
+      message: "Team notification rule not found",
     });
   }
 
   await db
-    .delete(userNotificationWorkspaceRuleTable)
-    .where(eq(userNotificationWorkspaceRuleTable.id, existing.id));
+    .delete(userNotificationTeamRuleTable)
+    .where(eq(userNotificationTeamRuleTable.id, existing.id));
 
   return getNotificationPreferences(userId, emailAddress);
 }

@@ -4,18 +4,18 @@ import { DEFAULT_PROJECT_COLUMNS } from "../../../apps/api/src/project/controlle
 
 export type SeededMemberContext = {
   user: typeof schema.userTable.$inferSelect;
-  workspace: typeof schema.workspaceTable.$inferSelect;
+  team: typeof schema.teamTable.$inferSelect;
 };
 
-export async function createWorkspaceMember(
+export async function createTeamMember(
   overrides?: Partial<{
     userName: string;
-    workspaceName: string;
+    teamName: string;
     role: string;
   }>,
 ): Promise<SeededMemberContext> {
   const userId = `user-${randomUUID()}`;
-  const workspaceId = `workspace-${randomUUID()}`;
+  const teamId = `team-${randomUUID()}`;
 
   const [user] = await db
     .insert(schema.userTable)
@@ -27,33 +27,33 @@ export async function createWorkspaceMember(
     })
     .returning();
 
-  const [workspace] = await db
-    .insert(schema.workspaceTable)
+  const [team] = await db
+    .insert(schema.teamTable)
     .values({
-      id: workspaceId,
+      id: teamId,
       createdAt: new Date(),
-      name: overrides?.workspaceName || "Integration Test Workspace",
-      slug: `workspace-${randomUUID()}`,
+      name: overrides?.teamName || "Integration Test Team",
+      slug: `team-${randomUUID()}`,
     })
     .returning();
 
-  await db.insert(schema.workspaceUserTable).values({
-    workspaceId: workspace.id,
+  await db.insert(schema.teamMemberTable).values({
+    teamId: team.id,
     userId: user.id,
     role: overrides?.role ?? "member",
     joinedAt: new Date(),
   });
 
-  return { user, workspace };
+  return { user, team };
 }
 
 export async function createProjectFixture({
-  workspaceId,
+  teamId,
   name = "Integration Project",
   icon = "Folder",
   slug = `project-${randomUUID()}`,
 }: {
-  workspaceId: string;
+  teamId: string;
   name?: string;
   icon?: string;
   slug?: string;
@@ -61,7 +61,7 @@ export async function createProjectFixture({
   const [project] = await db
     .insert(schema.projectTable)
     .values({
-      workspaceId,
+      teamId,
       name,
       icon,
       slug,

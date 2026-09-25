@@ -52,10 +52,10 @@ function lastRequest() {
 
 describe("MCP tool catalog", () => {
   it("resolves workspace members", async () => {
-    await call("list_workspace_members", { workspaceId: "ws 1" });
+    await call("list_workspace_members", { teamId: "ws 1" });
 
     const request = lastRequest();
-    expect(request.url).toBe("http://api.test/api/workspace/ws%201/members");
+    expect(request.url).toBe("http://api.test/api/team/ws%201/members");
     expect(request.auth).toBe("Bearer test-token");
   });
 
@@ -205,5 +205,381 @@ describe("MCP tool catalog", () => {
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain("Task not found");
+  });
+
+  describe("VCS integration tools", () => {
+    it("registers all VCS tools", () => {
+      const vcsTools = [
+        "vcs_list_repositories",
+        "vcs_list_issues",
+        "vcs_get_issue",
+        "vcs_list_issue_comments",
+        "vcs_list_pull_requests",
+        "vcs_list_labels",
+        "vcs_create_issue",
+        "vcs_update_issue",
+        "vcs_create_issue_comment",
+        "vcs_create_label",
+        "vcs_add_labels_to_issue",
+        "vcs_replace_issue_labels",
+        "vcs_remove_label_from_issue",
+        "vcs_import_issues",
+      ];
+      for (const name of vcsTools) {
+        expect(tools.has(name)).toBe(true);
+      }
+    });
+
+    it("lists repositories for a project's active integration", async () => {
+      await call("vcs_list_repositories", {
+        type: "gitlab",
+        projectId: "p1",
+      });
+      expect(lastRequest().url).toBe(
+        "http://api.test/api/gitlab-integration/vcs/p1/repositories",
+      );
+    });
+
+    it("lists issues with an optional state filter", async () => {
+      await call("vcs_list_issues", { type: "github", projectId: "p1" });
+      expect(lastRequest().url).toBe(
+        "http://api.test/api/github-integration/vcs/p1/issues",
+      );
+
+      await call("vcs_list_issues", {
+        type: "gitea",
+        projectId: "p1",
+        state: "closed",
+      });
+      expect(lastRequest().url).toBe(
+        "http://api.test/api/gitea-integration/vcs/p1/issues?state=closed",
+      );
+    });
+
+    it("gets a single issue by number", async () => {
+      await call("vcs_get_issue", {
+        type: "gitlab",
+        projectId: "p1",
+        number: 42,
+      });
+      expect(lastRequest().url).toBe(
+        "http://api.test/api/gitlab-integration/vcs/p1/issues/42",
+      );
+    });
+
+    it("lists issue comments", async () => {
+      await call("vcs_list_issue_comments", {
+        type: "github",
+        projectId: "p1",
+        number: 7,
+      });
+      expect(lastRequest().url).toBe(
+        "http://api.test/api/github-integration/vcs/p1/issues/7/comments",
+      );
+    });
+
+    it("lists pull requests and labels", async () => {
+      await call("vcs_list_pull_requests", {
+        type: "gitea",
+        projectId: "p1",
+      });
+      expect(lastRequest().url).toBe(
+        "http://api.test/api/gitea-integration/vcs/p1/pull-requests",
+      );
+
+      await call("vcs_list_labels", { type: "gitlab", projectId: "p1" });
+      expect(lastRequest().url).toBe(
+        "http://api.test/api/gitlab-integration/vcs/p1/labels",
+      );
+    });
+
+    it("creates an issue", async () => {
+      await call("vcs_create_issue", {
+        type: "github",
+        projectId: "p1",
+        title: "Bug",
+        body: "Details",
+      });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/github-integration/vcs/p1/issues",
+        method: "POST",
+        body: { title: "Bug", body: "Details" },
+      });
+    });
+
+    it("updates an issue", async () => {
+      await call("vcs_update_issue", {
+        type: "gitlab",
+        projectId: "p1",
+        number: 3,
+        state: "closed",
+      });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/gitlab-integration/vcs/p1/issues/3",
+        method: "PATCH",
+        body: { state: "closed" },
+      });
+    });
+
+    it("creates an issue comment", async () => {
+      await call("vcs_create_issue_comment", {
+        type: "gitea",
+        projectId: "p1",
+        number: 5,
+        body: "Thanks",
+      });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/gitea-integration/vcs/p1/issues/5/comments",
+        method: "POST",
+        body: { body: "Thanks" },
+      });
+    });
+
+    it("creates a label", async () => {
+      await call("vcs_create_label", {
+        type: "github",
+        projectId: "p1",
+        name: "bug",
+        color: "#FF0000",
+      });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/github-integration/vcs/p1/labels",
+        method: "POST",
+        body: { name: "bug", color: "#FF0000" },
+      });
+    });
+
+    it("adds, replaces, and removes labels on an issue", async () => {
+      await call("vcs_add_labels_to_issue", {
+        type: "gitlab",
+        projectId: "p1",
+        number: 1,
+        labelIds: [10, 11],
+      });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/gitlab-integration/vcs/p1/issues/1/labels",
+        method: "POST",
+        body: { labelIds: [10, 11] },
+      });
+
+      await call("vcs_replace_issue_labels", {
+        type: "gitea",
+        projectId: "p1",
+        number: 2,
+        labelIds: [20],
+      });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/gitea-integration/vcs/p1/issues/2/labels",
+        method: "PUT",
+        body: { labelIds: [20] },
+      });
+
+      await call("vcs_remove_label_from_issue", {
+        type: "github",
+        projectId: "p1",
+        number: 3,
+        labelId: 30,
+      });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/github-integration/vcs/p1/issues/3/labels",
+        method: "DELETE",
+        body: { labelId: 30 },
+      });
+    });
+
+    it("imports issues into Kaneo tasks", async () => {
+      await call("vcs_import_issues", { type: "gitlab", projectId: "p1" });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/gitlab-integration/import-issues",
+        method: "POST",
+        body: { projectId: "p1" },
+      });
+    });
+  });
+
+  it("registers the create_task_skill prompt", async () => {
+    const prompts = new Map<string, unknown>();
+    const registrar: McpToolRegistrar = {
+      registerTool: (_n, _c, _cb) => {},
+      registerPrompt: (name, config, callback) => {
+        prompts.set(name, { config, callback });
+      },
+    };
+    registerMcpTools(registrar, "http://api.test", "test-token");
+
+    expect(prompts.has("create_task_skill")).toBe(true);
+    const entry = prompts.get("create_task_skill") as {
+      config: { title?: string };
+      callback: (args: unknown) => Promise<{
+        messages: Array<{
+          role: string;
+          content: { type: string; text: string };
+        }>;
+      }>;
+    };
+    expect(entry.config.title).toBe("Create Task Skill");
+    const result = await entry.callback({});
+    expect(result.messages[0].role).toBe("user");
+    expect(result.messages[0].content.text).toContain("Acceptance Criteria");
+    expect(result.messages[0].content.text).toContain("requiredRole");
+  });
+
+  describe("Agent working-directory tools", () => {
+    const agentTools = [
+      "agent_clone_repo",
+      "agent_list_files",
+      "agent_read_file",
+      "agent_write_file",
+      "agent_search_files",
+      "agent_delete_file",
+      "agent_run_command",
+    ];
+
+    it("registers all agent working-directory tools", () => {
+      for (const name of agentTools) {
+        expect(tools.has(name)).toBe(true);
+      }
+    });
+
+    it("routes agent_clone_repo to the tool-execute endpoint", async () => {
+      await call("agent_clone_repo", { projectId: "p1" });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/chat/project/p1/tool",
+        method: "POST",
+        body: { tool: "agent_clone_repo", args: {} },
+      });
+    });
+
+    it("routes agent_read_file with its paging args", async () => {
+      await call("agent_read_file", {
+        projectId: "p1",
+        path: "src/index.ts",
+        offset: 10,
+        limit: 20,
+      });
+      expect(lastRequest()).toMatchObject({
+        url: "http://api.test/api/chat/project/p1/tool",
+        method: "POST",
+        body: {
+          tool: "agent_read_file",
+          args: { path: "src/index.ts", offset: 10, limit: 20 },
+        },
+      });
+    });
+
+    it("omits optional args for agent_list_files", async () => {
+      await call("agent_list_files", { projectId: "p1" });
+      expect(lastRequest().body).toEqual({
+        tool: "agent_list_files",
+        args: {},
+      });
+    });
+
+    it("rejects an empty required projectId", async () => {
+      const result = await call("agent_run_command", {
+        projectId: "",
+        command: "ls",
+      });
+      expect(result.isError).toBe(true);
+      expect(apiFetch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("create_task with dependencies", () => {
+    it("creates the task and its declared relations", async () => {
+      apiFetch
+        .mockResolvedValueOnce(Response.json({ id: "new1" }))
+        .mockResolvedValueOnce(Response.json({ id: "rel1" }))
+        .mockResolvedValueOnce(Response.json({ id: "rel2" }));
+
+      const result = await call("create_task", {
+        projectId: "p1",
+        title: "New task",
+        description: "## Context\n## Acceptance Criteria\n- done",
+        priority: "high",
+        status: "to-do",
+        dependencies: [
+          { targetTaskId: "t1", relationType: "blocks" },
+          { targetTaskId: "t2", relationType: "subtask" },
+        ],
+      });
+
+      expect(result.isError).toBeFalsy();
+      // First call: create the task.
+      expect(apiFetch.mock.calls[0][1]).toMatchObject({
+        method: "POST",
+        body: JSON.stringify({
+          title: "New task",
+          description: "## Context\n## Acceptance Criteria\n- done",
+          priority: "high",
+          status: "to-do",
+        }),
+      });
+      // Second call: create the first relation.
+      expect(apiFetch.mock.calls[1][0]).toBe(
+        "http://api.test/api/task-relation",
+      );
+      expect(JSON.parse(String(apiFetch.mock.calls[1][1]?.body))).toEqual({
+        sourceTaskId: "new1",
+        targetTaskId: "t1",
+        relationType: "blocks",
+      });
+      // Third call: create the second relation.
+      expect(JSON.parse(String(apiFetch.mock.calls[2][1]?.body))).toEqual({
+        sourceTaskId: "new1",
+        targetTaskId: "t2",
+        relationType: "subtask",
+      });
+    });
+
+    it("rolls back created relations when a dependency fails", async () => {
+      apiFetch
+        .mockResolvedValueOnce(Response.json({ id: "new1" }))
+        .mockResolvedValueOnce(Response.json({ id: "rel1" }))
+        .mockResolvedValueOnce(
+          Response.json({ message: "Target task not found" }, { status: 404 }),
+        )
+        .mockResolvedValueOnce(Response.json({ ok: true }));
+
+      const result = await call("create_task", {
+        projectId: "p1",
+        title: "New task",
+        description: "## Context\n## Acceptance Criteria\n- done",
+        priority: "high",
+        status: "to-do",
+        dependencies: [
+          { targetTaskId: "t1", relationType: "blocks" },
+          { targetTaskId: "missing", relationType: "related" },
+        ],
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain("Target task not found");
+      // The first relation must be rolled back via DELETE.
+      const deleteCall = apiFetch.mock.calls.find(
+        ([url, init]) =>
+          String(url).includes("/api/task-relation/rel1") &&
+          init?.method === "DELETE",
+      );
+      expect(deleteCall).toBeTruthy();
+    });
+  });
+});
+
+describe("MCP tool catalog: project scope", () => {
+  it("claim_next_task documents the project binding of the API key", () => {
+    const configs = new Map<string, { description: string }>();
+    const registrar = {
+      registerTool: (name: string, config: { description: string }) => {
+        configs.set(name, config);
+        return undefined;
+      },
+    };
+    registerMcpTools(registrar, "http://api.test", "test-token");
+
+    const claimNext = configs.get("claim_next_task");
+    expect(claimNext).toBeDefined();
+    expect(claimNext?.description).toContain("metadata.projectId");
+    expect(claimNext?.description).toContain("only tasks in that project");
   });
 });

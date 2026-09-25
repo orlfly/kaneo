@@ -1,17 +1,9 @@
 import { client } from "@kaneo/libs";
 
-import { HttpError } from "@/lib/http-error";
-
 type SearchParams = {
   q: string;
-  type?:
-    | "all"
-    | "tasks"
-    | "projects"
-    | "workspaces"
-    | "comments"
-    | "activities";
-  workspaceId: string;
+  type?: "all" | "tasks" | "projects" | "comments" | "teams" | "activities";
+  teamId?: string;
   projectId?: string;
   limit?: number;
 };
@@ -27,7 +19,8 @@ async function globalSearch(params: SearchParams) {
   });
 
   if (!response.ok) {
-    throw new HttpError(response.status, await response.text());
+    const error = await response.text();
+    throw new Error(error);
   }
 
   const data = await response.json();

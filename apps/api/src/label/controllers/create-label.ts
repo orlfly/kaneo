@@ -10,12 +10,12 @@ async function createLabel(
   name: string,
   color: string,
   taskId: string | undefined,
-  workspaceId: string,
+  teamId: string,
   userId: string,
 ) {
   const deleting = await db.query.labelTable.findFirst({
     where: and(
-      eq(labelTable.workspaceId, workspaceId),
+      eq(labelTable.teamId, teamId),
       eq(labelTable.name, name),
       isNull(labelTable.taskId),
     ),
@@ -28,7 +28,7 @@ async function createLabel(
       .select({
         id: taskTable.id,
         projectId: taskTable.projectId,
-        workspaceId: projectTable.workspaceId,
+        teamId: projectTable.teamId,
       })
       .from(taskTable)
       .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
@@ -41,7 +41,7 @@ async function createLabel(
       });
     }
 
-    if (task.workspaceId !== workspaceId) {
+    if (task.teamId !== teamId) {
       throw new HTTPException(404, {
         message: "Task not found",
       });
@@ -49,7 +49,7 @@ async function createLabel(
 
     const [inserted] = await db
       .insert(labelTable)
-      .values({ name, color, taskId, workspaceId: task.workspaceId })
+      .values({ name, color, taskId, teamId: task.teamId })
       .onConflictDoNothing({
         target: [labelTable.taskId, labelTable.name],
       })
@@ -85,9 +85,9 @@ async function createLabel(
 
   const [inserted] = await db
     .insert(labelTable)
-    .values({ name, color, taskId: null, workspaceId })
+    .values({ name, color, taskId: null, teamId })
     .onConflictDoNothing({
-      target: [labelTable.workspaceId, labelTable.name],
+      target: [labelTable.teamId, labelTable.name],
       where: sql`${labelTable.taskId} is null`,
     })
     .returning();
@@ -96,7 +96,7 @@ async function createLabel(
     inserted ??
     (await db.query.labelTable.findFirst({
       where: and(
-        eq(labelTable.workspaceId, workspaceId),
+        eq(labelTable.teamId, teamId),
         eq(labelTable.name, name),
         isNull(labelTable.taskId),
       ),

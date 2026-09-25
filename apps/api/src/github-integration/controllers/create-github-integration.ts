@@ -14,11 +14,13 @@ async function createGithubIntegration({
   projectId,
   repositoryOwner,
   repositoryName,
+  accessToken,
 }: {
   userId: string;
   projectId: string;
   repositoryOwner: string;
   repositoryName: string;
+  accessToken?: string;
 }) {
   const project = await db.query.projectTable.findFirst({
     where: eq(projectTable.id, projectId),

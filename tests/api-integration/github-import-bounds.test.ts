@@ -8,10 +8,7 @@ import { createApp } from "../../apps/api/src/index";
 import { handleIssueOpened } from "../../apps/api/src/plugins/github/webhooks/issue-opened";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 const mocks = vi.hoisted(() => ({
   graphql: vi.fn(),
@@ -108,9 +105,9 @@ beforeEach(async () => {
   mocks.comment.mockReset();
 });
 async function setup() {
-  const member = await createWorkspaceMember({ role: "admin" });
+  const member = await createTeamMember({ role: "admin" });
   const { project, columns } = await createProjectFixture({
-    workspaceId: member.workspace.id,
+    teamId: member.team.id,
   });
   const config = {
     repositoryOwner: "example",
@@ -381,7 +378,7 @@ describe("bounded resumable GitHub import", () => {
     serveIssues(7);
     const first = await (await request()).json();
     const calls = mocks.graphql.mock.calls.length;
-    const other = await createWorkspaceMember({ role: "admin" });
+    const other = await createTeamMember({ role: "admin" });
     mockAuthenticatedSession(other.user);
     expect((await request(first.runId)).status).toBe(403);
     expect(

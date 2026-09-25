@@ -1,11 +1,11 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { taskTable, userTable } from "../../database/schema";
 import { publishEvent } from "../../events";
 import {
   assertAssignableUser,
-  getProjectWorkspaceId,
+  getProjectTeamId,
 } from "../../utils/assert-assignable-user";
 
 async function updateTaskAssignee({
@@ -32,22 +32,40 @@ async function updateTaskAssignee({
     return existingTask;
   }
 
+  // Membership check first so a foreign assignee surfaces as 403 rather than
+  // the 409 already-assigned guard masking the authorization failure.
   if (nextAssigneeId) {
     await assertAssignableUser(
       nextAssigneeId,
-      await getProjectWorkspaceId(existingTask.projectId),
+      await getProjectTeamId(existingTask.projectId),
     );
   }
 
+  // Guard: assignment requires the task to be unassigned. An already-claimed
+  // or already-assigned task must be released first to avoid clobbering
+  // concurrent agent claims via the non-atomic assignee endpoint.
+  if (nextAssigneeId && existingTask.userId !== null) {
+    throw new HTTPException(409, {
+      message: "Task already assigned. Release it first.",
+    });
+  }
+
+  // Unassigning (userId=null) is always allowed — a manager can release.
+  // Assigning (userId!=null) requires the task to be unassigned.
+  const whereClause =
+    nextAssigneeId !== null
+      ? and(eq(taskTable.id, id), isNull(taskTable.userId))
+      : eq(taskTable.id, id);
+
   const [updatedTask] = await db
     .update(taskTable)
-    .set({ userId: nextAssigneeId })
-    .where(eq(taskTable.id, id))
+    .set({ userId: nextAssigneeId || null })
+    .where(whereClause)
     .returning();
 
   if (!updatedTask) {
-    throw new HTTPException(500, {
-      message: "Failed to update task assignee",
+    throw new HTTPException(409, {
+      message: "Task already assigned. Release it first.",
     });
   }
 

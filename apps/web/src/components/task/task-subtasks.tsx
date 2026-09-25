@@ -26,8 +26,8 @@ import { useUpdateTaskStatus } from "@/hooks/mutations/task/use-update-task-stat
 import useCreateTaskRelation from "@/hooks/mutations/task-relation/use-create-task-relation";
 import { useGetColumns } from "@/hooks/queries/column/use-get-columns";
 import useGetTaskRelations from "@/hooks/queries/task-relation/use-get-task-relations";
-import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
-import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
+import useActiveTeam from "@/hooks/queries/team/use-active-team";
+import { useGetActiveTeamMembers } from "@/hooks/queries/team-member/use-get-active-team-members";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { toast } from "@/lib/toast";
 import queryClient from "@/query-client";
@@ -37,14 +37,14 @@ import SubtaskRow from "./subtask-row";
 type TaskSubtasksProps = {
   taskId: string;
   projectId: string;
-  workspaceId: string;
+  teamId: string;
   parentStatus: string;
 };
 
 export default function TaskSubtasks({
   taskId,
   projectId,
-  workspaceId,
+  teamId,
   parentStatus,
 }: TaskSubtasksProps) {
   const { t } = useTranslation();
@@ -58,10 +58,8 @@ export default function TaskSubtasks({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { data: relations = [] } = useGetTaskRelations(taskId);
-  const { data: workspace } = useActiveWorkspace();
-  const { data: workspaceUsers } = useGetActiveWorkspaceUsers(
-    workspace?.id ?? "",
-  );
+  const { data: team } = useActiveTeam();
+  const { data: teamUsers } = useGetActiveTeamMembers(team?.id ?? "");
   const createTask = useCreateTask();
   const createRelation = useCreateTaskRelation();
   const { mutateAsync: deleteTask } = useDeleteTask();
@@ -159,10 +157,8 @@ export default function TaskSubtasks({
   };
 
   const getAssignee = (userId: string | null) => {
-    if (!userId || !workspaceUsers?.members) return null;
-    return (
-      workspaceUsers.members.find((member) => member.userId === userId) ?? null
-    );
+    if (!userId || !teamUsers) return null;
+    return teamUsers.find((member) => member.id === userId) ?? null;
   };
 
   const getSelectionRadius = (index: number, isSelected: boolean) => {
@@ -221,9 +217,9 @@ export default function TaskSubtasks({
           if (focusedIndex >= 0 && focusedIndex < totalCount) {
             e.preventDefault();
             navigate({
-              to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+              to: "/dashboard/team/$teamId/project/$projectId/task/$taskId",
               params: {
-                workspaceId,
+                teamId,
                 projectId,
                 taskId: subtasks[focusedIndex].task.id,
               },
@@ -253,7 +249,7 @@ export default function TaskSubtasks({
     hasSelection,
     clearSelection,
     navigate,
-    workspaceId,
+    teamId,
     projectId,
     toggleSelection,
   ]);
@@ -374,7 +370,7 @@ export default function TaskSubtasks({
                     task={taskObj}
                     tasks={getTargetTasks(taskObj)}
                     projectId={projectId}
-                    workspaceId={workspace?.id ?? workspaceId}
+                    teamId={team?.id ?? teamId}
                     isSelected={isSelected}
                     isFocused={focusedIndex === index}
                     isCompleted={isCompleted(subtask.task.status)}
@@ -384,9 +380,9 @@ export default function TaskSubtasks({
                     onToggleComplete={() => handleToggleComplete(taskObj)}
                     onNavigate={() =>
                       navigate({
-                        to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+                        to: "/dashboard/team/$teamId/project/$projectId/task/$taskId",
                         params: {
-                          workspaceId,
+                          teamId,
                           projectId,
                           taskId: subtask.task.id,
                         },

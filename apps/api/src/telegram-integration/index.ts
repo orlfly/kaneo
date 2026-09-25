@@ -150,7 +150,7 @@ const deleteTelegramIntegrationRoute = createRoute({
   },
 });
 
-const telegramIntegration = apiRouter<BaseVariables & { workspaceId: string }>()
+const telegramIntegration = apiRouter<BaseVariables & { teamId: string }>()
   .openapi(getTelegramIntegrationRoute, async (c) => {
     const { projectId } = c.req.valid("param");
     const integration = await getTelegramIntegration(projectId);

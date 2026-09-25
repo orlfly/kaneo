@@ -178,7 +178,7 @@ const deleteGenericWebhookIntegrationRoute = createRoute({
 });
 
 const genericWebhookIntegration = apiRouter<
-  BaseVariables & { workspaceId: string }
+  BaseVariables & { teamId: string }
 >()
   .openapi(getGenericWebhookIntegrationRoute, async (c) => {
     const { projectId } = c.req.valid("param");

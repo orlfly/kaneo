@@ -6,8 +6,8 @@ import {
   labelTable,
   projectTable,
   taskTable,
+  teamMemberTable,
   userTable,
-  workspaceUserTable,
 } from "../../database/schema";
 import { publishEvent } from "../../events";
 import { removeLabelFromGitea } from "../../plugins/gitea/utils/sync-label-to-gitea";
@@ -42,12 +42,10 @@ async function bulkUpdateTasks({
     .select({
       id: taskTable.id,
       title: taskTable.title,
-      status: taskTable.status,
-      priority: taskTable.priority,
       projectId: taskTable.projectId,
       userId: taskTable.userId,
       dueDate: taskTable.dueDate,
-      workspaceId: projectTable.workspaceId,
+      teamId: projectTable.teamId,
     })
     .from(taskTable)
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
@@ -59,36 +57,36 @@ async function bulkUpdateTasks({
     });
   }
 
-  const workspaceIds = [...new Set(tasks.map((t) => t.workspaceId))];
+  const teamIds = [...new Set(tasks.map((t) => t.teamId))];
 
-  if (workspaceIds.length > 1) {
+  if (teamIds.length > 1) {
     throw new HTTPException(400, {
-      message: "All tasks must belong to the same workspace",
+      message: "All tasks must belong to the same team",
     });
   }
 
-  const workspaceId = workspaceIds[0];
+  const teamId = teamIds[0];
 
-  if (!workspaceId) {
+  if (!teamId) {
     throw new HTTPException(400, {
-      message: "Could not determine workspace",
+      message: "Could not determine team",
     });
   }
 
   const [membership] = await db
-    .select({ id: workspaceUserTable.id })
-    .from(workspaceUserTable)
+    .select({ id: teamMemberTable.id })
+    .from(teamMemberTable)
     .where(
       and(
-        eq(workspaceUserTable.userId, userId),
-        eq(workspaceUserTable.workspaceId, workspaceId),
+        eq(teamMemberTable.userId, userId),
+        eq(teamMemberTable.teamId, teamId),
       ),
     )
     .limit(1);
 
   if (!membership) {
     throw new HTTPException(403, {
-      message: "You don't have access to this workspace",
+      message: "You don't have access to this team",
     });
   }
 
@@ -112,10 +110,9 @@ async function bulkUpdateTasks({
           ),
         });
 
-        const projectTasks = tasks.filter(
-          (task) => task.projectId === projectId,
-        );
-        const projectTaskIds = projectTasks.map((task) => task.id);
+        const projectTaskIds = tasks
+          .filter((t) => t.projectId === projectId)
+          .map((t) => t.id);
 
         const result = await db
           .update(taskTable)
@@ -124,15 +121,12 @@ async function bulkUpdateTasks({
 
         updatedCount += result.rowCount ?? projectTaskIds.length;
 
-        for (const task of projectTasks) {
+        for (const taskId of projectTaskIds) {
           await publishEvent("task.status_changed", {
-            taskId: task.id,
+            taskId,
             projectId,
             userId,
-            oldStatus: task.status,
             newStatus: value,
-            title: task.title,
-            assigneeId: task.userId,
             type: "status_changed",
           });
         }
@@ -163,9 +157,7 @@ async function bulkUpdateTasks({
           taskId: task.id,
           projectId: task.projectId,
           userId,
-          oldPriority: task.priority,
           newPriority: value,
-          title: task.title,
           type: "priority_changed",
         });
       }
@@ -173,42 +165,39 @@ async function bulkUpdateTasks({
     }
 
     case "updateAssignee": {
-      const assigneeId = value?.trim() || null;
-
-      if (assigneeId) {
-        await assertAssignableUser(assigneeId, workspaceId);
+      if (value) {
+        // Upstream security hardening: bulk assignment must not bypass the
+        // assignee membership check used by the single-task endpoints.
+        await assertAssignableUser(value, teamId);
       }
-
-      const newAssigneeName = assigneeId
+      const newAssigneeName = value
         ? (
             await db
               .select({ name: userTable.name })
               .from(userTable)
-              .where(eq(userTable.id, assigneeId))
+              .where(eq(userTable.id, value))
               .limit(1)
           )[0]?.name
         : undefined;
 
       const result = await db
         .update(taskTable)
-        .set({ userId: assigneeId })
+        .set({ userId: value || null })
         .where(inArray(taskTable.id, foundIds));
 
       updatedCount = result.rowCount ?? foundIds.length;
 
       for (const task of tasks) {
-        const eventType = assigneeId
-          ? "task.assignee_changed"
-          : "task.unassigned";
+        const eventType = value ? "task.assignee_changed" : "task.unassigned";
         await publishEvent(eventType, {
           taskId: task.id,
           projectId: task.projectId,
           userId,
           oldAssignee: task.userId,
           newAssignee: newAssigneeName,
-          newAssigneeId: assigneeId,
+          newAssigneeId: value || null,
           title: task.title,
-          type: assigneeId ? "assignee_changed" : "unassigned",
+          type: value ? "assignee_changed" : "unassigned",
         });
       }
       break;
@@ -245,9 +234,9 @@ async function bulkUpdateTasks({
         throw new HTTPException(404, { message: "Label not found" });
       }
 
-      if (label.workspaceId && label.workspaceId !== workspaceId) {
+      if (label.teamId && label.teamId !== teamId) {
         throw new HTTPException(400, {
-          message: "Label and tasks must belong to the same workspace",
+          message: "Label and tasks must belong to the same team",
         });
       }
 
@@ -265,7 +254,7 @@ async function bulkUpdateTasks({
             .values({
               name: label.name,
               color: label.color,
-              workspaceId: workspaceId,
+              teamId: teamId,
               taskId: task.id,
             })
             .onConflictDoNothing({
@@ -301,7 +290,7 @@ async function bulkUpdateTasks({
         .delete(labelTable)
         .where(
           and(
-            eq(labelTable.workspaceId, workspaceId),
+            eq(labelTable.teamId, teamId),
             eq(labelTable.name, label.name),
             inArray(labelTable.taskId, foundIds),
           ),

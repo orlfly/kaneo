@@ -3,10 +3,7 @@ import { eq, sql } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
 import db, { schema } from "../../apps/api/src/database";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 const repair = readFileSync(
   new URL(
@@ -21,9 +18,9 @@ beforeEach(async () => {
 
 describe("legacy ownership and archival migration", () => {
   it("repairs the old comment-only schema, retains valid keys and invalidates orphaned credentials", async () => {
-    const { user, workspace } = await createWorkspaceMember();
+    const { user, team: workspace } = await createTeamMember();
     const { project } = await createProjectFixture({
-      workspaceId: workspace.id,
+      teamId: workspace.id,
     });
     await db.transaction(async (tx) => {
       // Model an already-applied old0015 journal: archived_at absent, ownership
@@ -82,9 +79,9 @@ describe("legacy ownership and archival migration", () => {
   );
 
   it("preserves an already archived project on repeat application", async () => {
-    const { workspace } = await createWorkspaceMember();
+    const { team: workspace } = await createTeamMember();
     const { project } = await createProjectFixture({
-      workspaceId: workspace.id,
+      teamId: workspace.id,
     });
     const date = new Date("2026-01-01T12:00:00.000Z");
     await db

@@ -182,7 +182,7 @@ const deleteSlackIntegrationRoute = createRoute({
   },
 });
 
-const slackIntegration = apiRouter<BaseVariables & { workspaceId: string }>()
+const slackIntegration = apiRouter<BaseVariables & { teamId: string }>()
   .openapi(getSlackIntegrationRoute, async (c) => {
     const { projectId } = c.req.valid("param");
     const integration = await getSlackIntegration(projectId);

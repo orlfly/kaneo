@@ -1,6 +1,12 @@
+import {
+  AGENT_ROLES,
+  type AgentRole,
+  HUMAN_REQUIRED_ROLE,
+} from "@kaneo/permissions";
 import { useLocation, useParams } from "@tanstack/react-router";
 import { produce } from "immer";
 import {
+  BotIcon,
   CalendarIcon,
   Check,
   FolderKanban,
@@ -60,10 +66,10 @@ import useCreateTask from "@/hooks/mutations/task/use-create-task";
 import { useDeleteTask } from "@/hooks/mutations/task/use-delete-task";
 import { useUpdateTask } from "@/hooks/mutations/task/use-update-task";
 import useGetCustomFieldsByProject from "@/hooks/queries/custom-field/use-get-custom-fields-by-project";
-import useGetLabelsByWorkspace from "@/hooks/queries/label/use-get-labels-by-workspace";
+import useGetLabelsByTeam from "@/hooks/queries/label/use-get-labels-by-team";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
-import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
-import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
+import useActiveTeam from "@/hooks/queries/team/use-active-team";
+import { useGetActiveTeamMembers } from "@/hooks/queries/team-member/use-get-active-team-members";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { cn } from "@/lib/cn";
 import { formatDateMedium } from "@/lib/format";
@@ -99,7 +105,7 @@ type Label = {
   name: string;
   color: string;
   taskId: string | null;
-  workspaceId: string;
+  teamId: string;
   createdAt: string;
 };
 
@@ -205,14 +211,10 @@ function CreateTaskModalContent({
     [t],
   );
   const location = useLocation();
-  const { data: workspace } = useActiveWorkspace();
-  const { data: workspaceUsers } = useGetActiveWorkspaceUsers(
-    workspace?.id || "",
-  );
+  const { data: team } = useActiveTeam();
+  const { data: teamUsers } = useGetActiveTeamMembers(team?.id || "");
   const { mutateAsync: createLabel } = useCreateLabel();
-  const { data: workspaceLabels = [] } = useGetLabelsByWorkspace(
-    workspace?.id || "",
-  );
+  const { data: teamLabels = [] } = useGetLabelsByTeam(team?.id || "");
   const { canCreateTasks, canCreateLabels } = useWorkspacePermission();
   const canCreateTaskCapability = canCreateTasks();
   const canCreateLabelCapability = canCreateLabels();
@@ -220,6 +222,9 @@ function CreateTaskModalContent({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<Priority>("no-priority");
+  const [requiredRole, setRequiredRole] = useState<
+    AgentRole | typeof HUMAN_REQUIRED_ROLE | null
+  >(null);
   const [assigneeId, setAssigneeId] = useState("");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
@@ -238,15 +243,19 @@ function CreateTaskModalContent({
     location.pathname.match(/\/project\/([^/]+)/)?.[1] ?? null;
   const explicitProjectId = projectId || routeProjectId || "";
   const [selectedProjectId, setSelectedProjectId] = useState("");
-  const { data: workspaceProjects } = useGetProjects({
-    workspaceId: workspace?.id || "",
+  const resolvedProjectId =
+    explicitProjectId || selectedProjectId || project?.id || "";
+  const { data: teamProjects } = useGetProjects({
+    teamId: team?.id || "",
   });
-  // Only a project from this workspace's query may receive new content.
-  // The global project store can still contain the last visited workspace.
-  const resolvedProject = workspaceProjects?.find(
-    (candidate) => candidate.id === (explicitProjectId || selectedProjectId),
-  );
-  const resolvedProjectId = resolvedProject?.id ?? "";
+  // Only a project from this team's query may receive new content; the global
+  // project store can still contain the last visited team's project.
+  const resolvedProject = explicitProjectId
+    ? (teamProjects?.find(
+        (candidate) =>
+          candidate.id === (explicitProjectId || selectedProjectId),
+      ) ?? project)
+    : (teamProjects?.find((p) => p.id === resolvedProjectId) ?? null);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const draftCreationPromiseRef = useRef<Promise<Task | null> | null>(null);
@@ -293,11 +302,11 @@ function CreateTaskModalContent({
   }, [customFields]);
 
   const filteredLabels = (() => {
-    const searchFiltered = workspaceLabels.filter((label) =>
+    const searchFiltered = teamLabels.filter((label) =>
       label.name.toLowerCase().includes(searchValue.toLowerCase()),
     );
 
-    const labelMap = new Map<string, (typeof workspaceLabels)[0]>();
+    const labelMap = new Map<string, (typeof teamLabels)[0]>();
     for (const label of searchFiltered) {
       const existing = labelMap.get(label.name);
       if (!existing || (label.taskId === null && existing.taskId !== null)) {
@@ -310,7 +319,7 @@ function CreateTaskModalContent({
 
   const isCreatingNewLabel =
     searchValue &&
-    !workspaceLabels.some(
+    !teamLabels.some(
       (label) => label.name.toLowerCase() === searchValue.toLowerCase(),
     );
 
@@ -354,6 +363,22 @@ function CreateTaskModalContent({
   const handleClose = () => {
     activeRef.current = false;
     discardDraft();
+    setTitle("");
+    setDescription("");
+    setPriority("no-priority");
+    setRequiredRole(null);
+    setAssigneeId("");
+    setStartDate(undefined);
+    setDueDate(undefined);
+    setCreateMore(false);
+    setLabels([]);
+    setLabelsStep("select");
+    setSearchValue("");
+    setSelectedColor("gray");
+    setNewLabelName("");
+    draftCreationPromiseRef.current = null;
+    didSubmitRef.current = false;
+    setDraftTask(null);
     onClose();
   };
 
@@ -408,15 +433,11 @@ function CreateTaskModalContent({
           ...task,
           assigneeId: task.userId,
           assigneeName:
-            workspaceUsers?.members?.find(
-              (member) => member.userId === task.userId,
-            )?.user?.name ??
+            teamUsers?.find((member) => member.id === task.userId)?.name ??
             existingTask?.assigneeName ??
             null,
           assigneeImage:
-            workspaceUsers?.members?.find(
-              (member) => member.userId === task.userId,
-            )?.user?.image ??
+            teamUsers?.find((member) => member.id === task.userId)?.image ??
             existingTask?.assigneeImage ??
             null,
           position: task.position ?? 0,
@@ -425,7 +446,7 @@ function CreateTaskModalContent({
 
       setProject(updatedProject);
     },
-    [project, setProject, workspaceUsers?.members],
+    [project, setProject, teamUsers],
   );
 
   const ensureDraftTask = useCallback(async () => {
@@ -463,6 +484,7 @@ function CreateTaskModalContent({
           fieldId,
           value,
         })),
+      requiredRole: requiredRole ?? undefined,
     }).then((task) => {
       const createdTask = normalizeTask(task);
       if (!activeRef.current) {
@@ -502,6 +524,7 @@ function CreateTaskModalContent({
     title,
     t,
     customFieldValues,
+    requiredRole,
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -512,7 +535,7 @@ function CreateTaskModalContent({
       !canCreateTaskCapability ||
       !title.trim() ||
       !resolvedProjectId ||
-      !workspace?.id
+      !team?.id
     )
       return;
 
@@ -551,6 +574,7 @@ function CreateTaskModalContent({
               description: description.trim() || "",
               userId: assigneeId,
               priority,
+              requiredRole: requiredRole ?? undefined,
               projectId: resolvedProjectId,
               startDate: startDate ? startDate.toISOString() : undefined,
               dueDate: dueDate ? dueDate.toISOString() : undefined,
@@ -570,7 +594,7 @@ function CreateTaskModalContent({
             name: label.name,
             color: label.color,
             taskId: savedTask.id,
-            workspaceId: workspace.id,
+            teamId: team.id,
           });
         } catch (error) {
           console.error("Failed to create label:", error);
@@ -647,7 +671,33 @@ function CreateTaskModalContent({
     [t],
   );
 
+  const roleOptions = useMemo(
+    () => [
+      {
+        value: null,
+        label: t("common:modals.createTask.agentRoleGeneric", {
+          defaultValue: "Any agent",
+        }),
+      },
+      // Human-only sits between "Any agent" and the role-specific entries so
+      // it is visually distinct from the agent roles and harder to confuse
+      // with them.
+      {
+        value: HUMAN_REQUIRED_ROLE as typeof HUMAN_REQUIRED_ROLE,
+        label: t("tasks:agentRoles.human.name", {
+          defaultValue: "Human-only",
+        }),
+      },
+      ...AGENT_ROLES.map((value) => ({
+        value,
+        label: t(`tasks:agentRoles.${value}.name`, { defaultValue: value }),
+      })),
+    ],
+    [t],
+  );
+
   const selectedPriority = priorityOptions.find((p) => p.value === priority);
+  const selectedRole = roleOptions.find((r) => r.value === requiredRole);
 
   const statusLabel = useMemo(() => {
     if (status) {
@@ -655,9 +705,7 @@ function CreateTaskModalContent({
     }
     return t("tasks:status.in-progress");
   }, [status, t]);
-  const selectedUser = workspaceUsers?.members?.find(
-    (u) => u.userId === assigneeId,
-  );
+  const selectedUser = teamUsers?.find((u) => u.id === assigneeId);
 
   useEffect(() => {
     if (labelsOpen && labelsStep === "select" && searchInputRef.current) {
@@ -671,7 +719,7 @@ function CreateTaskModalContent({
 
       if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
         e.preventDefault();
-        if (title.trim() && resolvedProjectId && workspace?.id) {
+        if (title.trim() && resolvedProjectId && team?.id) {
           const form = document.querySelector("form");
           if (form) {
             form.dispatchEvent(
@@ -681,7 +729,7 @@ function CreateTaskModalContent({
         }
       }
     },
-    [open, discardConfirmationOpen, title, resolvedProjectId, workspace?.id],
+    [open, discardConfirmationOpen, title, resolvedProjectId, team?.id],
   );
 
   useEffect(() => {
@@ -706,17 +754,17 @@ function CreateTaskModalContent({
     if (existingLabel) {
       setLabels(labels.filter((l) => l.name !== labelName));
     } else {
-      const workspaceLabel = workspaceLabels.find((l) => l.name === labelName);
-      if (workspaceLabel) {
+      const teamLabel = teamLabels.find((l) => l.name === labelName);
+      if (teamLabel) {
         setLabels([
           ...labels,
           {
-            id: workspaceLabel.id,
-            name: workspaceLabel.name,
-            color: workspaceLabel.color,
+            id: teamLabel.id,
+            name: teamLabel.name,
+            color: teamLabel.color,
             taskId: null,
-            workspaceId: workspaceLabel.workspaceId || "",
-            createdAt: workspaceLabel.createdAt,
+            teamId: teamLabel.teamId || "",
+            createdAt: teamLabel.createdAt,
           },
         ]);
       }
@@ -731,13 +779,13 @@ function CreateTaskModalContent({
   const handleColorSelect = async (color: LabelColor) => {
     setSelectedColor(color);
 
-    if (!newLabelName.trim() || !workspace?.id) return;
+    if (!newLabelName.trim() || !team?.id) return;
 
     try {
       const createdLabel = await createLabel({
         name: newLabelName.trim(),
         color: color,
-        workspaceId: workspace.id,
+        teamId: team.id,
       });
 
       const newLabel: Label = {
@@ -745,7 +793,7 @@ function CreateTaskModalContent({
         name: createdLabel.name,
         color: createdLabel.color,
         taskId: createdLabel.taskId ?? null,
-        workspaceId: createdLabel.workspaceId ?? workspace.id,
+        teamId: createdLabel.teamId ?? team.id,
         createdAt: createdLabel.createdAt,
       };
 
@@ -890,7 +938,7 @@ function CreateTaskModalContent({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               autoFocus
-              placeholder={t("common:modals.createTask.taskTitlePlaceholder")}
+              placeholder={t("common:modals.createTask.titleHelper")}
               className="w-full [&_[data-slot=input]]:h-auto [&_[data-slot=input]]:px-0 [&_[data-slot=input]]:py-3 [&_[data-slot=input]]:text-2xl [&_[data-slot=input]]:leading-tight [&_[data-slot=input]]:font-semibold [&_[data-slot=input]]:tracking-tight [&_[data-slot=input]]:text-foreground [&_[data-slot=input]]:placeholder:text-muted-foreground [&_[data-slot=input]]:outline-none"
               required
             />
@@ -907,6 +955,9 @@ function CreateTaskModalContent({
                 ensureTaskId={ensureDraftTask}
               />
             </div>
+            <p className="text-xs text-muted-foreground -mt-4">
+              {t("common:modals.createTask.descriptionHelper")}
+            </p>
 
             {customFields.length > 0 && (
               <div className="space-y-4 pt-4 border-t border-border">
@@ -979,9 +1030,9 @@ function CreateTaskModalContent({
                   </PopoverTrigger>
                   <PopoverContent className="w-48 p-1" align="start">
                     <div className="space-y-1">
-                      {workspaceProjects?.map((workspaceProject) => (
+                      {teamProjects?.map((teamProject) => (
                         <button
-                          key={workspaceProject.id}
+                          key={teamProject.id}
                           type="button"
                           className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-accent/50 text-left transition-colors h-8"
                           disabled={
@@ -993,14 +1044,14 @@ function CreateTaskModalContent({
                               !draftTaskRef.current &&
                               !submittingRef.current
                             ) {
-                              setSelectedProjectId(workspaceProject.id);
+                              setSelectedProjectId(teamProject.id);
                             }
                           }}
                         >
                           <span className="text-sm truncate">
-                            {workspaceProject.name}
+                            {teamProject.name}
                           </span>
-                          {resolvedProjectId === workspaceProject.id && (
+                          {resolvedProjectId === teamProject.id && (
                             <Check className="ml-auto h-4 w-4 shrink-0" />
                           )}
                         </button>
@@ -1101,6 +1152,58 @@ function CreateTaskModalContent({
                     type="button"
                     className={cn(
                       "flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors border border-border hover:bg-accent/50",
+                      requiredRole
+                        ? "bg-accent/30 text-foreground"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    {requiredRole === HUMAN_REQUIRED_ROLE ? (
+                      <UserIcon className="w-3.5 h-3.5" />
+                    ) : (
+                      <BotIcon className="w-3.5 h-3.5" />
+                    )}
+                    <span>
+                      {selectedRole
+                        ? selectedRole.label
+                        : t("common:modals.createTask.agentRole", {
+                            defaultValue: "Required agent role",
+                          })}
+                    </span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-1" align="start">
+                  <div className="space-y-1">
+                    {roleOptions.map((option) => (
+                      <button
+                        key={option.value ?? "generic"}
+                        type="button"
+                        className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-accent/50 text-left transition-colors h-8"
+                        onClick={() => setRequiredRole(option.value)}
+                      >
+                        {option.value === HUMAN_REQUIRED_ROLE ? (
+                          <UserIcon className="w-3.5 h-3.5" />
+                        ) : (
+                          <BotIcon className="w-3.5 h-3.5" />
+                        )}
+                        <span className="text-sm">{option.label}</span>
+                        {requiredRole === option.value && (
+                          <Check className="ml-auto h-4 w-4" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <span className="text-xs text-muted-foreground">
+                {t("common:modals.createTask.requiredRoleHint")}
+              </span>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors border border-border hover:bg-accent/50",
                       selectedUser
                         ? "bg-accent/30 text-foreground"
                         : "text-muted-foreground",
@@ -1110,14 +1213,14 @@ function CreateTaskModalContent({
                       <>
                         <Avatar className="h-4 w-4">
                           <AvatarImage
-                            src={selectedUser?.user?.image ?? ""}
-                            alt={selectedUser?.user?.name || ""}
+                            src={selectedUser.image ?? ""}
+                            alt={selectedUser.name || ""}
                           />
                           <AvatarFallback className="text-[10px] font-medium border border-border/30">
-                            {getInitials(selectedUser?.user?.name)}
+                            {getInitials(selectedUser.name)}
                           </AvatarFallback>
                         </Avatar>
-                        <span>{selectedUser.user?.name}</span>
+                        <span>{selectedUser.name}</span>
                       </>
                     ) : (
                       <>
@@ -1149,24 +1252,24 @@ function CreateTaskModalContent({
                       </span>
                       {!assigneeId && <Check className="ml-auto h-4 w-4" />}
                     </button>
-                    {workspaceUsers?.members?.map((member) => (
+                    {teamUsers?.map((member) => (
                       <button
-                        key={member.userId}
+                        key={member.id}
                         type="button"
                         className="w-full flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-accent/50 text-left transition-colors h-8"
-                        onClick={() => setAssigneeId(member.userId || "")}
+                        onClick={() => setAssigneeId(member.id || "")}
                       >
                         <Avatar className="h-6 w-6">
                           <AvatarImage
-                            src={member?.user?.image ?? ""}
-                            alt={member?.user?.name || ""}
+                            src={member?.image ?? ""}
+                            alt={member?.name || ""}
                           />
                           <AvatarFallback className="text-xs font-medium border border-border/30">
-                            {getInitials(member?.user?.name)}
+                            {getInitials(member?.name)}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="text-sm">{member?.user?.name}</span>
-                        {assigneeId === member.userId && (
+                        <span className="text-sm">{member?.name}</span>
+                        {assigneeId === member.id && (
                           <Check className="ml-auto h-4 w-4" />
                         )}
                       </button>

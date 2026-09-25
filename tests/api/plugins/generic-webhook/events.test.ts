@@ -90,9 +90,7 @@ describe("generic webhook event handlers", () => {
   it("posts a project-scoped task.deleted envelope when enabled", async () => {
     selectMock
       .mockImplementationOnce(() =>
-        selectChain([
-          { id: "project-1", name: "Roadmap", workspaceId: "workspace-1" },
-        ]),
+        selectChain([{ id: "project-1", name: "Roadmap", teamId: "team-1" }]),
       )
       .mockImplementationOnce(() =>
         selectChain([{ id: "user-1", name: "Andrej" }]),
@@ -106,7 +104,7 @@ describe("generic webhook event handlers", () => {
     expect(payload).toMatchObject({
       event: "task.deleted",
       integration: { type: "generic-webhook" },
-      project: { id: "project-1", name: "Roadmap", workspaceId: "workspace-1" },
+      project: { id: "project-1", name: "Roadmap", teamId: "team-1" },
       task: { id: "task-1", title: "Ship the release" },
       actor: { id: "user-1", name: "Andrej" },
       data: {},

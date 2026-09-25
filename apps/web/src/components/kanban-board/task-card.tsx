@@ -32,8 +32,8 @@ import {
 } from "@/components/ui/preview-card";
 import { useDeleteTask } from "@/hooks/mutations/task/use-delete-task";
 import useGetCustomFieldValuesByProject from "@/hooks/queries/custom-field/use-get-custom-field-values-by-project";
-import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
-import { useGetActiveWorkspaceUsers } from "@/hooks/queries/workspace-users/use-get-active-workspace-users";
+import useActiveTeam from "@/hooks/queries/team/use-active-team";
+import { useGetActiveTeamMembers } from "@/hooks/queries/team-member/use-get-active-team-members";
 import { cn } from "@/lib/cn";
 import {
   dueDateStatusColors,
@@ -51,6 +51,7 @@ import { useUserPreferencesStore } from "@/store/user-preferences";
 import type Task from "@/types/task";
 import TaskCardContextMenuContent from "./task-card-context-menu/task-card-context-menu-content";
 import { TaskLabels } from "./task-labels";
+import { TaskRoleBadge } from "./task-role-badge";
 
 type TaskCardProps = {
   task: Task;
@@ -69,7 +70,7 @@ function TaskCard({ task, disableDragDrop = false }: TaskCardProps) {
   } = useSortable({ id: task.id, disabled: disableDragDrop });
   const { project } = useProjectStore();
   const taskIsCompleted = isTaskCompleted(task.status, project?.columns);
-  const { data: workspace } = useActiveWorkspace();
+  const { data: team } = useActiveTeam();
   const { mutateAsync: deleteTask } = useDeleteTask();
   const navigate = useNavigate();
   const {
@@ -155,20 +156,16 @@ function TaskCard({ task, disableDragDrop = false }: TaskCardProps) {
     zIndex: isDragging ? 999 : "auto",
   };
 
-  const { data: workspaceUsers } = useGetActiveWorkspaceUsers(
-    workspace?.id ?? "",
-  );
+  const { data: teamUsers } = useGetActiveTeamMembers(team?.id ?? "");
 
   const assignee = useMemo(() => {
-    return workspaceUsers?.members?.find(
-      (member) => member.userId === task.userId,
-    );
-  }, [workspaceUsers, task.userId]);
+    return teamUsers?.find((member) => member.id === task.userId);
+  }, [teamUsers, task.userId]);
 
   function handleTaskCardClick(
     e: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>,
   ) {
-    if (!project || !task || !workspace) return;
+    if (!project || !task || !team) return;
 
     if ((e as React.MouseEvent).metaKey || (e as React.KeyboardEvent).ctrlKey) {
       toggleSelection(task.id);
@@ -245,11 +242,11 @@ function TaskCard({ task, disableDragDrop = false }: TaskCardProps) {
                 {task.userId ? (
                   <Avatar className="h-5 w-5">
                     <AvatarImage
-                      src={assignee?.user?.image ?? ""}
-                      alt={assignee?.user?.name || ""}
+                      src={assignee?.image ?? ""}
+                      alt={assignee?.name || ""}
                     />
                     <AvatarFallback className="text-xs font-medium border border-border/30">
-                      {getInitials(assignee?.user?.name)}
+                      {getInitials(assignee?.name)}
                     </AvatarFallback>
                   </Avatar>
                 ) : (
@@ -354,6 +351,7 @@ function TaskCard({ task, disableDragDrop = false }: TaskCardProps) {
                   {taskItemStats.completed}/{taskItemStats.total}
                 </span>
               )}
+              <TaskRoleBadge requiredRole={task.requiredRole ?? null} />
 
               {showDueDates && task.dueDate && (
                 <div
@@ -483,12 +481,12 @@ function TaskCard({ task, disableDragDrop = false }: TaskCardProps) {
           </div>
         </ContextMenuTrigger>
 
-        {project && workspace && (
+        {project && team && (
           <TaskCardContextMenuContent
             task={task}
             taskCardContext={{
               projectId: project.id,
-              worskpaceId: workspace.id,
+              teamId: team.id,
             }}
             onDeleteClick={() => setIsDeleteTaskModalOpen(true)}
           />

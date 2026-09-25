@@ -4,17 +4,14 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 beforeEach(resetTestDatabase);
 
-async function fixture(role = "admin") {
-  const member = await createWorkspaceMember({ role });
+async function fixture() {
+  const member = await createTeamMember();
   const { project, columns } = await createProjectFixture({
-    workspaceId: member.workspace.id,
+    teamId: member.team.id,
   });
   const [task] = await db
     .insert(schema.taskTable)
@@ -56,62 +53,46 @@ async function fixture(role = "admin") {
 }
 
 describe("custom field read authorization", () => {
-  for (const authentication of ["api-key", "custom-role"] as const) {
-    it.each([
-      [{}, [403, 403, 403, 403]],
-      [{ project: ["read"] }, [200, 403, 403, 403]],
-      [{ task: ["read"] }, [403, 200, 200, 200]],
-      [{ project: ["read"], task: ["read"] }, [200, 200, 200, 200]],
-    ] as [Record<string, string[]>, number[]][])(
-      `${authentication} respects permission map %j`,
-      async (permissions, expected) => {
-        const { member, app, paths } = await fixture(
-          authentication === "custom-role" ? "limited" : "admin",
-        );
-        const headers: Record<string, string> = {};
-        if (authentication === "custom-role") {
-          await db.insert(schema.workspaceRoleTable).values({
-            workspaceId: member.workspace.id,
-            role: "limited",
-            permission: JSON.stringify(permissions),
-          });
-          mockAuthenticatedSession(member.user);
+  it.each([
+    [{}, [403, 403, 403, 403]],
+    [{ project: ["read"] }, [200, 403, 403, 403]],
+    [{ task: ["read"] }, [403, 200, 200, 200]],
+    [{ project: ["read"], task: ["read"] }, [200, 200, 200, 200]],
+  ] as [Record<string, string[]>, number[]][])(
+    "scoped API key respects permission map %j",
+    async (permissions, expected) => {
+      const { member, app, paths } = await fixture();
+      mockAnonymousSession();
+      const key = `kaneo_test_${randomUUID()}`;
+      await db.insert(schema.apikeyTable).values({
+        referenceId: member.user.id,
+        userId: member.user.id,
+        key: createHash("sha256").update(key).digest("base64url"),
+        name: "scoped test key",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        permissions: JSON.stringify(permissions),
+        enabled: true,
+      });
+      const headers = { Authorization: `Bearer ${key}` };
+      for (const [i, path] of paths.entries()) {
+        const response = await app.request(path, { headers });
+        expect(response.status, path).toBe(expected[i]);
+        const body = await response.text();
+        if (expected[i] === 403) {
+          expect(body).not.toContain("private-default");
+          expect(body).not.toContain("private-value");
+          expect(body).not.toContain("Private field");
         } else {
-          mockAnonymousSession();
-          const key = `kaneo_test_${randomUUID()}`;
-          await db.insert(schema.apikeyTable).values({
-            referenceId: member.user.id,
-            userId: member.user.id,
-            key: createHash("sha256").update(key).digest("base64url"),
-            name: "scoped test key",
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            permissions: JSON.stringify(permissions),
-            enabled: true,
-          });
-          headers.Authorization = `Bearer ${key}`;
+          expect(body).toContain(i === 0 ? "private-default" : "private-value");
         }
-        for (const [i, path] of paths.entries()) {
-          const response = await app.request(path, { headers });
-          expect(response.status, path).toBe(expected[i]);
-          const body = await response.text();
-          if (expected[i] === 403) {
-            expect(body).not.toContain("private-default");
-            expect(body).not.toContain("private-value");
-            expect(body).not.toContain("Private field");
-          } else {
-            expect(body).toContain(
-              i === 0 ? "private-default" : "private-value",
-            );
-          }
-        }
-      },
-    );
-  }
+      }
+    },
+  );
 
-  it("does not let read scopes bypass workspace membership", async () => {
+  it("does not let read scopes bypass team membership", async () => {
     const { app, paths } = await fixture();
-    const outsider = await createWorkspaceMember({ role: "admin" });
+    const outsider = await createTeamMember({ role: "admin" });
     mockAuthenticatedSession(outsider.user);
     for (const path of paths)
       expect((await app.request(path)).status).toBe(403);

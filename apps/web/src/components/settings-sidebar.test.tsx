@@ -23,7 +23,7 @@ vi.mock("react-i18next", () => ({
 function renderSettings({ menuOpen }: { menuOpen: boolean }) {
   return render(
     <SettingsSidebarProvider
-      workspaceId="workspace-1"
+      teamId="workspace-1"
       menuOpen={menuOpen}
       setMenuOpen={vi.fn()}
     >

@@ -5,8 +5,8 @@ import {
   projectTable,
   taskReminderSentTable,
   taskTable,
+  teamMemberTable,
   userNotificationPreferenceTable,
-  workspaceUserTable,
 } from "../database/schema";
 import createNotification from "../notification/controllers/create-notification";
 import { REMINDER_WINDOW_MINUTES } from "./reminder-timing";
@@ -52,10 +52,10 @@ async function getTasksNeedingReminder(
     .from(taskTable)
     .innerJoin(projectTable, eq(projectTable.id, taskTable.projectId))
     .innerJoin(
-      workspaceUserTable,
+      teamMemberTable,
       and(
-        eq(workspaceUserTable.workspaceId, projectTable.workspaceId),
-        eq(workspaceUserTable.userId, taskTable.userId),
+        eq(teamMemberTable.teamId, projectTable.teamId),
+        eq(teamMemberTable.userId, taskTable.userId),
       ),
     )
     .leftJoin(columnTable, eq(taskTable.columnId, columnTable.id))

@@ -2,7 +2,7 @@
 FROM --platform=$BUILDPLATFORM node:24.19.0-alpine AS builder
 
 # Install build dependencies in a single layer
-RUN apk add --no-cache python3 make g++ && \
+RUN apk add --no-cache python3 make g++ zip && \
   corepack enable && \
   corepack prepare pnpm@10.7.0 --activate
 
@@ -11,7 +11,6 @@ WORKDIR /app
 # Copy only package files first for better caching
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY packages/typescript-config/package.json ./packages/typescript-config/
-COPY packages/email/package.json ./packages/email/
 COPY packages/libs/package.json ./packages/libs/
 COPY packages/permissions/package.json ./packages/permissions/
 COPY apps/api/package.json ./apps/api/
@@ -21,15 +20,10 @@ RUN pnpm install --frozen-lockfile
 
 # Copy source files
 COPY packages/typescript-config ./packages/typescript-config
-COPY packages/email ./packages/email
 COPY packages/libs ./packages/libs
 COPY packages/permissions ./packages/permissions
 COPY i18n ./i18n
 COPY apps/api ./apps/api
-
-# Build email package first
-WORKDIR /app/packages/email
-RUN pnpm run build
 
 # Build permissions package
 WORKDIR /app/packages/permissions
@@ -52,7 +46,6 @@ WORKDIR /app
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/libs/package.json ./packages/libs/
-COPY packages/email/package.json ./packages/email/
 COPY packages/permissions/package.json ./packages/permissions/
 COPY apps/api/package.json ./apps/api/
 
@@ -62,8 +55,9 @@ RUN sed -i 's/"prepare": "husky"/"prepare": ""/g' package.json && \
 # Production stage - use specific version tag without SHA256
 FROM node:24.19.0-alpine AS runtime
 
-# Set up user in a single layer
-RUN addgroup -g 1001 appuser && \
+# Install runtime dependencies (zip for creating config packages)
+RUN apk add --no-cache zip && \
+  addgroup -g 1001 appuser && \
   adduser -u 1001 -G appuser -D appuser && \
   mkdir -p /app/apps/api/data && \
   chown -R appuser:appuser /app
@@ -77,8 +71,11 @@ COPY --from=prod-deps --chown=appuser:appuser /app ./
 # Built application and workspace packages
 COPY --from=builder --chown=appuser:appuser /app/apps/api/dist ./apps/api/dist
 COPY --from=builder --chown=appuser:appuser /app/apps/api/drizzle ./apps/api/drizzle
-COPY --from=builder --chown=appuser:appuser /app/packages/email ./packages/email
 COPY --from=builder --chown=appuser:appuser /app/packages/permissions ./packages/permissions
+# Copy templates and install script to agent/agents because __dirname resolves to /app/apps/api (not dist/)
+COPY --from=builder --chown=appuser:appuser /app/apps/api/src/agent/agents/templates ./apps/api/agent/agents/templates
+COPY --from=builder --chown=appuser:appuser /app/apps/api/src/agent/agents/install.sh.template ./apps/api/agent/agents/install.sh.template
+COPY --from=builder --chown=appuser:appuser /app/apps/api/src/agent/agents/install.bat.template ./apps/api/agent/agents/install.bat.template
 
 # Fail the build early if the runtime dependency layout is broken on the target architecture
 RUN cd /app/apps/api && node -e "const fs=require('fs');for(const m of ['bcryptjs','hono','pg','drizzle-orm','better-auth','ioredis','valibot','octokit','@modelcontextprotocol/sdk']){fs.accessSync('node_modules/'+m+'/package.json')}"

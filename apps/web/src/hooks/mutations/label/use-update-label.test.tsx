@@ -17,7 +17,7 @@ vi.mock("@tanstack/react-query", () => ({
             id: vars.id,
             name: vars.name,
             color: vars.color,
-            workspaceId: "workspace-1",
+            teamId: "workspace-1",
             taskId: null,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -64,7 +64,7 @@ describe("useUpdateLabel", () => {
     });
   });
 
-  it("invalidates with the correct workspaceId from the response", async () => {
+  it("invalidates with the correct teamId from the response", async () => {
     const { result } = renderHook(() => useUpdateLabel());
 
     await result.current.mutateAsync({

@@ -77,9 +77,9 @@ function KanbanBoard({ project, disableDragDrop = false }: KanbanBoardProps) {
       Enter: () => {
         if (focusedTaskId && project) {
           navigate({
-            to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+            to: "/dashboard/team/$teamId/project/$projectId/task/$taskId",
             params: {
-              workspaceId: project.workspaceId,
+              teamId: project.teamId,
               projectId: project.id,
               taskId: focusedTaskId,
             },
@@ -159,7 +159,7 @@ function KanbanBoard({ project, disableDragDrop = false }: KanbanBoardProps) {
         });
 
         queryClient.invalidateQueries({
-          queryKey: ["projects", project.workspaceId],
+          queryKey: ["projects", project.teamId],
         });
       } else {
         // A task's status is a column slug. The column id is only the

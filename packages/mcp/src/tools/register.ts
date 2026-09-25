@@ -13,6 +13,20 @@ const prioritySchema = z.enum([
   "urgent",
 ]);
 
+const agentRoleSchema = z
+  .enum([
+    "coding",
+    "product-design",
+    "architecture-design",
+    "devops",
+    "ui-design",
+    "testing",
+    "code-review",
+  ])
+  .describe(
+    "Agent role the task should be claimed by. Generic tasks (omit the role) are claimable by any agent.",
+  );
+
 const nonEmptyString = z.string().trim().min(1);
 const optionalNonEmptyString = nonEmptyString.optional();
 const nullableOptionalNonEmptyString = nonEmptyString.nullable().optional();
@@ -56,20 +70,18 @@ export function registerTools(
   server.registerTool(
     "list_workspaces",
     {
-      description:
-        "List workspaces (Better Auth organizations) the signed-in user can access.",
+      description: "List teams the signed-in user can access.",
       inputSchema: z.object({}),
     },
-    async () =>
-      run(() => client.json("/api/auth/organization/list", { method: "GET" })),
+    async () => run(() => client.json("/api/team", { method: "GET" })),
   );
 
   server.registerTool(
     "list_projects",
     {
-      description: "List projects in a workspace.",
+      description: "List projects in a team.",
       inputSchema: z.object({
-        workspaceId: nonEmptyString.describe("Workspace ID"),
+        workspaceId: nonEmptyString.describe("Team ID"),
         includeArchived: z
           .boolean()
           .optional()
@@ -78,7 +90,8 @@ export function registerTools(
     },
     async (args) => {
       const { workspaceId, includeArchived } = args;
-      const qs = new URLSearchParams({ workspaceId });
+      // workspaceId is a back-compat alias for the team id.
+      const qs = new URLSearchParams({ teamId: workspaceId });
       if (includeArchived === true) {
         qs.set("includeArchived", "true");
       }
@@ -101,7 +114,7 @@ export function registerTools(
   server.registerTool(
     "create_project",
     {
-      description: "Create a project in a workspace.",
+      description: "Create a project in a team.",
       inputSchema: z.object({
         name: nonEmptyString,
         workspaceId: nonEmptyString,
@@ -115,7 +128,7 @@ export function registerTools(
           method: "POST",
           body: JSON.stringify({
             name: args.name,
-            workspaceId: args.workspaceId,
+            teamId: args.workspaceId,
             icon: args.icon,
             slug: args.slug,
           }),
@@ -240,7 +253,11 @@ export function registerTools(
   server.registerTool(
     "create_task",
     {
-      description: "Create a task in a project.",
+      description:
+        "Create a task in a project.\n\n" +
+        "Title: plain-English and human-readable (>=8 chars); never a branch name, ticket id, or SHA. Put urgency in priority and the executing role in requiredRole, not in the title.\n" +
+        "Description: inline the essential context with Markdown sections (## Context, ## Acceptance Criteria, ## Out of Scope). The description MUST contain an 'Acceptance Criteria' (or 验收标准) section.\n" +
+        'startDate/dueDate: ALWAYS schedule the task (ISO 8601, e.g. "2025-01-15"). Estimate dates from task size, priority, and dependencies; start from today when nothing else is known. Tasks without dates do not appear on the Gantt chart. A blocked or subordinate task must start on or after its blocker\'s dueDate. Effort over ~3 days should be split into a parent with subtasks.',
       inputSchema: z.object({
         projectId: nonEmptyString,
         title: nonEmptyString,
@@ -250,6 +267,7 @@ export function registerTools(
         startDate: optionalIsoDateTimeSchema,
         dueDate: optionalIsoDateTimeSchema,
         userId: optionalNonEmptyString,
+        requiredRole: agentRoleSchema.optional(),
       }),
     },
     async (args) => {
@@ -267,6 +285,9 @@ export function registerTools(
       }
       if (args.userId !== undefined) {
         body.userId = args.userId;
+      }
+      if (args.requiredRole !== undefined) {
+        body.requiredRole = args.requiredRole;
       }
       return run(() =>
         client.json(`/api/task/${encodeURIComponent(args.projectId)}`, {
@@ -423,23 +444,21 @@ export function registerTools(
   server.registerTool(
     "list_workspace_labels",
     {
-      description: "List labels defined in a workspace.",
+      description: "List labels defined in a team.",
       inputSchema: z.object({ workspaceId: nonEmptyString }),
     },
     async (args) =>
       run(() =>
-        client.json(
-          `/api/label/workspace/${encodeURIComponent(args.workspaceId)}`,
-          { method: "GET" },
-        ),
+        client.json(`/api/label/team/${encodeURIComponent(args.workspaceId)}`, {
+          method: "GET",
+        }),
       ),
   );
 
   server.registerTool(
     "create_label",
     {
-      description:
-        "Create a label in a workspace (optionally attach to a task).",
+      description: "Create a label in a team (optionally attach to a task).",
       inputSchema: z.object({
         name: nonEmptyString,
         color: hexColorSchema,
@@ -454,7 +473,7 @@ export function registerTools(
           body: JSON.stringify({
             name: args.name,
             color: args.color,
-            workspaceId: args.workspaceId,
+            teamId: args.workspaceId,
             ...(args.taskId !== undefined ? { taskId: args.taskId } : {}),
           }),
         }),
@@ -549,38 +568,28 @@ export function registerTools(
   server.registerTool(
     "delete_label",
     {
-      description:
-        "Delete a label by ID. Only task-associated labels can be deleted; workspace-level labels (taskId null) are rejected by the API.",
+      description: "Delete a label by ID (team-level or task-level).",
       inputSchema: z.object({ id: nonEmptyString }),
     },
     async (args) =>
-      run(async () => {
-        const label = (await client.json(
-          `/api/label/${encodeURIComponent(args.id)}`,
-          { method: "GET" },
-        )) as { taskId?: string | null };
-        if (!label?.taskId) {
-          throw new Error(
-            "Label is not associated with a task and cannot be deleted (workspace-level labels are not deletable via this endpoint).",
-          );
-        }
-        return client.json(`/api/label/${encodeURIComponent(args.id)}`, {
+      run(() =>
+        client.json(`/api/label/${encodeURIComponent(args.id)}`, {
           method: "DELETE",
-        });
-      }),
+        }),
+      ),
   );
 
   server.registerTool(
     "list_workspace_members",
     {
       description:
-        "List the members of a workspace. Use this to resolve the user ID an assignee tool expects.",
+        "List the members of a team. Use this to resolve the user ID an assignee tool expects.",
       inputSchema: z.object({ workspaceId: nonEmptyString }),
     },
     async (args) =>
       run(() =>
         client.json(
-          `/api/workspace/${encodeURIComponent(args.workspaceId)}/members`,
+          `/api/team/${encodeURIComponent(args.workspaceId)}/members`,
         ),
       ),
   );
@@ -589,21 +598,14 @@ export function registerTools(
     "search",
     {
       description:
-        "Search across tasks, projects, workspaces, comments, and activities.",
+        "Search across tasks, projects, teams, comments, and activities.",
       inputSchema: z.object({
         q: nonEmptyString.describe("Search query"),
         type: z
-          .enum([
-            "all",
-            "tasks",
-            "projects",
-            "workspaces",
-            "comments",
-            "activities",
-          ])
+          .enum(["all", "tasks", "projects", "teams", "comments", "activities"])
           .optional()
           .describe("Restrict results to one kind. Defaults to all."),
-        workspaceId: optionalNonEmptyString.describe("Limit to one workspace"),
+        workspaceId: optionalNonEmptyString.describe("Limit to one team"),
         projectId: optionalNonEmptyString.describe("Limit to one project"),
         limit: z
           .number()
@@ -617,7 +619,7 @@ export function registerTools(
     async (args) => {
       const qs = new URLSearchParams({ q: args.q });
       if (args.type) qs.set("type", args.type);
-      if (args.workspaceId) qs.set("workspaceId", args.workspaceId);
+      if (args.workspaceId) qs.set("teamId", args.workspaceId);
       if (args.projectId) qs.set("projectId", args.projectId);
       if (args.limit !== undefined) qs.set("limit", String(args.limit));
       return run(() => client.json(`/api/search?${qs.toString()}`));
@@ -655,7 +657,7 @@ export function registerTools(
     "update_task_assignee",
     {
       description:
-        "Assign a task to a workspace member, or pass a null userId to unassign it.",
+        "Assign a task to a team member, or pass a null userId to unassign it.",
       inputSchema: z.object({
         taskId: nonEmptyString,
         userId: nonEmptyString
@@ -784,5 +786,537 @@ export function registerTools(
       inputSchema: z.object({}),
     },
     async () => run(() => client.json("/api/notification")),
+  );
+
+  // ---------------------------------------------------------------------------
+  // VCS integration tools (GitHub / GitLab / Gitea)
+  // ---------------------------------------------------------------------------
+  const vcsTypeSchema = z
+    .enum(["github", "gitlab", "gitea"])
+    .describe("The VCS integration type to operate on");
+  const vcsProjectId = nonEmptyString.describe(
+    "Kaneo project ID whose active integration should be used",
+  );
+  const vcsIssueNumber = z
+    .number()
+    .int()
+    .positive()
+    .describe("Issue number in the configured repository");
+  const vcsStateSchema = z
+    .enum(["open", "closed", "all"])
+    .optional()
+    .describe("Issue state filter (defaults to open)");
+
+  const vcsBasePath = (type: string, projectId: string) =>
+    `/api/${type}-integration/vcs/${encodeURIComponent(projectId)}`;
+
+  server.registerTool(
+    "vcs_list_repositories",
+    {
+      description:
+        "List repositories accessible to the project's active VCS integration.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/repositories`),
+      ),
+  );
+
+  server.registerTool(
+    "vcs_list_issues",
+    {
+      description:
+        "List issues in the configured repository of the project's active VCS integration.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        state: vcsStateSchema,
+      }),
+    },
+    async (args) => {
+      const qs = args.state ? `?state=${args.state}` : "";
+      return run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/issues${qs}`),
+      );
+    },
+  );
+
+  server.registerTool(
+    "vcs_get_issue",
+    {
+      description:
+        "Get a single issue by number from the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}`,
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "vcs_list_issue_comments",
+    {
+      description: "List comments on an issue in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}/comments`,
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "vcs_list_pull_requests",
+    {
+      description:
+        "List open pull requests in the configured repository of the project's active VCS integration.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/pull-requests`),
+      ),
+  );
+
+  server.registerTool(
+    "vcs_list_labels",
+    {
+      description: "List labels defined in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/labels`),
+      ),
+  );
+
+  server.registerTool(
+    "vcs_create_issue",
+    {
+      description: "Create an issue in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        title: nonEmptyString.describe("Issue title"),
+        body: z.string().optional().describe("Issue body"),
+        closed: z.boolean().optional().describe("Create the issue as closed"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/issues`, {
+          method: "POST",
+          body: JSON.stringify({
+            title: args.title,
+            ...(args.body !== undefined ? { body: args.body } : {}),
+            ...(args.closed !== undefined ? { closed: args.closed } : {}),
+          }),
+        }),
+      ),
+  );
+
+  server.registerTool(
+    "vcs_update_issue",
+    {
+      description:
+        "Update an issue in the configured repository (title, body, or state).",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+        title: z.string().optional().describe("New issue title"),
+        body: z.string().nullable().optional().describe("New issue body"),
+        state: z
+          .enum(["open", "closed"])
+          .optional()
+          .describe("New issue state"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}`,
+          {
+            method: "PATCH",
+            body: JSON.stringify({
+              ...(args.title !== undefined ? { title: args.title } : {}),
+              ...(args.body !== undefined ? { body: args.body } : {}),
+              ...(args.state !== undefined ? { state: args.state } : {}),
+            }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "vcs_create_issue_comment",
+    {
+      description: "Add a comment to an issue in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+        body: nonEmptyString.describe("Comment body"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}/comments`,
+          {
+            method: "POST",
+            body: JSON.stringify({ body: args.body }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "vcs_create_label",
+    {
+      description: "Create a label in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        name: nonEmptyString.describe("Label name"),
+        color: hexColorSchema.describe("Label color as a hex value"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`${vcsBasePath(args.type, args.projectId)}/labels`, {
+          method: "POST",
+          body: JSON.stringify({ name: args.name, color: args.color }),
+        }),
+      ),
+  );
+
+  server.registerTool(
+    "vcs_add_labels_to_issue",
+    {
+      description: "Add labels to an issue in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+        labelIds: z
+          .array(z.number().int().positive())
+          .describe("Label IDs to add"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}/labels`,
+          {
+            method: "POST",
+            body: JSON.stringify({ labelIds: args.labelIds }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "vcs_replace_issue_labels",
+    {
+      description:
+        "Replace all labels on an issue in the configured repository with the given set.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+        labelIds: z
+          .array(z.number().int().positive())
+          .describe("Label IDs to set on the issue"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}/labels`,
+          {
+            method: "PUT",
+            body: JSON.stringify({ labelIds: args.labelIds }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "vcs_remove_label_from_issue",
+    {
+      description: "Remove a label from an issue in the configured repository.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+        number: vcsIssueNumber,
+        labelId: z.number().int().positive().describe("Label ID to remove"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `${vcsBasePath(args.type, args.projectId)}/issues/${args.number}/labels`,
+          {
+            method: "DELETE",
+            body: JSON.stringify({ labelId: args.labelId }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "vcs_import_issues",
+    {
+      description:
+        "Import issues from the project's active VCS integration into Kaneo tasks.",
+      inputSchema: z.object({
+        type: vcsTypeSchema,
+        projectId: vcsProjectId,
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(`/api/${args.type}-integration/import-issues`, {
+          method: "POST",
+          body: JSON.stringify({ projectId: args.projectId }),
+        }),
+      ),
+  );
+
+  // --- Agent working-directory tools ---
+  // These mirror the conversation tool set (apps/api/src/chat/tools.ts) and
+  // route through the same tool-execute endpoint so both MCP surfaces share
+  // the same working-directory sandboxing, clone, and command-gating logic.
+
+  server.registerTool(
+    "agent_clone_repo",
+    {
+      description:
+        "Clone the project's connected version-control repository into the agent working directory. If a clone already exists it is updated (pulled). Use this when asked to read, search, or analyze the project's source code.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({ tool: "agent_clone_repo", args: {} }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "agent_list_files",
+    {
+      description:
+        "List files and directories inside the agent working directory (which holds cloned repos and uploaded files).",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        path: z
+          .string()
+          .optional()
+          .describe(
+            "Relative path inside the working directory (default: root).",
+          ),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_list_files",
+              args: args.path !== undefined ? { path: args.path } : {},
+            }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "agent_read_file",
+    {
+      description:
+        "Read a text file inside the agent working directory. Optionally pass offset/limit to page large files.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        path: nonEmptyString.describe(
+          "Relative file path inside the working directory.",
+        ),
+        offset: z
+          .number()
+          .int()
+          .optional()
+          .describe("Line offset (0-based) for paging."),
+        limit: z
+          .number()
+          .int()
+          .optional()
+          .describe("Max lines to read from the offset."),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_read_file",
+              args: {
+                path: args.path,
+                ...(args.offset !== undefined ? { offset: args.offset } : {}),
+                ...(args.limit !== undefined ? { limit: args.limit } : {}),
+              },
+            }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "agent_write_file",
+    {
+      description:
+        "Write or overwrite a text file inside the agent working directory, creating parent directories as needed.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        path: nonEmptyString.describe(
+          "Relative file path inside the working directory.",
+        ),
+        content: nonEmptyString.describe("File content."),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_write_file",
+              args: { path: args.path, content: args.content },
+            }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "agent_search_files",
+    {
+      description:
+        "Recursively search the agent working directory by filename and/or content keyword. Returns matching files with line numbers for content matches.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        query: z
+          .string()
+          .optional()
+          .describe("Filename substring to match (optional)."),
+        content: z
+          .string()
+          .optional()
+          .describe("Content keyword to search for (optional)."),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_search_files",
+              args: {
+                ...(args.query !== undefined ? { query: args.query } : {}),
+                ...(args.content !== undefined
+                  ? { content: args.content }
+                  : {}),
+              },
+            }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "agent_delete_file",
+    {
+      description: "Delete a file inside the agent working directory.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        path: nonEmptyString.describe(
+          "Relative file path inside the working directory.",
+        ),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_delete_file",
+              args: { path: args.path },
+            }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "agent_run_command",
+    {
+      description:
+        "Run a shell command with the agent working directory as the working directory. Captures stdout/stderr and exit code. Only available when command execution is enabled.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+        command: nonEmptyString.describe("The shell command to run."),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              tool: "agent_run_command",
+              args: { command: args.command },
+            }),
+          },
+        ),
+      ),
   );
 }

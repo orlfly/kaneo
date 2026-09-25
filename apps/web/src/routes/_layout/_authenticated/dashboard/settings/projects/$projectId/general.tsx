@@ -40,7 +40,7 @@ import icons from "@/constants/project-icons";
 import useDeleteProject from "@/hooks/mutations/project/use-delete-project";
 import useUpdateProject from "@/hooks/mutations/project/use-update-project";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
-import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
+import useActiveTeam from "@/hooks/queries/team/use-active-team";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
@@ -109,7 +109,7 @@ function RouteComponent() {
   const [iconPopoverOpen, setIconPopoverOpen] = useState(false);
   const [iconSearch, setIconSearch] = useState("");
 
-  const { data: workspace } = useActiveWorkspace();
+  const { data: team } = useActiveTeam();
   const { projectId: rawProjectId } = useParams({ strict: false });
   const projectId = rawProjectId ?? "";
   const { data: fetchedProject } = useGetTasks(projectId);
@@ -202,10 +202,10 @@ function RouteComponent() {
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ["projects"] }),
           queryClient.invalidateQueries({
-            queryKey: ["projects", workspace?.id],
+            queryKey: ["projects", team?.id],
           }),
           queryClient.invalidateQueries({
-            queryKey: ["projects", workspace?.id, project.id],
+            queryKey: ["projects", team?.id, project.id],
           }),
         ]);
         toast.success(t("settings:projectGeneral.toastUpdated"));
@@ -234,7 +234,7 @@ function RouteComponent() {
       project?.icon,
       updateProject,
       queryClient,
-      workspace?.id,
+      team?.id,
       projectForm,
       t,
     ],
@@ -308,8 +308,8 @@ function RouteComponent() {
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
 
       navigate({
-        to: "/dashboard/workspace/$workspaceId",
-        params: { workspaceId: workspace?.id || "" },
+        to: "/dashboard/team/$teamId",
+        params: { teamId: team?.id || "" },
       });
     } catch (error) {
       toast.error(
@@ -318,7 +318,7 @@ function RouteComponent() {
           : t("settings:projectGeneral.toastDeleteError"),
       );
     }
-  }, [project?.id, deleteProject, queryClient, navigate, workspace?.id, t]);
+  }, [project?.id, deleteProject, queryClient, navigate, team?.id, t]);
 
   return (
     <>

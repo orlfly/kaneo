@@ -1,3 +1,4 @@
+import type { AgentRole } from "@kaneo/permissions";
 import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
@@ -9,10 +10,14 @@ async function updateTaskStatus({
   id,
   status,
   currentUserId,
+  agentRole,
+  agentKeyId,
 }: {
   id: string;
   status: string;
   currentUserId: string;
+  agentRole?: AgentRole;
+  agentKeyId?: string;
 }) {
   const existingTask = await db.query.taskTable.findFirst({
     where: eq(taskTable.id, id),
@@ -33,9 +38,74 @@ async function updateTaskStatus({
     ),
   });
 
+  const isReviewer = agentRole === "code-review";
+  const leavingInReview =
+    existingTask.status === "in-review" && status !== "in-review";
+  const hasReviewLock =
+    existingTask.reviewClaimedBy != null &&
+    existingTask.reviewClaimedBy === agentKeyId;
+  const lockHeldByOther =
+    existingTask.reviewClaimedBy != null &&
+    existingTask.reviewClaimedBy !== agentKeyId;
+
+  // Review ownership guard when pulling a task out of in-review:
+  // 1. A reviewer may only finish (or rework) a review it currently holds.
+  // 2. No agent may disrupt an in-flight review claimed by another reviewer.
+  //    This also stops an implementer and a different reviewer from hijacking
+  //    an active review. An unclaimed in-review task (no reviewer engaged) is
+  //    still withdrawable by the current agent (e.g. the submitter reverting).
+  if (leavingInReview) {
+    if (isReviewer && !hasReviewLock) {
+      throw new HTTPException(403, {
+        message: "Task review is not claimed by you",
+      });
+    }
+    if (lockHeldByOther) {
+      throw new HTTPException(403, {
+        message: "Task review is not claimed by you",
+      });
+    }
+  }
+
+  // A reviewer may finish the review (done) or hand the task back for rework
+  // (in-progress), but must never resubmit it to in-review (infinite loop).
+  if (isReviewer && status === "in-review") {
+    throw new HTTPException(409, {
+      message: "A reviewer cannot resubmit a task to in-review",
+    });
+  }
+
+  // When an agent changes status, keep the task's requiredRole aligned with
+  // the stage it is entering:
+  //   in-progress -> the agent's own role (except reviewer rework: null, so
+  //     the original implementer can pick it back up)
+  //   in-review   -> code-review (the reviewer)
+  //   done        -> null (completed, no longer needs a role)
+  // Other statuses leave requiredRole untouched.
+  let nextRequiredRole = existingTask.requiredRole;
+  if (agentRole !== undefined) {
+    if (status === "in-progress") {
+      nextRequiredRole = isReviewer ? null : agentRole;
+    } else if (status === "in-review") {
+      nextRequiredRole = "code-review";
+    } else if (status === "done") {
+      nextRequiredRole = null;
+    }
+  }
+
+  // Leaving in-review releases the review lock. The lock is only meaningful
+  // while a task is under review, so clear it on any non-in-review status.
+  const releaseReviewLock = status !== "in-review";
+
   const [updatedTask] = await db
     .update(taskTable)
-    .set({ status, columnId: column?.id ?? null })
+    .set({
+      status,
+      columnId: column?.id ?? null,
+      requiredRole: nextRequiredRole,
+      reviewClaimedBy: releaseReviewLock ? null : existingTask.reviewClaimedBy,
+      reviewClaimedAt: releaseReviewLock ? null : existingTask.reviewClaimedAt,
+    })
     .where(eq(taskTable.id, id))
     .returning();
 

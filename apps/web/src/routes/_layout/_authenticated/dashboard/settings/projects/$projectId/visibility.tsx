@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import useUpdateProject from "@/hooks/mutations/project/use-update-project";
 import useGetProject from "@/hooks/queries/project/use-get-project";
-import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
+import useActiveTeam from "@/hooks/queries/team/use-active-team";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { toast } from "@/lib/toast";
 
@@ -23,10 +23,10 @@ export const Route = createFileRoute(
 function RouteComponent() {
   const { t } = useTranslation();
   const { projectId } = useParams({ strict: false });
-  const { data: workspace } = useActiveWorkspace();
+  const { data: team } = useActiveTeam();
   const { data: project } = useGetProject({
     id: projectId || "",
-    workspaceId: workspace?.id || "",
+    teamId: team?.id || "",
   });
 
   const queryClient = useQueryClient();
@@ -63,10 +63,10 @@ function RouteComponent() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["projects"] }),
         queryClient.invalidateQueries({
-          queryKey: ["projects", workspace?.id],
+          queryKey: ["projects", team?.id],
         }),
         queryClient.invalidateQueries({
-          queryKey: ["projects", workspace?.id, project.id],
+          queryKey: ["projects", team?.id, project.id],
         }),
       ]);
       toast.success(t("settings:projectVisibility.toastUpdated"));
@@ -79,7 +79,7 @@ function RouteComponent() {
     } finally {
       savingRef.current = false;
     }
-  }, [project, updateProject, queryClient, workspace?.id, t]);
+  }, [project, updateProject, queryClient, team?.id, t]);
 
   const origin = window.location.origin;
 

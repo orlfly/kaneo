@@ -5,16 +5,13 @@ import { createApp } from "../../apps/api/src/index";
 import * as taskController from "../../apps/api/src/task/controllers/get-tasks";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 beforeEach(resetTestDatabase);
 async function fixture(count = 237, publicProject = false) {
-  const member = await createWorkspaceMember();
+  const member = await createTeamMember();
   const { project } = await createProjectFixture({
-    workspaceId: member.workspace.id,
+    teamId: member.team.id,
   });
   if (publicProject)
     await db
@@ -94,7 +91,7 @@ describe("bounded task pages", () => {
     await db.insert(schema.labelTable).values({
       name: "late-page-label",
       color: "red",
-      workspaceId: member.workspace.id,
+      teamId: member.team.id,
       taskId: task.id,
     });
     await db.insert(schema.externalLinkTable).values({
@@ -142,7 +139,7 @@ describe("bounded task pages", () => {
   });
   it("rejects another workspace before returning any page", async () => {
     const { project, app } = await fixture();
-    const other = await createWorkspaceMember();
+    const other = await createTeamMember();
     mockAuthenticatedSession(other.user);
     const response = await app.request(`/api/task/tasks/${project.id}?page=2`);
     expect(response.status).toBe(403);

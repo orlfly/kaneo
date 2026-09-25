@@ -13,13 +13,13 @@ async function createTaskRelation({
   targetTaskId,
   relationType,
   userId,
-  workspaceId,
+  teamId,
 }: {
   sourceTaskId: string;
   targetTaskId: string;
   relationType: string;
   userId: string;
-  workspaceId: string;
+  teamId: string;
 }) {
   if (sourceTaskId === targetTaskId) {
     throw new HTTPException(400, {
@@ -31,16 +31,11 @@ async function createTaskRelation({
     .select({
       id: taskTable.id,
       projectId: taskTable.projectId,
-      workspaceId: projectTable.workspaceId,
+      teamId: projectTable.teamId,
     })
     .from(taskTable)
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-    .where(
-      and(
-        eq(taskTable.id, sourceTaskId),
-        eq(projectTable.workspaceId, workspaceId),
-      ),
-    )
+    .where(and(eq(taskTable.id, sourceTaskId), eq(projectTable.teamId, teamId)))
     .limit(1);
 
   if (!sourceTask) {
@@ -51,16 +46,11 @@ async function createTaskRelation({
     .select({
       id: taskTable.id,
       projectId: taskTable.projectId,
-      workspaceId: projectTable.workspaceId,
+      teamId: projectTable.teamId,
     })
     .from(taskTable)
     .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-    .where(
-      and(
-        eq(taskTable.id, targetTaskId),
-        eq(projectTable.workspaceId, workspaceId),
-      ),
-    )
+    .where(and(eq(taskTable.id, targetTaskId), eq(projectTable.teamId, teamId)))
     .limit(1);
 
   if (!targetTask) {

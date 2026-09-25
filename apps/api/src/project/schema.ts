@@ -2,10 +2,10 @@ import { z } from "../openapi";
 
 export const projectParam = z.object({ id: z.string() });
 
-export const workspaceIdQuery = z.object({ workspaceId: z.string() });
+export const teamIdQuery = z.object({ teamId: z.string() });
 
 export const listProjectsQuery = z.object({
-  workspaceId: z.string(),
+  teamId: z.string(),
   includeArchived: z.string().optional().openapi({
     description: 'Pass "true" to include archived projects in the list.',
   }),
@@ -13,7 +13,7 @@ export const listProjectsQuery = z.object({
 
 export const createProjectBody = z.object({
   name: z.string(),
-  workspaceId: z.string(),
+  teamId: z.string(),
   icon: z.string(),
   slug: z.string(),
 });

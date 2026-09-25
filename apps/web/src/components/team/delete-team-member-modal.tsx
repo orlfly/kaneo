@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Trash2, X } from "lucide-react";
-import useDeleteWorkspaceUser from "@/hooks/mutations/workspace-user/use-delete-workspace-user";
-import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
+import useDeleteTeamMember from "@/hooks/mutations/team-member/use-delete-team-member";
+import useActiveTeam from "@/hooks/queries/team/use-active-team";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { Button } from "../ui/button";
 import { Dialog, DialogClose, DialogPopup, DialogTitle } from "../ui/dialog";
@@ -15,22 +15,22 @@ function DeleteTeamMemberModal({
   open: boolean;
   onClose: () => void;
 }) {
-  const { data: workspace } = useActiveWorkspace();
-  const workspaceId = workspace?.id ?? "";
-  const { mutateAsync: deleteWorkspaceUser } = useDeleteWorkspaceUser();
+  const { data: team } = useActiveTeam();
+  const teamId = team?.id ?? "";
+  const { mutateAsync: deleteTeamMember } = useDeleteTeamMember();
   const queryClient = useQueryClient();
   const { canRemoveMembers } = useWorkspacePermission();
   const canRemove = canRemoveMembers();
 
   const onRemoveMember = async () => {
     if (!canRemove) return;
-    await deleteWorkspaceUser({
-      workspaceId,
+    await deleteTeamMember({
+      teamId,
       userId,
     });
 
     queryClient.invalidateQueries({
-      queryKey: ["workspace-users"],
+      queryKey: ["team-members", teamId],
     });
 
     onClose();

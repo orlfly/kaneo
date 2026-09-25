@@ -7,10 +7,7 @@ import moveTask from "../../apps/api/src/task/controllers/move-task";
 import { MAX_TASK_POSITION } from "../../apps/api/src/task/controllers/next-task-position";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 vi.mock("../../apps/api/src/events", async (original) => ({
   ...(await original<object>()),
@@ -20,9 +17,9 @@ beforeEach(async () => {
   await resetTestDatabase();
 });
 async function setup() {
-  const member = await createWorkspaceMember();
+  const member = await createTeamMember();
   const { project, columns } = await createProjectFixture({
-    workspaceId: member.workspace.id,
+    teamId: member.team.id,
   });
   mockAuthenticatedSession(member.user);
   const [task] = await db
@@ -140,9 +137,9 @@ describe("task position bounds and legacy recovery", () => {
   });
 
   it("recovers an overflowed destination when moving a task", async () => {
-    const { project, user, workspace, task } = await setup();
+    const { project, user, team, task } = await setup();
     const { project: destination, columns } = await createProjectFixture({
-      workspaceId: workspace.id,
+      teamId: team.id,
     });
     const [poisoned] = await db
       .insert(schema.taskTable)

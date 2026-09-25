@@ -10,7 +10,7 @@ function useCreateLabel() {
     mutationFn: createLabel,
     onSuccess: (createdLabel, variables: CreateLabelRequest) => {
       queryClient.setQueryData(
-        ["labels", variables.workspaceId],
+        ["labels", variables.teamId],
         (existingLabels: Array<typeof createdLabel> | undefined) => {
           if (!existingLabels) return [createdLabel];
 
@@ -48,7 +48,7 @@ function useCreateLabel() {
       }
 
       void queryClient.invalidateQueries({
-        queryKey: ["labels", variables.workspaceId],
+        queryKey: ["labels", variables.teamId],
       });
 
       if (createdLabel.taskId) {

@@ -4,7 +4,7 @@ import { boardColumnSchema, boardTaskSchema } from "../task/response";
 export const projectSchema = z
   .object({
     id: z.string(),
-    workspaceId: z.string(),
+    teamId: z.string(),
     slug: z.string().openapi({
       description: "Short prefix used in task identifiers, e.g. KAN-12.",
     }),

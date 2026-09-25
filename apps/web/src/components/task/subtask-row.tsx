@@ -14,14 +14,15 @@ type SubtaskRowProps = {
   task: Task;
   tasks: Task[];
   projectId: string;
-  workspaceId: string;
+  teamId: string;
   isSelected: boolean;
   isFocused: boolean;
   isCompleted: boolean;
   canEdit: boolean;
   selectionRadius: string;
   assignee: {
-    user?: { image?: string | null; name?: string | null } | null;
+    image?: string | null;
+    name?: string | null;
   } | null;
   onToggleComplete: () => void;
   onNavigate: () => void;
@@ -32,7 +33,7 @@ export default function SubtaskRow({
   task,
   tasks,
   projectId,
-  workspaceId,
+  teamId,
   isSelected,
   isFocused,
   isCompleted,
@@ -96,7 +97,7 @@ export default function SubtaskRow({
               </span>
             </button>
 
-            <SubtaskAssigneePopover tasks={tasks} workspaceId={workspaceId}>
+            <SubtaskAssigneePopover tasks={tasks} teamId={teamId}>
               <button
                 type="button"
                 className="shrink-0 flex items-center justify-center rounded p-0.5 transition-colors outline-none"
@@ -104,11 +105,11 @@ export default function SubtaskRow({
                 {task.userId && assignee ? (
                   <Avatar className="h-5 w-5">
                     <AvatarImage
-                      src={assignee?.user?.image ?? ""}
-                      alt={assignee?.user?.name || ""}
+                      src={assignee?.image ?? ""}
+                      alt={assignee?.name || ""}
                     />
                     <AvatarFallback className="text-[9px] font-medium border border-border/30">
-                      {getInitials(assignee?.user?.name)}
+                      {getInitials(assignee?.name)}
                     </AvatarFallback>
                   </Avatar>
                 ) : (
@@ -130,7 +131,7 @@ export default function SubtaskRow({
           task={task}
           taskCardContext={{
             projectId,
-            worskpaceId: workspaceId,
+            teamId: teamId,
           }}
           onDeleteClick={onDeleteClick}
         />

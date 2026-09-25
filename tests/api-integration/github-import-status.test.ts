@@ -3,10 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import db, { schema } from "../../apps/api/src/database";
 import { importIssues } from "../../apps/api/src/github-integration/controllers/import-issues";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 const m = vi.hoisted(() => ({ labels: [] as string[] }));
 vi.mock("../../apps/api/src/plugins/github/utils/github-app", () => ({
@@ -61,9 +58,9 @@ beforeEach(async () => {
   m.labels = [];
 });
 async function setup() {
-  const { user, workspace } = await createWorkspaceMember();
+  const { user, team: workspace } = await createTeamMember();
   const { project, columns } = await createProjectFixture({
-    workspaceId: workspace.id,
+    teamId: workspace.id,
   });
   const [integration] = await db
     .insert(schema.integrationTable)
@@ -168,7 +165,7 @@ describe("GitHub import project workflow validation", () => {
   it("does not mutate another project's task through a legacy external link", async () => {
     const { project, integration, workspace } = await setup();
     const { project: other } = await createProjectFixture({
-      workspaceId: workspace.id,
+      teamId: workspace.id,
     });
     const [task] = await db
       .insert(schema.taskTable)

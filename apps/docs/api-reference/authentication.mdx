@@ -78,7 +78,7 @@ Authorization: Bearer your-api-key-here
 Here's an example of making an authenticated API request using curl:
 
 ```bash
-curl -X GET https://your-kaneo-instance.com/api/task?workspaceId=your-workspace-id \
+curl -X GET https://your-kaneo-instance.com/api/task?teamId=your-team-id \
   -H "Authorization: Bearer your-api-key-here" \
   -H "Content-Type: application/json"
 ```
@@ -86,7 +86,7 @@ curl -X GET https://your-kaneo-instance.com/api/task?workspaceId=your-workspace-
 ### Example with JavaScript
 
 ```javascript
-const response = await fetch('https://your-kaneo-instance.com/api/task?workspaceId=your-workspace-id', {
+const response = await fetch('https://your-kaneo-instance.com/api/task?teamId=your-team-id', {
   method: 'GET',
   headers: {
     'Authorization': 'Bearer your-api-key-here',
@@ -162,7 +162,7 @@ Once approved, Kaneo returns an access token:
 ### Use the returned token
 
 ```bash
-curl -X GET https://your-kaneo-instance.com/api/task?workspaceId=your-workspace-id \
+curl -X GET https://your-kaneo-instance.com/api/task?teamId=your-team-id \
   -H "Authorization: Bearer your-access-token"
 ```
 

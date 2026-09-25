@@ -11,15 +11,21 @@ async function getTask(taskId: string) {
       number: taskTable.number,
       description: taskTable.description,
       status: taskTable.status,
+      columnId: taskTable.columnId,
       priority: taskTable.priority,
       startDate: taskTable.startDate,
       dueDate: taskTable.dueDate,
       position: taskTable.position,
       createdAt: taskTable.createdAt,
       userId: taskTable.userId,
+      claimedBy: taskTable.claimedBy,
+      claimedAt: taskTable.claimedAt,
+      reviewClaimedBy: taskTable.reviewClaimedBy,
+      reviewClaimedAt: taskTable.reviewClaimedAt,
       assigneeName: userTable.name,
       assigneeId: userTable.id,
       projectId: taskTable.projectId,
+      requiredRole: taskTable.requiredRole,
     })
     .from(taskTable)
     .leftJoin(userTable, eq(taskTable.userId, userTable.id))

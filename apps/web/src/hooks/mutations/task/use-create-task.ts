@@ -17,6 +17,7 @@ function useCreateTask() {
       dueDate,
       priority,
       customFields,
+      requiredRole,
     }: CreateTaskRequest) =>
       createTask(
         title,
@@ -28,6 +29,7 @@ function useCreateTask() {
         dueDate ? new Date(dueDate) : undefined,
         priority,
         customFields,
+        requiredRole,
       ),
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({

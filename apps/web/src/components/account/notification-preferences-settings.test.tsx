@@ -33,7 +33,7 @@ const preferences = {
   taskStatusChangeEnabled: true,
   dueDateReminderEnabled: true,
   dueDateReminderLeadTimeMinutes: 1440,
-  workspaces: [],
+  teams: [],
   createdAt: null,
   updatedAt: null,
 };
@@ -52,7 +52,7 @@ vi.mock(
   }),
 );
 
-vi.mock("@/hooks/queries/workspace/use-get-workspaces", () => ({
+vi.mock("@/hooks/queries/team/use-get-teams", () => ({
   default: () => ({ data: [] }),
 }));
 
@@ -63,8 +63,8 @@ vi.mock(
       mutateAsync: updatePreferences,
       isPending: false,
     }),
-    useUpsertNotificationWorkspaceRule: () => ({ mutateAsync: vi.fn() }),
-    useDeleteNotificationWorkspaceRule: () => ({ mutateAsync: vi.fn() }),
+    useUpsertNotificationTeamRule: () => ({ mutateAsync: vi.fn() }),
+    useDeleteNotificationTeamRule: () => ({ mutateAsync: vi.fn() }),
   }),
 );
 

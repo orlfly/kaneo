@@ -5,10 +5,7 @@ import { createApp } from "../../apps/api/src/index";
 import { handleLabelCreated } from "../../apps/api/src/plugins/github/webhooks/label-created";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
-import {
-  createProjectFixture,
-  createWorkspaceMember,
-} from "./helpers/fixtures";
+import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 const m = vi.hoisted(() => ({ installation: vi.fn(), permission: vi.fn() }));
 vi.mock("../../apps/api/src/plugins/github/utils/github-app", () => ({
@@ -36,9 +33,9 @@ beforeEach(async () => {
 });
 
 async function fixture(role = "admin") {
-  const member = await createWorkspaceMember({ role });
+  const member = await createTeamMember({ role });
   const { project } = await createProjectFixture({
-    workspaceId: member.workspace.id,
+    teamId: member.team.id,
   });
   return { ...member, project };
 }
@@ -149,7 +146,7 @@ describe("GitHub binding HTTP and webhook tenant boundaries", () => {
     m.permission.mockResolvedValue({ data: { permission: "read" } });
     const forbidden = await connect(owners[1].project.id);
     expect(forbidden.status).toBe(403);
-    expect(await forbidden.text()).not.toContain(owners[0].workspace.id);
+    expect(await forbidden.text()).not.toContain(owners[0].team.id);
   });
 
   it("an actual label webhook mutates only a verified matching active tenant", async () => {
@@ -198,7 +195,7 @@ describe("GitHub binding HTTP and webhook tenant boundaries", () => {
     const labels = await db.query.labelTable.findMany();
     expect(labels).toHaveLength(1);
     expect(labels[0]).toMatchObject({
-      workspaceId: tenants[0].workspace.id,
+      teamId: tenants[0].team.id,
       name: "Provider label",
     });
     await handleLabelCreated({

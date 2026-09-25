@@ -10,6 +10,10 @@ export type ApiKey = {
   userId: string;
   enabled: boolean;
   permissions: Record<string, string[]> | null;
+  metadata: Record<string, unknown> | null;
+  agentRole: import("./utils/agent-role").ApiKeyContext["agentRole"];
+  /** Project the key is bound to, or null when the key spans all projects. */
+  projectId: string | null;
 };
 
 export type BaseVariables = {
