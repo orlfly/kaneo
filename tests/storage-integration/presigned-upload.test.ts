@@ -64,7 +64,7 @@ afterAll(async () => {
 
 function presign(size = 12) {
   return createTaskImageUploadUrl({
-    workspaceId: "local",
+    teamId: "local",
     projectId: "local",
     taskId: "local",
     surface: "description",
