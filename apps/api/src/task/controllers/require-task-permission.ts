@@ -1,14 +1,9 @@
 import { eq } from "drizzle-orm";
 import type { Context, Next } from "hono";
+import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { taskTable } from "../../database/schema";
 import { requireWorkspacePermission } from "../../utils/require-workspace-permission";
-
-type TaskEnv = {
-  Variables: {
-    userId: string;
-  };
-};
 
 type BulkTaskOperation =
   | "updateStatus"
@@ -19,28 +14,40 @@ type BulkTaskOperation =
   | "removeLabel"
   | "updateDueDate";
 
-type BulkTaskContext = Context<
-  TaskEnv,
-  string,
-  { out: { json: { operation: BulkTaskOperation } } }
->;
+const BULK_OPERATIONS: readonly BulkTaskOperation[] = [
+  "updateStatus",
+  "updatePriority",
+  "updateAssignee",
+  "delete",
+  "addLabel",
+  "removeLabel",
+  "updateDueDate",
+];
 
-type TaskAssigneeContext = Context<
-  TaskEnv,
-  string,
-  {
-    out: {
-      param: { id: string };
-      json: { userId?: string };
-    };
+// Route middleware runs before the validators, so c.req.valid() is unavailable.
+async function readJsonBody(c: Context): Promise<Record<string, unknown>> {
+  const raw = (await c.req.json().catch(() => ({}))) as unknown;
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+    return {};
   }
->;
+  return raw as Record<string, unknown>;
+}
 
-export async function requireBulkTaskPermission(
-  c: BulkTaskContext,
-  next: Next,
-) {
-  const { operation } = c.req.valid("json");
+async function bulkOperation(c: Context): Promise<BulkTaskOperation> {
+  const { operation } = await readJsonBody(c);
+  if (
+    typeof operation !== "string" ||
+    !(BULK_OPERATIONS as readonly string[]).includes(operation)
+  ) {
+    throw new HTTPException(400, {
+      message: `operation must be one of: ${BULK_OPERATIONS.join(", ")}`,
+    });
+  }
+  return operation as BulkTaskOperation;
+}
+
+export async function requireBulkTaskPermission(c: Context, next: Next) {
+  const operation = await bulkOperation(c);
 
   if (operation === "delete") {
     return requireWorkspacePermission({ task: ["delete"] })(c, next);
@@ -57,29 +64,25 @@ export async function requireBulkTaskPermission(
   return requireWorkspacePermission({ task: ["update"] })(c, next);
 }
 
-export async function requireBulkTaskEntitlement(
-  c: BulkTaskContext,
-  next: Next,
-) {
+export async function requireBulkTaskEntitlement(c: Context, next: Next) {
   // Billing was removed alongside the workspace concept. Operations that used
   // to gate on entitlement now pass through without re-checking.
   void c;
   return next();
 }
 
-export async function requireTaskAssigneePermission(
-  c: TaskAssigneeContext,
-  next: Next,
-) {
-  const { id } = c.req.valid("param");
-  const { userId } = c.req.valid("json");
+export async function requireTaskAssigneePermission(c: Context, next: Next) {
+  const id = c.req.param("id");
+  const { userId } = await readJsonBody(c);
+  const nextAssignee = typeof userId === "string" ? userId : null;
+
   const [existingTask] = await db
     .select({ userId: taskTable.userId })
     .from(taskTable)
-    .where(eq(taskTable.id, id))
+    .where(eq(taskTable.id, id ?? ""))
     .limit(1);
 
-  if (existingTask && existingTask.userId !== (userId || null)) {
+  if (existingTask && existingTask.userId !== nextAssignee) {
     return requireWorkspacePermission({ task: ["assign"] })(c, next);
   }
 

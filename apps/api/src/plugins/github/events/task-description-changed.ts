@@ -1,5 +1,5 @@
 import type { PluginContext, TaskDescriptionChangedEvent } from "../../types";
-import type { GitHubConfig } from "../config";
+import { type GitHubConfig, hasVerifiedGitHubBinding } from "../config";
 import {
   findExternalLinksByTask,
   updateExternalLink,
@@ -12,6 +12,7 @@ export async function handleTaskDescriptionChanged(
   context: PluginContext,
 ): Promise<void> {
   const config = context.config as GitHubConfig;
+  if (!hasVerifiedGitHubBinding(config)) return;
   const { repositoryOwner, repositoryName } = config;
 
   const octokit = await getRepoOctokit(config);
@@ -58,6 +59,10 @@ export async function handleTaskDescriptionChanged(
       }
     }
 
+    const octokit = await getRepoOctokit(config);
+    if (!octokit) {
+      return;
+    }
     const issueNumber = Number.parseInt(issueLink.externalId, 10);
 
     // Format description with task ID footer

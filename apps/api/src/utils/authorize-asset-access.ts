@@ -5,7 +5,13 @@ import { validateWorkspaceAccess } from "./validate-workspace-access";
 type AssetAccessTarget = {
   teamId: string;
   isPublic: boolean | null;
+  surface: string;
 };
+
+/** Only description assets belong to the public project representation. */
+export function isPublicAsset(asset: AssetAccessTarget): boolean {
+  return asset.isPublic === true && asset.surface === "description";
+}
 
 /**
  * Authorizes a request for a stored asset.
@@ -20,7 +26,7 @@ export async function authorizeAssetAccess(
   c: Context,
   asset: AssetAccessTarget,
 ): Promise<void> {
-  if (asset.isPublic) {
+  if (isPublicAsset(asset)) {
     return;
   }
 

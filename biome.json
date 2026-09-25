@@ -58,6 +58,12 @@
 			}
 		}
 	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "double",
+			"indentStyle": "space"
+		}
+	},
 	"overrides": [
 		{
 			"includes": ["tests/**"],
@@ -74,12 +80,17 @@
 					"performance": { "noImgElement": "off" }
 				}
 			}
+		},
+		{
+			"includes": ["release.config.js", "scripts/release/*.mjs"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noTemplateCurlyInString": "off",
+						"noUndeclaredEnvVars": "off"
+					}
+				}
+			}
 		}
-	],
-	"javascript": {
-		"formatter": {
-			"quoteStyle": "double",
-			"indentStyle": "space"
-		}
-	}
+	]
 }

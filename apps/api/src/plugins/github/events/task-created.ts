@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import db from "../../../database";
 import { projectTable } from "../../../database/schema";
 import type { PluginContext, TaskCreatedEvent } from "../../types";
-import type { GitHubConfig } from "../config";
+import { type GitHubConfig, hasVerifiedGitHubBinding } from "../config";
 import {
   createExternalLink,
   findExternalLinkByTaskAndType,
@@ -20,6 +20,7 @@ export async function handleTaskCreated(
   context: PluginContext,
 ): Promise<void> {
   const config = context.config as GitHubConfig;
+  if (!hasVerifiedGitHubBinding(config)) return;
   const { repositoryOwner, repositoryName } = config;
 
   const existingLink = await findExternalLinkByTaskAndType(

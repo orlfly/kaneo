@@ -17,16 +17,13 @@ async function updateProject(
     .from(projectTable)
     .where(and(eq(projectTable.id, id), eq(projectTable.teamId, teamId)));
 
-  const isProjectExisting = Boolean(existingProject);
-
-  if (!isProjectExisting) {
+  if (!existingProject) {
     throw new HTTPException(404, {
-      message:
-        "Project doesn't exist or doesn't belong to the specified workspace",
+      message: "Project doesn't exist or doesn't belong to the specified team",
     });
   }
 
-  const [updatedWorkspace] = await db
+  const [updatedProject] = await db
     .update(projectTable)
     .set({
       name,
@@ -38,7 +35,7 @@ async function updateProject(
     .where(eq(projectTable.id, id))
     .returning();
 
-  return updatedWorkspace;
+  return updatedProject;
 }
 
 export default updateProject;

@@ -1,4 +1,4 @@
-import { and, eq, isNotNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { labelTable } from "../../database/schema";
@@ -15,10 +15,15 @@ async function updateLabel(id: string, name: string, color: string) {
       });
     }
 
+    if (label.deletionStartedAt)
+      throw new HTTPException(409, {
+        message: "This label is being deleted; resume its deletion instead",
+      });
+
     const [updatedLabel] = await tx
       .update(labelTable)
       .set({ name, color })
-      .where(eq(labelTable.id, id))
+      .where(and(eq(labelTable.id, id), isNull(labelTable.deletionStartedAt)))
       .returning();
 
     // If this is a team-level label, cascade the changes to all

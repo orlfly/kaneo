@@ -1,1 +1,0 @@
-ALTER TABLE "task" ADD COLUMN IF NOT EXISTS "required_role" text;

@@ -18,7 +18,8 @@ type TeamIdSource =
         | "activity"
         | "comment"
         | "column"
-        | "workflowRule";
+        | "workflowRule"
+        | "customField";
       idKey: string;
     }
   | {
@@ -176,7 +177,8 @@ async function lookupTeamAndProjectId(
     | "activity"
     | "comment"
     | "column"
-    | "workflowRule",
+    | "workflowRule"
+    | "customField",
   id: string,
 ): Promise<{ teamId: string | null; projectId: string | null } | null> {
   try {
@@ -212,10 +214,27 @@ async function lookupTeamAndProjectId(
 
       case "label": {
         const [label] = await db
-          .select({ teamId: schema.labelTable.teamId })
+          .select({
+            teamId: schema.labelTable.teamId,
+            taskId: schema.labelTable.taskId,
+            taskTeamId: schema.projectTable.teamId,
+          })
           .from(schema.labelTable)
+          .leftJoin(
+            schema.taskTable,
+            eq(schema.labelTable.taskId, schema.taskTable.id),
+          )
+          .leftJoin(
+            schema.projectTable,
+            eq(schema.taskTable.projectId, schema.projectTable.id),
+          )
           .where(eq(schema.labelTable.id, id))
           .limit(1);
+        // Older releases allowed inconsistent label/task references. Never use
+        // such a row to authorize reads, mutations or external provider sync.
+        if (label?.taskId && label.taskTeamId !== label.teamId) {
+          return null;
+        }
         return label ? { teamId: label.teamId || null, projectId: null } : null;
       }
 
@@ -326,6 +345,24 @@ async function lookupTeamAndProjectId(
           .limit(1);
         return workflowRule
           ? { teamId: workflowRule.teamId || null, projectId: null }
+          : null;
+      }
+
+      case "customField": {
+        const [customField] = await db
+          .select({ teamId: schema.projectTable.teamId })
+          .from(schema.customFieldDefinitionTable)
+          .innerJoin(
+            schema.projectTable,
+            eq(
+              schema.customFieldDefinitionTable.projectId,
+              schema.projectTable.id,
+            ),
+          )
+          .where(eq(schema.customFieldDefinitionTable.id, id))
+          .limit(1);
+        return customField
+          ? { teamId: customField.teamId || null, projectId: null }
           : null;
       }
 

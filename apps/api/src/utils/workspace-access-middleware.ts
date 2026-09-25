@@ -144,4 +144,17 @@ export const workspaceAccess = {
         { type: "query", key: "teamId" },
       ],
     }),
+
+  fromCustomField: (idKey = "id") =>
+    teamAccessMiddleware({
+      sources: [{ type: "lookup", resource: "customField", idKey }],
+    }),
+
+  fromProjectId: (idKey = "projectId") =>
+    teamAccessMiddleware({
+      sources: [
+        { type: "lookup", resource: "project", idKey },
+        { type: "query", key: "teamId" },
+      ],
+    }),
 };

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { and, eq, gt, isNull, or } from "drizzle-orm";
+import { and, eq, exists, gt, isNull, or, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db, { schema } from "../database";
 import { resolveProjectId } from "./agent-role";
@@ -48,6 +48,18 @@ export async function verifyApiKey(key: string) {
       and(
         eq(schema.apikeyTable.key, hashedKey),
         eq(schema.apikeyTable.enabled, true),
+        // Fail closed even before legacy databases finish the repair migration.
+        exists(
+          db
+            .select({ id: schema.userTable.id })
+            .from(schema.userTable)
+            .where(
+              eq(
+                schema.userTable.id,
+                sql`coalesce(${schema.apikeyTable.referenceId}, ${schema.apikeyTable.userId})`,
+              ),
+            ),
+        ),
         or(
           isNull(schema.apikeyTable.expiresAt),
           gt(schema.apikeyTable.expiresAt, new Date()),

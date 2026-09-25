@@ -1,12 +1,47 @@
 import type { AgentRole } from "@kaneo/permissions";
-import { and, eq, max } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
-import { columnTable, taskTable, userTable } from "../../database/schema";
+import {
+  columnTable,
+  customFieldDefinitionTable,
+  customFieldValueTable,
+  taskTable,
+  userTable,
+} from "../../database/schema";
 import { publishEvent } from "../../events";
-import { assertValidTaskStatus } from "../validate-task-fields";
+import {
+  assertAssignableUser,
+  getProjectTeamId,
+} from "../../utils/assert-assignable-user";
+import {
+  assertRequiredCustomFields,
+  assertValidTaskStatus,
+} from "../validate-task-fields";
 import { claimTaskNumber } from "./claim-task-numbers";
+import { nextTaskPosition } from "./next-task-position";
 import { withTaskNumberRetry } from "./with-task-number-retry";
+
+type CustomFieldInput = {
+  fieldId: string;
+  value: string;
+};
+
+function deduplicateCustomFields(
+  customFields?: CustomFieldInput[],
+): CustomFieldInput[] | undefined {
+  if (!customFields) {
+    return undefined;
+  }
+
+  const fieldsById = new Map<string, CustomFieldInput>();
+
+  for (const customField of customFields) {
+    fieldsById.set(customField.fieldId, customField);
+  }
+
+  return Array.from(fieldsById.values());
+}
 
 async function createTask({
   projectId,
@@ -18,6 +53,7 @@ async function createTask({
   dueDate,
   description,
   priority,
+  customFields,
   requiredRole,
   agentRole,
 }: {
@@ -30,6 +66,7 @@ async function createTask({
   dueDate?: Date;
   description?: string;
   priority?: string;
+  customFields?: CustomFieldInput[];
   requiredRole?: string | null;
   agentRole?: AgentRole;
 }) {
@@ -38,20 +75,48 @@ async function createTask({
   // When an agent creates a task without an explicit requiredRole, default it
   // to the agent's own role so the same-role agent handles it.
   const resolvedRequiredRole = requiredRole ?? agentRole ?? null;
+  const normalizedCustomFields = deduplicateCustomFields(customFields);
 
   const normalizedUserId = userId?.trim() || undefined;
 
   await assertValidTaskStatus(resolvedStatus, projectId);
 
-  const [assignee] = await db
-    .select({ name: userTable.name })
-    .from(userTable)
-    .where(eq(userTable.id, normalizedUserId ?? ""));
+  const allFields = await db
+    .select()
+    .from(customFieldDefinitionTable)
+    .where(eq(customFieldDefinitionTable.projectId, projectId));
 
-  if (normalizedUserId && !assignee) {
-    throw new HTTPException(404, {
-      message: "Assignee not found",
-    });
+  const mergedCustomFields: CustomFieldInput[] = normalizedCustomFields ?? [];
+  const providedFieldIds = new Set(mergedCustomFields.map((f) => f.fieldId));
+
+  for (const field of allFields) {
+    if (
+      !providedFieldIds.has(field.id) &&
+      field.required &&
+      field.defaultValue != null &&
+      field.defaultValue.trim() !== ""
+    ) {
+      mergedCustomFields.push({
+        fieldId: field.id,
+        value: field.defaultValue,
+      });
+    }
+  }
+
+  await assertRequiredCustomFields(projectId, mergedCustomFields);
+
+  let assignee: { name: string } | undefined;
+
+  if (normalizedUserId) {
+    await assertAssignableUser(
+      normalizedUserId,
+      await getProjectTeamId(projectId),
+    );
+
+    [assignee] = await db
+      .select({ name: userTable.name })
+      .from(userTable)
+      .where(eq(userTable.id, normalizedUserId));
   }
 
   const column = await db.query.columnTable.findFirst({
@@ -61,30 +126,16 @@ async function createTask({
     ),
   });
 
-  const [maxPositionResult] = await db
-    .select({ maxPosition: max(taskTable.position) })
-    .from(taskTable)
-    .where(
-      and(
-        eq(taskTable.projectId, projectId),
-        column?.id
-          ? eq(taskTable.columnId, column.id)
-          : eq(taskTable.status, resolvedStatus),
-      ),
-    );
-
-  const nextPosition = (maxPositionResult?.maxPosition ?? 0) + 1;
-
-  // The transaction body may run multiple times if a (projectId, number)
-  // unique-constraint conflict is detected (e.g. an external writer inserted
-  // a task between our counter claim and our insert). claimTaskNumber itself
-  // is skip-forward safe: it reads MAX(task.number) under SELECT ... FOR
-  // UPDATE and bumps the counter, so two retries will skip past any orphan
-  // numbers from ad-hoc psql or pre-sync gitea imports.
   const createdTask = await withTaskNumberRetry(
     () =>
       db.transaction(async (tx) => {
         const taskNumber = await claimTaskNumber(projectId, tx);
+        const nextPosition = await nextTaskPosition(
+          tx,
+          projectId,
+          resolvedStatus,
+          column?.id ?? null,
+        );
 
         const [task] = await tx
           .insert(taskTable)
@@ -103,6 +154,16 @@ async function createTask({
             requiredRole: resolvedRequiredRole,
           })
           .returning();
+
+        if (task && mergedCustomFields.length) {
+          await tx.insert(customFieldValueTable).values(
+            mergedCustomFields.map(({ fieldId, value }) => ({
+              taskId: task.id,
+              fieldId,
+              value: value.trim(),
+            })),
+          );
+        }
 
         return task;
       }),

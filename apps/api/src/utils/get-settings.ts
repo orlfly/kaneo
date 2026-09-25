@@ -9,6 +9,7 @@ function getSettings() {
     disablePasswordRegistration:
       process.env.DISABLE_PASSWORD_REGISTRATION === "true",
     disableEmailOtpSignIn: process.env.DISABLE_EMAIL_OTP_SIGN_IN === "true",
+    disableWorkspaceCreation: process.env.DISABLE_WORKSPACE_CREATION === "true",
     isDemoMode: process.env.DEMO_MODE === "true",
     hasGithubSignIn: isGithubSsoConfigured(),
     hasGoogleSignIn:
@@ -20,7 +21,15 @@ function getSettings() {
     hasCustomOAuth:
       Boolean(process.env.CUSTOM_OAUTH_CLIENT_ID) &&
       Boolean(process.env.CUSTOM_OAUTH_CLIENT_SECRET),
-    hasGuestAccess: process.env.DISABLE_GUEST_ACCESS !== "true",
+    hasGuestAccess: [
+      "DISABLE_GUEST_ACCESS",
+      "DISABLE_REGISTRATION",
+      "DISABLE_PASSWORD_REGISTRATION",
+      "DISABLE_LOGIN_FORM",
+    ].every((key) => process.env[key] !== "true"),
+    // SMTP-backed email (OTP sign-in, magic links) was removed with the email
+    // module; the flag stays for config-shape compatibility.
+    hasSmtp: false,
     disableLoginForm: process.env.DISABLE_LOGIN_FORM === "true",
     customOAuthAutoLogin: process.env.CUSTOM_OAUTH_AUTO_LOGIN === "true",
     customOAuthLogoutUrl: process.env.CUSTOM_OAUTH_LOGOUT_URL || null,

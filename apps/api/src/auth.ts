@@ -19,11 +19,13 @@ import { config } from "dotenv-mono";
 import { count, eq, sql } from "drizzle-orm";
 import db, { schema } from "./database";
 import deleteAccountData from "./user/controllers/delete-account-data";
+import { resolveAuthSecret } from "./utils/auth-secret";
 import { getDefaultCookieAttributes } from "./utils/get-default-cookie-attributes";
+import { hasRegisteredUsers } from "./utils/instance-bootstrap";
 import { isCloud } from "./utils/is-cloud";
 import { isDisposableEmail } from "./utils/is-disposable-email";
 import { isLocalSignInPath } from "./utils/is-local-sign-in-path";
-import { verifyTurnstile } from "./utils/verify-turnstile";
+import { authCaptchaPaths, verifyTurnstile } from "./utils/verify-turnstile";
 
 config();
 
@@ -53,12 +55,14 @@ const baseURLWithoutPath = (() => {
   }
 })();
 
-if (process.env.AUTH_SECRET && process.env.AUTH_SECRET.length < 32) {
-  console.error(
-    "AUTH_SECRET is less than 32 characters, please generate a new one.",
-  );
-  process.exit(1);
-}
+const authSecret = (() => {
+  try {
+    return resolveAuthSecret();
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
+})();
 
 function getDeviceAuthClientIds(): Set<string> {
   const raw = process.env.DEVICE_AUTH_CLIENT_IDS?.trim();
@@ -73,25 +77,6 @@ function getDeviceAuthClientIds(): Set<string> {
   return new Set(["kaneo-cli", "kaneo-mcp"]);
 }
 
-const DEFAULT_TRUSTED_PROXIES = [
-  "127.0.0.0/8",
-  "::1/128",
-  "10.0.0.0/8",
-  "172.16.0.0/12",
-  "192.168.0.0/16",
-];
-
-function trustedProxies(): string[] {
-  const raw = process.env.TRUSTED_PROXIES?.trim();
-  if (!raw) {
-    return DEFAULT_TRUSTED_PROXIES;
-  }
-  return raw
-    .split(",")
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-}
-
 function getDeviceAuthVerificationUri(): string {
   const base = clientUrl.replace(/\/$/, "");
   return `${base}/device`;
@@ -100,7 +85,7 @@ function getDeviceAuthVerificationUri(): string {
 export const auth = betterAuth({
   baseURL: baseURLWithoutPath,
   trustedOrigins,
-  secret: process.env.AUTH_SECRET || "",
+  secret: authSecret,
   basePath: "/api/auth",
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -133,11 +118,9 @@ export const auth = betterAuth({
   },
   account: {
     accountLinking: {
-      // Link an OAuth/OIDC sign-in to an existing account that shares the same
-      // email instead of failing with error=account_not_linked. The listed
-      // providers verify the email on their side, so they are trusted to link.
+      // Require the provider's verified-email claim for implicit linking;
+      // configuration alone must not make an unverified identity trusted.
       enabled: true,
-      trustedProviders: ["github", "google", "discord", "custom"],
       // Only link to an existing local account after its email has been
       // verified. Without this check, an attacker could pre-register a victim's
       // email with a password account and retain access after the victim signs
@@ -298,6 +281,14 @@ export const auth = betterAuth({
         });
       }
 
+      if (authCaptchaPaths.has(ctx.path)) {
+        const verdict = await verifyTurnstile(
+          ctx.headers?.get("x-turnstile-token") ?? ctx.body?.turnstileToken,
+        );
+        if (!verdict.ok)
+          throw new APIError("FORBIDDEN", { message: verdict.reason });
+      }
+
       // Block team-member add calls on cloud from anonymous users or to
       // disposable-email addresses.
       if (ctx.path === "/team/members" && isCloud()) {
@@ -333,11 +324,7 @@ export const auth = betterAuth({
         return;
       }
 
-      const userCountRows = await db
-        .select({ value: count() })
-        .from(schema.userTable);
-      const existingUserCount = userCountRows[0]?.value ?? 0;
-      const isInstanceAdminSetup = existingUserCount === 0;
+      const isInstanceAdminSetup = !(await hasRegisteredUsers());
 
       if (ctx.path === "/sign-up/email") {
         if (isPasswordRegistrationDisabled && !isInstanceAdminSetup) {
@@ -347,8 +334,8 @@ export const auth = betterAuth({
           });
         }
 
-        // Cloud-only abuse gates on password signup. Self-hosted instances
-        // leave KANEO_CLOUD/TURNSTILE_SECRET_KEY unset and skip both.
+        // Cloud-only disposable-email check; CAPTCHA is enforced above
+        // on every account-creation initiation when configured.
         if (isCloud() && !isInstanceAdminSetup) {
           const signupEmail = (ctx.body?.email as string | undefined) ?? "";
           if (signupEmail && isDisposableEmail(signupEmail)) {
@@ -356,19 +343,6 @@ export const auth = betterAuth({
               message:
                 "Sign-up with disposable email addresses is not allowed.",
             });
-          }
-
-          const turnstileToken =
-            (ctx.body?.turnstileToken as string | undefined) ??
-            ctx.headers?.get("x-turnstile-token") ??
-            null;
-          const remoteIp =
-            ctx.headers?.get("cf-connecting-ip") ??
-            ctx.headers?.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-            null;
-          const verdict = await verifyTurnstile(turnstileToken, remoteIp);
-          if (!verdict.ok) {
-            throw new APIError("FORBIDDEN", { message: verdict.reason });
           }
         }
       }
@@ -409,8 +383,9 @@ export const auth = betterAuth({
   },
   advanced: {
     ipAddress: {
-      ipAddressHeaders: ["cf-connecting-ip", "x-forwarded-for"],
-      trustedProxies: trustedProxies(),
+      // Set only by the Node transport middleware, never accepted from clients.
+      ipAddressHeaders: ["x-kaneo-client-ip"],
+      trustedProxies: [],
     },
     defaultCookieAttributes: getDefaultCookieAttributes({
       apiUrl,

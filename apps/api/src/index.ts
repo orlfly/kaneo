@@ -4,30 +4,27 @@ import { dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { serve } from "@hono/node-server";
 import { createNodeWebSocket } from "@hono/node-ws";
+import { OpenAPIHono } from "@hono/zod-openapi";
 import * as Sentry from "@sentry/node";
 import type { Session, User } from "better-auth/types";
 import { eq, sql } from "drizzle-orm";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Hono } from "hono";
+import { compress } from "hono/compress";
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
-import {
-  describeRoute,
-  generateSpecs,
-  openAPIRouteHandler,
-  resolver,
-  validator,
-} from "hono-openapi";
-import * as v from "valibot";
+import { generateSpecs, openAPIRouteHandler } from "hono-openapi";
 import activity from "./activity";
 import adminRoutes from "./admin";
 import agentConfig from "./agent/agents";
 import { auth } from "./auth";
+import { organizationRoutes } from "./auth-openapi";
 import chat from "./chat";
 import chatPublic from "./chat/public";
 import column from "./column";
 import comment from "./comment";
 import config from "./config";
+import customField from "./custom-field";
 import db, { getDatabase, schema } from "./database";
 import { prepareDatabaseStartup } from "./database/prepare-database-startup";
 import { waitForDatabase } from "./database/wait-for-database";
@@ -44,11 +41,13 @@ import gitlabIntegration, {
 } from "./gitlab-integration";
 import getInstanceStatus from "./instance/controllers/get-instance-status";
 import label from "./label";
+import mattermostIntegration from "./mattermost-integration";
 import mcpRoutes, { mcpWellKnownRoutes } from "./mcp";
 import { migrateColumns } from "./migrations/column-migration";
 import notification from "./notification";
 import notificationPreferences from "./notification-preferences";
 import oauth from "./oauth";
+import { createRoute, errorResponse, jsonResponse, z } from "./openapi";
 import { initializePlugins } from "./plugins";
 import { migrateGitHubIntegration } from "./plugins/github/migration";
 import project from "./project";
@@ -58,6 +57,12 @@ import search from "./search";
 import slackIntegration from "./slack-integration";
 import { getPrivateObject } from "./storage/s3";
 import task from "./task";
+import {
+  getDescriptionPage,
+  getPublicProjectDescriptionPage,
+} from "./task/description-pages";
+import { boardSchema, descriptionPageSchema } from "./task/response";
+import { descriptionPageQuery, listTasksQuery } from "./task/schema";
 import taskRelation from "./task-relation";
 import team from "./team";
 import telegramIntegration from "./telegram-integration";
@@ -65,7 +70,11 @@ import timeEntry from "./time-entry";
 import user from "./user";
 import getAvatar from "./user/controllers/get-avatar";
 import { authenticateApiRequest } from "./utils/authenticate-api-request";
-import { authorizeAssetAccess } from "./utils/authorize-asset-access";
+import {
+  authorizeAssetAccess,
+  isPublicAsset,
+} from "./utils/authorize-asset-access";
+import { clientIpMiddleware } from "./utils/client-ip";
 import { ensureAdminUser } from "./utils/ensure-admin-user";
 import { migrateApiKeyReferenceId } from "./utils/migrate-apikey-reference-id";
 import { migrateNotificationPreferencesSchema } from "./utils/migrate-notification-preferences-schema";
@@ -93,13 +102,20 @@ import {
   removeUserConnection,
   shutdownWebSocketAdapter,
 } from "./ws";
+import {
+  assertWebSocketOrigin,
+  handleWebSocketMessage,
+  MAX_WEBSOCKET_MESSAGE_BYTES,
+} from "./ws/security";
 
 type ApiKey = {
   id: string;
   userId: string;
   enabled: boolean;
   permissions: Record<string, string[]> | null;
-  projectId?: string | null;
+  metadata: Record<string, unknown> | null;
+  agentRole: import("./utils/agent-role").ApiKeyContext["agentRole"];
+  projectId: string | null;
 };
 
 type AppVariables = {
@@ -158,6 +174,7 @@ function buildContentDisposition(filename: string, inline: boolean) {
 
 export function createApp() {
   const app = new Hono<AppVariables>();
+  app.use("*", clientIpMiddleware());
 
   app.onError((err, c) => {
     if (err instanceof HTTPException) {
@@ -172,6 +189,11 @@ export function createApp() {
     return c.json({ message: "Internal Server Error" }, 500);
   });
   const nodeWs = createNodeWebSocket({ app });
+  // node-ws exposes its ws server, but does not accept constructor options.
+  // Set the receiver limit before any connection can upgrade, including
+  // fragmented messages, before node-ws converts text buffers to strings.
+  nodeWs.wss.options.maxPayload = MAX_WEBSOCKET_MESSAGE_BYTES;
+  nodeWs.wss.options.perMessageDeflate = false;
   const { upgradeWebSocket, injectWebSocket } = nodeWs;
   const corsOriginSource = [
     process.env.CORS_ORIGINS,
@@ -210,48 +232,157 @@ export function createApp() {
     }),
   );
 
-  const api = new Hono<ApiVariables>();
+  // Large boards return multi-MB JSON (board/task list responses embed
+  // labels and external links per task); gzip cuts that by 85-95% since
+  // JSON with repeated keys compresses extremely well.
+  app.use(compress());
+
+  const api = new OpenAPIHono<ApiVariables>();
 
   api.get("/health", (c) => {
     return c.json({ status: "ok" });
   });
 
-  api.get(
-    "/instance/status",
-    describeRoute({
+  api.openapi(
+    createRoute({
+      method: "get",
       operationId: "getInstanceStatus",
+      path: "/instance/status",
       tags: ["Instance"],
+      summary: "Get instance status",
       description:
         "Public instance setup status. When hasUsers is false the next signup becomes the instance admin.",
       security: [],
       responses: {
-        200: {
-          description: "Instance status",
-          content: {
-            "application/json": {
-              schema: resolver(
-                v.object({
-                  hasUsers: v.boolean(),
-                  hasAdmin: v.boolean(),
-                }),
-              ),
-            },
-          },
-        },
+        200: jsonResponse(
+          "Instance status",
+          z
+            .object({ hasUsers: z.boolean(), hasAdmin: z.boolean() })
+            .openapi("InstanceStatus"),
+        ),
       },
     }),
-    async (c) => {
-      const status = await getInstanceStatus();
-      return c.json(status);
-    },
+    async (c) => c.json(await getInstanceStatus(), 200),
   );
 
-  const publicProjectApi = api.get("/public-project/:id", async (c) => {
-    const { id } = c.req.param();
-    const project = await getPublicProject(id);
-
-    return c.json(project);
-  });
+  const publicProjectApi = api
+    .openapi(
+      createRoute({
+        method: "get",
+        operationId: "getPublicProject",
+        path: "/public-project/{id}",
+        tags: ["Projects"],
+        summary: "Get a public project board",
+        description:
+          "Read a public board in bounded task pages. Visibility is checked before loading tasks. Continue through pagination.totalPages for all tasks and through relatedPage/pagination.relatedTotalPages for their complete related records.",
+        security: [],
+        request: {
+          params: z.object({ id: z.string() }),
+          query: listTasksQuery,
+        },
+        responses: {
+          200: jsonResponse(
+            "A public board page",
+            boardSchema.shape.data
+              .extend({ pagination: boardSchema.shape.pagination })
+              .openapi("PublicBoardPage"),
+          ),
+          403: errorResponse("Project is not public"),
+          404: errorResponse("Project not found"),
+          400: errorResponse("Invalid pagination or filters"),
+          503: errorResponse("Task list request timed out"),
+        },
+      }),
+      async (c) => {
+        const { id } = c.req.valid("param");
+        const project = await getPublicProject(id, c.req.valid("query"));
+        return c.json(project, 200);
+      },
+      (result) => {
+        if (!result.success)
+          throw new HTTPException(400, {
+            message: "Invalid task pagination or filters",
+          });
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "get",
+        operationId: "getPublicProjectDescriptionPage",
+        path: "/public-project/{id}/description",
+        tags: ["Projects"],
+        summary: "Read a public project description page",
+        security: [],
+        request: {
+          params: z.object({ id: z.string() }),
+          query: descriptionPageQuery,
+        },
+        responses: {
+          200: jsonResponse(
+            "Public project description page",
+            descriptionPageSchema,
+          ),
+          400: errorResponse("Invalid description cursor"),
+          404: errorResponse("Public project not found"),
+          409: errorResponse("Description changed or no longer public"),
+          503: errorResponse("Description request timed out"),
+        },
+      }),
+      async (c) =>
+        c.json(
+          await getPublicProjectDescriptionPage(
+            c.req.valid("param").id,
+            c.req.valid("query"),
+          ),
+          200,
+        ),
+      (result) => {
+        if (!result.success)
+          throw new HTTPException(400, {
+            message: "Invalid description cursor",
+          });
+      },
+    )
+    .openapi(
+      createRoute({
+        method: "get",
+        operationId: "getPublicTaskDescriptionPage",
+        path: "/public-project/{id}/task/{taskId}/description",
+        tags: ["Projects"],
+        summary: "Read a public task description page",
+        security: [],
+        request: {
+          params: z.object({ id: z.string(), taskId: z.string() }),
+          query: descriptionPageQuery,
+        },
+        responses: {
+          200: jsonResponse(
+            "Public task description page",
+            descriptionPageSchema,
+          ),
+          400: errorResponse("Invalid description cursor"),
+          404: errorResponse("Public task not found"),
+          409: errorResponse("Description changed or no longer public"),
+          503: errorResponse("Description request timed out"),
+        },
+      }),
+      async (c) => {
+        const { id, taskId } = c.req.valid("param");
+        return c.json(
+          await getDescriptionPage(taskId, {
+            ...c.req.valid("query"),
+            publicProjectId: id,
+          }),
+          200,
+        );
+      },
+      (result) => {
+        if (!result.success)
+          throw new HTTPException(400, {
+            message: "Invalid description cursor",
+          });
+      },
+    );
 
   api.post("/github-integration/webhook", handleGithubWebhookRoute);
 
@@ -265,44 +396,46 @@ export function createApp() {
     handleGitLabWebhookRoute,
   );
 
-  api.get(
-    "/auth/get-session",
-    describeRoute({
+  api.openapi(
+    createRoute({
+      method: "get",
       operationId: "getSession",
+      path: "/auth/get-session",
       tags: ["Authentication"],
-      description: "Get the current authenticated session",
+      summary: "Get session",
+      description:
+        "Get the current authenticated session, or null when the caller is not signed in. Served by Better Auth.",
       security: [],
       responses: {
         200: {
-          description: "Current session details or null when unauthenticated",
-          content: {
-            "application/json": { schema: resolver(v.any()) },
-          },
+          description: "Current session details, or null when unauthenticated",
         },
       },
     }),
-    async (c) => {
-      return auth.handler(c.req.raw);
-    },
+    async (c) => auth.handler(c.req.raw),
   );
 
-  api.get(
-    "/asset/:id",
-    describeRoute({
+  api.openapi(
+    createRoute({
+      method: "get",
       operationId: "getAsset",
+      path: "/asset/{id}",
       tags: ["Assets"],
-      description: "Download an uploaded asset by ID",
+      summary: "Download asset",
+      description:
+        "Download an uploaded asset. Readable without signing in only when it belongs to a public project; image types are served inline, everything else as an attachment.",
       security: [],
+      request: { params: z.object({ id: z.string() }) },
       responses: {
         200: {
           description: "The requested asset binary stream",
-          content: {
-            "*/*": { schema: { type: "string", format: "binary" } },
-          },
+          content: { "*/*": { schema: { type: "string", format: "binary" } } },
         },
+        304: { description: "Not modified" },
+        403: { description: "No access to this asset" },
+        404: { description: "Asset not found" },
       },
     }),
-    validator("param", v.object({ id: v.string() })),
     async (c) => {
       const { id } = c.req.param();
       const [asset] = await db
@@ -313,6 +446,7 @@ export function createApp() {
           filename: schema.assetTable.filename,
           teamId: schema.assetTable.teamId,
           isPublic: schema.projectTable.isPublic,
+          surface: schema.assetTable.surface,
         })
         .from(schema.assetTable)
         .innerJoin(
@@ -339,7 +473,7 @@ export function createApp() {
 
         return new Response(object.body as BodyInit, {
           headers: {
-            "Cache-Control": asset.isPublic
+            "Cache-Control": isPublicAsset(asset)
               ? "public, max-age=300"
               : "private, max-age=120",
             "Content-Disposition": buildContentDisposition(
@@ -362,13 +496,17 @@ export function createApp() {
     },
   );
 
-  api.get(
-    "/user/avatar/:id",
-    describeRoute({
+  api.openapi(
+    createRoute({
+      method: "get",
       operationId: "getUserAvatar",
+      path: "/user/avatar/{id}",
       tags: ["User"],
-      description: "Download a user avatar by its avatar ID",
+      summary: "Download avatar",
+      description:
+        "Download a user avatar by its avatar ID. Public, immutable, and cache-friendly: the id changes whenever the avatar is replaced.",
       security: [],
+      request: { params: z.object({ id: z.string() }) },
       responses: {
         200: {
           description: "The avatar image",
@@ -376,12 +514,10 @@ export function createApp() {
             "image/*": { schema: { type: "string", format: "binary" } },
           },
         },
-        404: {
-          description: "Avatar not found",
-        },
+        304: { description: "Not modified" },
+        404: { description: "Avatar not found" },
       },
     }),
-    validator("param", v.object({ id: v.string() })),
     async (c) => {
       const { id } = c.req.valid("param");
       const avatar = await getAvatar(id);
@@ -411,8 +547,21 @@ export function createApp() {
   const configApi = api.route("/config", config);
   const agentConfigApi = api.route("/agent/agents-config", agentConfig);
 
+  api.openAPIRegistry.registerComponent("securitySchemes", "bearerAuth", {
+    type: "http",
+    scheme: "bearer",
+    description: "API key or session token (Bearer)",
+  });
+  organizationRoutes(api.openAPIRegistry);
+
+  // Registry-based document for @hono/zod-openapi routers, plus hono-openapi's
+  // marker-based spec for legacy plain-Hono routers (chat, team, integrations).
   const honoOpenApiHandler = openAPIRouteHandler(api, {
-    documentation: {
+    documentation: { openapi: "3.0.3" },
+  });
+
+  api.get("/openapi", async (c) => {
+    const registrySpec = api.getOpenAPIDocument({
       openapi: "3.0.3",
       info: {
         title: "Kaneo API",
@@ -428,23 +577,16 @@ export function createApp() {
           description: "Kaneo API Server",
         },
       ],
-      components: {
-        securitySchemes: {
-          bearerAuth: {
-            type: "http",
-            scheme: "bearer",
-            description: "API key or session token (Bearer)",
-          },
-        },
-      },
       security: [{ bearerAuth: [] }],
-    },
-  });
+    }) as unknown as Record<string, unknown>;
 
-  api.get("/openapi", async (c) => {
     const maybeResponse = await honoOpenApiHandler(c, async () => {});
     const honoSpecResponse = maybeResponse ?? c.res;
-    const honoSpec = (await honoSpecResponse.json()) as Record<string, unknown>;
+    const describeRouteSpec = (await honoSpecResponse.json()) as Record<
+      string,
+      unknown
+    >;
+    const honoSpec = mergeOpenApiSpecs(registrySpec, describeRouteSpec);
 
     let authSpec: Record<string, unknown> = {};
     try {
@@ -502,53 +644,34 @@ export function createApp() {
 
   // Better Auth serves GET /auth/device as JSON. Browsers that open the API URL
   // directly expect a page, so redirect full document navigations to the web app.
-  const authDeviceQuerySchema = v.object({
-    user_code: v.optional(v.string()),
-    ui: v.optional(v.picklist(["1"])),
+  const authDeviceQuerySchema = z.object({
+    user_code: z.string().optional().openapi({
+      description: "The device authorization user code.",
+    }),
+    ui: z.enum(["1"]).optional().openapi({
+      description:
+        "Force a redirect to the web UI, for clients that do not send Sec-Fetch-* headers.",
+    }),
   });
 
-  api.get(
-    "/auth/device",
-    describeRoute({
+  api.openapi(
+    createRoute({
+      method: "get",
       operationId: "getDeviceAuthorizationPage",
+      path: "/auth/device",
       tags: ["Authentication"],
+      summary: "Device authorization page",
       description:
-        "Redirect browser-based device authorization requests to the web UI",
+        "Better Auth serves this as JSON. A top-level browser navigation is redirected to the web app's device screen instead, so opening the URL by hand shows a page rather than a JSON blob.",
       security: [],
-      parameters: [
-        {
-          name: "user_code",
-          in: "query",
-          required: false,
-          schema: {
-            type: "string",
-          },
-          description: "The device authorization user code.",
-        },
-        {
-          name: "ui",
-          in: "query",
-          required: false,
-          schema: {
-            type: "string",
-            enum: ["1"],
-          },
-          description: "Force a redirect to the web UI.",
-        },
-      ],
+      request: { query: authDeviceQuerySchema },
       responses: {
         302: {
           description: "Redirects the browser to the web app device screen",
         },
-        200: {
-          description: "Device authorization payload from Better Auth",
-          content: {
-            "application/json": { schema: resolver(v.any()) },
-          },
-        },
+        200: { description: "Device authorization payload from Better Auth" },
       },
     }),
-    validator("query", authDeviceQuerySchema),
     async (c) => {
       const { user_code: userCode, ui } = c.req.valid("query");
       const secFetchDest = c.req.header("Sec-Fetch-Dest");
@@ -569,7 +692,7 @@ export function createApp() {
     },
   );
 
-  api.on(["POST", "GET", "PUT", "DELETE"], "/auth/*", async (c) => {
+  api.on(["POST", "GET", "PUT", "PATCH", "DELETE"], "/auth/*", async (c) => {
     const authHeader = c.req.header("Authorization");
     const apiKeyHeader = c.req.header("x-api-key");
     const bearerToken = authHeader?.match(/^Bearer\s+(\S+)$/i)?.[1];
@@ -688,6 +811,10 @@ export function createApp() {
     "/discord-integration",
     discordIntegration,
   );
+  const mattermostIntegrationApi = api.route(
+    "/mattermost-integration",
+    mattermostIntegration,
+  );
   const slackIntegrationApi = api.route("/slack-integration", slackIntegration);
   const telegramIntegrationApi = api.route(
     "/telegram-integration",
@@ -698,6 +825,7 @@ export function createApp() {
   const workflowRuleApi = api.route("/workflow-rule", workflowRule);
   const teamApi = api.route("/team", team);
   const chatApi = api.route("/chat", chat);
+  const customFieldApi = api.route("/custom-field", customField);
   const userApi = api.route("/user", user);
   const adminApi = api.route("/admin", adminRoutes);
 
@@ -716,6 +844,7 @@ export function createApp() {
   api.get(
     "/ws/user",
     upgradeWebSocket(async (c) => {
+      assertWebSocketOrigin(c.req.raw.headers);
       try {
         await authenticateApiRequest(c);
       } catch (error) {
@@ -735,24 +864,7 @@ export function createApp() {
             conn = addUserConnection(userId, ws);
           }
         },
-        onMessage(evt) {
-          try {
-            const raw =
-              typeof evt.data === "string"
-                ? evt.data
-                : Buffer.isBuffer(evt.data)
-                  ? evt.data.toString()
-                  : null;
-            if (raw) {
-              const msg = JSON.parse(raw) as { type?: string };
-              if (msg?.type === "ping") {
-                // keepalive, no-op
-              }
-            }
-          } catch {
-            // Ignore malformed messages
-          }
-        },
+        onMessage: handleWebSocketMessage,
         onClose() {
           if (conn && userId) {
             removeUserConnection(userId, conn);
@@ -765,6 +877,7 @@ export function createApp() {
   api.get(
     "/ws/:projectId",
     upgradeWebSocket(async (c) => {
+      assertWebSocketOrigin(c.req.raw.headers);
       const projectId = c.req.param("projectId");
 
       try {
@@ -808,27 +921,7 @@ export function createApp() {
             conn = addConnection(projectId, ws, userId, initiatorId);
           }
         },
-        onMessage(evt) {
-          // Respond to client keepalive pings (sent every 30s to prevent
-          // Cloudflare from closing idle connections at 100s timeout)
-          try {
-            const raw =
-              typeof evt.data === "string"
-                ? evt.data
-                : Buffer.isBuffer(evt.data)
-                  ? evt.data.toString()
-                  : null;
-            if (raw) {
-              const msg = JSON.parse(raw) as { type?: string };
-              if (msg?.type === "ping") {
-                // No-op: receiving the ping is enough to satisfy Cloudflare.
-                // A pong response is optional but helps confirm liveness.
-              }
-            }
-          } catch {
-            // Ignore malformed messages
-          }
-        },
+        onMessage: handleWebSocketMessage,
         onClose() {
           if (conn && projectId) {
             removeConnection(projectId, conn);
@@ -863,6 +956,7 @@ export function createApp() {
     projectApi,
     publicProjectApi,
     searchApi,
+    mattermostIntegrationApi,
     slackIntegrationApi,
     taskApi,
     taskRelationApi,
@@ -872,6 +966,7 @@ export function createApp() {
     timeEntryApi,
     userApi,
     workflowRuleApi,
+    customFieldApi,
     oauthApi,
   };
 }
@@ -978,6 +1073,7 @@ const {
   giteaIntegrationApi,
   gitlabIntegrationApi,
   labelApi,
+  mattermostIntegrationApi,
   notificationApi,
   notificationPreferencesApi,
   projectApi,
@@ -992,6 +1088,7 @@ const {
   timeEntryApi,
   userApi,
   workflowRuleApi,
+  customFieldApi,
   oauthApi,
 } = createdApp;
 
@@ -1024,6 +1121,7 @@ export type AppType =
   | typeof gitlabIntegrationApi
   | typeof genericWebhookIntegrationApi
   | typeof discordIntegrationApi
+  | typeof mattermostIntegrationApi
   | typeof slackIntegrationApi
   | typeof telegramIntegrationApi
   | typeof taskRelationApi
@@ -1031,6 +1129,7 @@ export type AppType =
   | typeof workflowRuleApi
   | typeof teamApi
   | typeof chatApi
+  | typeof customFieldApi
   | typeof userApi
   | typeof publicProjectApi
   | typeof oauthApi;

@@ -152,7 +152,7 @@ const taskRelation = new Hono<{
     async (c) => {
       const userId = c.get("userId");
       const { id } = c.req.valid("param");
-      const relation = await deleteTaskRelation(id, userId);
+      const relation = await deleteTaskRelation(id, userId, c.get("teamId"));
       return c.json(relation);
     },
   );

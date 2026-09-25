@@ -300,8 +300,12 @@ describe("API integration: task creation", () => {
       }),
     });
 
-    expect(response.status).toBe(404);
-    await expect(response.text()).resolves.toContain("Assignee not found");
+    // Fork semantics: a nonexistent assignee is just not a member, so the
+    // membership guard answers 403 with the standard not-assignable message.
+    expect(response.status).toBe(403);
+    await expect(response.text()).resolves.toContain(
+      "Assignee is not a member of this team",
+    );
 
     const persistedTask = await db.query.taskTable.findFirst({
       where: and(

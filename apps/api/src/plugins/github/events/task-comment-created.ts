@@ -1,5 +1,5 @@
 import type { PluginContext, TaskCommentCreatedEvent } from "../../types";
-import type { GitHubConfig } from "../config";
+import { type GitHubConfig, hasVerifiedGitHubBinding } from "../config";
 import { findExternalLinkByTaskAndType } from "../services/link-manager";
 import { getRepoOctokit } from "../utils/github-app";
 
@@ -8,6 +8,7 @@ export async function handleTaskCommentCreated(
   context: PluginContext,
 ): Promise<void> {
   const config = context.config as GitHubConfig;
+  if (!hasVerifiedGitHubBinding(config)) return;
   const { repositoryOwner, repositoryName } = config;
 
   const existingLink = await findExternalLinkByTaskAndType(
