@@ -23,12 +23,6 @@ import {
 } from "./operations";
 import { resolveVcsIntegration, type VcsType } from "./resolve";
 
-type VcsVariables = {
-  userId: string;
-  teamId: string;
-  apiKey?: { id: string; userId: string; enabled: boolean };
-};
-
 const projectIdParam = v.object({
   projectId: v.string(),
 });

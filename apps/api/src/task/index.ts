@@ -2,12 +2,7 @@ import type { AgentRole } from "@kaneo/permissions";
 import { eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../database";
-import {
-  assetTable,
-  projectTable,
-  taskTable,
-  teamTable,
-} from "../database/schema";
+import { assetTable, projectTable, taskTable } from "../database/schema";
 import {
   apiRouter,
   type BaseVariables,

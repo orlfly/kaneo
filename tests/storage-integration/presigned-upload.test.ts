@@ -16,7 +16,6 @@ import {
 
 vi.mock("dotenv-mono", () => ({ config: () => {} }));
 
-// biome-ignore lint/suspicious/noUndeclaredEnvVars: This opt-in suite runs directly in Vitest, outside Turbo's task cache.
 const endpoint = process.env.KANEO_STORAGE_TEST_ENDPOINT;
 if (
   !endpoint ||
