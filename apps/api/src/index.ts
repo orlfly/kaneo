@@ -545,7 +545,6 @@ export function createApp() {
   );
 
   const configApi = api.route("/config", config);
-  const agentConfigApi = api.route("/agent/agents-config", agentConfig);
 
   api.openAPIRegistry.registerComponent("securitySchemes", "bearerAuth", {
     type: "http",
@@ -780,6 +779,11 @@ export function createApp() {
   });
 
   const oauthApi = api.route("/oauth", oauth);
+
+  // Mounted after the app-wide authenticateApiRequest middleware (defined
+  // above): agent role/skill templates and config packages must not leak to
+  // unauthenticated callers. /config stays public on purpose (login screen).
+  const agentConfigApi = api.route("/agent/agents-config", agentConfig);
 
   const projectApi = api.route("/project", project);
   const taskApi = api.route("/task", task);
