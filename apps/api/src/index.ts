@@ -17,6 +17,7 @@ import { generateSpecs, openAPIRouteHandler } from "hono-openapi";
 import activity from "./activity";
 import adminRoutes from "./admin";
 import agentConfig from "./agent/agents";
+import projectContextApi from "./agent/project-context";
 import { auth } from "./auth";
 import { organizationRoutes } from "./auth-openapi";
 import chat from "./chat";
@@ -784,6 +785,10 @@ export function createApp() {
   // above): agent role/skill templates and config packages must not leak to
   // unauthenticated callers. /config stays public on purpose (login screen).
   const agentConfigApi = api.route("/agent/agents-config", agentConfig);
+  const agentProjectContextApi = api.route(
+    "/agent/project-context",
+    projectContextApi,
+  );
 
   const projectApi = api.route("/project", project);
   const taskApi = api.route("/task", task);
@@ -945,6 +950,7 @@ export function createApp() {
     activityApi,
     adminApi,
     agentConfigApi,
+    agentProjectContextApi,
     columnApi,
     commentApi,
     configApi,
@@ -1067,6 +1073,7 @@ const {
   activityApi,
   adminApi,
   agentConfigApi,
+  agentProjectContextApi,
   columnApi,
   commentApi,
   configApi,
@@ -1114,6 +1121,7 @@ export type AppType =
   | typeof activityApi
   | typeof adminApi
   | typeof agentConfigApi
+  | typeof agentProjectContextApi
   | typeof commentApi
   | typeof timeEntryApi
   | typeof labelApi

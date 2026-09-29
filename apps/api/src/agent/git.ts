@@ -6,7 +6,7 @@ import type { ResolvedVcsIntegration } from "../vcs/resolve";
 
 const REPO_DIR = "repo";
 
-function cloneUrl(integration: ResolvedVcsIntegration): string {
+export function cloneUrl(integration: ResolvedVcsIntegration): string {
   if (integration.type === "github") {
     const owner = integration.config.repositoryOwner;
     const name = integration.config.repositoryName;
@@ -18,7 +18,7 @@ function cloneUrl(integration: ResolvedVcsIntegration): string {
   return `${base}/${owner}/${name}.git`;
 }
 
-function authFor(integration: ResolvedVcsIntegration) {
+export function authFor(integration: ResolvedVcsIntegration) {
   if (integration.type === "github") {
     return () => ({
       username: "x-access-token",

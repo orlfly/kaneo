@@ -45,7 +45,7 @@ curl -X GET "${KANEO_API_URL}/api/task/${taskId}" \
   -H "Authorization: Bearer ${KANEO_API_KEY}"
 ```
 
-> **认领后必做：先同步仓库，再开始处理（见 `repo-sync` skill）**。GitHub 上的代码可能已被其它 agent 更新过，处理任务前必须先把远端最新代码拉取到本地：
+> **认领后必做：先同步项目与仓库，再开始处理（见 `repo-sync` skill）**。首选调用 `agent_sync_project` 工具，一次调用完成项目上下文与仓库同步：工作目录没有项目信息时会克隆仓库并生成 `kaneo-context.json` / `KANEO_CONTEXT.md`（项目基础信息、列状态、任务摘要）；已有项目信息时仅在远端有新提交时增量 fast-forward。旧实例无此工具时退回手动 git 流程：
 >
 > ```bash
 > git status --porcelain        # 工作树干净再 pull（有未提交改动先提交/stash）
@@ -159,7 +159,7 @@ curl -X POST "${KANEO_API_URL}/api/task-relation" \
 
 ## 关键约束
 
-- **认领后先同步仓库（必做）**：处理任务前先 `git pull --rebase` 拉到其它 agent 的最新更新，见 `repo-sync` skill
+- **认领后先同步项目与仓库（必做）**：优先调用 `agent_sync_project` 工具（冷启动克隆 + 写入项目上下文，热启动仅增量对齐）；旧实例退回 `git pull --rebase`，见 `repo-sync` skill
 - **处理任务期间禁止提交并推送**：在任务**处理完成并变更任务状态之前**，不得 `git commit` + `git push` 到远端（本地临时提交可以，但推送只能在任务收尾一次性进行，见 `submit-pr` skill）；这样可以避免把半成品/与其它 agent 冲突的代码推上去
 - 变更任务状态完成本轮任务后，才执行 `submit-pr`（提交 + 推送 + 建 PR），再把状态流转到 `in-review` / `done`
 - API key 的 agent role 决定能认领哪些任务：

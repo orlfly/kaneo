@@ -17,7 +17,7 @@ description: 使用 ripgrep 定位代码、理解项目结构
 
 ## 工具
 
-ripgrep (`rg`)，在 agent 工作目录内执行。
+ripgrep (`rg`)，在 agent 工作目录内执行。代码位于 `repo/` 子目录；工作目录状态未知时先调用 `agent_sync_project` 同步（冷启动克隆，热启动增量对齐），并通过 `KANEO_CONTEXT.md` 快速了解项目全貌。
 
 ## 搜索模式
 

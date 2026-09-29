@@ -336,6 +336,7 @@ describe("registerTools", () => {
       registerTools(server as never, { client: client as never });
 
       const agentTools = [
+        "agent_sync_project",
         "agent_clone_repo",
         "agent_list_files",
         "agent_read_file",
@@ -364,6 +365,20 @@ describe("registerTools", () => {
       expect(client.json).toHaveBeenCalledWith("/api/chat/project/p1/tool", {
         method: "POST",
         body: JSON.stringify({ tool: "agent_clone_repo", args: {} }),
+      });
+    });
+
+    it("routes agent_sync_project to the tool-execute endpoint", async () => {
+      const { server, tools } = createServerMock();
+      const client = { json: vi.fn().mockResolvedValue({ mode: "cloned" }) };
+
+      registerTools(server as never, { client: client as never });
+
+      await tools.get("agent_sync_project")?.handler({ projectId: "p1" });
+
+      expect(client.json).toHaveBeenCalledWith("/api/chat/project/p1/tool", {
+        method: "POST",
+        body: JSON.stringify({ tool: "agent_sync_project", args: {} }),
       });
     });
 

@@ -1134,6 +1134,27 @@ export function registerTools(
   );
 
   server.registerTool(
+    "agent_sync_project",
+    {
+      description:
+        "Synchronize the working directory with the project's Kaneo context and code repository. Call this FIRST when the workdir state is unknown: with no project info present it clones the connected repository and writes kaneo-context.json plus KANEO_CONTEXT.md; with existing project info it only fast-forwards when the repository has new commits and reports 'aligned' otherwise. Returns the sync mode (cloned / aligned / context-only) and the project context bundle. Never returns credentials.",
+      inputSchema: z.object({
+        projectId: nonEmptyString.describe("Project ID"),
+      }),
+    },
+    async (args) =>
+      run(() =>
+        client.json(
+          `/api/chat/project/${encodeURIComponent(args.projectId)}/tool`,
+          {
+            method: "POST",
+            body: JSON.stringify({ tool: "agent_sync_project", args: {} }),
+          },
+        ),
+      ),
+  );
+
+  server.registerTool(
     "agent_list_files",
     {
       description:

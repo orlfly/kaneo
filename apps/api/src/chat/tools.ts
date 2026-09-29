@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { and, count, eq, ilike } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import {
@@ -12,6 +14,16 @@ import {
   ensureProjectWorkdir,
   projectWorkdir,
 } from "../agent";
+import {
+  type ContextManifest,
+  type ProjectContextBundle,
+  readContextManifest,
+  remoteHeadSha,
+  repoHeadSha,
+  writeContextDoc,
+  writeContextManifest,
+} from "../agent/context";
+import { getProjectContext } from "../agent/controllers/get-project-context";
 import db from "../database";
 import { integrationTable, projectTable, taskTable } from "../database/schema";
 import createTaskController from "../task/controllers/create-task";
@@ -252,6 +264,15 @@ export const toolDefinitions: ChatCompletionTool[] = [
   {
     type: "function",
     function: {
+      name: "agent_sync_project",
+      description:
+        "Synchronize the agent working directory with the current Kaneo project. Call this FIRST when the workdir state is unknown: with no project info present it clones the connected repository and writes kaneo-context.json plus KANEO_CONTEXT.md (project basics, statuses, task summary); with existing project info it only fast-forwards when the repository has new commits and reports 'aligned' otherwise. Returns the sync mode (cloned / aligned / context-only) and the project context bundle. Never returns credentials.",
+      parameters: { type: "object", properties: {} },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "agent_clone_repo",
       description:
         "Clone the project's connected version-control repository into the agent working directory. If a clone already exists it is updated (pulled). Use this when asked to read, search, or analyze the project's source code or documentation.",
@@ -403,6 +424,8 @@ export async function executeTool(
       return listBlockedTasks(projectId);
     case "list_merge_requests":
       return listMergeRequests(projectId, args);
+    case "agent_sync_project":
+      return agentSyncProject(projectId);
     case "agent_clone_repo":
       return agentClone(projectId, args);
     case "agent_list_files":
@@ -912,6 +935,96 @@ async function agentClone(
   const integration = await resolveVcsIntegration(projectId, found);
   const result = await agentCloneRepo(root, integration);
   return JSON.stringify({ ok: true, ...result });
+}
+
+/**
+ * One-call workdir bootstrap/alignment for task agents. Cold start: clone +
+ * write context artifacts. Warm start: fast-forward only when the remote head
+ * differs from the recorded one. No VCS: context-only. Always refreshes the
+ * manifest and KANEO_CONTEXT.md so any agent can see current project state.
+ */
+export async function agentSyncProject(projectId: string): Promise<string> {
+  try {
+    const root = await projectRoot(projectId);
+    const bundle: ProjectContextBundle = await getProjectContext({ projectId });
+    const manifest: ContextManifest = {
+      projectId: bundle.project.id,
+      projectName: bundle.project.name,
+      teamName: bundle.project.teamName,
+      vcs: bundle.vcs.connected
+        ? {
+            type: bundle.vcs.type ?? "",
+            repository: bundle.vcs.repository ?? "",
+          }
+        : null,
+      syncedAt: new Date().toISOString(),
+    };
+
+    if (!bundle.vcs.connected) {
+      writeContextManifest(root, manifest);
+      writeContextDoc(root, bundle);
+      return JSON.stringify({ mode: "context-only", context: bundle }, null, 2);
+    }
+
+    const existing = readContextManifest(root);
+    const repoDir = `${root}/repo`;
+    const hasClone = fs.existsSync(path.join(repoDir, ".git"));
+
+    if (!hasClone || !existing) {
+      // Cold start: full bootstrap.
+      const integration = await resolveVcsIntegration(
+        projectId,
+        bundle.vcs.type as VcsType,
+      );
+      const result = await agentCloneRepo(root, integration);
+      const head = await repoHeadSha(path.join(root, result.location));
+      writeContextManifest(root, { ...manifest, headSha: head ?? undefined });
+      writeContextDoc(root, bundle);
+      return JSON.stringify(
+        { mode: "cloned", ...result, context: bundle },
+        null,
+        2,
+      );
+    }
+
+    // Warm start: check whether the remote advanced past the recorded head.
+    const integration = await resolveVcsIntegration(
+      projectId,
+      bundle.vcs.type as VcsType,
+    );
+    const remote = await remoteHeadSha(integration);
+    const local = existing.headSha ?? (await repoHeadSha(repoDir));
+
+    if (remote && local && remote === local) {
+      // Already aligned: refresh timestamp only, no network clone work.
+      writeContextManifest(root, {
+        ...manifest,
+        headSha: local,
+      });
+      writeContextDoc(root, bundle);
+      return JSON.stringify(
+        { mode: "aligned", changed: false, context: bundle },
+        null,
+        2,
+      );
+    }
+
+    // Remote advanced (or head check was inconclusive): fast-forward pull is
+    // idempotent, so it is safe even when the check was wrong.
+    const result = await agentCloneRepo(root, integration);
+    const head = await repoHeadSha(path.join(root, result.location));
+    writeContextManifest(root, { ...manifest, headSha: head ?? undefined });
+    writeContextDoc(root, bundle);
+    return JSON.stringify(
+      { mode: "aligned", changed: true, ...result, context: bundle },
+      null,
+      2,
+    );
+  } catch (error) {
+    return JSON.stringify({
+      error: error instanceof Error ? error.message : "Failed to sync project",
+    });
+  }
 }
 
 async function agentList(

@@ -573,6 +573,101 @@
           "idToken"
         ]
       },
+      "ProjectContext": {
+        "type": "object",
+        "properties": {
+          "project": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "teamName": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "slug",
+              "description",
+              "teamName"
+            ]
+          },
+          "statuses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "taskSummary": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "number"
+              },
+              "byStatus": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "overdue": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "total",
+              "byStatus",
+              "overdue"
+            ]
+          },
+          "vcs": {
+            "type": "object",
+            "properties": {
+              "connected": {
+                "type": "boolean"
+              },
+              "type": {
+                "type": "string"
+              },
+              "repository": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "connected"
+            ]
+          },
+          "task": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "nullable": true
+          },
+          "checkedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "project",
+          "statuses",
+          "taskSummary",
+          "vcs",
+          "checkedAt"
+        ]
+      },
       "ProjectListItem": {
         "allOf": [
           {
@@ -5446,6 +5541,90 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OAuthIdToken"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/project-context": {
+      "get": {
+        "operationId": "getAgentProjectContext",
+        "tags": [
+          "Agent"
+        ],
+        "summary": "Get project context for task agents",
+        "description": "One-call project context bundle for task-executing agents: project basics, column statuses, task summary, active VCS state (no credentials), and optionally a claimed task's details.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Project to fetch context for. Required for API keys not bound to a project; a project-bound key may omit it (defaults to its binding)."
+            },
+            "required": false,
+            "description": "Project to fetch context for. Required for API keys not bound to a project; a project-bound key may omit it (defaults to its binding).",
+            "name": "projectId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Include full details of this task (must belong to the project)."
+            },
+            "required": false,
+            "description": "Include full details of this task (must belong to the project).",
+            "name": "taskId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project context bundle",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectContext"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing project id",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not a member of this team or key bound elsewhere",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or task not found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }

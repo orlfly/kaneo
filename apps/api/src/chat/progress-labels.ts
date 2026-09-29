@@ -15,6 +15,7 @@ const PROGRESS_LABELS: Record<string, string> = {
   get_project_summary: "正在汇总项目状态",
   list_blocked_tasks: "正在查看阻塞任务",
   list_merge_requests: "正在查询合并请求",
+  agent_sync_project: "正在同步项目上下文与代码仓库",
   agent_clone_repo: "正在克隆代码仓库",
   agent_list_files: "正在浏览工作目录",
   agent_read_file: "正在读取文件",
