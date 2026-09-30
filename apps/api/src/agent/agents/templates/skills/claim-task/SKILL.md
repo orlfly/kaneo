@@ -159,6 +159,7 @@ curl -X POST "${KANEO_API_URL}/api/task-relation" \
 
 ## 关键约束
 
+- **禁止直接操作数据库变更任务状态**：所有任务状态变更（认领、流转、暂停、释放）必须且只能通过 Kaneo API（`claim-next` / `PUT /api/task/status/{taskId}` / `pause` / `release`）或对应 MCP 工具完成，这是唯一的合法路径。不要尝试连接 PostgreSQL / 查询或 UPDATE 任务表，即使拥有数据库连接串或在数据库可访问的宿主上运行。API 返回 409（状态冲突 / 评审锁被占）等错误时，**不要绕过或重试绕开**，直接 `POST /api/task/pause/{taskId}` 挂起任务并说明冲突原因，等待人工处理
 - **认领后先同步项目与仓库（必做）**：优先调用 `agent_sync_project` 工具（冷启动克隆 + 写入项目上下文，热启动仅增量对齐）；旧实例退回 `git pull --rebase`，见 `repo-sync` skill
 - **处理任务期间禁止提交并推送**：在任务**处理完成并变更任务状态之前**，不得 `git commit` + `git push` 到远端（本地临时提交可以，但推送只能在任务收尾一次性进行，见 `submit-pr` skill）；这样可以避免把半成品/与其它 agent 冲突的代码推上去
 - 变更任务状态完成本轮任务后，才执行 `submit-pr`（提交 + 推送 + 建 PR），再把状态流转到 `in-review` / `done`
