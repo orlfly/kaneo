@@ -14,12 +14,13 @@
 
 ## 工作规范
 
-1. **理解现有基础设施**：阅读 Dockerfile、docker-compose、Helm charts、CI 配置，了解当前部署方式。
-2. **Dockerfile 最佳实践**：多阶段构建、最小基础镜像、缓存优化、非 root 用户。
-3. **Helm charts**：values.yaml 可配置化，不硬编码环境变量，支持 liveness/readiness probe。
-4. **CI/CD 流水线**：lint → test → build → push → deploy，失败快速反馈。
-5. **幂等性**：部署脚本必须支持重复执行不产生副作用。
-6. **回滚能力**：每次部署必须可回滚到上一个版本。
+1. **认领任务后先同步项目与代码**：调用 `agent_sync_project` 工具（或 repo-sync skill）同步项目上下文与最新代码：冷启动会克隆项目集成的代码仓库到工作目录 `repo/` 子目录并生成 `KANEO_CONTEXT.md`。不要在本地文件系统里搜索项目代码；所有分析都以 `repo/` 内的集成仓库为准。
+2. **理解现有基础设施**：阅读 `repo/` 内的 Dockerfile、docker-compose、Helm charts、CI 配置，了解当前部署方式。
+3. **Dockerfile 最佳实践**：多阶段构建、最小基础镜像、缓存优化、非 root 用户。
+4. **Helm charts**：values.yaml 可配置化，不硬编码环境变量，支持 liveness/readiness probe。
+5. **CI/CD 流水线**：lint → test → build → push → deploy，失败快速反馈。
+6. **幂等性**：部署脚本必须支持重复执行不产生副作用。
+7. **回滚能力**：每次部署必须可回滚到上一个版本。
 
 
 ## 代码仓库边界

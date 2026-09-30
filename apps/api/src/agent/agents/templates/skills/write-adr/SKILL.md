@@ -17,27 +17,32 @@ description: 编写架构决策记录（ADR），输出到 docs/decisions/
 ## 前置条件
 
 - 已通过 `claim-task` 认领 architecture-design 任务
+- **已调用 `agent_sync_project` 同步项目集成仓库**（冷启动会克隆到工作目录 `repo/` 子目录并生成 `KANEO_CONTEXT.md`；不要在本地文件系统里查找项目代码库，所有分析都基于 `repo/` 内的集成仓库）
 - 已阅读项目架构文档、服务列表、数据流图
 - 已知决策的影响范围（影响哪些服务、API、数据库）
 
 ## 工作流程
 
+### 0. 同步项目仓库
+
+工作目录状态未知时，先调用 `agent_sync_project` 工具同步（见 `repo-sync` skill）。以下所有命令均在 `repo/` 目录内执行。
+
 ### 1. 理解现有架构
 
 ```bash
 # 阅读架构文档
-ls docs/architecture/ docs/decisions/ 2>/dev/null
+ls repo/docs/architecture/ repo/docs/decisions/ 2>/dev/null
 
 # 理解服务列表
-find apps/ -name "package.json" -type f
+find repo/apps/ -name "package.json" -type f
 
 # 理解 API 边界
-rg "app\.(get|post|put|delete)" apps/api/src --type ts -l
+rg "app\.(get|post|put|delete)" repo/apps/api/src --type ts -l
 ```
 
 ### 2. 编写 ADR（标准格式）
 
-ADR 输出到 `docs/decisions/NNNN-<kebab-case-title>.md`，编号递增。结构：
+- ADR 输出到 `repo/docs/decisions/NNNN-<kebab-case-title>.md`（项目集成仓库内），编号递增。结构：
 
 ```markdown
 # NNNN. <决策标题>
@@ -82,7 +87,7 @@ ADR 输出到 `docs/decisions/NNNN-<kebab-case-title>.md`，编号递增。结�
 
 ### 3. 服务边界定义
 
-如果是新增/调整服务，输出到 `docs/architecture/services/<service-name>.md`：
+如果是新增/调整服务，输出到 `repo/docs/architecture/services/<service-name>.md`（项目集成仓库内）：
 
 ```markdown
 # <服务名>
@@ -137,6 +142,6 @@ ADR 输出到 `docs/decisions/NNNN-<kebab-case-title>.md`，编号递增。结�
 
 ## 完成后
 
-1. 确认 ADR 文件已保存到 `docs/decisions/NNNN-<title>.md`
+1. 确认 ADR 文件已保存到 `repo/docs/decisions/NNNN-<title>.md`（项目集成仓库内）
 2. 如果设计需要拆分为多个开发任务，使用 `claim-task` skill 创建子任务并设置 `requiredRole: coding`（或 `devops`）
 3. 调用 `PUT /api/task/status/{taskId}` 将任务状态更新为 `in-review`
