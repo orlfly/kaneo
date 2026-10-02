@@ -495,21 +495,32 @@ export function createGitLabClient(
       repositoryOwner: string,
       repositoryName: string,
     ): Promise<GitLabLabel[]> {
-      const labels = await gitlabFetch<
-        Array<{ id: number; name: string; color: string }>
-      >(
-        baseUrl,
-        accessToken,
-        `${project(repositoryOwner, repositoryName)}/labels`,
-      );
-      if (!labels) {
-        throw new GitLabApiError(
-          "GitLab labels response was empty",
-          500,
-          "EMPTY_RESPONSE",
+      // Paginate: GitLab defaults to 20 items per page, which silently hides
+      // older labels and causes spurious 409s on createLabel.
+      const allLabels: GitLabLabel[] = [];
+      const perPage = 100;
+      for (let page = 1; ; page++) {
+        const labels = await gitlabFetch<
+          Array<{ id: number; name: string; color: string }>
+        >(
+          baseUrl,
+          accessToken,
+          `${project(repositoryOwner, repositoryName)}/labels?page=${page}&per_page=${perPage}`,
         );
+        if (!labels) {
+          if (allLabels.length === 0) {
+            throw new GitLabApiError(
+              "GitLab labels response was empty",
+              500,
+              "EMPTY_RESPONSE",
+            );
+          }
+          break;
+        }
+        allLabels.push(...labels);
+        if (labels.length < perPage) break;
       }
-      return labels;
+      return allLabels;
     },
 
     async createLabel(
