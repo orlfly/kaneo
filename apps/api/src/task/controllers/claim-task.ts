@@ -10,6 +10,9 @@ type ClaimResult = {
   title: string;
   status: string;
   claimed: true;
+  // Always false here: `claimTask` performs a real claim. `claim-next` sets it
+  // to true when it resumes work the caller's key already holds (Kaneo #57).
+  resumed: boolean;
 };
 
 /**
@@ -126,6 +129,7 @@ export async function claimTask({
       title: candidate.title ?? "",
       status: "in-progress",
       claimed: true,
+      resumed: true,
     };
   }
 
@@ -227,6 +231,7 @@ export async function claimTask({
     title: claimed.title,
     status: claimed.status,
     claimed: true,
+    resumed: false,
   };
 }
 export default claimTask;
