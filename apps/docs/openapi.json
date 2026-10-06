@@ -6566,13 +6566,17 @@
                       "enum": [
                         true
                       ]
+                    },
+                    "resumed": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
                     "taskId",
                     "title",
                     "status",
-                    "claimed"
+                    "claimed",
+                    "resumed"
                   ]
                 }
               }
@@ -6598,7 +6602,7 @@
           "Tasks"
         ],
         "summary": "Claim the next available task",
-        "description": "Find and atomically claim the best available to-do task across the caller's team projects",
+        "description": "Find and atomically claim the best available to-do task across the caller's team projects. The caller's own in-progress rework is resumed first (response `resumed: true`).",
         "requestBody": {
           "required": true,
           "content": {
@@ -6668,13 +6672,17 @@
                       "enum": [
                         true
                       ]
+                    },
+                    "resumed": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
                     "taskId",
                     "title",
                     "status",
-                    "claimed"
+                    "claimed",
+                    "resumed"
                   ]
                 }
               }
