@@ -8,7 +8,7 @@ It runs over stdio, signs in with Kaneo's device flow, and then calls the Kaneo 
 
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 24+
 - A running Kaneo API (for example `http://localhost:1337`) and web app (for device approval UI).
 
 Kaneo allows `kaneo-cli` and `kaneo-mcp` by default, so you usually do not need extra server configuration.
@@ -112,6 +112,8 @@ On the first tool call that needs Kaneo, the server:
 ### Non-interactive (API key)
 
 For headless or sandboxed environments where opening a browser is impractical, set `KANEO_API_KEY` to a key created under Settings → Account → Developer. The server sends it as a Bearer token on every request and skips the device flow entirely, so no token is cached to disk.
+
+A key can also be bound to a single project (`metadata.projectId`, optional field in the create dialog). When bound, `claim_next_task` only considers tasks in that project and all task operations are rejected with 403 outside it, so one agent session stays on one project.
 
 ## Tools
 

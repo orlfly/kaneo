@@ -162,7 +162,11 @@ describe("delete_task_relation tool", () => {
       USER_ID,
     );
 
-    expect(mocks.deleteTaskRelation).toHaveBeenCalledWith("rel1", USER_ID);
+    expect(mocks.deleteTaskRelation).toHaveBeenCalledWith(
+      "rel1",
+      USER_ID,
+      TEAM_ID,
+    );
     expect(JSON.parse(result)).toMatchObject({ ok: true, id: "rel1" });
   });
 
@@ -242,7 +246,11 @@ describe("create_task with dependencies", () => {
 
     expect(JSON.parse(result).error).toContain("Target task not found");
     // The first relation must be rolled back.
-    expect(mocks.deleteTaskRelation).toHaveBeenCalledWith("rel1", USER_ID);
+    expect(mocks.deleteTaskRelation).toHaveBeenCalledWith(
+      "rel1",
+      USER_ID,
+      TEAM_ID,
+    );
   });
 
   it("creates a task without dependencies", async () => {

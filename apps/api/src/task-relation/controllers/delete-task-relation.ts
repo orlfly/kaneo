@@ -1,34 +1,31 @@
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
-import { taskRelationTable, taskTable } from "../../database/schema";
+import {
+  projectTable,
+  taskRelationTable,
+  taskTable,
+} from "../../database/schema";
 import { publishEvent } from "../../events";
 
-async function deleteTaskRelation(id: string, userId: string) {
-  const [rel] = await db
-    .select({
-      sourceTaskId: taskRelationTable.sourceTaskId,
-      targetTaskId: taskRelationTable.targetTaskId,
-    })
-    .from(taskRelationTable)
-    .where(eq(taskRelationTable.id, id))
-    .limit(1);
-
-  if (!rel) {
-    throw new HTTPException(404, {
-      message: "Task relation not found",
-    });
-  }
-
-  const [task] = await db
-    .select({ projectId: taskTable.projectId })
+async function deleteTaskRelation(id: string, userId: string, teamId: string) {
+  // Check both endpoints in the delete statement itself. Legacy cross-tenant
+  // rows must not bypass the same boundary enforced on creation and reads.
+  const teamTasks = db
+    .select({ id: taskTable.id })
     .from(taskTable)
-    .where(eq(taskTable.id, rel.sourceTaskId))
-    .limit(1);
+    .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
+    .where(eq(projectTable.teamId, teamId));
 
   const [relation] = await db
     .delete(taskRelationTable)
-    .where(eq(taskRelationTable.id, id))
+    .where(
+      and(
+        eq(taskRelationTable.id, id),
+        inArray(taskRelationTable.sourceTaskId, teamTasks),
+        inArray(taskRelationTable.targetTaskId, teamTasks),
+      ),
+    )
     .returning();
 
   if (!relation) {
@@ -37,12 +34,24 @@ async function deleteTaskRelation(id: string, userId: string) {
     });
   }
 
+  const [task] = await db
+    .select({ projectId: taskTable.projectId })
+    .from(taskTable)
+    .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
+    .where(
+      and(
+        eq(taskTable.id, relation.sourceTaskId),
+        eq(projectTable.teamId, teamId),
+      ),
+    )
+    .limit(1);
+
   if (task) {
     await publishEvent("task-relation.deleted", {
       ...relation,
-      taskId: rel.sourceTaskId,
-      sourceTaskId: rel.sourceTaskId,
-      targetTaskId: rel.targetTaskId,
+      taskId: relation.sourceTaskId,
+      sourceTaskId: relation.sourceTaskId,
+      targetTaskId: relation.targetTaskId,
       projectId: task.projectId,
       userId,
     });

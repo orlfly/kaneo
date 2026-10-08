@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { S3Client } from "../../apps/api/node_modules/@aws-sdk/client-s3";
 import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
@@ -15,6 +16,11 @@ describe("API integration: task image upload finalize", () => {
     process.env.S3_ACCESS_KEY_ID = "test-access-key";
     process.env.S3_SECRET_ACCESS_KEY = "test-secret-key";
     delete process.env.S3_KEY_PREFIX;
+    // These URL/metadata tests must provide an uploaded-object fixture now
+    // that finalization verifies storage. Never contact the placeholder host.
+    vi.spyOn(S3Client.prototype, "send").mockRejectedValue(
+      new Error("No uploaded-object fixture configured"),
+    );
   });
 
   afterEach(() => {
@@ -22,6 +28,10 @@ describe("API integration: task image upload finalize", () => {
   });
 
   it("returns a URL using KANEO_API_URL", async () => {
+    vi.mocked(S3Client.prototype.send).mockResolvedValueOnce({
+      ContentLength: 12345,
+      ContentType: "image/png",
+    });
     process.env.KANEO_API_URL = "http://kaneo.test:1337";
 
     const member = await createTeamMember();
@@ -72,6 +82,10 @@ describe("API integration: task image upload finalize", () => {
   });
 
   it("updates the URL when KANEO_API_URL changes", async () => {
+    vi.mocked(S3Client.prototype.send).mockResolvedValueOnce({
+      ContentLength: 99999,
+      ContentType: "image/png",
+    });
     process.env.KANEO_API_URL = "https://proxy.kaneo.internal";
 
     const member = await createTeamMember();
@@ -122,6 +136,10 @@ describe("API integration: task image upload finalize", () => {
   });
 
   it("falls back to deriving URL from the request when KANEO_API_URL is not set", async () => {
+    vi.mocked(S3Client.prototype.send).mockResolvedValueOnce({
+      ContentLength: 12345,
+      ContentType: "image/png",
+    });
     delete process.env.KANEO_API_URL;
 
     const member = await createTeamMember();
@@ -170,6 +188,10 @@ describe("API integration: task image upload finalize", () => {
   });
 
   it("persists a new asset record with correct metadata", async () => {
+    vi.mocked(S3Client.prototype.send).mockResolvedValueOnce({
+      ContentLength: 45678,
+      ContentType: "image/png",
+    });
     process.env.KANEO_API_URL = "http://localhost:1337";
 
     const member = await createTeamMember();
@@ -233,6 +255,10 @@ describe("API integration: task image upload finalize", () => {
   });
 
   it("creates attachment records for non-image content types", async () => {
+    vi.mocked(S3Client.prototype.send).mockResolvedValueOnce({
+      ContentLength: 102400,
+      ContentType: "application/pdf",
+    });
     process.env.KANEO_API_URL = "http://localhost:1337";
 
     const member = await createTeamMember();

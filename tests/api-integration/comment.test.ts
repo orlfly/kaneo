@@ -92,8 +92,8 @@ describe("API integration: task comments", () => {
     expect(legacyComments).toHaveLength(0);
   });
 
-  it("records an external author when both name and source are given", async () => {
-    const member = await createTeamMember();
+  it("records an external author for an authorized team owner", async () => {
+    const member = await createTeamMember({ role: "owner" });
     const { project, columns } = await createProjectFixture({
       teamId: member.team.id,
     });

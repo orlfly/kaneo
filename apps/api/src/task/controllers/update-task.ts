@@ -1,10 +1,16 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, getTableColumns, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
 import { columnTable, taskTable } from "../../database/schema";
 import { publishEvent } from "../../events";
 import { deleteOrphanedAssets } from "../../storage/cleanup-assets";
+import {
+  assertAssignableUser,
+  getProjectTeamId,
+} from "../../utils/assert-assignable-user";
+import { boardDescription, descriptionDeferred } from "../description-pages";
 import { assertValidTaskStatus } from "../validate-task-fields";
+import { assertTaskPosition } from "./next-task-position";
 
 // Once a task is actively being worked on or under review, the role contract
 // with the current worker is fixed: changing requiredRole at that stage would
@@ -19,17 +25,20 @@ async function updateTask(
   startDate: Date | undefined,
   dueDate: Date | undefined,
   projectId: string,
-  description: string,
+  description: string | undefined,
   priority: string,
   position: number,
   userId?: string,
   currentUserId?: string,
   requiredRole?: string | null,
 ) {
+  assertTaskPosition(position);
+
   const [existingTask] = await db
     .select({
       id: taskTable.id,
-      description: taskTable.description,
+      description:
+        description === undefined ? sql<null>`null` : taskTable.description,
       status: taskTable.status,
       projectId: taskTable.projectId,
       requiredRole: taskTable.requiredRole,
@@ -72,6 +81,16 @@ async function updateTask(
     ),
   });
 
+  // Upstream security hardening: the generic update endpoint must not
+  // bypass the assignee membership check used by the dedicated endpoint.
+  const normalizedUserId = userId?.trim() || undefined;
+  if (normalizedUserId) {
+    await assertAssignableUser(
+      normalizedUserId,
+      await getProjectTeamId(projectId),
+    );
+  }
+
   const [updatedTask] = await db
     .update(taskTable)
     .set({
@@ -88,7 +107,11 @@ async function updateTask(
       requiredRole: requiredRole ?? null,
     })
     .where(eq(taskTable.id, id))
-    .returning();
+    .returning({
+      ...getTableColumns(taskTable),
+      description: boardDescription,
+      descriptionDeferred,
+    });
 
   if (!updatedTask) {
     throw new HTTPException(500, {
@@ -122,7 +145,7 @@ async function updateTask(
     userId: currentUserId,
   });
 
-  if (existingTask.description !== description) {
+  if (description !== undefined && existingTask.description !== description) {
     deleteOrphanedAssets(existingTask.description, description, {
       taskId: id,
     }).catch(() => {});

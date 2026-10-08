@@ -425,14 +425,16 @@ export function registerMcpTools(
   registerTool(
     "list_tasks",
     {
-      description: "List tasks for a project (optionally filtered/sorted).",
+      description:
+        "List a bounded page of tasks for a project (50 by default, maximum 100). Use pagination.totalPages and page to retrieve the rest; filters and sorting apply before pagination. For every task page, also follow relatedPage through pagination.relatedTotalPages for complete labels, links and column metadata.",
       inputSchema: z.object({
         projectId: nonEmptyString,
         status: optionalNonEmptyString,
         priority: prioritySchema.optional(),
         assigneeId: optionalNonEmptyString,
-        page: z.number().int().positive().optional(),
-        limit: z.number().int().positive().optional(),
+        page: z.number().int().min(1).max(1_000_000).optional(),
+        relatedPage: z.number().int().min(1).max(1_000_000).optional(),
+        limit: z.number().int().min(1).max(100).optional(),
         sortBy: z
           .enum([
             "createdAt",
@@ -651,7 +653,7 @@ export function registerMcpTools(
     "claim_next_task",
     {
       description:
-        "Find and atomically claim the best available task across the caller's team projects. Implementation roles claim the best to-do task: the caller's own assignments are prioritized, then unassigned tasks whose required role matches the caller's role (or is generic). A code-review agent instead claims the best in-review task whose review is not already claimed by another reviewer, and takes the review lock without changing the assignee, claimed_by, or status. Ordering: due date (soonest first), priority (urgent first), creation date (oldest first). Tasks with requiredRole = \"human\" are always excluded for agent callers. Returns 404 if no matching tasks are available.",
+        "Find and atomically claim the best available task across the caller's team projects. Implementation roles claim the best to-do task: the caller's own assignments are prioritized, then unassigned tasks whose required role matches the caller's role (or is generic). A code-review agent instead claims the best in-review task whose review is not already claimed by another reviewer, and takes the review lock without changing the assignee, claimed_by, or status. Ordering: due date (soonest first), priority (urgent first), creation date (oldest first). Tasks with requiredRole = \"human\" are always excluded for agent callers. If the API key is bound to a project (metadata.projectId), only tasks in that project are considered; one agent session then serves exactly one project. Returns 404 if no matching tasks are available.",
       inputSchema: z.object({
         projectId: optionalNonEmptyString,
         priorities: z.array(z.string()).optional(),

@@ -1,23 +1,38 @@
 ---
 for_roles: [coding, devops, testing]
-description: 同步仓库到最新状态，确保干净的工作基础
+description: 同步仓库与项目上下文到最新状态，确保干净的工作基础
 ---
 
 # Skill: Repo Sync
 
-> 在开始工作前将项目仓库同步到最新状态，确保在干净的代码基础上工作。
+> 在开始工作前将项目仓库和 Kaneo 项目上下文同步到最新状态，确保在干净的代码基础上工作。
 
 ## 触发时机
 
-- 认领任务后、开始编码前
+- 认领任务后、开始编码前（首选入口）
+- 工作目录状态未知时（刚启动 / 换了项目）
 - 长时间工作后需要同步其他人的变更
 
 ## 前置条件
 
-- agent 工作目录已通过 `agent_clone_repo` 克隆了仓库
-- git 远程配置正确（origin 指向项目仓库）
+- 已配置 Kaneo API key（`KANEO_API_KEY` / `KANEO_API_TOKEN`）
 
-## 工作流程
+## 首选方式：`agent_sync_project` 工具
+
+一次调用同时完成项目上下文同步和仓库同步：
+
+- 工作目录没有项目信息（冷启动）：克隆项目连接的代码仓库到 `repo/`，并生成
+  `kaneo-context.json`（机器可读：项目 ID、VCS、head SHA、同步时间）和
+  `KANEO_CONTEXT.md`（人类可读：项目基础信息、列状态、任务摘要）
+- 工作目录已有项目信息（热启动）：远端没有新提交时直接报告 `aligned`（不做网络克隆）；
+  有新提交时只做 fast-forward 增量同步
+- 项目未连接代码仓库：仍会写入项目上下文文件，返回 `context-only`
+
+先读 `KANEO_CONTEXT.md` 可以快速了解项目全貌，无需再逐个调用 API 拼信息。
+
+## 备用方式：git 手动同步
+
+当 `agent_sync_project` 不可用（如旧实例未部署该工具）时，退回手动 git 流程：
 
 ### 1. 检查工作树状态
 
@@ -76,4 +91,5 @@ git rev-parse HEAD
 - 不要 force push
 - 不要在 main/master 分支上直接提交
 - 同步失败时暂停任务并报告阻塞，不要继续在过时代码上工作
-- 如果工作目录未克隆仓库，先使用 `agent_clone_repo` 工具克隆
+- 如果工作目录未克隆仓库，优先用 `agent_sync_project`（它会克隆并写入项目上下文），
+  旧实例退回 `agent_clone_repo`

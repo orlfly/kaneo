@@ -17,6 +17,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import useGetApiKeys from "@/hooks/queries/use-get-api-keys";
+import useProjectOptions from "@/hooks/queries/use-project-options";
 import type { CreateApiKeyResponse } from "@/types/api-key";
 
 export const Route = createFileRoute(
@@ -28,6 +29,7 @@ export const Route = createFileRoute(
 function RouteComponent() {
   const { t } = useTranslation();
   const { data: apiKeys = [], isLoading } = useGetApiKeys();
+  const projectOptions = useProjectOptions();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createdKey, setCreatedKey] = useState<{
     key: string;
@@ -82,7 +84,11 @@ function RouteComponent() {
 
           <Card className="!rounded-none">
             <CardPanel className="p-4">
-              <ApiKeyTable apiKeys={apiKeys} isLoading={isLoading} />
+              <ApiKeyTable
+                apiKeys={apiKeys}
+                isLoading={isLoading}
+                projectOptions={projectOptions}
+              />
             </CardPanel>
           </Card>
         </CardFrame>

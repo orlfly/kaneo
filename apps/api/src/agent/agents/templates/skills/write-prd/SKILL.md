@@ -16,7 +16,8 @@ description: 编写产品需求文档（PRD），输出到 docs/requirements/
 ## 前置条件
 
 - 已通过 `claim-task` 认领 product-design 任务
-- 已阅读相关 README、`docs/` 目录、相关 issue 讨论
+- **已调用 `agent_sync_project` 同步项目集成仓库**（冷启动会克隆到工作目录 `repo/` 子目录并生成 `KANEO_CONTEXT.md`；不要在本地文件系统里查找项目代码库）
+- 已阅读相关 README、`repo/docs/` 目录、相关 issue 讨论
 - 已知目标用户的角色与核心使用场景
 
 ## 工作流程
@@ -25,16 +26,16 @@ description: 编写产品需求文档（PRD），输出到 docs/requirements/
 
 ```bash
 # 阅读项目结构
-ls docs/
-cat README.md
+ls repo/docs/
+cat repo/README.md
 
 # 阅读相关代码或已有需求
-rg "feature|requirement" docs/ -l
+rg "feature|requirement" repo/docs/ -l
 ```
 
 ### 2. 编写 PRD 文档结构
 
-PRD 输出到 `docs/requirements/<feature-name>.md`，使用以下结构：
+PRD 输出到 `repo/docs/requirements/<feature-name>.md`（项目集成仓库内），使用以下结构：
 
 ```markdown
 # <功能名称>
@@ -98,7 +99,7 @@ PRD 输出到 `docs/requirements/<feature-name>.md`，使用以下结构：
 
 ## 完成后
 
-1. 确认 PRD 文件已保存到 `docs/requirements/<feature-name>.md`
+1. 确认 PRD 文件已保存到 `repo/docs/requirements/<feature-name>.md`（项目集成仓库内）
 2. 如果需求拆分为多个开发任务，使用 `claim-task` skill 创建子任务并设置对应的 `requiredRole`（如 `coding`、`ui-design`）
 3. 调用 `PUT /api/task/status/{taskId}` 将任务状态更新为 `in-review`
 4. 提交仅包含文档变更的 PR（通过 `submit-pr` 已被禁止，但可在评论中说明文档位置）

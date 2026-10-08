@@ -4,6 +4,10 @@ import db from "../../database";
 import { columnTable, projectTable, taskTable } from "../../database/schema";
 import { publishEvent } from "../../events";
 import {
+  filterAssignableUsers,
+  getProjectTeamId,
+} from "../../utils/assert-assignable-user";
+import {
   coercePriority,
   coerceStatus,
   getValidTaskStatuses,
@@ -38,9 +42,35 @@ async function importTasks(
 
   const validStatuses = await getValidTaskStatuses(projectId);
 
+  // Upstream security hardening: imported rows must not assign tasks to
+  // non-members. Pre-computed so a foreign assignee becomes a per-row
+  // failure instead of aborting the whole import.
+  const assigneeIds = [
+    ...new Set(
+      tasksToImport
+        .map((task) => task.userId?.trim())
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+  const assignableIds = await filterAssignableUsers(
+    assigneeIds,
+    await getProjectTeamId(projectId),
+  );
+
   const results = [];
 
   for (const taskData of tasksToImport) {
+    const assigneeId = taskData.userId?.trim() || null;
+
+    if (assigneeId && !assignableIds.has(assigneeId)) {
+      results.push({
+        success: false,
+        error: "Assignee is not a member of this team",
+        task: taskData,
+      });
+      continue;
+    }
+
     try {
       const { status, warning: statusWarning } = coerceStatus(
         taskData.status,
@@ -70,7 +100,7 @@ async function importTasks(
               .insert(taskTable)
               .values({
                 projectId,
-                userId: taskData.userId || null,
+                userId: assigneeId,
                 title: taskData.title,
                 status,
                 columnId: column?.id ?? null,

@@ -7,6 +7,8 @@ import {
   teamTable,
 } from "../../database/schema";
 
+import { notificationResourceAccess } from "../resource-access";
+
 async function getNotifications(userId: string) {
   const rows = await db
     .select({
@@ -24,7 +26,16 @@ async function getNotifications(userId: string) {
     )
     .leftJoin(projectTable, eq(taskTable.projectId, projectTable.id))
     .leftJoin(teamTable, eq(projectTable.teamId, teamTable.id))
-    .where(eq(notificationTable.userId, userId))
+    .where(
+      and(
+        eq(notificationTable.userId, userId),
+        notificationResourceAccess(
+          userId,
+          notificationTable.resourceId,
+          notificationTable.resourceType,
+        ),
+      ),
+    )
     .orderBy(desc(notificationTable.createdAt))
     .limit(50);
 

@@ -17,7 +17,8 @@ description: 编写组件规格、design tokens 和无障碍要求，输出到 d
 ## 前置条件
 
 - 已通过 `claim-task` 认领 ui-design 任务
-- 已阅读项目现有组件库、design tokens、CSS 变量定义
+- **已调用 `agent_sync_project` 同步项目集成仓库**（冷启动会克隆到工作目录 `repo/` 子目录并生成 `KANEO_CONTEXT.md`；不要在本地文件系统里查找项目代码库）
+- 已阅读 `repo/` 内的现有组件库、design tokens、CSS 变量定义
 - 已知目标用户、设备断点（mobile / tablet / desktop）
 
 ## 工作流程
@@ -26,18 +27,18 @@ description: 编写组件规格、design tokens 和无障碍要求，输出到 d
 
 ```bash
 # 查看现有组件
-ls apps/web/src/components/
+ls repo/apps/web/src/components/
 
 # 查看 design tokens
-rg "(--color-|--font-|--space-)" apps/web/src --type ts --type tsx -l
+rg "(--color-|--font-|--space-)" repo/apps/web/src -l
 
 # 查看 Tailwind 配置（如果使用）
-cat apps/web/tailwind.config.* 2>/dev/null
+cat repo/apps/web/tailwind.config.* 2>/dev/null
 ```
 
 ### 2. 编写组件规格
 
-组件规格输出到 `docs/design/components/<component-name>.md`：
+组件规格输出到 `repo/docs/design/components/<component-name>.md`（项目集成仓库内）：
 
 ```markdown
 # <Component Name>
@@ -102,7 +103,7 @@ cat apps/web/tailwind.config.* 2>/dev/null
 
 ### 3. 定义 Design Tokens
 
-如果新增 tokens，更新 `apps/web/src/styles/tokens.css`（或 Tailwind 配置）：
+如果新增 tokens，更新 `repo/apps/web/src/styles/tokens.css`（或 Tailwind 配置）：
 
 ```css
 :root {
@@ -166,7 +167,7 @@ cat apps/web/tailwind.config.* 2>/dev/null
 
 ## 完成后
 
-1. 确认设计规格文档已保存到 `docs/design/components/<component>.md`
+1. 确认设计规格文档已保存到 `repo/docs/design/components/<component>.md`（项目集成仓库内）
 2. 如果新增了 design tokens，确认 CSS 变量已定义（如果允许更新 tokens 文件）
 3. 如果设计需要拆分为多个前端开发任务，使用 `claim-task` skill 创建子任务并设置 `requiredRole: coding`
 4. 调用 `PUT /api/task/status/{taskId}` 将任务状态更新为 `in-review`

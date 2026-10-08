@@ -1,5 +1,9 @@
 import type { GitLabConfig } from "../config";
-import { createGitLabClient, type GitLabLabel } from "./gitlab-api";
+import {
+  createGitLabClient,
+  GitLabApiError,
+  type GitLabLabel,
+} from "./gitlab-api";
 
 const labelColors: Record<string, string> = {
   "priority:low": "0EA5E9",
@@ -49,14 +53,31 @@ export async function ensureLabelsExistGitLab(
       }
 
       const color = getLabelColor(name);
-      const created = await client.createLabel(
-        repositoryOwner,
-        repositoryName,
-        name,
-        color,
-      );
-      nameToId.set(name, created.id);
-      map.set(name, created.id);
+      try {
+        const created = await client.createLabel(
+          repositoryOwner,
+          repositoryName,
+          name,
+          color,
+        );
+        nameToId.set(name, created.id);
+        map.set(name, created.id);
+      } catch (error) {
+        // Raced with another process creating the same label: GitLab replies
+        // 409 "Label already exists". Re-list and use the existing label.
+        if (error instanceof GitLabApiError && error.status === 409) {
+          const refreshed = await client
+            .listLabels(repositoryOwner, repositoryName)
+            .catch(() => []);
+          const existing = refreshed.find((l) => l.name === name);
+          if (existing) {
+            nameToId.set(name, existing.id);
+            map.set(name, existing.id);
+            continue;
+          }
+        }
+        console.error(`Failed to ensure GitLab label "${name}":`, error);
+      }
     } catch (error) {
       console.error(`Failed to ensure GitLab label "${name}":`, error);
     }

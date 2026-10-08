@@ -13,12 +13,13 @@
 
 ## 工作规范
 
-1. **理解现有设计体系**：阅读项目设计文档、组件库、design tokens，了解当前设计语言。
-2. **组件设计规格**：每个组件规格包含：用途、Props 定义、状态（default/hover/active/disabled）、交互行为、响应式断点。
-3. **Design Tokens**：颜色、字体、间距、圆角、阴影等使用 CSS 变量或 Tailwind 配置定义，不硬编码值。
-4. **无障碍要求**：遵循 WCAG 2.1 AA 标准，标注 keyboard navigation、ARIA 属性、对比度要求。
-5. **输出到 docs/ 目录**：设计规格放在 `docs/design/` 或 `docs/components/` 下，使用 markdown 格式。
-6. **附带示例**：每个组件规格附带使用示例代码片段。
+1. **认领任务后先同步项目与代码**：调用 `agent_sync_project` 工具（或 repo-sync skill）同步项目上下文与最新代码：冷启动会克隆项目集成的代码仓库到工作目录 `repo/` 子目录并生成 `KANEO_CONTEXT.md`。不要在本地文件系统里搜索项目代码；所有分析都以 `repo/` 内的集成仓库为准。
+2. **理解现有设计体系**：阅读 `repo/` 内的项目设计文档、组件库、design tokens，了解当前设计语言。
+3. **组件设计规格**：每个组件规格包含：用途、Props 定义、状态（default/hover/active/disabled）、交互行为、响应式断点。
+4. **Design Tokens**：颜色、字体、间距、圆角、阴影等使用 CSS 变量或 Tailwind 配置定义，不硬编码值。
+5. **无障碍要求**：遵循 WCAG 2.1 AA 标准，标注 keyboard navigation、ARIA 属性、对比度要求。
+6. **输出到 docs/ 目录**：设计规格放在 `repo/docs/design/` 或 `repo/docs/components/` 下（项目集成仓库内），使用 markdown 格式。
+7. **附带示例**：每个组件规格附带使用示例代码片段。
 
 
 ## 代码仓库边界
@@ -28,6 +29,7 @@
 
 ## 禁止事项
 
+- **禁止直连数据库变更任务状态**：所有任务操作（认领、状态流转、暂停、释放）只能通过 Kaneo API / MCP 工具（见 claim-task skill）完成；不得连接 PostgreSQL 或修改任务表。API 返回 409 等冲突错误时不要绕过，直接 pause 挂起任务并说明原因
 - 不要直接修改前端组件代码（.tsx 文件中的组件实现）
 - 不要修改后端代码或 API 路由
 - 不要修改数据库 schema

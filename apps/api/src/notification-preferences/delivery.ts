@@ -10,25 +10,12 @@ import {
   userNotificationTeamRuleTable,
   userTable,
 } from "../database/schema";
-import { assertPublicWebhookDestination } from "../plugins/generic-webhook/config";
+import { canReceiveResourceNotification } from "../notification/resource-access";
+import {
+  safeOutboundError,
+  sendOutboundRequest,
+} from "../utils/outbound-request";
 import { decryptSecret } from "./secrets";
-
-const DEFAULT_OUTBOUND_FETCH_TIMEOUT_MS = 15_000;
-
-async function fetchWithTimeout(
-  url: string,
-  init: RequestInit & { timeoutMs?: number },
-): Promise<Response> {
-  const timeoutMs = init.timeoutMs ?? DEFAULT_OUTBOUND_FETCH_TIMEOUT_MS;
-  const { timeoutMs: _timeout, ...rest } = init;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, { ...rest, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 type ResolvedNotificationContext = {
   teamId: string;
@@ -275,12 +262,9 @@ async function sendNtfyNotification(input: {
   body: string;
   clickUrl?: string | null;
 }) {
-  await assertPublicWebhookDestination(input.serverUrl);
-
-  const response = await fetchWithTimeout(
+  await sendOutboundRequest(
     `${input.serverUrl.replace(/\/+$/, "")}/${encodeURIComponent(input.topic)}`,
     {
-      method: "POST",
       headers: {
         ...(input.token ? { Authorization: `Bearer ${input.token}` } : {}),
         ...(input.clickUrl ? { Click: input.clickUrl } : {}),
@@ -288,13 +272,8 @@ async function sendNtfyNotification(input: {
       },
       body: input.body,
     },
+    { publicDestination: true, timeoutMs: 15_000 },
   );
-
-  if (!response.ok) {
-    throw new Error(
-      `ntfy delivery failed (${response.status}): ${await response.text()}`,
-    );
-  }
 }
 
 async function sendGotifyNotification(input: {
@@ -304,15 +283,12 @@ async function sendGotifyNotification(input: {
   body: string;
   clickUrl?: string | null;
 }) {
-  await assertPublicWebhookDestination(input.serverUrl);
-
   // Gotify expects the app token in the query string; that can surface in logs, proxies, and browser history, so factor this into Gotify placement and log handling.
-  const response = await fetchWithTimeout(
+  await sendOutboundRequest(
     `${input.serverUrl.replace(/\/+$/, "")}/message?token=${encodeURIComponent(
       input.token,
     )}`,
     {
-      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
@@ -334,13 +310,8 @@ async function sendGotifyNotification(input: {
           : undefined,
       }),
     },
+    { publicDestination: true, timeoutMs: 15_000 },
   );
-
-  if (!response.ok) {
-    throw new Error(
-      `Gotify delivery failed (${response.status}): ${await response.text()}`,
-    );
-  }
 }
 
 async function sendWebhookNotification(input: {
@@ -348,8 +319,6 @@ async function sendWebhookNotification(input: {
   secret?: string | null;
   payload: Record<string, unknown>;
 }) {
-  await assertPublicWebhookDestination(input.webhookUrl);
-
   const body = JSON.stringify(input.payload);
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -361,17 +330,11 @@ async function sendWebhookNotification(input: {
       .digest("hex");
   }
 
-  const response = await fetchWithTimeout(input.webhookUrl, {
-    method: "POST",
-    headers,
-    body,
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Webhook delivery failed (${response.status}): ${await response.text()}`,
-    );
-  }
+  await sendOutboundRequest(
+    input.webhookUrl,
+    { headers, body },
+    { publicDestination: true, timeoutMs: 15_000 },
+  );
 }
 
 export async function deliverNotification(
@@ -381,7 +344,14 @@ export async function deliverNotification(
     where: eq(notificationTable.id, notificationId),
   });
 
-  if (!notification) {
+  if (
+    !notification ||
+    !(await canReceiveResourceNotification(
+      notification.userId,
+      notification.resourceId,
+      notification.resourceType,
+    ))
+  ) {
     return;
   }
 
@@ -552,7 +522,7 @@ export async function deliverNotification(
     if (result.status === "rejected") {
       console.error("Notification delivery failed", {
         notificationId,
-        error: result.reason,
+        error: safeOutboundError(result.reason),
       });
     }
   }

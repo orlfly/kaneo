@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { describeRoute, resolver, validator } from "hono-openapi";
 import * as v from "valibot";
+import { z } from "../openapi";
 import { labelSchema } from "../schemas";
 import { requireTeamRole } from "../utils/require-team-role";
 import { teamAccess } from "../utils/team-access-middleware";
@@ -12,6 +13,7 @@ import getLabelsByTaskId from "./controllers/get-labels-by-task-id";
 import getLabelsByTeamId from "./controllers/get-labels-by-team-id";
 import unassignLabelFromTask from "./controllers/unassign-label-from-task";
 import updateLabel from "./controllers/update-label";
+import { pendingLabelDeletionSchema } from "./response";
 
 const label = new Hono<{
   Variables: {
@@ -209,12 +211,30 @@ const label = new Hono<{
     describeRoute({
       operationId: "deleteLabel",
       tags: ["Labels"],
-      description: "Delete a label by ID",
+      description:
+        "Delete a label by ID. Large cascades remove at most 25 task copies per request. Repeat DELETE with the same ID after HTTP 202 until HTTP 200 completes the operation. The persisted start boundary allows safe resumption after a disconnect. HTTP 429 asks the caller to retry later.",
       responses: {
         200: {
           description: "Label deleted successfully",
           content: {
             "application/json": { schema: resolver(labelSchema) },
+          },
+        },
+        202: {
+          description: "Deletion has more batches; repeat the same request",
+          content: {
+            "application/json": {
+              schema: resolver(pendingLabelDeletionSchema),
+            },
+          },
+        },
+        429: {
+          description: "Deletion capacity is busy; retry after Retry-After",
+          content: {
+            "text/plain": { schema: resolver(z.string()) },
+            "application/json": {
+              schema: resolver(z.object({ message: z.string() })),
+            },
           },
         },
       },
@@ -225,8 +245,10 @@ const label = new Hono<{
     async (c) => {
       const { id } = c.req.valid("param");
       const userId = c.get("userId");
-      const label = await deleteLabel(id, userId);
-      return c.json(label);
+      const result = await deleteLabel(id, userId);
+      if (result.pendingDeletion)
+        return c.json({ ...result, pendingDeletion: true as const }, 202);
+      return c.json(result);
     },
   );
 

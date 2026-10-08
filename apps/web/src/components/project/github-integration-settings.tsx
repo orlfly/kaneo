@@ -40,13 +40,13 @@ import {
 import useImportGithubIssues from "@/hooks/mutations/github-integration/use-import-github-issues";
 import { useUpdateGithubIntegration } from "@/hooks/mutations/github-integration/use-update-github-integration";
 import useGetGithubIntegration from "@/hooks/queries/github-integration/use-get-github-integration";
+import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
 
 type GithubIntegrationFormValues = {
   repositoryOwner: string;
   repositoryName: string;
-  accessToken?: string;
 };
 
 export function GitHubIntegrationSettings({
@@ -55,6 +55,31 @@ export function GitHubIntegrationSettings({
   projectId: string;
 }) {
   const { t } = useTranslation();
+  const { data: session } = authClient.useSession();
+  const { data: appInfo } = useQuery({
+    queryKey: ["github-app-info", session?.user.id],
+    queryFn: getGitHubAppInfo,
+    enabled: Boolean(session?.user.id),
+  });
+  const [isLinkingAccount, setIsLinkingAccount] = React.useState(false);
+  const linkAccount = async () => {
+    setIsLinkingAccount(true);
+    try {
+      const result = await authClient.linkSocial({
+        provider: "github",
+        callbackURL: window.location.href,
+      });
+      if (result.error) throw new Error(result.error.message);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("settings:githubIntegration.toast.updateError"),
+      );
+    } finally {
+      setIsLinkingAccount(false);
+    }
+  };
   const githubIntegrationSchema = React.useMemo(
     () =>
       z.object({
@@ -72,17 +97,11 @@ export function GitHubIntegrationSettings({
             /^[a-zA-Z0-9._-]+$/,
             t("settings:githubIntegration.validation.nameInvalid"),
           ),
-        accessToken: z.string().optional(),
       }),
     [t],
   );
 
   const { data: integration, isLoading } = useGetGithubIntegration(projectId);
-  const { data: appInfo } = useQuery({
-    queryKey: ["github-app-info"],
-    queryFn: getGitHubAppInfo,
-  });
-  const hasGithubApp = Boolean(appInfo?.appName);
   const { mutateAsync: createIntegration, isPending: isCreating } =
     useCreateGithubIntegration();
   const { mutateAsync: deleteIntegration, isPending: isDeleting } =
@@ -104,7 +123,6 @@ export function GitHubIntegrationSettings({
     defaultValues: {
       repositoryOwner: integration?.repositoryOwner || "",
       repositoryName: integration?.repositoryName || "",
-      accessToken: "",
     },
   });
 
@@ -113,7 +131,6 @@ export function GitHubIntegrationSettings({
       form.reset({
         repositoryOwner: integration.repositoryOwner,
         repositoryName: integration.repositoryName,
-        accessToken: "",
       });
     }
   }, [integration, form]);
@@ -124,7 +141,7 @@ export function GitHubIntegrationSettings({
   const handleVerifyInstallation = React.useCallback(
     async (data: GithubIntegrationFormValues, showToast = true) => {
       try {
-        const result = await verifyInstallation(data);
+        const result = await verifyInstallation({ ...data, projectId });
         setVerificationResult(result);
 
         if (showToast) {
@@ -153,16 +170,20 @@ export function GitHubIntegrationSettings({
         setVerificationResult(null);
       }
     },
-    [verifyInstallation, t],
+    [verifyInstallation, projectId, t],
   );
 
   React.useEffect(() => {
-    if (repositoryOwner && repositoryName && form.formState.isValid) {
-      // Auto-verify without a token so App-mode installs flow seamlessly.
-      // PAT connections verify explicitly via the Verify button or submit.
+    if (
+      appInfo?.accountConnected &&
+      repositoryOwner &&
+      repositoryName &&
+      form.formState.isValid
+    ) {
       handleVerifyInstallation({ repositoryOwner, repositoryName }, false);
     }
   }, [
+    appInfo?.accountConnected,
     repositoryOwner,
     repositoryName,
     form.formState.isValid,
@@ -190,7 +211,7 @@ export function GitHubIntegrationSettings({
 
   const onSubmit = async (data: GithubIntegrationFormValues) => {
     try {
-      const verification = await verifyInstallation(data);
+      const verification = await verifyInstallation({ ...data, projectId });
 
       if (!verification.isInstalled) {
         toast.error(t("settings:githubIntegration.toast.installAppFirst"));
@@ -208,11 +229,7 @@ export function GitHubIntegrationSettings({
 
       await createIntegration({
         projectId,
-        data: {
-          repositoryOwner: data.repositoryOwner,
-          repositoryName: data.repositoryName,
-          accessToken: data.accessToken?.trim() || undefined,
-        },
+        data,
       });
       toast.success(t("settings:githubIntegration.toast.updated"));
     } catch (error) {
@@ -241,8 +258,15 @@ export function GitHubIntegrationSettings({
 
   const handleImportIssues = async () => {
     try {
-      await importIssues({ projectId });
-      toast.success(t("settings:githubIntegration.toast.issuesImported"));
+      const result = await importIssues({
+        projectId,
+        ...(integration?.importProgress?.pending
+          ? { runId: integration.importProgress.runId }
+          : {}),
+      });
+      toast.success(t("settings:githubIntegration.toast.issuesImported"), {
+        description: t("settings:githubIntegration.importSummary", result),
+      });
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -274,13 +298,42 @@ export function GitHubIntegrationSettings({
   }
 
   const isConnected = !!integration && integration.isActive;
-  const canImport =
-    isConnected &&
-    verificationResult?.isInstalled &&
-    verificationResult?.hasRequiredPermissions;
+  // The saved binding is verified again by each import request. Resuming must
+  // also work after refresh, without a new administrator-only account check.
+  const canImport = isConnected && !integration.requiresVerification;
 
   return (
     <div className="space-y-4">
+      {appInfo && !appInfo.accountConnected && (
+        <div className="space-y-3 rounded-md border border-border bg-sidebar p-4">
+          <p className="text-sm">
+            {t("settings:githubIntegration.accountVerificationHint")}
+          </p>
+          {appInfo.accountLinkingAvailable ? (
+            <Button
+              type="button"
+              variant="outline"
+              loading={isLinkingAccount}
+              onClick={linkAccount}
+            >
+              <GithubIcon aria-hidden="true" />
+              {t("settings:githubIntegration.connect")} GitHub
+            </Button>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {t("settings:githubIntegration.enableGithubSignInHint")}
+            </p>
+          )}
+        </div>
+      )}
+      {integration?.requiresVerification && (
+        <p
+          role="status"
+          className="rounded-md border border-border p-4 text-sm"
+        >
+          {t("settings:githubIntegration.reverifyHint")}
+        </p>
+      )}
       <div className="space-y-4 border border-border rounded-md p-4 bg-sidebar">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
@@ -491,43 +544,6 @@ export function GitHubIntegrationSettings({
 
             <Separator />
 
-            <FormField
-              control={form.control}
-              name="accessToken"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-sm font-medium">
-                        {t("settings:githubIntegration.tokenLabel", {
-                          defaultValue: "Personal Access Token",
-                        })}
-                      </FormLabel>
-                      <p className="text-xs text-muted-foreground">
-                        {t("settings:githubIntegration.tokenHint", {
-                          defaultValue:
-                            "Optional, unless no GitHub App is configured. The stored token is never shown again; leave this blank to keep it.",
-                        })}
-                      </p>
-                    </div>
-                    <FormControl>
-                      <Input
-                        className="w-64"
-                        type="password"
-                        autoComplete="off"
-                        placeholder="ghp_..."
-                        {...field}
-                        disabled={isCreating || isDeleting}
-                      />
-                    </FormControl>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Separator />
-
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <p className="text-sm font-medium">
@@ -543,16 +559,8 @@ export function GitHubIntegrationSettings({
                   variant="outline"
                   size="sm"
                   onClick={() => setShowRepositoryBrowser(true)}
+                  disabled={!appInfo?.accountConnected}
                   className="gap-2"
-                  disabled={!hasGithubApp}
-                  title={
-                    hasGithubApp
-                      ? undefined
-                      : t("settings:githubIntegration.browseUnavailable", {
-                          defaultValue:
-                            "Repository browsing requires a configured GitHub App",
-                        })
-                  }
                 >
                   <GitBranch className="size-3" />
                   {t("settings:githubIntegration.browse")}
@@ -563,7 +571,11 @@ export function GitHubIntegrationSettings({
                   variant="outline"
                   size="sm"
                   onClick={() => handleVerifyInstallation(form.getValues())}
-                  disabled={isVerifying || !form.formState.isValid}
+                  disabled={
+                    !appInfo?.accountConnected ||
+                    isVerifying ||
+                    !form.formState.isValid
+                  }
                   className="gap-2"
                 >
                   <RefreshCw
@@ -576,6 +588,7 @@ export function GitHubIntegrationSettings({
                   type="submit"
                   size="sm"
                   disabled={
+                    !appInfo?.accountConnected ||
                     isCreating ||
                     isDeleting ||
                     !form.formState.isValid ||
@@ -592,7 +605,7 @@ export function GitHubIntegrationSettings({
                     : t("settings:githubIntegration.connect")}
                 </Button>
 
-                {isConnected && (
+                {integration && (
                   <Button
                     type="button"
                     variant="destructive"
@@ -728,10 +741,21 @@ export function GitHubIntegrationSettings({
                 )}
                 {isImporting
                   ? t("settings:githubIntegration.importing")
-                  : t("settings:githubIntegration.importIssues")}
+                  : integration?.importProgress?.pending
+                    ? t("settings:githubIntegration.resumeImport")
+                    : t("settings:githubIntegration.importIssues")}
               </Button>
             </div>
           </div>
+          {integration?.importProgress?.pending && !isImporting && (
+            <p role="status" className="text-xs text-muted-foreground">
+              {t("settings:githubIntegration.importPaused")}{" "}
+              {t(
+                "settings:githubIntegration.importSummary",
+                integration.importProgress,
+              )}
+            </p>
+          )}
           {!canImport && (
             <>
               <Separator />
@@ -744,6 +768,7 @@ export function GitHubIntegrationSettings({
       )}
 
       <RepositoryBrowserModal
+        projectId={projectId}
         open={showRepositoryBrowser}
         onOpenChange={setShowRepositoryBrowser}
         onSelectRepository={handleRepositorySelect}

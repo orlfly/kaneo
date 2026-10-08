@@ -2,6 +2,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import type { Context, Next } from "hono";
 import { HTTPException } from "hono/http-exception";
 import db, { schema } from "../database";
+import { assertProjectScope } from "./agent-role";
 
 type TeamIdSource =
   | { type: "query"; key: string }
@@ -17,7 +18,8 @@ type TeamIdSource =
         | "activity"
         | "comment"
         | "column"
-        | "workflowRule";
+        | "workflowRule"
+        | "customField";
       idKey: string;
     }
   | {
@@ -29,6 +31,10 @@ type TeamIdSource =
 type TeamAccessMiddlewareConfig = {
   sources: TeamIdSource[];
 };
+
+// Resources whose lookup resolves (or is) a project id, so a project-bound
+// API key can be checked against it.
+const PROJECT_SCOPED_RESOURCES = new Set(["project", "task"]);
 
 async function readJsonObjectBody(
   c: Context,
@@ -48,6 +54,9 @@ export function teamAccessMiddleware(config: TeamAccessMiddlewareConfig) {
     }
 
     let teamId: string | null = null;
+    // Resolved project id (when the source references a project or task), so
+    // project-bound API keys can be scoped before the handler runs.
+    let projectId: string | null = null;
 
     for (const source of config.sources) {
       if (source.type === "query") {
@@ -64,7 +73,16 @@ export function teamAccessMiddleware(config: TeamAccessMiddlewareConfig) {
         const idFromBody = typeof bodyId === "string" ? bodyId : null;
         const id = c.req.param(source.idKey) || idFromBody;
         if (id) {
-          teamId = await lookupTeamId(source.resource, id);
+          const resolved = await lookupTeamAndProjectId(source.resource, id);
+          teamId = resolved?.teamId ?? null;
+          if (PROJECT_SCOPED_RESOURCES.has(source.resource)) {
+            // For "project" the id itself is the project; for "task" the
+            // lookup joined through the task's project.
+            projectId =
+              source.resource === "project"
+                ? id
+                : (resolved?.projectId ?? null);
+          }
         }
       } else if (source.type === "lookupMany") {
         const body = await readJsonObjectBody(c);
@@ -75,7 +93,10 @@ export function teamAccessMiddleware(config: TeamAccessMiddlewareConfig) {
           );
           if (taskIds.length > 0) {
             const tasks = await db
-              .select({ teamId: schema.projectTable.teamId })
+              .select({
+                teamId: schema.projectTable.teamId,
+                projectId: schema.taskTable.projectId,
+              })
               .from(schema.taskTable)
               .innerJoin(
                 schema.projectTable,
@@ -91,7 +112,12 @@ export function teamAccessMiddleware(config: TeamAccessMiddlewareConfig) {
                 message: "All tasks must belong to the same team",
               });
             }
+            const projectIds = [
+              ...new Set(tasks.map((task) => task.projectId)),
+            ];
             teamId = teamIds[0] ?? null;
+            projectId =
+              projectIds.length === 1 ? (projectIds[0] ?? null) : null;
           }
         }
       }
@@ -105,6 +131,18 @@ export function teamAccessMiddleware(config: TeamAccessMiddlewareConfig) {
       throw new HTTPException(400, {
         message: "Team ID could not be determined",
       });
+    }
+
+    // Project binding for API keys: a key bound to a project may only touch
+    // that project. Unbound keys and human sessions are unrestricted here.
+    const apiKey = c.get("apiKey") as { projectId?: string | null } | undefined;
+    if (apiKey?.projectId && projectId) {
+      assertProjectScope(
+        { projectId: apiKey.projectId } as Parameters<
+          typeof assertProjectScope
+        >[0],
+        projectId,
+      );
     }
 
     // Authorization: caller must be a member of this team (any role).
@@ -130,7 +168,7 @@ export function teamAccessMiddleware(config: TeamAccessMiddlewareConfig) {
   };
 }
 
-async function lookupTeamId(
+async function lookupTeamAndProjectId(
   resource:
     | "project"
     | "task"
@@ -139,9 +177,10 @@ async function lookupTeamId(
     | "activity"
     | "comment"
     | "column"
-    | "workflowRule",
+    | "workflowRule"
+    | "customField",
   id: string,
-): Promise<string | null> {
+): Promise<{ teamId: string | null; projectId: string | null } | null> {
   try {
     switch (resource) {
       case "project": {
@@ -150,12 +189,17 @@ async function lookupTeamId(
           .from(schema.projectTable)
           .where(eq(schema.projectTable.id, id))
           .limit(1);
-        return project?.teamId || null;
+        return project
+          ? { teamId: project.teamId || null, projectId: id }
+          : null;
       }
 
       case "task": {
         const [task] = await db
-          .select({ teamId: schema.projectTable.teamId })
+          .select({
+            teamId: schema.projectTable.teamId,
+            projectId: schema.taskTable.projectId,
+          })
           .from(schema.taskTable)
           .innerJoin(
             schema.projectTable,
@@ -163,21 +207,43 @@ async function lookupTeamId(
           )
           .where(eq(schema.taskTable.id, id))
           .limit(1);
-        return task?.teamId || null;
+        return task
+          ? { teamId: task.teamId || null, projectId: task.projectId || null }
+          : null;
       }
 
       case "label": {
         const [label] = await db
-          .select({ teamId: schema.labelTable.teamId })
+          .select({
+            teamId: schema.labelTable.teamId,
+            taskId: schema.labelTable.taskId,
+            taskTeamId: schema.projectTable.teamId,
+          })
           .from(schema.labelTable)
+          .leftJoin(
+            schema.taskTable,
+            eq(schema.labelTable.taskId, schema.taskTable.id),
+          )
+          .leftJoin(
+            schema.projectTable,
+            eq(schema.taskTable.projectId, schema.projectTable.id),
+          )
           .where(eq(schema.labelTable.id, id))
           .limit(1);
-        return label?.teamId || null;
+        // Older releases allowed inconsistent label/task references. Never use
+        // such a row to authorize reads, mutations or external provider sync.
+        if (label?.taskId && label.taskTeamId !== label.teamId) {
+          return null;
+        }
+        return label ? { teamId: label.teamId || null, projectId: null } : null;
       }
 
       case "timeEntry": {
         const [timeEntry] = await db
-          .select({ teamId: schema.projectTable.teamId })
+          .select({
+            teamId: schema.projectTable.teamId,
+            projectId: schema.taskTable.projectId,
+          })
           .from(schema.timeEntryTable)
           .innerJoin(
             schema.taskTable,
@@ -189,12 +255,20 @@ async function lookupTeamId(
           )
           .where(eq(schema.timeEntryTable.id, id))
           .limit(1);
-        return timeEntry?.teamId || null;
+        return timeEntry
+          ? {
+              teamId: timeEntry.teamId || null,
+              projectId: timeEntry.projectId || null,
+            }
+          : null;
       }
 
       case "activity": {
         const [activity] = await db
-          .select({ teamId: schema.projectTable.teamId })
+          .select({
+            teamId: schema.projectTable.teamId,
+            projectId: schema.taskTable.projectId,
+          })
           .from(schema.activityTable)
           .innerJoin(
             schema.taskTable,
@@ -206,12 +280,20 @@ async function lookupTeamId(
           )
           .where(eq(schema.activityTable.id, id))
           .limit(1);
-        return activity?.teamId || null;
+        return activity
+          ? {
+              teamId: activity.teamId || null,
+              projectId: activity.projectId || null,
+            }
+          : null;
       }
 
       case "comment": {
         const [comment] = await db
-          .select({ teamId: schema.projectTable.teamId })
+          .select({
+            teamId: schema.projectTable.teamId,
+            projectId: schema.taskTable.projectId,
+          })
           .from(schema.activityTable)
           .innerJoin(
             schema.taskTable,
@@ -228,7 +310,12 @@ async function lookupTeamId(
             ),
           )
           .limit(1);
-        return comment?.teamId || null;
+        return comment
+          ? {
+              teamId: comment.teamId || null,
+              projectId: comment.projectId || null,
+            }
+          : null;
       }
 
       case "column": {
@@ -241,7 +328,9 @@ async function lookupTeamId(
           )
           .where(eq(schema.columnTable.id, id))
           .limit(1);
-        return column?.teamId || null;
+        return column
+          ? { teamId: column.teamId || null, projectId: null }
+          : null;
       }
 
       case "workflowRule": {
@@ -254,7 +343,27 @@ async function lookupTeamId(
           )
           .where(eq(schema.workflowRuleTable.id, id))
           .limit(1);
-        return workflowRule?.teamId || null;
+        return workflowRule
+          ? { teamId: workflowRule.teamId || null, projectId: null }
+          : null;
+      }
+
+      case "customField": {
+        const [customField] = await db
+          .select({ teamId: schema.projectTable.teamId })
+          .from(schema.customFieldDefinitionTable)
+          .innerJoin(
+            schema.projectTable,
+            eq(
+              schema.customFieldDefinitionTable.projectId,
+              schema.projectTable.id,
+            ),
+          )
+          .where(eq(schema.customFieldDefinitionTable.id, id))
+          .limit(1);
+        return customField
+          ? { teamId: customField.teamId || null, projectId: null }
+          : null;
       }
 
       default:

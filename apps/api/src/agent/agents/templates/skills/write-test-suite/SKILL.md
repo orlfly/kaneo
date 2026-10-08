@@ -17,7 +17,7 @@ description: 编写单元、集成和 E2E 测试用例，生成覆盖率报告
 ## 前置条件
 
 - 已通过 `claim-task` 认领 testing 任务
-- 已使用 `repo-sync` skill 拉取最新代码
+- 已调用 `agent_sync_project` 同步项目集成仓库（冷启动会克隆到工作目录 `repo/` 子目录并生成 `KANEO_CONTEXT.md`；不要在本地文件系统里查找项目代码库，所有测试都在 `repo/` 内）
 - 已阅读被测代码的接口契约和现有测试约定
 - 已使用 `run-tests` skill 识别项目的测试框架（vitest / jest / playwright / 等）
 
@@ -26,15 +26,16 @@ description: 编写单元、集成和 E2E 测试用例，生成覆盖率报告
 ### 1. 理解测试框架
 
 ```bash
-# 检查测试框架
+# 检查测试框架（项目集成仓库位于 repo/ 子目录，以下命令均在 repo/ 内执行）
+cd repo
 cat package.json | jq '.devDependencies | to_entries | map(select(.key | test("vitest|jest|playwright|mocha")))'
 
 # 查看现有测试约定
-ls tests/api tests/api-integration 2>/dev/null
-cat apps/api/vitest.config.ts 2>/dev/null
+ls repo/tests/api repo/tests/api-integration 2>/dev/null
+cat repo/apps/api/vitest.config.ts 2>/dev/null
 
 # 查看测试命名风格
-find tests/ -name "*.test.ts" | head -5 | xargs grep -h "^describe\|^test\|^it"
+find repo/tests/ -name "*.test.ts" | head -5 | xargs grep -h "^describe\|^test\|^it"
 ```
 
 ### 2. 编写单元测试

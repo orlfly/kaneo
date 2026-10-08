@@ -6,6 +6,7 @@ import { describeRoute, resolver, validator } from "hono-openapi";
 import * as v from "valibot";
 import db from "../database";
 import { integrationTable, projectTable } from "../database/schema";
+import type { BaseVariables } from "../openapi";
 import {
   type GitLabConfig,
   validateGitLabConfig,
@@ -74,14 +75,8 @@ const importResultSchema = v.object({
 const nullableGitLabIntegrationSchema = v.nullable(gitlabIntegrationSchema);
 
 const gitlabIntegration = new Hono<{
-  Variables: {
-    userId: string;
+  Variables: BaseVariables & {
     teamId: string;
-    apiKey?: {
-      id: string;
-      userId: string;
-      enabled: boolean;
-    };
   };
 }>()
   .post(

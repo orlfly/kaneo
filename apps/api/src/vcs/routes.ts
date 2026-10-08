@@ -1,6 +1,7 @@
 import type { Hono } from "hono";
 import { describeRoute, validator } from "hono-openapi";
 import * as v from "valibot";
+import type { BaseVariables } from "../openapi";
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import {
@@ -21,12 +22,6 @@ import {
   vcsUpdateIssue,
 } from "./operations";
 import { resolveVcsIntegration, type VcsType } from "./resolve";
-
-type VcsVariables = {
-  userId: string;
-  teamId: string;
-  apiKey?: { id: string; userId: string; enabled: boolean };
-};
 
 const projectIdParam = v.object({
   projectId: v.string(),
@@ -80,7 +75,7 @@ const permission: Record<string, string[]> = {
  * caller is a team member, and dispatches to the underlying VCS client.
  */
 export function registerVcsRoutes(
-  app: Hono<{ Variables: VcsVariables }>,
+  app: Hono<{ Variables: BaseVariables & { teamId: string } }>,
   type: VcsType,
 ) {
   app.get(

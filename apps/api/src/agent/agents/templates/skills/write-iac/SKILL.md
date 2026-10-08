@@ -18,7 +18,7 @@ description: 编写 Dockerfile、Helm chart、CI/CD 流水线配置
 ## 前置条件
 
 - 已通过 `claim-task` 认领 devops 任务
-- 已使用 `repo-sync` skill 拉取最新代码
+- 已调用 `agent_sync_project` 同步项目集成仓库（冷启动会克隆到工作目录 `repo/` 子目录并生成 `KANEO_CONTEXT.md`；不要在本地文件系统里查找项目代码库）
 - 已阅读项目现有 Dockerfile、docker-compose、Helm charts、CI 配置
 - 已确认目标部署环境（Kubernetes 版本、容器运行时、镜像仓库）
 
@@ -27,14 +27,15 @@ description: 编写 Dockerfile、Helm chart、CI/CD 流水线配置
 ### 1. 理解现有基础设施
 
 ```bash
-# 列出所有部署相关文件
+# 列出所有部署相关文件（项目集成仓库位于 repo/ 子目录）
+cd repo
 find . -name "Dockerfile*" -o -name "*.yaml" -path "*/charts/*" -o -name "*.yml" -path "*/workflows/*" 2>/dev/null | grep -v node_modules
 
 # 查看现有 Dockerfile
-cat apps/api/Dockerfile apps/web/Dockerfile 2>/dev/null
+cat repo/apps/api/Dockerfile repo/apps/web/Dockerfile 2>/dev/null
 
 # 查看 Helm chart 结构
-find charts/ -type f | head -20
+find repo/charts/ -type f | head -20
 ```
 
 ### 2. Dockerfile 最佳实践
