@@ -29,6 +29,10 @@ export const taskSchema = z
     startDate: nullableResponseTimestamp,
     dueDate: nullableResponseTimestamp,
     createdAt: responseTimestamp,
+    requiredRole: z.string().nullable().optional().openapi({
+      description:
+        'Agent role needed to claim this task, or the literal "human" marker. Null means any agent role may claim.',
+    }),
     customFields: z
       .array(z.object({ fieldId: z.string(), value: z.string() }))
       .optional(),
@@ -81,6 +85,10 @@ export const boardTaskSchema = z
     position: z.number().nullable(),
     createdAt: responseTimestamp,
     userId: z.string().nullable(),
+    requiredRole: z.string().nullable().optional().openapi({
+      description:
+        'Agent role needed to claim this task, or the literal "human" marker. Null means any agent role may claim.',
+    }),
     assigneeName: z.string().nullable(),
     assigneeId: z.string().nullable(),
     assigneeImage: z.string().nullable(),

@@ -82,7 +82,12 @@ export async function checkPausedTaskSuggestions(): Promise<{
         },
       ];
 
-      const response = await chatCompletion(messages, []);
+      const response = await chatCompletion(
+        messages,
+        [],
+        undefined,
+        `paused-task-${task.id}`,
+      );
       const suggestion = response.choices?.[0]?.message?.content ?? "";
 
       if (!suggestion) {

@@ -84,6 +84,23 @@ async function getConfig() {
 export const CHAT_COMPLETION_TIMEOUT_MS = 120_000;
 
 /**
+ * Build the request headers for a pi-agent completion. A stable session ID is
+ * sent as `x-opencode-session` so providers that route on it (e.g. OpenCode Go)
+ * can optimize routing and prompt caching. Without it, OpenCode Go rejects the
+ * request with a MissingSessionID error.
+ */
+function requestHeaders(config: { apiKey: string }, sessionId?: string) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${config.apiKey}`,
+  };
+  if (sessionId) {
+    headers["x-opencode-session"] = sessionId;
+  }
+  return headers;
+}
+
+/**
  * Non-streaming completion for tool-call rounds.
  * Returns the full message including any tool_calls.
  */
@@ -91,6 +108,7 @@ export async function chatCompletion(
   messages: ChatCompletionMessage[],
   tools?: ChatCompletionTool[],
   model?: string,
+  sessionId?: string,
 ): Promise<ChatCompletionResponse> {
   const config = await getConfig();
 
@@ -104,10 +122,7 @@ export async function chatCompletion(
 
   const response = await fetch(completionUrl(config.baseUrl), {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${config.apiKey}`,
-    },
+    headers: requestHeaders(config, sessionId),
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(CHAT_COMPLETION_TIMEOUT_MS),
   });
@@ -128,6 +143,7 @@ export async function chatCompletionStream(
   messages: ChatCompletionMessage[],
   onToken: (token: string) => void,
   signal?: AbortSignal,
+  sessionId?: string,
 ): Promise<{
   content: string;
   toolCalls: ChatCompletionMessage["tool_calls"];
@@ -136,10 +152,7 @@ export async function chatCompletionStream(
 
   const response = await fetch(completionUrl(config.baseUrl), {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${config.apiKey}`,
-    },
+    headers: requestHeaders(config, sessionId),
     body: JSON.stringify({
       model: config.model || "gpt-4o",
       messages,

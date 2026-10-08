@@ -33,7 +33,7 @@ describe("removeTaskFromProject", () => {
       isPublic: false,
       createdAt: "2026-08-31T00:00:00.000Z",
       updatedAt: "2026-08-31T00:00:00.000Z",
-      workspaceId: "workspace-1",
+      teamId: "workspace-1",
       columns: [
         {
           id: "todo",

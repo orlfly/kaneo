@@ -35,7 +35,7 @@ const MAX_LANES_MOBILE = 2;
 
 function RouteComponent() {
   const { t } = useTranslation();
-  const { projectId, workspaceId } = Route.useParams();
+  const { projectId, teamId } = Route.useParams();
   const { taskId } = Route.useSearch();
   const navigate = useNavigate();
   const { data: project, isLoading, isError } = useGetTasks(projectId);
@@ -82,27 +82,27 @@ function RouteComponent() {
         [shortcuts.view.board]: () => {
           setViewMode("board");
           navigate({
-            to: "/dashboard/workspace/$workspaceId/project/$projectId/board",
-            params: { workspaceId, projectId },
+            to: "/dashboard/team/$teamId/project/$projectId/board",
+            params: { teamId, projectId },
           });
         },
         [shortcuts.view.list]: () => {
           setViewMode("list");
           navigate({
-            to: "/dashboard/workspace/$workspaceId/project/$projectId/board",
-            params: { workspaceId, projectId },
+            to: "/dashboard/team/$teamId/project/$projectId/board",
+            params: { teamId, projectId },
           });
         },
         [shortcuts.view.backlog]: () => {
           navigate({
-            to: "/dashboard/workspace/$workspaceId/project/$projectId/backlog",
-            params: { workspaceId, projectId },
+            to: "/dashboard/team/$teamId/project/$projectId/backlog",
+            params: { teamId, projectId },
           });
         },
         [shortcuts.view.gantt]: () => {
           navigate({
-            to: "/dashboard/workspace/$workspaceId/project/$projectId/gantt",
-            params: { workspaceId, projectId },
+            to: "/dashboard/team/$teamId/project/$projectId/gantt",
+            params: { teamId, projectId },
           });
         },
         [shortcuts.view.calendar]: () => {},
@@ -111,11 +111,7 @@ function RouteComponent() {
   });
 
   return (
-    <ProjectLayout
-      projectId={projectId}
-      workspaceId={workspaceId}
-      activeView="calendar"
-    >
+    <ProjectLayout projectId={projectId} teamId={teamId}>
       <PageTitle
         title={t("tasks:calendar.pageTitle", { name: project?.name })}
         hideAppName
@@ -163,7 +159,7 @@ function RouteComponent() {
         <TaskDetailsSheet
           taskId={taskId}
           projectId={projectId}
-          workspaceId={workspaceId}
+          teamId={teamId}
           onClose={handleCloseTaskSheet}
         />
       </div>

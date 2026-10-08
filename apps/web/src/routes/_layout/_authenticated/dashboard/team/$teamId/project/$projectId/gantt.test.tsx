@@ -25,7 +25,7 @@ const navigate = vi.fn();
 // tests that exercise that need to change what `useParams` returns between
 // renders of the *same* render() call, which a fresh mockReturnValue can't
 // do retroactively.
-const routeParams = { workspaceId: "workspace-1", projectId: "project-1" };
+const routeParams = { teamId: "workspace-1", projectId: "project-1" };
 
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: unknown) => ({

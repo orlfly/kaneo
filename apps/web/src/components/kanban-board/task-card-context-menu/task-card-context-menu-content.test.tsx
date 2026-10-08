@@ -122,8 +122,8 @@ const task = {
 } as const satisfies Task;
 
 const taskCardContext = {
+  teamId: "team-1",
   projectId: "project-1",
-  worskpaceId: "workspace-1",
 };
 
 function renderTask(taskToRender: Task) {

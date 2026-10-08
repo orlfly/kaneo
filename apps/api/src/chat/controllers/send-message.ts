@@ -182,7 +182,12 @@ async function sendMessageInner(
 
     let response: ChatCompletionResponse;
     try {
-      response = await chatCompletion(currentMessages, toolDefinitions);
+      response = await chatCompletion(
+        currentMessages,
+        toolDefinitions,
+        undefined,
+        projectId,
+      );
     } catch (error) {
       console.error("[chat] pi-agent chatCompletion error:", error);
       await writeStreamErrorAndDone(
@@ -265,6 +270,8 @@ async function sendMessageInner(
         (token) => {
           void stream.writeSSE({ event: "token", data: token });
         },
+        undefined,
+        projectId,
       ));
       usedStreamingCompletion = true;
     } catch (error) {
@@ -296,7 +303,12 @@ async function sendMessageInner(
         round + resolutionRound,
       );
       try {
-        const finalResponse = await chatCompletion(currentMessages);
+        const finalResponse = await chatCompletion(
+          currentMessages,
+          undefined,
+          undefined,
+          projectId,
+        );
         streamedContent = finalResponse.choices?.[0]?.message?.content ?? "";
       } catch (error) {
         console.error("[chat] pi-agent final completion error:", error);
@@ -424,12 +436,13 @@ async function writeStreamErrorAndDone(
 // Regex for literal <invoke name="tool"><parameter name="arg">value</parameter></invoke>
 // blocks that some models emit in the content instead of the structured
 // tool_calls field. DeepSeek models use a proprietary DSML dialect with a
-// fullwidth vertical bar prefix (U+FF5C): <｜DSML｜invoke ...>. Both dialects
-// share the same inner structure, so one regex covers them.
+// fullwidth vertical bar prefix (U+FF5C): <｜DSML｜invoke ...>. Some models also
+// insert whitespace between the prefix and the tag name (<｜DSML｜ invoke ...>).
+// Both dialects share the same inner structure, so one regex covers them.
 const INVOKE_RE =
-  /<(?:｜DSML｜)?invoke\s+name="([^"]+)"[^>]*>([\s\S]*?)<\/(?:｜DSML｜)?invoke>/g;
+  /<(?:｜DSML｜)?\s*invoke\s+name="([^"]+)"[^>]*>([\s\S]*?)<\/(?:｜DSML｜)?\s*invoke>/g;
 const PARAM_RE =
-  /<(?:｜DSML｜)?parameter\s+name="([^"]+)"[^>]*>([\s\S]*?)<\/(?:｜DSML｜)?parameter>/g;
+  /<(?:｜DSML｜)?\s*parameter\s+name="([^"]+)"[^>]*>([\s\S]*?)<\/(?:｜DSML｜)?\s*parameter>/g;
 
 /**
  * Detect tool calls emitted as literal markup in the message content (e.g.

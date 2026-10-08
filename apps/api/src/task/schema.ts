@@ -61,6 +61,9 @@ export const claimResultSchema = z.object({
   title: z.string(),
   status: z.string(),
   claimed: z.literal(true),
+  // True when the returned task was already held by the caller's own agent key
+  // (an in-progress rework resume) rather than newly claimed (Kaneo #57).
+  resumed: z.boolean(),
 });
 
 export const projectIdParam = z.object({ projectId: z.string() });

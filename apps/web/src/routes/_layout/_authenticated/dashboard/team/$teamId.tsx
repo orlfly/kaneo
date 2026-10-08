@@ -6,15 +6,15 @@ export const Route = createFileRoute(
 )({
   beforeLoad: async ({ params, location, context }) => {
     const currentPath = location.pathname.replace(/\/+$/, "");
-    const workspacePath = `/dashboard/workspace/${params.workspaceId}`;
+    const teamPath = `/dashboard/team/${params.teamId}`;
 
-    if (currentPath !== workspacePath) return;
+    if (currentPath !== teamPath) return;
 
     let projects: Awaited<ReturnType<typeof getProjects>> | undefined;
     try {
       projects = await context.queryClient.fetchQuery({
-        queryKey: ["projects", params.workspaceId],
-        queryFn: () => getProjects({ workspaceId: params.workspaceId }),
+        queryKey: ["projects", params.teamId],
+        queryFn: () => getProjects({ teamId: params.teamId }),
       });
     } catch {
       return;
@@ -23,9 +23,9 @@ export const Route = createFileRoute(
     if (projects?.length !== 1) return;
 
     throw redirect({
-      to: "/dashboard/workspace/$workspaceId/project/$projectId/board",
+      to: "/dashboard/team/$teamId/project/$projectId/board",
       params: {
-        workspaceId: params.workspaceId,
+        teamId: params.teamId,
         projectId: projects[0].id,
       },
       replace: true,

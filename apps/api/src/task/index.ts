@@ -602,7 +602,7 @@ const claimNextTaskRoute = createRoute({
   tags: ["Tasks"],
   summary: "Claim the next available task",
   description:
-    "Find and atomically claim the best available to-do task across the caller's team projects",
+    "Find and atomically claim the best available to-do task across the caller's team projects. The caller's own in-progress rework is resumed first (response `resumed: true`).",
   request: {
     body: {
       required: true,

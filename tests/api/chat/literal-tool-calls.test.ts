@@ -60,6 +60,18 @@ describe("parseLiteralToolCalls", () => {
     );
   });
 
+  it("parses DSML blocks with whitespace between the bar prefix and tag name", () => {
+    const content =
+      '<｜DSML｜ calls><｜DSML｜ invoke name="create_task_relation"><｜DSML｜ parameter name="relationType" string="true">blocks</｜DSML｜ parameter><｜DSML｜ parameter name="sourceTaskId" string="true">abc</｜DSML｜ parameter></｜DSML｜ invoke></｜DSML｜ calls>';
+    const calls = parseLiteralToolCalls(content);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].function.name).toBe("create_task_relation");
+    expect(JSON.parse(calls[0].function.arguments)).toEqual({
+      relationType: "blocks",
+      sourceTaskId: "abc",
+    });
+  });
+
   it("does not treat a normal invoke as part of a DSML block", () => {
     const content =
       '<invoke name="list_tasks"></invoke><｜DSML｜invoke name="get_project_summary"></｜DSML｜invoke>';

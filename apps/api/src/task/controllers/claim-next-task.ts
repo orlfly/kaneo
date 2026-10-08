@@ -24,6 +24,9 @@ import { claimTask } from "./claim-task";
  * Find the best unclaimed to-do task across the caller's team projects and
  * atomically claim it. Priority ordering: dueDate ASC (soonest first),
  * priority DESC (urgent first), createdAt ASC (oldest first).
+ *
+ * `resumed` is true when the returned task was already held by the caller's
+ * own agent key (rework resume) rather than freshly claimed (Kaneo #57).
  */
 export async function claimNextTask({
   userId,
@@ -42,6 +45,7 @@ export async function claimNextTask({
   title: string;
   status: string;
   claimed: true;
+  resumed: boolean;
 } | null> {
   // Find all team IDs the user belongs to.
   const teamMemberships = await db
@@ -73,7 +77,10 @@ export async function claimNextTask({
 
   // Three-rule candidate matching:
   // 1. My current assignment (rule 1) — picked first via the union below.
-  //    - implementation roles: tasks assigned to me (userId === caller)
+  //    - implementation roles: tasks claimed by MY agent key (`claimedBy`),
+  //      plus tasks assigned to my user but not yet claimed by any key
+  //      (`claimedBy IS NULL AND userId === me`, e.g. an assignee assignment).
+  //      Human callers (no key) fall back to `userId === caller`.
   //    - code-review: tasks whose review lock is held by me (resume an
   //      in-flight review instead of grabbing another one)
   // 2. Free (rule 2): unassigned OR review unclaimed, and role matches.
@@ -87,9 +94,18 @@ export async function claimNextTask({
   const mineStatuses = isCodeReview ? ["in-review"] : ["to-do", "in-progress"];
   const freeStatuses = isCodeReview ? ["in-review"] : ["to-do"];
 
+  // Persona attribution (Kaneo #57): several API keys may share one `userId`
+  // (the human team member) while the persona lives in `metadata.agentRole`.
+  // Rule 1 must therefore attribute by the caller's *key* (`claimedBy`), not by
+  // `userId`, or every persona would see the same in-progress tasks and new
+  // role-matched work would be masked. Fall back to `userId` when there is no
+  // key (human caller) or for tasks assigned but never claimed by a key.
+  const hasAgentKey = agentKeyId !== undefined && agentKeyId !== "";
   const mineCondition: SQL = isCodeReview
     ? eq(taskTable.reviewClaimedBy, agentKeyId ?? "")
-    : eq(taskTable.userId, userId);
+    : hasAgentKey
+      ? sql<boolean>`(${taskTable.claimedBy} = ${agentKeyId} OR (${taskTable.claimedBy} IS NULL AND ${taskTable.userId} = ${userId}))`
+      : eq(taskTable.userId, userId);
   const freeCondition: SQL = isCodeReview
     ? isNull(taskTable.reviewClaimedBy)
     : isNull(taskTable.userId);
@@ -113,7 +129,13 @@ export async function claimNextTask({
     baseMineConditions.push(ne(taskTable.requiredRole, HUMAN_REQUIRED_ROLE));
     baseFreeConditions.push(ne(taskTable.requiredRole, HUMAN_REQUIRED_ROLE));
   } else if (agentRole !== undefined) {
-    // A task I already own is always reclaimable regardless of requiredRole.
+    // Role match applies to rule 1 as well as rule 2 (Kaneo #57): on a shared
+    // `userId` a task held for another persona (e.g. testing) must not be
+    // returned to this one. Tasks whose requiredRole is cleared (rework sent
+    // back) stay eligible for their owning key via the `claimedBy` clause.
+    baseMineConditions.push(
+      sql<boolean>`(${taskTable.requiredRole} IS NULL OR ${taskTable.requiredRole} = ${agentRole})`,
+    );
     baseFreeConditions.push(
       sql<boolean>`(${taskTable.requiredRole} IS NULL OR ${taskTable.requiredRole} = ${agentRole})`,
     );
@@ -191,11 +213,14 @@ export async function claimNextTask({
       title: candidates[0]?.title ?? "",
       status: "in-progress",
       claimed: true,
+      resumed: true,
     };
   }
 
   // Atomically claim it. If another agent beat us, return null (caller can retry).
   try {
+    // `claimTask` returns `resumed: false` for a real to-do claim; the resume
+    // case above already returned early.
     return await claimTask({
       taskId: bestTaskId,
       userId,

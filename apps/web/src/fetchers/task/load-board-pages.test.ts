@@ -31,7 +31,7 @@ function board(id: string): ProjectWithTasks {
     icon: null,
     description: null,
     isPublic: false,
-    workspaceId: "workspace",
+    teamId: "workspace",
     columns: [
       {
         id: "to-do",
