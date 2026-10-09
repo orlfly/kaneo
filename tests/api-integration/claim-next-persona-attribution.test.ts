@@ -6,7 +6,7 @@ import { resetTestDatabase } from "./helpers/database";
 import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 /**
- * Regression for Kaneo #57 / #74: persona attribution in `claim-next`.
+ * Regression for Kaneo #57 / #78: persona attribution in `claim-next`.
  *
  * Real deployments give every agent persona of one human its own API key that
  * shares the same `userId` (`reference_id`); the persona lives only in
@@ -113,7 +113,7 @@ async function seedTask(
   return task;
 }
 
-describe("API integration: claim-next persona attribution (Kaneo #57/#74)", () => {
+describe("API integration: claim-next persona attribution (Kaneo #57/#78)", () => {
   beforeEach(async () => {
     await resetTestDatabase();
     currentApiKey = null;
@@ -233,5 +233,63 @@ describe("API integration: claim-next persona attribution (Kaneo #57/#74)", () =
     } else {
       expect(response.status).toBe(404);
     }
+  });
+
+  it("same-role multi-key: a second coding key does not get the first coding key's in-progress task", async () => {
+    // The ONLY case that discriminates fix #1 (attribute rule-1 candidates by
+    // claimedBy/agentKeyId) from fix #2 (merely add a requiredRole filter to
+    // rule 1): two keys of the SAME role sharing one userId. Fix #2 alone
+    // still leaks here because the role filter passes; the claimedBy match
+    // does not. Under fix #2 only, this test goes red.
+    const member = await createTeamMember({ role: "member" });
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+    const task = await seedTask(project.id, "in-progress", "coding");
+    const keyA = "mock-agent-key-coder-a";
+    await db
+      .update(schema.taskTable)
+      .set({
+        userId: member.user.id,
+        claimedBy: keyA,
+        claimedAt: new Date(),
+      })
+      .where(eq(schema.taskTable.id, task.id));
+
+    const keyB = "mock-agent-key-coder-b";
+    setAgent(keyB, member.user.id, "coding");
+    const { app } = createApp();
+
+    const response = await agentFetch(app, keyB, "/api/task/claim-next", {
+      method: "POST",
+      json: {},
+    });
+    if (response.status === 200) {
+      const body = (await response.json()) as { taskId: string };
+      expect.fail(
+        `same-role key leak: keyB claim-next returned keyA's task ${body.taskId}`,
+      );
+    }
+    expect(response.status).toBe(404);
+
+    // keyA's task untouched; and keyA still resumes it via rule 1.
+    const persisted = await db.query.taskTable.findFirst({
+      where: eq(schema.taskTable.id, task.id),
+    });
+    expect(persisted?.claimedBy).toBe(keyA);
+    expect(persisted?.status).toBe("in-progress");
+
+    setAgent(keyA, member.user.id, "coding");
+    const resume = await agentFetch(app, keyA, "/api/task/claim-next", {
+      method: "POST",
+      json: {},
+    });
+    expect(resume.status).toBe(200);
+    const resumeBody = (await resume.json()) as {
+      taskId: string;
+      resumed: boolean;
+    };
+    expect(resumeBody.taskId).toBe(task.id);
+    expect(resumeBody.resumed).toBe(true);
   });
 });
