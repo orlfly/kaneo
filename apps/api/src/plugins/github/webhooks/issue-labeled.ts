@@ -5,6 +5,7 @@ import { publishEvent } from "../../../events";
 import { findExternalLink } from "../services/link-manager";
 import {
   findAllIntegrationsByRepo,
+  isTaskInFinalState,
   updateTaskStatus,
 } from "../services/task-service";
 import {
@@ -50,6 +51,14 @@ export async function handleIssueLabeled(payload: IssueLabeledPayload) {
     const status = extractIssueStatus(issue.labels);
 
     if (priority) {
+      const task = await db.query.taskTable.findFirst({
+        where: eq(taskTable.id, existingLink.taskId),
+      });
+      // Label changes must never resurrect a task that reached a final
+      // column (e.g. done). Reopening requires an explicit reopen event.
+      if (task && (await isTaskInFinalState(task))) {
+        continue;
+      }
       await db
         .update(taskTable)
         .set({ priority })
@@ -57,6 +66,12 @@ export async function handleIssueLabeled(payload: IssueLabeledPayload) {
     }
 
     if (status) {
+      const task = await db.query.taskTable.findFirst({
+        where: eq(taskTable.id, existingLink.taskId),
+      });
+      if (!task || (await isTaskInFinalState(task))) {
+        continue;
+      }
       const statusResult = await updateTaskStatus(existingLink.taskId, status);
       if (
         statusResult.applied &&

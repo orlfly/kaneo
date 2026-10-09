@@ -3,7 +3,10 @@ import db from "../../../database";
 import { labelTable, taskTable } from "../../../database/schema";
 import { publishEvent } from "../../../events";
 import { findExternalLink } from "../../github/services/link-manager";
-import { updateTaskStatus } from "../../github/services/task-service";
+import {
+  isTaskInFinalState,
+  updateTaskStatus,
+} from "../../github/services/task-service";
 import {
   extractIssuePriority,
   extractIssueStatus,
@@ -145,6 +148,14 @@ export async function handleGiteaIssueLabeled(
       const status = extractIssueStatus(issue.labels);
 
       if (priority) {
+        const task = await db.query.taskTable.findFirst({
+          where: eq(taskTable.id, existingLink.taskId),
+        });
+        // Label changes must never resurrect a task that reached a final
+        // column (e.g. done). Reopening requires an explicit reopen event.
+        if (task && (await isTaskInFinalState(task))) {
+          continue;
+        }
         await db
           .update(taskTable)
           .set({ priority })
@@ -152,6 +163,12 @@ export async function handleGiteaIssueLabeled(
       }
 
       if (status) {
+        const task = await db.query.taskTable.findFirst({
+          where: eq(taskTable.id, existingLink.taskId),
+        });
+        if (!task || (await isTaskInFinalState(task))) {
+          continue;
+        }
         const statusResult = await updateTaskStatus(
           existingLink.taskId,
           status,
