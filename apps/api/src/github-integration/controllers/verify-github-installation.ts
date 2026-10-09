@@ -47,9 +47,21 @@ async function verifyGithubInstallation({
   const githubApp = getGithubApp();
 
   if (!githubApp) {
-    throw new HTTPException(500, {
-      message: "GitHub app not configured",
-    });
+    // Not a transient server error: the instance administrator must set
+    // GITHUB_APP_ID / GITHUB_PRIVATE_KEY (or _BASE64) / GITHUB_WEBHOOK_SECRET.
+    // A structured 200 lets the UI show actionable guidance instead of a
+    // generic error toast.
+    return {
+      isInstalled: false,
+      installationId: null,
+      repositoryExists: null,
+      repositoryPrivate: null,
+      permissions: null,
+      hasRequiredPermissions: false,
+      missingPermissions: [],
+      message:
+        "GitHub integration is not configured on this Kaneo instance. An administrator must set GITHUB_APP_ID, GITHUB_PRIVATE_KEY (or GITHUB_PRIVATE_KEY_BASE64) and GITHUB_WEBHOOK_SECRET.",
+    };
   }
 
   let installation: { id: number; permissions?: Record<string, string> };

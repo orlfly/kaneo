@@ -21,6 +21,7 @@ import db, { schema } from "./database";
 import deleteAccountData from "./user/controllers/delete-account-data";
 import { resolveAuthSecret } from "./utils/auth-secret";
 import { getDefaultCookieAttributes } from "./utils/get-default-cookie-attributes";
+import { getGithubSsoOAuthCredentials } from "./utils/github-sso-env";
 import { hasRegisteredUsers } from "./utils/instance-bootstrap";
 import { isCloud } from "./utils/is-cloud";
 import { isDisposableEmail } from "./utils/is-disposable-email";
@@ -138,6 +139,18 @@ export const auth = betterAuth({
       verify: async ({ hash, password }) => {
         return await bcrypt.compare(password, hash);
       },
+    },
+  },
+  // GitHub sign-in/account-linking provider. Credentials come from the
+  // GITHUB_OAUTH_* (or legacy GITHUB_CLIENT_*) pair so that setting the
+  // GitHub *App* integration variables alone never implicitly enables SSO.
+  // Without this wiring, authClient.linkSocial({ provider: "github" }) has no
+  // backend route and the project-settings "Connect GitHub" flow fails.
+  socialProviders: {
+    github: {
+      clientId: getGithubSsoOAuthCredentials().clientId,
+      clientSecret: getGithubSsoOAuthCredentials().clientSecret,
+      scope: ["user:email"],
     },
   },
   plugins: [
