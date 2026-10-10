@@ -21,7 +21,10 @@ import db, { schema } from "./database";
 import deleteAccountData from "./user/controllers/delete-account-data";
 import { resolveAuthSecret } from "./utils/auth-secret";
 import { getDefaultCookieAttributes } from "./utils/get-default-cookie-attributes";
-import { getGithubSsoOAuthCredentials, isGithubSsoConfigured } from "./utils/github-sso-env";
+import {
+  getGithubSsoOAuthCredentials,
+  isGithubSsoConfigured,
+} from "./utils/github-sso-env";
 import { hasRegisteredUsers } from "./utils/instance-bootstrap";
 import { isCloud } from "./utils/is-cloud";
 import { isDisposableEmail } from "./utils/is-disposable-email";
