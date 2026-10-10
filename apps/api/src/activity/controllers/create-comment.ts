@@ -16,6 +16,7 @@ async function createComment(
   userId: string,
   content: string,
   external?: { userName: string; source: string },
+  agentKeyId?: string | null,
 ) {
   const [activity] = await db
     .insert(activityTable)
@@ -24,6 +25,9 @@ async function createComment(
       type: "comment",
       userId,
       content,
+      // Persona attribution: several agent keys may share one human `userId`
+      // while the persona lives in `metadata.agentRole`.
+      agentKeyId: agentKeyId ?? null,
       ...(external
         ? {
             externalUserName: external.userName,
