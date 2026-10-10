@@ -53,6 +53,7 @@ export async function claimTask({
       id: schema.taskTable.id,
       status: schema.taskTable.status,
       userId: schema.taskTable.userId,
+      claimedBy: schema.taskTable.claimedBy,
       requiredRole: schema.taskTable.requiredRole,
       reviewClaimedBy: schema.taskTable.reviewClaimedBy,
       title: schema.taskTable.title,
@@ -65,10 +66,22 @@ export async function claimTask({
     throw new HTTPException(404, { message: "Task not found" });
   }
 
+  // Persona ownership. Several API keys may share one `userId` (the human team
+  // member) while the persona lives in `metadata.agentRole`; authorization must
+  // therefore key on the caller's *key* (`claimedBy`), exactly like
+  // `claim-next` does (Kaneo #57). Matching on `userId` alone let any persona
+  // resume another persona's in-progress work. Callers without a key (human
+  // sessions) keep the original `userId` semantics.
+  const hasAgentKey = agentKeyId !== undefined && agentKeyId !== "";
+  // "Mine" mirrors claim-next rule 1: the task is held by this persona's key,
+  // or it is assigned to my (possibly shared) user and no persona has claimed
+  // it yet. A task held by another persona's key is never mine.
+  const ownedByCaller = hasAgentKey
+    ? candidate.claimedBy === agentKeyId ||
+      (candidate.claimedBy === null && candidate.userId === userId)
+    : candidate.userId === userId;
   const isMineInProgress =
-    !isCodeReview &&
-    candidate.status === "in-progress" &&
-    candidate.userId === userId;
+    !isCodeReview && candidate.status === "in-progress" && ownedByCaller;
   const statusAllowed = isCodeReview
     ? candidate.status === "in-review"
     : candidate.status === "to-do" || isMineInProgress;
@@ -101,20 +114,34 @@ export async function claimTask({
   }
 
   const assignedToMe = candidate.userId === userId;
-  const roleMatched =
-    // code-review ignores userId entirely: it matches any in-review task that
-    // is not already under review by another key (checked above).
-    (isCodeReview && candidate.status === "in-review") ||
-    (!isCodeReview &&
-      candidate.userId === null &&
-      // Human-claim branch: when caller has no agent role, they may claim a
-      // generic (null) task or an explicitly human-only task, but never a
-      // task restricted to one of the seven agent roles.
-      (agentRole === undefined
-        ? taskRequiresHuman || candidate.requiredRole === null
-        : candidate.requiredRole === null ||
-          candidate.requiredRole === agentRole));
-  if (!assignedToMe && !roleMatched) {
+  const claimedByAnotherPersona =
+    hasAgentKey &&
+    candidate.claimedBy !== null &&
+    candidate.claimedBy !== agentKeyId;
+  // Whether the task's `requiredRole` admits this caller's persona (or a human
+  // caller, who may take untyped or explicitly human-only tasks).
+  const roleAllows =
+    agentRole === undefined
+      ? taskRequiresHuman || candidate.requiredRole === null
+      : candidate.requiredRole === null || candidate.requiredRole === agentRole;
+  // Implementation-claim authorization. A keyed caller may act on a task its
+  // own key holds, on one that is still unclaimed, or on one its shared human
+  // user is assigned but no persona has taken — always with a matching role.
+  // A task held by another persona's key is never claimable, and human callers
+  // keep the original assignee bypass. code-review claims are exempt from the
+  // implementer rules: they match any unlocked in-review task (the review mutex
+  // above already rejected another reviewer).
+  const implementationAllowed = hasAgentKey
+    ? !claimedByAnotherPersona &&
+      roleAllows &&
+      (candidate.claimedBy === agentKeyId ||
+        (candidate.claimedBy === null &&
+          (candidate.userId === null || assignedToMe)))
+    : assignedToMe || (candidate.userId === null && roleAllows);
+  const claimAllowed = isCodeReview
+    ? candidate.status === "in-review"
+    : implementationAllowed;
+  if (!claimAllowed) {
     throw new HTTPException(403, {
       message:
         "Task is not claimable by this agent role (assignee mismatch or required role does not match)",
