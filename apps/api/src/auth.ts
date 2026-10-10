@@ -21,7 +21,7 @@ import db, { schema } from "./database";
 import deleteAccountData from "./user/controllers/delete-account-data";
 import { resolveAuthSecret } from "./utils/auth-secret";
 import { getDefaultCookieAttributes } from "./utils/get-default-cookie-attributes";
-import { getGithubSsoOAuthCredentials } from "./utils/github-sso-env";
+import { getGithubSsoOAuthCredentials, isGithubSsoConfigured } from "./utils/github-sso-env";
 import { hasRegisteredUsers } from "./utils/instance-bootstrap";
 import { isCloud } from "./utils/is-cloud";
 import { isDisposableEmail } from "./utils/is-disposable-email";
@@ -127,6 +127,17 @@ export const auth = betterAuth({
       // email with a password account and retain access after the victim signs
       // in through a trusted OAuth/OIDC provider.
       requireLocalEmailVerified: true,
+      // GitHub is a trusted provider for implicit linking. Without this entry
+      // better-auth also requires the provider profile's emailVerified claim;
+      // that claim can be false for accounts whose primary address is a
+      // GitHub noreply alias, which would block linking an otherwise verified
+      // local user. The local-email-verified gate above still holds.
+      trustedProviders: isGithubSsoConfigured() ? ["github"] : [],
+      // Allow linking a GitHub identity whose primary address (e.g. a noreply
+      // alias) differs from the local account's email. The local-email-verified
+      // gate above and the trust gate still apply, so this does not open
+      // linking to arbitrary unverified identities.
+      allowDifferentEmails: true,
     },
   },
   emailAndPassword: {
