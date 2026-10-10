@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
@@ -437,5 +437,83 @@ describe("API integration: direct claim persona attribution (same userId, distin
       },
     );
     expect(response.status).toBe(403);
+  });
+});
+
+describe("API integration: activity persona attribution (shared userId)", () => {
+  beforeEach(async () => {
+    await resetTestDatabase();
+    currentApiKey = null;
+    projectCounters.clear();
+  });
+
+  it("records the acting persona key on a status change", async () => {
+    const member = await createTeamMember({ role: "member" });
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+    const task = await seedTask(project.id, "to-do", "coding");
+    await db
+      .update(schema.taskTable)
+      .set({ userId: member.user.id })
+      .where(eq(schema.taskTable.id, task.id));
+
+    const coderKeyId = "mock-agent-key-coder";
+    setAgent(coderKeyId, member.user.id, "coding");
+    const { app } = createApp();
+
+    const response = await agentFetch(
+      app,
+      coderKeyId,
+      `/api/task/status/${task.id}`,
+      { method: "PUT", json: { status: "in-progress" } },
+    );
+    expect(response.status).toBe(200);
+
+    // `userId` is shared by every persona of this human, so the activity row
+    // must carry the key that acted or the feed cannot name the role. The row
+    // is written by the async event subscriber, so wait for it.
+    const entry = await vi.waitFor(
+      async () => {
+        const row = await db.query.activityTable.findFirst({
+          where: and(
+            eq(schema.activityTable.taskId, task.id),
+            eq(schema.activityTable.type, "status_changed"),
+          ),
+        });
+        expect(row?.agentKeyId).toBe(coderKeyId);
+        return row;
+      },
+      { timeout: 5000 },
+    );
+    expect(entry?.type).toBe("status_changed");
+  });
+
+  it("records the acting persona key on a comment", async () => {
+    const member = await createTeamMember({ role: "member" });
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+    const task = await seedTask(project.id, "in-progress", "coding");
+
+    const archKeyId = "mock-agent-key-arch";
+    setAgent(archKeyId, member.user.id, "architecture-design");
+    const { app } = createApp();
+
+    const response = await agentFetch(
+      app,
+      archKeyId,
+      `/api/comment/${task.id}`,
+      { method: "POST", json: { content: "## 返工完成" } },
+    );
+    expect(response.status).toBe(200);
+
+    const entry = await db.query.activityTable.findFirst({
+      where: and(
+        eq(schema.activityTable.taskId, task.id),
+        eq(schema.activityTable.type, "comment"),
+      ),
+    });
+    expect(entry?.agentKeyId).toBe(archKeyId);
   });
 });

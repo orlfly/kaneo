@@ -7,6 +7,7 @@ async function createActivity(
   userId: string,
   content: string | null,
   eventData?: Record<string, unknown> | null,
+  agentKeyId?: string | null,
 ) {
   const [activity] = await db
     .insert(activityTable)
@@ -16,6 +17,9 @@ async function createActivity(
       userId,
       content,
       eventData: eventData ?? null,
+      // Persona attribution: on a deployment where several agent keys share one
+      // human `userId`, `userId` alone cannot tell which role acted.
+      agentKeyId: agentKeyId ?? null,
     })
     .returning();
   return activity;
