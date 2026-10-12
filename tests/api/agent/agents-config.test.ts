@@ -42,6 +42,13 @@ describe("agent config templates", () => {
       expect(skill.description.length).toBeGreaterThan(0);
     }
   });
+
+  it("scopes prototype-ui to the two design personas", async () => {
+    const skills = await listSkillTemplates();
+    const prototype = skills.find((s) => s.name === "prototype-ui");
+    expect(prototype).toBeDefined();
+    expect(prototype?.forRoles).toEqual(["product-design", "ui-design"]);
+  });
 });
 
 describe("agent config download package", () => {
@@ -90,5 +97,53 @@ describe("agent config download package", () => {
     } finally {
       await fs.rm(tmp, { recursive: true, force: true });
     }
+  });
+
+  it("ships prototype-ui to both design personas and to no one else", async () => {
+    const decode = (zip: Uint8Array) => new TextDecoder("latin1").decode(zip);
+    const entry = "skills/prototype-ui/SKILL.md";
+
+    expect(decode(await buildAgentConfigZip("product-design"))).toContain(
+      entry,
+    );
+    expect(decode(await buildAgentConfigZip("ui-design"))).toContain(entry);
+
+    for (const role of [
+      "coding",
+      "architecture-design",
+      "devops",
+      "testing",
+      "code-review",
+    ]) {
+      expect(decode(await buildAgentConfigZip(role))).not.toContain(entry);
+    }
+  });
+
+  it("prototype-ui documents its deliverable path and fidelity lanes", async () => {
+    const fs = await import("node:fs/promises");
+    const pathMod = await import("node:path");
+    const rel = pathMod.join(
+      "apps/api/src/agent/agents/templates/skills/prototype-ui/SKILL.md",
+    );
+    // Walk up from this test file until the repo root is found, so the
+    // assertion does not depend on the runner's cwd or package layout.
+    let root = import.meta.dirname;
+    let skillPath = "";
+    for (;;) {
+      const candidate = pathMod.join(root, rel);
+      try {
+        await fs.access(candidate);
+        skillPath = candidate;
+        break;
+      } catch {
+        const parent = pathMod.dirname(root);
+        if (parent === root) throw new Error(`skill file not found: ${rel}`);
+        root = parent;
+      }
+    }
+    const source = await fs.readFile(skillPath, "utf8");
+    expect(source).toContain("repo/docs/prototypes/<feature-slug>/index.html");
+    expect(source).toContain("低保真结构原型");
+    expect(source).toContain("高保真视觉原型");
   });
 });

@@ -137,7 +137,7 @@ The `install.sh` script SHALL copy each SKILL.md from the staging directory to t
 
 ### Requirement: Skills are redistributed across persona roles
 
-The 18 bundled skills SHALL be redistributed as follows across the persona roles:
+The 19 bundled skills SHALL be redistributed as follows across the persona roles:
 
 - `claim-task`: applicable to all 7 roles (every persona must claim work)
 - `continuous-work`: applicable to all 7 roles (autonomous loop discipline, universal guardrail)
@@ -157,33 +157,34 @@ The 18 bundled skills SHALL be redistributed as follows across the persona roles
 - `frontend-design`: applicable to `ui-design` (Anthropic visual direction guidance)
 - `make-interfaces-feel-better`: applicable to `ui-design` (micro-interaction polish)
 - `accessibility`: applicable to `ui-design` (WCAG 2.2 Level AA)
+- `prototype-ui`: applicable to `product-design` and `ui-design` (interactive HTML prototypes; low-fidelity structural for product-design, high-fidelity visual for ui-design)
 
 The resolved skill set per persona SHALL be:
 
 - `coding` → `claim-task`, `continuous-work`, `code-search`, `repo-sync`, `run-tests`, `submit-pr` (6 skills)
-- `product-design` → `claim-task`, `continuous-work`, `write-prd`, `product-lens`, `product-capability`, `intent-driven-development` (6 skills)
+- `product-design` → `claim-task`, `continuous-work`, `write-prd`, `product-lens`, `product-capability`, `intent-driven-development`, `prototype-ui` (7 skills)
 - `architecture-design` → `claim-task`, `continuous-work`, `write-adr` (3 skills)
 - `devops` → `claim-task`, `continuous-work`, `repo-sync`, `submit-pr`, `write-iac` (5 skills)
-- `ui-design` → `claim-task`, `continuous-work`, `write-design-spec`, `frontend-design`, `make-interfaces-feel-better`, `accessibility` (6 skills)
+- `ui-design` → `claim-task`, `continuous-work`, `write-design-spec`, `frontend-design`, `make-interfaces-feel-better`, `accessibility`, `prototype-ui` (7 skills)
 - `testing` → `claim-task`, `continuous-work`, `code-search`, `repo-sync`, `run-tests`, `submit-pr`, `write-test-suite` (7 skills)
 - `code-review` → `claim-task`, `continuous-work`, `code-search`, `review-pr` (4 skills)
 
 #### Scenario: ui-design persona receives claim-task and write-design-spec
 
 - **WHEN** the installer resolves skills for the `ui-design` persona
-- **THEN** the installed skills are `claim-task`, `continuous-work`, `write-design-spec`, `frontend-design`, `make-interfaces-feel-better`, `accessibility`
+- **THEN** the installed skills are `claim-task`, `continuous-work`, `write-design-spec`, `frontend-design`, `make-interfaces-feel-better`, `accessibility`, `prototype-ui`
 - **AND** `write-prd`, `write-adr`, `write-iac`, `write-test-suite`, `review-pr`, `product-lens`, `product-capability`, `intent-driven-development` are skipped
 
 #### Scenario: coding persona receives all coding skills
 
 - **WHEN** the installer resolves skills for the `coding` persona
 - **THEN** the installed skills are `claim-task`, `continuous-work`, `code-search`, `repo-sync`, `run-tests`, `submit-pr`
-- **AND** every role-specific skill (`write-prd`, `write-adr`, `write-design-spec`, `write-iac`, `write-test-suite`, `review-pr`, `product-lens`, `product-capability`, `intent-driven-development`, `frontend-design`, `make-interfaces-feel-better`, `accessibility`) is skipped
+- **AND** every role-specific skill (`write-prd`, `write-adr`, `write-design-spec`, `write-iac`, `write-test-suite`, `review-pr`, `product-lens`, `product-capability`, `intent-driven-development`, `frontend-design`, `make-interfaces-feel-better`, `accessibility`, `prototype-ui`) is skipped
 
 #### Scenario: product-design persona receives claim-task and write-prd
 
 - **WHEN** the installer resolves skills for the `product-design` persona
-- **THEN** the installed skills are `claim-task`, `continuous-work`, `write-prd`, `product-lens`, `product-capability`, `intent-driven-development`
+- **THEN** the installed skills are `claim-task`, `continuous-work`, `write-prd`, `product-lens`, `product-capability`, `intent-driven-development`, `prototype-ui`
 - **AND** `run-tests`, `submit-pr`, `code-search`, `repo-sync`, `write-adr`, `write-design-spec`, `write-iac`, `write-test-suite`, `review-pr`, `frontend-design`, `make-interfaces-feel-better`, `accessibility` are skipped
 
 #### Scenario: devops persona receives infra-oriented skills
@@ -215,17 +216,17 @@ The `GET /api/agent/agents-config/download` endpoint SHALL accept an optional `r
 
 - **WHEN** the client requests `GET /api/agent/agents-config/download?role=coding`
 - **THEN** the zip contains `claim-task`, `code-search`, `repo-sync`, `run-tests`, `submit-pr`
-- **AND** every role-specific skill (`write-prd`, `write-adr`, `write-design-spec`, `write-iac`, `write-test-suite`, `review-pr`, `product-lens`, `product-capability`, `intent-driven-development`, `frontend-design`, `make-interfaces-feel-better`, `accessibility`) is excluded
+- **AND** every role-specific skill (`write-prd`, `write-adr`, `write-design-spec`, `write-iac`, `write-test-suite`, `review-pr`, `product-lens`, `product-capability`, `intent-driven-development`, `frontend-design`, `make-interfaces-feel-better`, `accessibility`, `prototype-ui`) is excluded
 
 #### Scenario: Download filtered by product-design role
 
 - **WHEN** the client requests `GET /api/agent/agents-config/download?role=product-design`
-- **THEN** the zip contains `claim-task`, `write-prd`, `product-lens`, `product-capability`, `intent-driven-development`
+- **THEN** the zip contains `claim-task`, `write-prd`, `product-lens`, `product-capability`, `intent-driven-development`, `prototype-ui`
 
 #### Scenario: Download filtered by ui-design role
 
 - **WHEN** the client requests `GET /api/agent/agents-config/download?role=ui-design`
-- **THEN** the zip contains `claim-task`, `write-design-spec`, `frontend-design`, `make-interfaces-feel-better`, `accessibility`
+- **THEN** the zip contains `claim-task`, `write-design-spec`, `frontend-design`, `make-interfaces-feel-better`, `accessibility`, `prototype-ui`
 - **AND** `code-search`, `repo-sync`, `run-tests`, `submit-pr`, `write-iac`, `write-adr`, `write-prd`, `write-test-suite`, `review-pr`, `product-lens`, `product-capability`, `intent-driven-development` are excluded
 
 #### Scenario: Download filtered by devops role
@@ -273,4 +274,5 @@ The `GET /api/agent/agents-config/templates` endpoint SHALL include a `forRoles`
 - **AND** `frontend-design` lists `["ui-design"]`
 - **AND** `product-lens` lists `["product-design"]`
 - **AND** `accessibility` lists `["ui-design"]`
+- **AND** `prototype-ui` lists `["product-design", "ui-design"]`
 

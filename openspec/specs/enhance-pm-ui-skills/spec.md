@@ -2,6 +2,8 @@
 
 ## Purpose
 TBD - created by archiving change 2026-08-29-enhance-pm-ui-skills. Update Purpose after archive.
+
+> 注：本 spec 记录 2026-08-29 那次变更落地时的快照（当时两个设计角色的技能集各为 5 个）。当前权威的技能总数、归属与按角色解析结果以 `role-scoped-skill-installation` 为准；`prototype-ui` 由 `add-prototype-ui-skill` 变更引入。
 ## Requirements
 ### Requirement: SKILL.md 数量与归属
 
