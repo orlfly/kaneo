@@ -56,17 +56,17 @@ afterEach(() => {
 });
 
 describe("verifyGithubInstallation", () => {
-  it("throws HTTP 500 when the GitHub App is not configured", async () => {
+  it("returns actionable guidance (not 500) when the GitHub App is not configured", async () => {
     mockGetGithubApp.mockReturnValueOnce(null);
 
-    await expect(
-      verifyGithubInstallation({
-        repositoryOwner: "usekaneo",
-        repositoryName: "kaneo",
-      }),
-    ).rejects.toMatchObject({
-      status: 500,
+    const result = await verifyGithubInstallation({
+      repositoryOwner: "usekaneo",
+      repositoryName: "kaneo",
     });
+
+    expect(result.isInstalled).toBe(false);
+    expect(result.repositoryExists).toBeNull();
+    expect(result.message).toContain("GITHUB_APP_ID");
 
     expect(mockGetRepoInstallation).not.toHaveBeenCalled();
     expect(mockReposGet).not.toHaveBeenCalled();

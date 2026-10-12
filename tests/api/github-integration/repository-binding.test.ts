@@ -10,6 +10,7 @@ const m = vi.hoisted(() => ({
   insert: vi.fn(),
   listInstallations: vi.fn(),
   listRepos: vi.fn(),
+  collaborators: vi.fn(),
 }));
 vi.mock("../../../apps/api/src/database", () => ({
   default: {
@@ -44,8 +45,11 @@ vi.mock("../../../apps/api/src/plugins/github/utils/github-app", () => ({
     getInstallationOctokit: async () => ({
       rest: {
         apps: { listReposAccessibleToInstallation: m.listRepos },
-        users: { getById: m.user },
-        repos: { getCollaboratorPermissionLevel: m.permission, get: m.repo },
+        repos: {
+          listCollaborators: m.collaborators,
+          getCollaboratorPermissionLevel: m.permission,
+          get: m.repo,
+        },
       },
     }),
   }),
@@ -72,7 +76,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   m.account.mockResolvedValue({ accountId: "30" });
   m.installation.mockResolvedValue({ data: { id: 10 } });
-  m.user.mockResolvedValue({ data: { id: 30, login: "verified-login" } });
+  m.collaborators.mockResolvedValue({
+    data: [{ id: 30, login: "verified-login" }],
+  });
   m.permission.mockResolvedValue({ data: { permission: "admin" } });
   m.repo.mockResolvedValue({
     data: { id: 20, owner: { login: "Victim" }, name: "Private" },
@@ -134,8 +140,10 @@ describe("GitHub repository linking", () => {
     expect(m.integrations).not.toHaveBeenCalled();
     expect(JSON.parse(m.insert.mock.calls[0][0].config)).toMatchObject(binding);
   });
-  it("rejects an unexpected identity response", async () => {
-    m.user.mockResolvedValueOnce({ data: { id: 31, login: "somebody-else" } });
+  it("rejects an identity that is not a collaborator", async () => {
+    m.collaborators.mockResolvedValueOnce({
+      data: [{ id: 31, login: "somebody-else" }],
+    });
     await expect(
       verifyRepositoryOwner("user", "victim", "private"),
     ).rejects.toMatchObject({ status: 403 });
@@ -209,8 +217,14 @@ describe("authorized bounded repository listing", () => {
     });
   });
   it("returns only repositories the caller administers", async () => {
-    m.permission.mockImplementation(async ({ repo }) => ({
-      data: { permission: repo === "repo-20" ? "admin" : "read" },
+    m.collaborators.mockImplementation(async ({ repo }) => ({
+      data: [
+        {
+          id: 30,
+          login: "verified-login",
+          role_name: repo === "repo-20" ? "admin" : "read",
+        },
+      ],
     }));
     const page = await listUserRepositories("user", {
       installationPage: 1,
@@ -226,7 +240,9 @@ describe("authorized bounded repository listing", () => {
     );
   });
   it("does not expose an unauthorized installation's metadata", async () => {
-    m.permission.mockResolvedValue({ data: { permission: "read" } });
+    m.collaborators.mockResolvedValue({
+      data: [{ id: 30, login: "verified-login", role_name: "read" }],
+    });
     const page = await listUserRepositories("user", {
       installationPage: 1,
       repositoryPage: 1,
@@ -247,7 +263,7 @@ describe("authorized bounded repository listing", () => {
     });
     expect(m.listInstallations).toHaveBeenCalledTimes(1);
     expect(m.listRepos).toHaveBeenCalledTimes(1);
-    expect(m.permission).toHaveBeenCalledTimes(20);
+    expect(m.collaborators).toHaveBeenCalledTimes(20);
     expect(page.nextPage).toEqual({ installationPage: 2, repositoryPage: 4 });
   });
   it("stops when all installations have been visited", async () => {

@@ -21,6 +21,10 @@ import db, { schema } from "./database";
 import deleteAccountData from "./user/controllers/delete-account-data";
 import { resolveAuthSecret } from "./utils/auth-secret";
 import { getDefaultCookieAttributes } from "./utils/get-default-cookie-attributes";
+import {
+  getGithubSsoOAuthCredentials,
+  isGithubSsoConfigured,
+} from "./utils/github-sso-env";
 import { hasRegisteredUsers } from "./utils/instance-bootstrap";
 import { isCloud } from "./utils/is-cloud";
 import { isDisposableEmail } from "./utils/is-disposable-email";
@@ -126,6 +130,17 @@ export const auth = betterAuth({
       // email with a password account and retain access after the victim signs
       // in through a trusted OAuth/OIDC provider.
       requireLocalEmailVerified: true,
+      // GitHub is a trusted provider for implicit linking. Without this entry
+      // better-auth also requires the provider profile's emailVerified claim;
+      // that claim can be false for accounts whose primary address is a
+      // GitHub noreply alias, which would block linking an otherwise verified
+      // local user. The local-email-verified gate above still holds.
+      trustedProviders: isGithubSsoConfigured() ? ["github"] : [],
+      // Allow linking a GitHub identity whose primary address (e.g. a noreply
+      // alias) differs from the local account's email. The local-email-verified
+      // gate above and the trust gate still apply, so this does not open
+      // linking to arbitrary unverified identities.
+      allowDifferentEmails: true,
     },
   },
   emailAndPassword: {
@@ -138,6 +153,18 @@ export const auth = betterAuth({
       verify: async ({ hash, password }) => {
         return await bcrypt.compare(password, hash);
       },
+    },
+  },
+  // GitHub sign-in/account-linking provider. Credentials come from the
+  // GITHUB_OAUTH_* (or legacy GITHUB_CLIENT_*) pair so that setting the
+  // GitHub *App* integration variables alone never implicitly enables SSO.
+  // Without this wiring, authClient.linkSocial({ provider: "github" }) has no
+  // backend route and the project-settings "Connect GitHub" flow fails.
+  socialProviders: {
+    github: {
+      clientId: getGithubSsoOAuthCredentials().clientId,
+      clientSecret: getGithubSsoOAuthCredentials().clientSecret,
+      scope: ["user:email"],
     },
   },
   plugins: [
@@ -315,10 +342,15 @@ export const auth = betterAuth({
         }
       }
 
-      const isSignUpPath =
-        ctx.path === "/sign-up/email" ||
-        ctx.path.startsWith("/callback/") ||
-        ctx.path.startsWith("/sign-in/social");
+      // Only /sign-up/email is gated here. OAuth callbacks (/callback/*) and
+      // /sign-in/social initiate or complete a provider flow: actual user
+      // creation on those paths is already blocked by the user.create.before
+      // hook below, while blocking the callback itself would break legitimate
+      // SSO sign-in of existing linked identities and account linking (both
+      // never create a user). Upstream gets away with the broader gate because
+      // its default is registration enabled; this fork disables registration
+      // by default, so the broad gate must not be copied.
+      const isSignUpPath = ctx.path === "/sign-up/email";
 
       if (!isSignUpPath) {
         return;

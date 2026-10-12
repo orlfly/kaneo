@@ -24,10 +24,22 @@ export async function verifyRepositoryOwner(
         repo: repositoryName,
       });
     const octokit = await app.getInstallationOctokit(installation.id);
-    const { data: user } = await octokit.rest.users.getById({
-      account_id: accountId,
-    });
-    if (user.id !== accountId) throw new Error("GitHub identity mismatch");
+    // GET /users/{account_id} is not callable with an installation token
+    // (empirically 404s even for an existing user, while public access
+    // works), so resolve the linked GitHub identity through the verified
+    // repository's collaborator list instead: the linked account id must
+    // appear there, and that collaborator must hold admin permission.
+    const { data: collaborators } = await octokit.rest.repos.listCollaborators(
+      {
+        owner: repositoryOwner,
+        repo: repositoryName,
+        per_page: 100,
+      },
+    );
+    const user = collaborators.find(
+      (candidate) => candidate.id === accountId,
+    );
+    if (!user) throw new Error("GitHub identity mismatch");
     const { data: permission } =
       await octokit.rest.repos.getCollaboratorPermissionLevel({
         owner: repositoryOwner,

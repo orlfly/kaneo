@@ -605,7 +605,13 @@
 			"importSectionHint": "Import existing issues from your GitHub repository as tasks",
 			"importing": "Importing...",
 			"importIssues": "Import Issues",
-			"importDisabledHint": "Complete the repository configuration above to enable importing"
+			"importDisabledHint": "Complete the repository configuration above to enable importing",
+			"accountVerificationHint": "Connect your GitHub account to verify that you administer this repository.",
+			"enableGithubSignInHint": "Ask your instance administrator to enable GitHub sign-in.",
+			"reverifyHint": "Reconnect this repository to verify access and resume synchronization.",
+			"resumeImport": "Resume import",
+			"importPaused": "This import has saved progress. You can resume it.",
+			"importSummary": "Created: {{imported}} · Updated: {{updated}} · Skipped: {{skipped}}"
 		},
 		"giteaIntegration": {
 			"validation": {

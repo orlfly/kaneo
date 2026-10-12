@@ -20,11 +20,47 @@ const binding = {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.stubEnv("GITHUB_APP_ID", "1");
-  vi.stubEnv("GITHUB_PRIVATE_KEY", "unit-test-key");
+  vi.stubEnv(
+    "GITHUB_PRIVATE_KEY",
+    "-----BEGIN RSA PRIVATE KEY-----\nunit-test-key\n-----END RSA PRIVATE KEY-----",
+  );
   vi.stubEnv("GITHUB_WEBHOOK_SECRET", "unit-test-secret");
   m.client.mockResolvedValue({ rest: { repos: { get: m.repo } } });
 });
 afterEach(() => vi.unstubAllEnvs());
+
+describe("getGithubApp configuration gate", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubEnv("GITHUB_APP_ID", "1");
+    vi.stubEnv("GITHUB_WEBHOOK_SECRET", "unit-test-secret");
+  });
+
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("treats a truncated (non-PEM) private key as unconfigured", async () => {
+    // dotenv serves only the first line of an unquoted multi-line PEM; the
+    // gate must not pass a fragment to the App constructor, where it would
+    // surface later as an opaque JWT signing failure.
+    vi.stubEnv("GITHUB_PRIVATE_KEY", "-----BEGIN RSA PRIVATE KEY-----");
+    const { getGithubApp } = await import(
+      "../../../apps/api/src/plugins/github/utils/github-app"
+    );
+    expect(getGithubApp()).toBeNull();
+  });
+
+  it("accepts a complete PKCS#1 PEM", async () => {
+    vi.stubEnv(
+      "GITHUB_PRIVATE_KEY",
+      "-----BEGIN RSA PRIVATE KEY-----\nabc\n-----END RSA PRIVATE KEY-----",
+    );
+    const { getGithubApp } = await import(
+      "../../../apps/api/src/plugins/github/utils/github-app"
+    );
+    expect(getGithubApp()).not.toBeNull();
+  });
+});
+
 describe("GitHub outgoing repository binding", () => {
   it("permits only the verified numeric repository", async () => {
     m.repo.mockResolvedValue({ data: { id: 20 } });

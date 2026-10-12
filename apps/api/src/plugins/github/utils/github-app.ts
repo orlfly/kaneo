@@ -38,10 +38,20 @@ export function getGithubApp(boundedImport = false): App | null {
   }
 
   const privateKey = resolveGithubPrivateKey();
+  // A non-empty value that is not a complete PEM (e.g. dotenv truncated an
+  // unquoted multi-line key to its first line) must read as unconfigured, so
+  // endpoints surface the not-configured guidance instead of failing later
+  // with an opaque JWT signing error inside a permission check. Require a
+  // paired BEGIN/END envelope; accept PKCS#1 (RSA PRIVATE KEY) and PKCS#8
+  // (PRIVATE KEY) encodings.
+  const isCompletePem =
+    /-----BEGIN (RSA )?PRIVATE KEY-----/.test(privateKey) &&
+    /-----END (RSA )?PRIVATE KEY-----/.test(privateKey);
   if (
     !process.env.GITHUB_WEBHOOK_SECRET ||
     !process.env.GITHUB_APP_ID ||
-    !privateKey
+    !privateKey ||
+    !isCompletePem
   ) {
     return null;
   }

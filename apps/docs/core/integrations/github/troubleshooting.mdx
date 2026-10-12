@@ -93,6 +93,23 @@ Use the "Browse Repositories" feature in Kaneo to see which repositories your ap
    - Ensure the app is approved by organization owners
    - Verify the app is installed at the organization level, not just personal account
 
+### "GitHub Integration Is Not Configured" Message in Verification
+
+**Problem**: Verifying a repository returns a message saying the integration is not configured on the instance.
+
+**Symptoms**:
+- Verification result shows "GitHub integration is not configured on this Kaneo instance"
+- The message names `GITHUB_APP_ID`, `GITHUB_PRIVATE_KEY` and `GITHUB_WEBHOOK_SECRET`
+
+**Solutions**:
+1. **Set the GitHub App environment variables** on the API service (see the configuration table above). The verify endpoint reports this state instead of failing so the UI can guide you.
+
+2. **Prefer `GITHUB_PRIVATE_KEY_BASE64` when your host mangles newlines**
+   - Orchestrators with form-based env editors (e.g. Portainer stacks) strip real newlines
+   - `base64 -w 0 kaneo.private-key.pem` produces a safe single-line value
+
+3. **Restart the API** so the new environment is loaded, then verify again.
+
 ### Environment Variable Issues
 
 **Problem**: Integration doesn't work after configuration.

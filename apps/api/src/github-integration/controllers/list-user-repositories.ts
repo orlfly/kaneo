@@ -28,14 +28,10 @@ async function listUserRepositories(userId: string, page: RepositoryPage) {
   if (!installation)
     return { repositories: [], installations: [], total: 0, nextPage: null };
   const octokit = await app.getInstallationOctokit(installation.id);
-  const { data: identity } = await octokit.rest.users.getById({
-    account_id: Number(account.accountId),
-    request,
-  });
-  if (String(identity.id) !== account.accountId)
-    throw new HTTPException(403, {
-      message: "GitHub identity could not be verified",
-    });
+  // GET /users/{account_id} is not callable with an installation token (see
+  // verify-repository-owner): resolve the linked identity through each
+  // repository's collaborator list, which also carries the permission level
+  // (role_name) in the same response - one call per candidate repository.
   const { data } = await octokit.rest.apps.listReposAccessibleToInstallation({
     per_page: PAGE_SIZE,
     page: page.repositoryPage,
@@ -48,14 +44,17 @@ async function listUserRepositories(userId: string, page: RepositoryPage) {
     const authorized = await Promise.all(
       candidates.map(async (repo) => {
         try {
-          const { data: permission } =
-            await octokit.rest.repos.getCollaboratorPermissionLevel({
+          const { data: collaborators } =
+            await octokit.rest.repos.listCollaborators({
               owner: repo.owner.login,
               repo: repo.name,
-              username: identity.login,
+              per_page: 100,
               request,
             });
-          if (permission.permission !== "admin") return null;
+          const identity = collaborators.find(
+            (candidate) => String(candidate.id) === account.accountId,
+          );
+          if (identity?.role_name !== "admin") return null;
           return {
             id: repo.id,
             name: repo.name,

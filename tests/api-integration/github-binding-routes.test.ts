@@ -13,8 +13,10 @@ vi.mock("../../apps/api/src/plugins/github/utils/github-app", () => ({
     octokit: { rest: { apps: { getRepoInstallation: m.installation } } },
     getInstallationOctokit: async () => ({
       rest: {
-        users: { getById: async () => ({ data: { id: 30, login: "admin" } }) },
         repos: {
+          listCollaborators: async () => ({
+            data: [{ id: 30, login: "admin", role_name: "admin" }],
+          }),
           getCollaboratorPermissionLevel: m.permission,
           get: async () => ({
             data: { id: 20, owner: { login: "owner" }, name: "repo" },

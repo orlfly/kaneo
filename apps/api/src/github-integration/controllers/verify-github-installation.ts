@@ -37,6 +37,26 @@ function settingsUrlFor(installationId: number): string {
   return `https://github.com/settings/installations/${installationId}`;
 }
 
+export function isGithubAppConfigured(): boolean {
+  return getGithubApp() !== null;
+}
+
+// Shared with the route handler so the not-configured guidance stays identical
+// wherever it is produced (route pre-check and controller fallback).
+export function unconfiguredGithubVerificationResult(): VerificationResult {
+  return {
+    isInstalled: false,
+    installationId: null,
+    repositoryExists: null,
+    repositoryPrivate: null,
+    permissions: null,
+    hasRequiredPermissions: false,
+    missingPermissions: [],
+    message:
+      "GitHub integration is not configured on this Kaneo instance. An administrator must set GITHUB_APP_ID, GITHUB_PRIVATE_KEY (or GITHUB_PRIVATE_KEY_BASE64) and GITHUB_WEBHOOK_SECRET.",
+  };
+}
+
 async function verifyGithubInstallation({
   repositoryOwner,
   repositoryName,
@@ -47,9 +67,11 @@ async function verifyGithubInstallation({
   const githubApp = getGithubApp();
 
   if (!githubApp) {
-    throw new HTTPException(500, {
-      message: "GitHub app not configured",
-    });
+    // Not a transient server error: the instance administrator must set
+    // GITHUB_APP_ID / GITHUB_PRIVATE_KEY (or _BASE64) / GITHUB_WEBHOOK_SECRET.
+    // A structured 200 lets the UI show actionable guidance instead of a
+    // generic error toast.
+    return unconfiguredGithubVerificationResult();
   }
 
   let installation: { id: number; permissions?: Record<string, string> };

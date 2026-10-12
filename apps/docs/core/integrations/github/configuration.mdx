@@ -37,7 +37,8 @@ GitHub sign-in uses separate OAuth variables (`GITHUB_OAUTH_CLIENT_ID` / `GITHUB
 | Variable | Description | Required | Example |
 |----------|-------------|----------|---------|
 | `GITHUB_APP_ID` | Your GitHub App's ID | ✅ | `123456` |
-| `GITHUB_PRIVATE_KEY` | Full private key content (with newlines) | ✅ | `-----BEGIN RSA...` |
+| `GITHUB_PRIVATE_KEY` | Full private key content (with newlines); also accepts literal `\\n` separators | ✅* | `-----BEGIN RSA...` |
+| `GITHUB_PRIVATE_KEY_BASE64` | Base64-encoded private key; alternative to `GITHUB_PRIVATE_KEY` that avoids newline issues in orchestrators | optional | `LS0tLS1CRUdJTi...` |
 | `GITHUB_WEBHOOK_SECRET` | Secret for webhook verification | ✅ | `your-secret` |
 | `GITHUB_APP_NAME` | App slug for installation URLs in the UI | ⚠️ | `kaneo-mycompany` |
 

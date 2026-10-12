@@ -26,7 +26,10 @@ import deleteGithubIntegration from "./controllers/delete-github-integration";
 import getGithubIntegration from "./controllers/get-github-integration";
 import { importIssues } from "./controllers/import-issues";
 import listUserRepositories from "./controllers/list-user-repositories";
-import verifyGithubInstallation from "./controllers/verify-github-installation";
+import verifyGithubInstallation, {
+  isGithubAppConfigured,
+  unconfiguredGithubVerificationResult,
+} from "./controllers/verify-github-installation";
 import { verifyRepositoryOwner } from "./controllers/verify-repository-owner";
 import {
   createdGithubIntegrationSchema,
@@ -285,6 +288,13 @@ const githubIntegration = apiRouter<BaseVariables & { teamId: string }>()
   })
   .openapi(verifyRoute, async (c) => {
     const { repositoryOwner, repositoryName } = c.req.valid("json");
+
+    // Check App configuration before owner verification: the structured
+    // not-configured guidance must be reachable even when no github account
+    // is linked yet (owner verification would otherwise 403/503 first).
+    if (!isGithubAppConfigured()) {
+      return c.json(unconfiguredGithubVerificationResult(), 200);
+    }
 
     await verifyRepositoryOwner(
       c.get("userId"),
