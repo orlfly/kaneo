@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
@@ -396,5 +396,209 @@ describe("API integration: claim-next persona attribution keeps other rules inta
       json: {},
     });
     expect(response.status).toBe(404);
+  });
+});
+
+describe("API integration: direct claim persona attribution (same userId, distinct keys)", () => {
+  beforeEach(async () => {
+    await resetTestDatabase();
+    currentApiKey = null;
+    projectCounters.clear();
+  });
+
+  it("does not resume another persona's in-progress task", async () => {
+    // Same premise as the claim-next suite: one human, two personas whose keys
+    // share the userId. The direct `/claim/{id}` path used to authorize on
+    // `userId` alone, so the coding persona silently resumed the tester's task.
+    const { project, user } = await createSharedPersonaContext();
+    const task = await seedTask(
+      project.id,
+      "in-progress",
+      "testing",
+      "Tester task",
+    );
+    const testerKeyId = "mock-agent-key-tester";
+    await db
+      .update(schema.taskTable)
+      .set({
+        userId: user.id,
+        claimedBy: testerKeyId,
+        claimedAt: new Date(),
+      })
+      .where(eq(schema.taskTable.id, task.id));
+
+    setPersona("coding");
+    const { app } = createApp();
+
+    // The task is not the coder's to resume: the claim is refused (409 = not
+    // claimable in its current state; pre-fix this returned 200 `resumed:true`
+    // even though another persona held the task).
+    const response = await agentFetch(app, `/api/task/claim/${task.id}`, {
+      method: "POST",
+    });
+    expect(response.status).toBe(409);
+
+    const persisted = await db.query.taskTable.findFirst({
+      where: eq(schema.taskTable.id, task.id),
+    });
+    expect(persisted?.claimedBy).toBe(testerKeyId);
+    expect(persisted?.status).toBe("in-progress");
+  });
+
+  it("still resumes the caller's own in-progress rework task", async () => {
+    const { project, user } = await createSharedPersonaContext();
+    // The reviewer cleared requiredRole and returned the task for rework; the
+    // owning persona (same key) resumes it as a no-op.
+    const task = await seedTask(project.id, "in-progress", null, "Rework");
+    const coderKeyId = "mock-agent-key-coding";
+    await db
+      .update(schema.taskTable)
+      .set({
+        userId: user.id,
+        claimedBy: coderKeyId,
+        claimedAt: new Date(),
+      })
+      .where(eq(schema.taskTable.id, task.id));
+
+    setPersona("coding", coderKeyId);
+    const { app } = createApp();
+
+    const response = await agentFetch(app, `/api/task/claim/${task.id}`, {
+      method: "POST",
+    });
+    expect(response.status).toBe(200);
+    const payload = (await response.json()) as {
+      status: string;
+      resumed?: boolean;
+    };
+    expect(payload.status).toBe("in-progress");
+    expect(payload.resumed).toBe(true);
+  });
+
+  it("claims an assigned-but-unclaimed task that matches the caller's role", async () => {
+    const { project, user } = await createSharedPersonaContext();
+    // Assigned to the shared user, not yet held by any persona key.
+    const task = await seedTask(
+      project.id,
+      "to-do",
+      "coding",
+      "Unclaimed assigned work",
+    );
+    await db
+      .update(schema.taskTable)
+      .set({ userId: user.id })
+      .where(eq(schema.taskTable.id, task.id));
+
+    setPersona("coding");
+    const { app } = createApp();
+
+    const response = await agentFetch(app, `/api/task/claim/${task.id}`, {
+      method: "POST",
+    });
+    expect(response.status).toBe(200);
+    const persisted = await db.query.taskTable.findFirst({
+      where: eq(schema.taskTable.id, task.id),
+    });
+    expect(persisted?.claimedBy).toBe(currentApiKey?.keyId);
+  });
+
+  it("refuses a role-mismatched task even when it is assigned to the shared user", async () => {
+    const { project, user } = await createSharedPersonaContext();
+    const task = await seedTask(
+      project.id,
+      "to-do",
+      "architecture-design",
+      "Arch work",
+    );
+    await db
+      .update(schema.taskTable)
+      .set({ userId: user.id })
+      .where(eq(schema.taskTable.id, task.id));
+
+    setPersona("coding");
+    const { app } = createApp();
+
+    const response = await agentFetch(app, `/api/task/claim/${task.id}`, {
+      method: "POST",
+    });
+    expect(response.status).toBe(403);
+  });
+});
+
+describe("API integration: activity persona attribution (shared userId)", () => {
+  beforeEach(async () => {
+    await resetTestDatabase();
+    currentApiKey = null;
+    projectCounters.clear();
+  });
+
+  it("records the acting persona key on a status change", async () => {
+    const { project, user } = await createSharedPersonaContext();
+    const task = await seedTask(
+      project.id,
+      "to-do",
+      "coding",
+      "Status attribution",
+    );
+    await db
+      .update(schema.taskTable)
+      .set({ userId: user.id })
+      .where(eq(schema.taskTable.id, task.id));
+
+    const coderKeyId = "mock-agent-key-coding";
+    setPersona("coding", coderKeyId);
+    const { app } = createApp();
+
+    const response = await agentFetch(app, `/api/task/status/${task.id}`, {
+      method: "PUT",
+      json: { status: "in-progress" },
+    });
+    expect(response.status).toBe(200);
+
+    // `userId` is shared by every persona of this human, so the activity row
+    // must carry the key that acted or the feed cannot name the role. The row
+    // is written by the async event subscriber, so wait for it.
+    const entry = await vi.waitFor(
+      async () => {
+        const row = await db.query.activityTable.findFirst({
+          where: and(
+            eq(schema.activityTable.taskId, task.id),
+            eq(schema.activityTable.type, "status_changed"),
+          ),
+        });
+        expect(row?.agentKeyId).toBe(coderKeyId);
+        return row;
+      },
+      { timeout: 5000 },
+    );
+    expect(entry?.type).toBe("status_changed");
+  });
+
+  it("records the acting persona key on a comment", async () => {
+    const { project } = await createSharedPersonaContext();
+    const task = await seedTask(
+      project.id,
+      "in-progress",
+      "coding",
+      "Comment attribution",
+    );
+
+    const archKeyId = "mock-agent-key-arch";
+    setPersona("architecture-design", archKeyId);
+    const { app } = createApp();
+
+    const response = await agentFetch(app, `/api/comment/${task.id}`, {
+      method: "POST",
+      json: { content: "## 返工完成" },
+    });
+    expect(response.status).toBe(200);
+
+    const entry = await db.query.activityTable.findFirst({
+      where: and(
+        eq(schema.activityTable.taskId, task.id),
+        eq(schema.activityTable.type, "comment"),
+      ),
+    });
+    expect(entry?.agentKeyId).toBe(archKeyId);
   });
 });

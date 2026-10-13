@@ -162,13 +162,29 @@ const activity = apiRouter()
       });
     }
     return c.json(
-      await createActivity(taskId, type, c.get("userId"), message, eventData),
+      await createActivity(
+        taskId,
+        type,
+        c.get("userId"),
+        message,
+        eventData,
+        c.get("apiKey")?.id,
+      ),
       200,
     );
   })
   .openapi(createCommentRoute, async (c) => {
     const { taskId, comment } = c.req.valid("json");
-    return c.json(await createComment(taskId, c.get("userId"), comment), 200);
+    return c.json(
+      await createComment(
+        taskId,
+        c.get("userId"),
+        comment,
+        undefined,
+        c.get("apiKey")?.id,
+      ),
+      200,
+    );
   })
   .openapi(updateCommentRoute, async (c) => {
     const { activityId, comment } = c.req.valid("json");
@@ -189,11 +205,19 @@ subscribeToEvent<{
   currentUserId: string;
   type: string;
   content: string | null;
+  agentKeyId?: string;
 }>("task.created", async (data) => {
   if (!data.currentUserId || !data.taskId || !data.type) {
     return;
   }
-  await createActivity(data.taskId, data.type, data.currentUserId, null, {});
+  await createActivity(
+    data.taskId,
+    data.type,
+    data.currentUserId,
+    null,
+    {},
+    data.agentKeyId,
+  );
 });
 
 subscribeToEvent<{
@@ -207,6 +231,7 @@ subscribeToEvent<{
   toProjectName: string;
   oldStatus: string;
   newStatus: string;
+  agentKeyId?: string;
 }>("task.moved", async (data) => {
   const {
     fromProjectId,
@@ -217,14 +242,21 @@ subscribeToEvent<{
     newStatus,
   } = data;
 
-  await createActivity(data.taskId, data.type, data.userId, null, {
-    fromProjectId,
-    fromProjectName,
-    toProjectId,
-    toProjectName,
-    oldStatus,
-    newStatus,
-  });
+  await createActivity(
+    data.taskId,
+    data.type,
+    data.userId,
+    null,
+    {
+      fromProjectId,
+      fromProjectName,
+      toProjectId,
+      toProjectName,
+      oldStatus,
+      newStatus,
+    },
+    data.agentKeyId,
+  );
 });
 
 subscribeToEvent<{
@@ -235,11 +267,19 @@ subscribeToEvent<{
   title: string;
   assigneeId?: string;
   type: string;
+  agentKeyId?: string;
 }>("task.status_changed", async (data) => {
-  await createActivity(data.taskId, data.type, data.userId, null, {
-    oldStatus: data.oldStatus,
-    newStatus: data.newStatus,
-  });
+  await createActivity(
+    data.taskId,
+    data.type,
+    data.userId,
+    null,
+    {
+      oldStatus: data.oldStatus,
+      newStatus: data.newStatus,
+    },
+    data.agentKeyId,
+  );
 });
 
 subscribeToEvent<{
@@ -249,11 +289,19 @@ subscribeToEvent<{
   newPriority: string;
   title: string;
   type: string;
+  agentKeyId?: string;
 }>("task.priority_changed", async (data) => {
-  await createActivity(data.taskId, data.type, data.userId, null, {
-    oldPriority: data.oldPriority,
-    newPriority: data.newPriority,
-  });
+  await createActivity(
+    data.taskId,
+    data.type,
+    data.userId,
+    null,
+    {
+      oldPriority: data.oldPriority,
+      newPriority: data.newPriority,
+    },
+    data.agentKeyId,
+  );
 });
 
 subscribeToEvent<{
@@ -261,8 +309,16 @@ subscribeToEvent<{
   userId: string;
   title: string;
   type: string;
+  agentKeyId?: string;
 }>("task.unassigned", async (data) => {
-  await createActivity(data.taskId, data.type, data.userId, null, {});
+  await createActivity(
+    data.taskId,
+    data.type,
+    data.userId,
+    null,
+    {},
+    data.agentKeyId,
+  );
 });
 
 subscribeToEvent<{
@@ -273,12 +329,20 @@ subscribeToEvent<{
   newAssigneeId: string;
   title: string;
   type: string;
+  agentKeyId?: string;
 }>("task.assignee_changed", async (data) => {
-  await createActivity(data.taskId, data.type, data.userId, null, {
-    newAssigneeId: data.newAssigneeId,
-    newAssignee: data.newAssignee,
-    isSelfAssigned: data.userId === data.newAssigneeId,
-  });
+  await createActivity(
+    data.taskId,
+    data.type,
+    data.userId,
+    null,
+    {
+      newAssigneeId: data.newAssigneeId,
+      newAssignee: data.newAssignee,
+      isSelfAssigned: data.userId === data.newAssigneeId,
+    },
+    data.agentKeyId,
+  );
 });
 
 subscribeToEvent<{
@@ -288,17 +352,25 @@ subscribeToEvent<{
   newDueDate: Date;
   title: string;
   type: string;
+  agentKeyId?: string;
 }>("task.due_date_changed", async (data) => {
-  await createActivity(data.taskId, data.type, data.userId, null, {
-    oldDueDate:
-      data.oldDueDate instanceof Date
-        ? data.oldDueDate.toISOString()
-        : data.oldDueDate,
-    newDueDate:
-      data.newDueDate instanceof Date
-        ? data.newDueDate.toISOString()
-        : data.newDueDate,
-  });
+  await createActivity(
+    data.taskId,
+    data.type,
+    data.userId,
+    null,
+    {
+      oldDueDate:
+        data.oldDueDate instanceof Date
+          ? data.oldDueDate.toISOString()
+          : data.oldDueDate,
+      newDueDate:
+        data.newDueDate instanceof Date
+          ? data.newDueDate.toISOString()
+          : data.newDueDate,
+    },
+    data.agentKeyId,
+  );
 });
 
 export default activity;

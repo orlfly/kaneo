@@ -142,7 +142,13 @@ const comment = apiRouter()
         ? { userName: externalUserName, source: externalSource }
         : undefined;
     return c.json(
-      await createComment(taskId, c.get("userId"), content, external),
+      await createComment(
+        taskId,
+        c.get("userId"),
+        content,
+        external,
+        c.get("apiKey")?.id,
+      ),
       200,
     );
   })

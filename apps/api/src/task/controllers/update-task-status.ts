@@ -124,6 +124,9 @@ async function updateTaskStatus({
     title: updatedTask.title,
     assigneeId: updatedTask.userId,
     type: "status_changed",
+    // Persona attribution for the activity feed: several agent keys may share
+    // one human `userId` (the persona is `metadata.agentRole`).
+    agentKeyId,
   });
 
   await publishEvent("task-relation.refresh", {

@@ -356,7 +356,18 @@ describe("GitLab outbound event pipeline", () => {
     expect(link?.externalId).toBe("500");
     expect(link?.url).toContain("https://gitlab.mock/acme/my-app/-/issues/500");
 
-    // The label merge PUT should carry the task's priority + status labels.
+    // The label merge PUT is an async step after the link is stored (it first
+    // ensures labels exist, then GETs the issue and PUTs the merged names),
+    // so wait for it instead of asserting immediately.
+    await waitFor(async () => {
+      const puts = requests.filter(
+        (r) =>
+          r.method === "PUT" &&
+          r.url.endsWith("/issues/500") &&
+          typeof (r.body as { labels?: unknown })?.labels === "string",
+      );
+      return puts.length > 0;
+    });
     const labelPut = requests.find(
       (r) =>
         r.method === "PUT" &&
