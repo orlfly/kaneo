@@ -46,9 +46,12 @@ services:
       dockerfile: apps/web/Dockerfile
     ports:
       - "5173:5173"
-    environment:
-      - KANEO_API_URL=http://192.168.13.195:1337
-      - KANEO_CLIENT_URL=http://192.168.13.195:5173
+    # KANEO_API_URL and KANEO_CLIENT_URL are baked into the browser bundle when
+    # this container starts (apps/web/env.sh rewrites the built assets), so they
+    # must be the addresses the user's browser uses, not this host's own.
+    # They come from .env only, never through `environment:` interpolation:
+    # docker compose prefers an exported shell variable over .env, and dev
+    # shells export KANEO_API_URL=http://localhost:1337 for agent tooling.
     env_file:
       - .env
     depends_on:

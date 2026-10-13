@@ -221,6 +221,22 @@ For a complete list of all environment variables, their descriptions, and config
 - Configure proper database credentials
 - Ensure `KANEO_CLIENT_URL` and `KANEO_API_URL` are set to your production URLs
 
+### Docker Compose deployments
+
+- `KANEO_API_URL` and `KANEO_CLIENT_URL` are written into the browser bundle when the
+  web container starts (`apps/web/env.sh` rewrites the built assets), so both must be the
+  addresses the browser uses to reach Kaneo. A host's own LAN address is frequently not
+  that address, and an address that only ever worked on one development machine fails for
+  everyone else.
+- Keep both values in `.env` and let `env_file` pass them in. Do not pass them through
+  `environment: ${...}` interpolation: Docker Compose prefers an exported shell variable
+  over `.env`, so a stray export (for example `KANEO_API_URL=http://localhost:1337` set in
+  `~/.bashrc` for agent tooling) is silently baked into the deployment.
+- Changing either value needs a container recreate, not a rebuild:
+  `docker compose -f compose.local.yml up -d --force-recreate web`.
+- Verify what the browser will call:
+  `docker exec kaneo-web-1 grep -rlo "http://your-host:1337" /usr/share/nginx/html | head -1`
+
 ## Getting Help
 
 If you're still experiencing issues:
