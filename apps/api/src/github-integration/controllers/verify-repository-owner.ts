@@ -29,16 +29,12 @@ export async function verifyRepositoryOwner(
     // works), so resolve the linked GitHub identity through the verified
     // repository's collaborator list instead: the linked account id must
     // appear there, and that collaborator must hold admin permission.
-    const { data: collaborators } = await octokit.rest.repos.listCollaborators(
-      {
-        owner: repositoryOwner,
-        repo: repositoryName,
-        per_page: 100,
-      },
-    );
-    const user = collaborators.find(
-      (candidate) => candidate.id === accountId,
-    );
+    const { data: collaborators } = await octokit.rest.repos.listCollaborators({
+      owner: repositoryOwner,
+      repo: repositoryName,
+      per_page: 100,
+    });
+    const user = collaborators.find((candidate) => candidate.id === accountId);
     if (!user) throw new Error("GitHub identity mismatch");
     const { data: permission } =
       await octokit.rest.repos.getCollaboratorPermissionLevel({

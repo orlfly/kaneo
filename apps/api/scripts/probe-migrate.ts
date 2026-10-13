@@ -1,8 +1,8 @@
 // In-process migration run mirroring apps/api/src/index.ts startup path.
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { getDatabase } from "../src/database";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
+import { getDatabase } from "../src/database";
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 try {
