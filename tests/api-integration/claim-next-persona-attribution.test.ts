@@ -224,6 +224,53 @@ describe("API integration: claim-next persona attribution (task #57)", () => {
     expect(testerRow?.status).toBe("in-progress");
   });
 
+  it("keeps a same-role second key away from the first key's in-progress task", async () => {
+    const { project } = await createSharedPersonaContext();
+
+    // Two coding personas of one human: same userId, same agentRole, only the
+    // key id differs. A requiredRole filter alone still leaks here, so this is
+    // the case that pins rule 1 to the caller's key (`claimedBy`).
+    const held = await seedTask(
+      project.id,
+      "in-progress",
+      "coding",
+      "Held by the first coding key",
+      {
+        userId: SHARED_USER_ID,
+        claimedBy: `${KEY_PREFIX}coding-a`,
+        claimedAt: new Date(),
+      },
+    );
+
+    setPersona("coding", `${KEY_PREFIX}coding-b`);
+    const { app } = createApp();
+    const response = await agentFetch(app, "/api/task/claim-next", {
+      method: "POST",
+      json: {},
+    });
+    expect(response.status).toBe(404);
+
+    const heldRow = await db.query.taskTable.findFirst({
+      where: eq(schema.taskTable.id, held.id),
+    });
+    expect(heldRow?.claimedBy).toBe(`${KEY_PREFIX}coding-a`);
+    expect(heldRow?.status).toBe("in-progress");
+
+    // The owning key still resumes its own work.
+    setPersona("coding", `${KEY_PREFIX}coding-a`);
+    const resume = await agentFetch(app, "/api/task/claim-next", {
+      method: "POST",
+      json: {},
+    });
+    expect(resume.status).toBe(200);
+    const payload = (await resume.json()) as {
+      taskId: string;
+      resumed: boolean;
+    };
+    expect(payload.taskId).toBe(held.id);
+    expect(payload.resumed).toBe(true);
+  });
+
   it("resumes the caller persona's own in-progress rework via claim-next", async () => {
     const { project } = await createSharedPersonaContext();
 

@@ -47,8 +47,8 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - KANEO_API_URL=http://192.168.6.32:1337
-      - KANEO_CLIENT_URL=http://192.168.6.32:5173
+      - KANEO_API_URL=http://192.168.13.195:1337
+      - KANEO_CLIENT_URL=http://192.168.13.195:5173
     env_file:
       - .env
     depends_on:

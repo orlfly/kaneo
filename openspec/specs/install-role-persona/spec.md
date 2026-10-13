@@ -54,13 +54,16 @@ The `install.sh` script SHALL support a `--role <name>` flag that selects a Kane
 - **THEN** `code-search`, `repo-sync`, `run-tests`, `submit-pr`, `write-prd`, `write-adr`, `write-iac`, `write-test-suite`, `review-pr` are skipped because none of their `for_roles` includes `ui-design`
 - **AND** `claim-task` is installed because its `for_roles` includes all roles
 - **AND** `write-design-spec` is installed because its `for_roles` is `[ui-design]`
+- **AND** `prototype-ui` is installed because its `for_roles` includes `ui-design`
 - **AND** the script logs each skipped skill with the skill name and `ui-design`
 
-#### Scenario: Product-design persona installs write-prd only
+#### Scenario: Product-design persona installs the product skill set
 
 - **WHEN** the user runs `./install.sh --agent opencode --role product-design`
-- **THEN** `claim-task` and `write-prd` are installed
-- **AND** every other skill (`code-search`, `repo-sync`, `run-tests`, `submit-pr`, `write-adr`, `write-design-spec`, `write-iac`, `write-test-suite`, `review-pr`) is skipped
+- **THEN** `claim-task` is installed because its `for_roles` includes all roles
+- **AND** `write-prd`, `product-lens`, `product-capability`, `intent-driven-development` are installed because their `for_roles` is `[product-design]`
+- **AND** `prototype-ui` is installed because its `for_roles` includes `product-design`
+- **AND** every other skill (`code-search`, `repo-sync`, `run-tests`, `submit-pr`, `write-adr`, `write-design-spec`, `write-iac`, `write-test-suite`, `review-pr`, `frontend-design`, `make-interfaces-feel-better`, `accessibility`) is skipped
 
 #### Scenario: Devops persona installs write-iac and submit-pr
 
