@@ -29,6 +29,7 @@ import useGetTask from "@/hooks/queries/task/use-get-task";
 import { useGetActiveTeamMembers } from "@/hooks/queries/team-member/use-get-active-team-members";
 import { cn } from "@/lib/cn";
 import { getColumnIcon } from "@/lib/column";
+import { copyToClipboard } from "@/lib/copy-to-clipboard";
 import {
   dueDateStatusColors,
   getDueDateStatus,
@@ -118,10 +119,11 @@ export default function TaskPropertiesSidebar({
   const assignee = teamUsers?.find((member) => member.id === task?.userId);
 
   const handleCopyTaskLink = () => {
-    navigator.clipboard.writeText(
+    void copyToClipboard(
       `${window.location.origin}/dashboard/team/${teamId}/project/${projectId}/task/${taskId}`,
-    );
-    toast.message(t("tasks:properties.copyTaskLink"));
+    ).then((copied) => {
+      if (copied) toast.message(t("tasks:properties.copyTaskLink"));
+    });
   };
 
   const handleCopyTaskBranch = () => {
@@ -131,8 +133,9 @@ export default function TaskPropertiesSidebar({
       taskNumber,
       task?.title,
     );
-    navigator.clipboard.writeText(branchName);
-    toast.message(t("tasks:properties.copyTaskBranch"));
+    void copyToClipboard(branchName).then((copied) => {
+      if (copied) toast.message(t("tasks:properties.copyTaskBranch"));
+    });
   };
 
   return (

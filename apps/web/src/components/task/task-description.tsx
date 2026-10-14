@@ -64,6 +64,7 @@ import { useUpdateTaskDescription } from "@/hooks/mutations/task/use-update-task
 import useGetTask from "@/hooks/queries/task/use-get-task";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { cn } from "@/lib/cn";
+import { copyToClipboard } from "@/lib/copy-to-clipboard";
 import { parseTaskListMarkdownToNodes } from "@/lib/editor-task-list-paste";
 import {
   extractIssueKeyFromUrl,
@@ -1338,8 +1339,7 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
     const content = node.textContent || "";
     if (!content) return;
 
-    try {
-      await navigator.clipboard.writeText(content);
+    if (await copyToClipboard(content)) {
       setIsCodeCopied(true);
       if (codeCopyResetTimeoutRef.current !== null) {
         window.clearTimeout(codeCopyResetTimeoutRef.current);
@@ -1348,8 +1348,6 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
         setIsCodeCopied(false);
         codeCopyResetTimeoutRef.current = null;
       }, 1400);
-    } catch (_error) {
-      // ignore clipboard write failures
     }
   }, [editor, hoveredCodeBlock]);
 

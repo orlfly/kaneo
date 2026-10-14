@@ -38,6 +38,7 @@ import useImportGiteaIssues from "@/hooks/mutations/gitea-integration/use-import
 import { useUpdateGiteaIntegration } from "@/hooks/mutations/gitea-integration/use-update-gitea-integration";
 import useGetGiteaIntegration from "@/hooks/queries/gitea-integration/use-get-gitea-integration";
 import { cn } from "@/lib/cn";
+import { copyToClipboard } from "@/lib/copy-to-clipboard";
 import { toast } from "@/lib/toast";
 
 type GiteaIntegrationFormValues = {
@@ -391,15 +392,10 @@ export function GiteaIntegrationSettings({ projectId }: { projectId: string }) {
       return;
     }
 
-    try {
-      await navigator.clipboard.writeText(integration.webhookSecret);
+    if (await copyToClipboard(integration.webhookSecret)) {
       toast.success(t("settings:giteaIntegration.toast.secretCopied"));
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : t("settings:giteaIntegration.toast.unableToCopySecret"),
-      );
+    } else {
+      toast.error(t("settings:giteaIntegration.toast.unableToCopySecret"));
     }
   }, [integration?.webhookSecret, t]);
 

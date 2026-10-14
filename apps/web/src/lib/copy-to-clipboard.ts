@@ -37,3 +37,20 @@ export async function copyToClipboard(text: string): Promise<boolean> {
     scratch.remove();
   }
 }
+
+/**
+ * Selects an element's text so the user can finish the copy with Ctrl/Cmd+C.
+ *
+ * The last resort for an origin where neither the async clipboard API nor the
+ * legacy copy command is accepted: leaving the text selected turns the
+ * remaining work into one keystroke instead of a hand-led drag.
+ */
+export function selectElementText(element: Element | null): void {
+  if (!element) return;
+  const selection = window.getSelection();
+  if (!selection) return;
+  const range = document.createRange();
+  range.selectNodeContents(element);
+  selection.removeAllRanges();
+  selection.addRange(range);
+}

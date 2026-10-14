@@ -369,6 +369,7 @@
 				"copy": "Copy",
 				"copied": "Copied",
 				"toastCopied": "API key copied to clipboard",
+				"toastCopyFailed": "Couldn't copy the key. Select it and copy it manually.",
 				"alertTitle": "Success! Your API key has been created",
 				"alertDescription": "Copy this key now. You won't be able to see it again.",
 				"done": "Done",

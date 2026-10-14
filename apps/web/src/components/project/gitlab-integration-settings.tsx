@@ -38,6 +38,7 @@ import useImportGitLabIssues from "@/hooks/mutations/gitlab-integration/use-impo
 import { useUpdateGitLabIntegration } from "@/hooks/mutations/gitlab-integration/use-update-gitlab-integration";
 import useGetGitLabIntegration from "@/hooks/queries/gitlab-integration/use-get-gitlab-integration";
 import { cn } from "@/lib/cn";
+import { copyToClipboard } from "@/lib/copy-to-clipboard";
 import { toast } from "@/lib/toast";
 
 type GitLabIntegrationFormValues = {
@@ -400,15 +401,10 @@ export function GitLabIntegrationSettings({
       return;
     }
 
-    try {
-      await navigator.clipboard.writeText(integration.webhookSecret);
+    if (await copyToClipboard(integration.webhookSecret)) {
       toast.success(t("settings:gitlabIntegration.toast.secretCopied"));
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : t("settings:gitlabIntegration.toast.unableToCopySecret"),
-      );
+    } else {
+      toast.error(t("settings:gitlabIntegration.toast.unableToCopySecret"));
     }
   }, [integration?.webhookSecret, t]);
 

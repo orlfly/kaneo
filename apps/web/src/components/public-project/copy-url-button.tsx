@@ -2,6 +2,7 @@ import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { copyToClipboard } from "@/lib/copy-to-clipboard";
 import { toast } from "@/lib/toast";
 
 export function CopyUrlButton() {
@@ -9,15 +10,13 @@ export function CopyUrlButton() {
   const [copied, setCopied] = useState(false);
 
   const handleCopyUrl = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      toast.success(t("publicProject:copyUrl.successToast"));
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      console.error("Failed to copy URL:", error);
+    if (!(await copyToClipboard(window.location.href))) {
       toast.error(t("publicProject:copyUrl.errorToast"));
+      return;
     }
+    setCopied(true);
+    toast.success(t("publicProject:copyUrl.successToast"));
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (

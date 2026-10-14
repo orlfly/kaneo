@@ -1,6 +1,7 @@
 import { Check, Copy } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { copyToClipboard, selectElementText } from "@/lib/copy-to-clipboard";
 import { toast } from "@/lib/toast";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Button } from "../ui/button";
@@ -28,9 +29,20 @@ export function ApiKeyCreatedModal({
 }: ApiKeyCreatedModalProps) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
+  // Set when neither clipboard route worked: the key stays on screen, selected,
+  // so the user can finish the copy with the keyboard.
+  const [needsManualCopy, setNeedsManualCopy] = useState(false);
+  const keyRef = useRef<HTMLElement | null>(null);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(apiKey);
+  const handleCopy = async () => {
+    // A plain-HTTP origin has no navigator.clipboard, so the helper falls back
+    // to the legacy path. Only a failure on both routes is worth reporting.
+    if (!(await copyToClipboard(apiKey))) {
+      selectElementText(keyRef.current);
+      setNeedsManualCopy(true);
+      toast.error(t("settings:apiKey.createdModal.toastCopyFailed"));
+      return;
+    }
     setCopied(true);
     toast.success(t("settings:apiKey.createdModal.toastCopied"));
   };
@@ -73,7 +85,10 @@ export function ApiKeyCreatedModal({
               </Button>
             </div>
             <div className="bg-sidebar border border-border rounded-sm p-2.5 max-h-24 overflow-y-auto">
-              <code className="text-xs font-mono text-foreground break-all leading-relaxed">
+              <code
+                ref={keyRef}
+                className="text-xs font-mono text-foreground break-all leading-relaxed"
+              >
                 {apiKey}
               </code>
             </div>
@@ -92,7 +107,7 @@ export function ApiKeyCreatedModal({
         <DialogFooter className="gap-2 sm:gap-2">
           <Button
             onClick={onClose}
-            disabled={!copied}
+            disabled={!copied && !needsManualCopy}
             className="h-8 text-xs w-full sm:w-auto"
           >
             {copied

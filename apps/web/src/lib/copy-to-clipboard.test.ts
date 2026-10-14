@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { copyToClipboard } from "./copy-to-clipboard";
+import { copyToClipboard, selectElementText } from "./copy-to-clipboard";
 
 const originalClipboard = navigator.clipboard;
 const originalExecCommand = document.execCommand;
@@ -133,5 +133,25 @@ describe("copyToClipboard", () => {
     await expect(copyToClipboard("hello")).resolves.toBe(false);
     // Verify the scratch node was removed despite the exception
     expect(document.querySelectorAll("textarea")).toHaveLength(0);
+  });
+});
+
+describe("selectElementText", () => {
+  it("selects the whole element so a manual Ctrl+C copies it", () => {
+    const code = document.createElement("code");
+    code.textContent = "kaneo_secret_key";
+    document.body.appendChild(code);
+
+    selectElementText(code);
+
+    const range = window.getSelection()?.getRangeAt(0);
+    expect(range?.startContainer).toBe(code);
+    expect(range?.startOffset).toBe(0);
+    expect(range?.endOffset).toBe(code.childNodes.length);
+    code.remove();
+  });
+
+  it("ignores a missing element", () => {
+    expect(() => selectElementText(null)).not.toThrow();
   });
 });

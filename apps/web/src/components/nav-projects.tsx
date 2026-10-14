@@ -59,6 +59,7 @@ import useReorderProjects from "@/hooks/mutations/project/use-reorder-projects";
 import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import useActiveTeam from "@/hooks/queries/team/use-active-team";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
+import { copyToClipboard } from "@/lib/copy-to-clipboard";
 import { toast } from "@/lib/toast";
 import type { ProjectWithTasks } from "@/types/project";
 import CreateProjectModal from "./shared/modals/create-project-modal";
@@ -291,12 +292,15 @@ export function NavProjects() {
                               <DropdownMenuItem
                                 className="h-7 items-start cursor-pointer text-sm"
                                 onClick={() => {
-                                  navigator.clipboard.writeText(
+                                  void copyToClipboard(
                                     `${window.location.origin}/dashboard/team/${team?.id}/project/${project.id}`,
-                                  );
-                                  toast.success(
-                                    t("navigation:projectList.linkCopied"),
-                                  );
+                                  ).then((copied) => {
+                                    if (copied) {
+                                      toast.success(
+                                        t("navigation:projectList.linkCopied"),
+                                      );
+                                    }
+                                  });
                                 }}
                               >
                                 <Forward className="text-muted-foreground" />

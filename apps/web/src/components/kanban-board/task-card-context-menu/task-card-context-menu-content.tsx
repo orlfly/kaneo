@@ -23,6 +23,7 @@ import { useGetColumns } from "@/hooks/queries/column/use-get-columns";
 import { useGetActiveTeamMembers } from "@/hooks/queries/team-member/use-get-active-team-members";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { getColumnIcon } from "@/lib/column";
+import { copyToClipboard } from "@/lib/copy-to-clipboard";
 import { generateLink } from "@/lib/generate-link";
 import { getInitials } from "@/lib/get-initials";
 import { getPriorityLabel } from "@/lib/i18n/domain";
@@ -91,8 +92,9 @@ export default function TaskCardContextMenuContent({
     const path = `/dashboard/team/${taskCardContext.teamId}/project/${taskCardContext.projectId}/task/${task.id}`;
     const taskLink = generateLink(path);
 
-    navigator.clipboard.writeText(taskLink);
-    toast.success(t("tasks:contextMenu.copyLinkSuccess"));
+    void copyToClipboard(taskLink).then((copied) => {
+      if (copied) toast.success(t("tasks:contextMenu.copyLinkSuccess"));
+    });
   };
 
   const handleChange = async (field: keyof Task, value: string | Date) => {

@@ -62,6 +62,7 @@ import {
 import useActiveTeam from "@/hooks/queries/team/use-active-team";
 import { useGetActiveTeamMembers } from "@/hooks/queries/team-member/use-get-active-team-members";
 import { cn } from "@/lib/cn";
+import { copyToClipboard } from "@/lib/copy-to-clipboard";
 import { parseTaskListMarkdownToNodes } from "@/lib/editor-task-list-paste";
 import {
   extractIssueKeyFromUrl,
@@ -1415,8 +1416,7 @@ export default function CommentEditor({
     const content = node.textContent || "";
     if (!content) return;
 
-    try {
-      await navigator.clipboard.writeText(content);
+    if (await copyToClipboard(content)) {
       setIsCodeCopied(true);
       if (codeCopyResetTimeoutRef.current !== null) {
         window.clearTimeout(codeCopyResetTimeoutRef.current);
@@ -1425,8 +1425,6 @@ export default function CommentEditor({
         setIsCodeCopied(false);
         codeCopyResetTimeoutRef.current = null;
       }, 1400);
-    } catch (_error) {
-      // ignore clipboard write failures
     }
   }, [editor, hoveredCodeBlock]);
 
