@@ -10,6 +10,8 @@ import {
   userTable,
 } from "../../database/schema";
 import { publishEvent } from "../../events";
+import type { TaskRelationInput } from "../../task-relation/controllers/insert-task-relations";
+import { insertTaskRelations } from "../../task-relation/controllers/insert-task-relations";
 import {
   assertAssignableUser,
   getProjectTeamId,
@@ -56,6 +58,7 @@ async function createTask({
   customFields,
   requiredRole,
   agentRole,
+  relations,
 }: {
   projectId: string;
   currentUserId: string;
@@ -69,6 +72,7 @@ async function createTask({
   customFields?: CustomFieldInput[];
   requiredRole?: string | null;
   agentRole?: AgentRole;
+  relations?: TaskRelationInput[];
 }) {
   const resolvedStatus = status || "to-do";
   const resolvedPriority = priority || "no-priority";
@@ -126,6 +130,12 @@ async function createTask({
     ),
   });
 
+  const declaredRelations = relations ?? [];
+  const teamId = declaredRelations.length
+    ? await getProjectTeamId(projectId)
+    : undefined;
+  let createdRelations: Awaited<ReturnType<typeof insertTaskRelations>> = [];
+
   const createdTask = await withTaskNumberRetry(
     () =>
       db.transaction(async (tx) => {
@@ -165,6 +175,17 @@ async function createTask({
           );
         }
 
+        // The task and the relations it was created for commit together, so a
+        // rejected relation cannot leave the prerequisite unlinked on the
+        // board (see insert-task-relations).
+        if (task && teamId && declaredRelations.length) {
+          createdRelations = await insertTaskRelations(tx, {
+            sourceTaskId: task.id,
+            teamId,
+            relations: declaredRelations,
+          });
+        }
+
         return task;
       }),
     {
@@ -195,9 +216,19 @@ async function createTask({
     content: null,
   });
 
+  for (const relation of createdRelations) {
+    await publishEvent("task-relation.created", {
+      ...relation,
+      taskId: relation.sourceTaskId,
+      projectId,
+      userId: currentUserId,
+    });
+  }
+
   return {
     ...createdTask,
     assigneeName: assignee?.name,
+    relations: createdRelations,
   };
 }
 

@@ -181,18 +181,32 @@ describe("delete_task_relation tool", () => {
   });
 });
 
-describe("create_task with dependencies", () => {
-  it("creates the task and its declared relations", async () => {
-    mocks.createTask.mockResolvedValue({ id: "new1", title: "New task" });
-    mocks.createTaskRelation
-      .mockResolvedValueOnce({ id: "rel1" })
-      .mockResolvedValueOnce({ id: "rel2" });
+describe("create_task with relations", () => {
+  it("creates the task and its declared relations in one controller call", async () => {
+    mocks.createTask.mockResolvedValue({
+      id: "new1",
+      title: "New task",
+      relations: [
+        {
+          id: "rel1",
+          sourceTaskId: "new1",
+          targetTaskId: "t1",
+          relationType: "blocks",
+        },
+        {
+          id: "rel2",
+          sourceTaskId: "new1",
+          targetTaskId: "t2",
+          relationType: "subtask",
+        },
+      ],
+    });
 
     const result = await executeTool(
       "create_task",
       {
         title: "New task",
-        dependencies: [
+        relations: [
           { targetTaskId: "t1", relationType: "blocks" },
           { targetTaskId: "t2", relationType: "subtask" },
         ],
@@ -201,59 +215,40 @@ describe("create_task with dependencies", () => {
       USER_ID,
     );
 
-    expect(mocks.createTask).toHaveBeenCalled();
-    expect(mocks.createTaskRelation).toHaveBeenCalledTimes(2);
-    expect(mocks.createTaskRelation).toHaveBeenNthCalledWith(1, {
-      sourceTaskId: "new1",
-      targetTaskId: "t1",
-      relationType: "blocks",
-      userId: USER_ID,
-      teamId: TEAM_ID,
-    });
-    expect(mocks.createTaskRelation).toHaveBeenNthCalledWith(2, {
-      sourceTaskId: "new1",
-      targetTaskId: "t2",
-      relationType: "subtask",
-      userId: USER_ID,
-      teamId: TEAM_ID,
-    });
+    expect(mocks.createTask).toHaveBeenCalledWith(
+      expect.objectContaining({
+        relations: [
+          { targetTaskId: "t1", relationType: "blocks" },
+          { targetTaskId: "t2", relationType: "subtask" },
+        ],
+      }),
+    );
+    // The controller owns the transaction, so the tool must not link behind
+    // its back (that two-step path is what left tasks unlinked).
+    expect(mocks.createTaskRelation).not.toHaveBeenCalled();
     expect(JSON.parse(result)).toMatchObject({
       id: "new1",
       created: true,
-      dependencies: 2,
+      relations: 2,
     });
   });
 
-  it("rolls back created relations when a dependency fails", async () => {
-    mocks.createTask.mockResolvedValue({ id: "new1", title: "New task" });
-    mocks.createTaskRelation
-      .mockResolvedValueOnce({ id: "rel1" })
-      .mockRejectedValueOnce(new Error("Target task not found"));
-    mocks.deleteTaskRelation.mockResolvedValue({ id: "rel1" });
-
+  it("rejects an unusable relation before creating the task", async () => {
     const result = await executeTool(
       "create_task",
       {
         title: "New task",
-        dependencies: [
-          { targetTaskId: "t1", relationType: "blocks" },
-          { targetTaskId: "missing", relationType: "related" },
-        ],
+        relations: [{ targetTaskId: "t1", relationType: "sideways" }],
       },
       PROJECT_ID,
       USER_ID,
     );
 
-    expect(JSON.parse(result).error).toContain("Target task not found");
-    // The first relation must be rolled back.
-    expect(mocks.deleteTaskRelation).toHaveBeenCalledWith(
-      "rel1",
-      USER_ID,
-      TEAM_ID,
-    );
+    expect(JSON.parse(result).error).toContain("targetTaskId");
+    expect(mocks.createTask).not.toHaveBeenCalled();
   });
 
-  it("creates a task without dependencies", async () => {
+  it("creates a task without relations", async () => {
     mocks.createTask.mockResolvedValue({ id: "new1", title: "New task" });
 
     const result = await executeTool(
@@ -267,7 +262,7 @@ describe("create_task with dependencies", () => {
     expect(JSON.parse(result)).toMatchObject({
       id: "new1",
       created: true,
-      dependencies: 0,
+      relations: 0,
     });
   });
 });

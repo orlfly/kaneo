@@ -412,4 +412,208 @@ describe("API integration: task creation", () => {
       expect(persistedTask?.userId).toBeNull();
     },
   );
+
+  it("creates the declared relations with the task in one request", async () => {
+    const member = await createTeamMember();
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+
+    // The prerequisite the new task is created for.
+    const [prerequisite] = await db
+      .insert(schema.taskTable)
+      .values({
+        projectId: project.id,
+        title: "Existing prerequisite",
+        number: 1,
+      })
+      .returning();
+
+    mockAuthenticatedSession(member.user);
+    const { app } = createApp();
+
+    const response = await app.request(`/api/task/${project.id}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        title: "Dependent follow-up task",
+        description: "Depends on the prerequisite",
+        priority: "medium",
+        status: "to-do",
+        relations: [{ targetTaskId: prerequisite.id, relationType: "blocks" }],
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    const payload = (await response.json()) as {
+      id: string;
+      relations?: Array<{
+        id: string;
+        sourceTaskId: string;
+        targetTaskId: string;
+        relationType: string;
+      }>;
+    };
+
+    expect(payload.relations).toHaveLength(1);
+    expect(payload.relations?.[0]).toMatchObject({
+      sourceTaskId: payload.id,
+      targetTaskId: prerequisite.id,
+      relationType: "blocks",
+    });
+
+    const persisted = await db.query.taskRelationTable.findFirst({
+      where: eq(schema.taskRelationTable.sourceTaskId, payload.id),
+    });
+    expect(persisted?.targetTaskId).toBe(prerequisite.id);
+  });
+
+  it("rejects a relation to a task in another team and creates no task", async () => {
+    const member = await createTeamMember();
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+
+    const stranger = await createTeamMember();
+    const { project: strangerProject } = await createProjectFixture({
+      teamId: stranger.team.id,
+    });
+    const [strangerTask] = await db
+      .insert(schema.taskTable)
+      .values({
+        projectId: strangerProject.id,
+        title: "Foreign task",
+        number: 1,
+      })
+      .returning();
+
+    mockAuthenticatedSession(member.user);
+    const { app } = createApp();
+
+    const response = await app.request(`/api/task/${project.id}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        title: "Task that must not survive",
+        description: "Its relation target is not reachable",
+        priority: "medium",
+        status: "to-do",
+        relations: [{ targetTaskId: strangerTask.id, relationType: "related" }],
+      }),
+    });
+
+    // A foreign target reads as "not found" rather than revealing it exists.
+    expect(response.status).toBe(404);
+    await expect(response.text()).resolves.toBe("Target task not found");
+
+    // Relation and task share one transaction, so the task must not be left
+    // behind without the relation it was created for.
+    const tasks = await db
+      .select({ id: schema.taskTable.id })
+      .from(schema.taskTable)
+      .where(eq(schema.taskTable.projectId, project.id));
+    expect(tasks).toHaveLength(0);
+    const relations = await db.select().from(schema.taskRelationTable);
+    expect(relations).toHaveLength(0);
+  });
+
+  it("treats an empty relations array as a task without relations", async () => {
+    const member = await createTeamMember();
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+
+    mockAuthenticatedSession(member.user);
+    const { app } = createApp();
+
+    const response = await app.request(`/api/task/${project.id}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        title: "Task with an empty relation list",
+        description: "Nothing to link",
+        priority: "low",
+        status: "to-do",
+        relations: [],
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    const payload = (await response.json()) as {
+      id: string;
+      relations?: unknown[];
+    };
+    expect(payload.relations).toEqual([]);
+    expect(await db.select().from(schema.taskRelationTable)).toHaveLength(0);
+  });
+
+  it("rejects a relation entry without a target and creates no task", async () => {
+    const member = await createTeamMember();
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+
+    mockAuthenticatedSession(member.user);
+    const { app } = createApp();
+
+    const response = await app.request(`/api/task/${project.id}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        title: "Task with a nameless relation",
+        description: "The entry has no target",
+        priority: "low",
+        status: "to-do",
+        relations: [{ targetTaskId: "  ", relationType: "blocks" }],
+      }),
+    });
+
+    expect(response.status).toBe(400);
+    const tasks = await db
+      .select({ id: schema.taskTable.id })
+      .from(schema.taskTable)
+      .where(eq(schema.taskTable.projectId, project.id));
+    expect(tasks).toHaveLength(0);
+  });
+
+  it("rejects a repeated relation in one request and creates no task", async () => {
+    const member = await createTeamMember();
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+
+    const [target] = await db
+      .insert(schema.taskTable)
+      .values({
+        projectId: project.id,
+        title: "Relation target",
+        number: 1,
+      })
+      .returning();
+
+    mockAuthenticatedSession(member.user);
+    const { app } = createApp();
+
+    const response = await app.request(`/api/task/${project.id}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        title: "Task with a duplicated relation",
+        description: "Declares the same relation twice",
+        priority: "medium",
+        status: "to-do",
+        relations: [
+          { targetTaskId: target.id, relationType: "blocks" },
+          { targetTaskId: target.id, relationType: "blocks" },
+        ],
+      }),
+    });
+
+    expect(response.status).toBe(409);
+    const tasks = await db
+      .select({ id: schema.taskTable.id })
+      .from(schema.taskTable)
+      .where(eq(schema.taskTable.projectId, project.id));
+    expect(tasks).toHaveLength(1); // only the seeded target
+  });
 });

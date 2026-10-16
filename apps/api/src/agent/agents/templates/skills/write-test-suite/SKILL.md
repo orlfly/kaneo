@@ -185,4 +185,4 @@ pnpm test --coverage --coverage.threshold.lines=80
 2. 生成覆盖率报告：`pnpm test --coverage`
 3. 使用 `submit-pr` skill 提交 PR，PR 描述包含测试报告（通过率 + 覆盖率）
 4. 调用 `PUT /api/task/status/{taskId}` 将任务状态更新为 `in-review`
-5. 如果测试发现 bug，使用 `claim-task` skill 创建后续任务并设置 `requiredRole: coding`
+5. 如果测试发现 bug，使用 `claim-task` skill 创建后续任务并设置 `requiredRole: coding`；创建时**必须**在同一次请求里声明关系（`relations`，通常用 `blocks` 或 `related`）

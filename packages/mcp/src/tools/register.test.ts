@@ -246,6 +246,44 @@ describe("registerTools", () => {
     ).toThrow();
   });
 
+  it("sends a created task's declared relations in the create call", async () => {
+    const { server, tools } = createServerMock();
+    const client = {
+      json: vi
+        .fn()
+        .mockResolvedValue({ id: "task-9", relations: [{ id: "rel-1" }] }),
+    };
+
+    registerTools(server as never, { client: client as never });
+
+    const result = await tools.get("create_task")?.handler({
+      projectId: "project-1",
+      title: "Ship the prerequisite",
+      description: "## Context\n## Acceptance Criteria\n- done",
+      priority: "high",
+      status: "to-do",
+      relations: [{ targetTaskId: "task-3", relationType: "blocks" }],
+    });
+
+    // One request: the API creates the task and its relations together, so a
+    // second call to /api/task-relation must not happen.
+    expect(client.json).toHaveBeenCalledTimes(1);
+    const [path, init] = client.json.mock.calls[0] as [
+      string,
+      { body: string },
+    ];
+    expect(path).toBe("/api/task/project-1");
+    expect(JSON.parse(init.body)).toEqual(
+      expect.objectContaining({
+        title: "Ship the prerequisite",
+        priority: "high",
+        status: "to-do",
+        relations: [{ targetTaskId: "task-3", relationType: "blocks" }],
+      }),
+    );
+    expect(result?.isError).toBe(false);
+  });
+
   it("creates a task relation with the expected body", async () => {
     const { server, tools } = createServerMock();
     const client = {

@@ -136,4 +136,61 @@ describe("project WebSocket lifecycle", () => {
     unmount();
     expect(vi.getTimerCount()).toBe(0);
   });
+
+  it("refreshes the project-wide relation list even when the event names its endpoints", () => {
+    const { unmount } = renderHook(() => useProjectWebSocket("project-a"));
+    const socket = TestSocket.instances.at(-1);
+
+    act(() => {
+      socket?.onopen?.();
+      socket?.onmessage?.({
+        data: JSON.stringify({
+          type: "TASK_RELATION_UPDATED",
+          projectId: "project-a",
+          taskId: "task-a",
+          sourceTaskId: "task-a",
+          targetTaskId: "task-b",
+        }),
+      });
+    });
+
+    // The Gantt is not addressed by either endpoint id, so invalidating only
+    // those two keys would leave its connectors stale.
+    expect(client.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["task-relations"],
+    });
+    expect(client.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["task", "task-a"],
+    });
+    expect(client.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["task", "task-b"],
+    });
+    unmount();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("refreshes the project-wide relation list on a relation update", () => {
+    const { unmount } = renderHook(() => useProjectWebSocket("project-a"));
+    const socket = TestSocket.instances.at(-1);
+
+    act(() => {
+      socket?.onopen?.();
+      socket?.onmessage?.({
+        data: JSON.stringify({
+          type: "TASK_RELATION_UPDATED",
+          projectId: "project-a",
+          taskId: "",
+        }),
+      });
+    });
+
+    // The Gantt reads a whole project's edges under ["task-relations",
+    // "project", projectId], so the refresh has to invalidate the shared prefix
+    // rather than a single task's key.
+    expect(client.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["task-relations"],
+    });
+    unmount();
+    expect(vi.getTimerCount()).toBe(0);
+  });
 });

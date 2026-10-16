@@ -1,5 +1,6 @@
 import { AGENT_ROLES, HUMAN_REQUIRED_ROLE } from "@kaneo/permissions";
 import { z } from "../openapi";
+import { taskRelationInputSchema } from "../task-relation/schema";
 import { MAX_TASK_POSITION } from "./controllers/next-task-position";
 import { VALID_PRIORITIES } from "./validate-task-fields";
 
@@ -127,6 +128,10 @@ export const createTaskBody = z.object({
   customFields: z
     .array(z.object({ fieldId: z.string(), value: z.string() }))
     .optional(),
+  relations: z.array(taskRelationInputSchema).optional().openapi({
+    description:
+      "Relations from this new task (the source) to existing tasks, such as the prerequisite it unblocks or the follow-up it spawns. Created in the same transaction as the task: if one relation is rejected, no task is created. Task pairs are unique per relation type in either direction.",
+  }),
 });
 
 export const updateTaskBody = z.object({

@@ -799,6 +799,101 @@
           "lastTaskNumber"
         ]
       },
+      "TaskRelationWithTasks": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TaskRelation"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "sourceTask": {
+                "$ref": "#/components/schemas/RelatedTask"
+              },
+              "targetTask": {
+                "$ref": "#/components/schemas/RelatedTask"
+              }
+            },
+            "required": [
+              "sourceTask",
+              "targetTask"
+            ]
+          }
+        ]
+      },
+      "RelatedTask": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "nullable": true
+          },
+          "number": {
+            "type": "number",
+            "nullable": true
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string",
+            "nullable": true
+          },
+          "assigneeName": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "status",
+          "priority",
+          "number",
+          "projectId",
+          "userId",
+          "assigneeName"
+        ]
+      },
+      "TaskRelation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sourceTaskId": {
+            "type": "string"
+          },
+          "targetTaskId": {
+            "type": "string"
+          },
+          "relationType": {
+            "type": "string",
+            "description": "How the two tasks relate: `subtask`, `blocks`, or `related`."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "sourceTaskId",
+          "targetTaskId",
+          "relationType",
+          "createdAt"
+        ]
+      },
       "TaskDescriptionMatches": {
         "type": "object",
         "properties": {
@@ -944,6 +1039,25 @@
         "required": [
           "success",
           "updatedCount"
+        ]
+      },
+      "TaskWithRelations": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Task"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "relations": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TaskRelation"
+                },
+                "description": "Relations created with this task. Empty when the request declared none."
+              }
+            }
+          }
         ]
       },
       "TaskWithAssignee": {
@@ -5963,6 +6077,71 @@
         }
       }
     },
+    "/project/{id}/task-relations": {
+      "get": {
+        "operationId": "listProjectTaskRelations",
+        "tags": [
+          "Task Relations"
+        ],
+        "summary": "List project task relations",
+        "description": "Every task relation with an endpoint in the project, with both tasks hydrated. The Gantt chart reads the whole project's edges in one request instead of one per task. Relations that reach into another project of the same workspace are included.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task relations with associated task data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskRelationWithTasks"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Workspace ID could not be determined",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No access to the workspace",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/project/reorder": {
       "put": {
         "operationId": "reorderProjects",
@@ -7026,6 +7205,30 @@
                         "value"
                       ]
                     }
+                  },
+                  "relations": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "targetTaskId": {
+                          "type": "string"
+                        },
+                        "relationType": {
+                          "type": "string",
+                          "enum": [
+                            "subtask",
+                            "blocks",
+                            "related"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "targetTaskId",
+                        "relationType"
+                      ]
+                    },
+                    "description": "Relations from this new task (the source) to existing tasks, such as the prerequisite it unblocks or the follow-up it spawns. Created in the same transaction as the task: if one relation is rejected, no task is created. Task pairs are unique per relation type in either direction."
                   }
                 },
                 "required": [
@@ -7044,7 +7247,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Task"
+                  "$ref": "#/components/schemas/TaskWithRelations"
                 }
               }
             }

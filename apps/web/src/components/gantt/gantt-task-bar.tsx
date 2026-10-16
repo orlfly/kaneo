@@ -1,4 +1,5 @@
 import { addDays, differenceInCalendarDays, startOfDay } from "date-fns";
+import { Lock } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useUpdateTask } from "@/hooks/mutations/task/use-update-task";
@@ -24,6 +25,8 @@ type GanttTaskBarProps = {
   pixelsPerDay: number;
   isMobile?: boolean;
   onOpenTask: () => void;
+  /** Labels of the tasks that block this one, for the badge on the bar. */
+  blockedBy?: string[];
 };
 
 function getBarGridColumns(
@@ -56,6 +59,7 @@ export function GanttTaskBar({
   pixelsPerDay,
   isMobile = false,
   onOpenTask,
+  blockedBy,
 }: GanttTaskBarProps) {
   const { t } = useTranslation();
   const { mutateAsync: updateTask } = useUpdateTask();
@@ -298,6 +302,7 @@ export function GanttTaskBar({
       }}
     >
       <div
+        data-gantt-bar={task.id}
         style={{ gridColumn: `${lineStart} / ${lineEnd}` }}
         className="group pointer-events-auto relative mx-1 flex min-h-[44px] min-w-0 items-stretch overflow-hidden rounded-md border border-primary/25 bg-background text-left text-sm font-medium leading-none text-foreground shadow-sm transition-colors hover:border-primary/40 sm:h-11 sm:min-h-0"
       >
@@ -325,7 +330,28 @@ export function GanttTaskBar({
           }}
         >
           <div className="absolute inset-0 z-0 bg-primary/12 transition-colors group-hover:bg-primary/18" />
-          <span className="relative z-10 block truncate">{task.title}</span>
+          <span className="relative z-10 flex min-w-0 items-center gap-1">
+            <span className="truncate">{task.title}</span>
+            {blockedBy && blockedBy.length > 0 ? (
+              // Visible even when the blocker is scrolled out of the window, so
+              // the badge carries the names rather than relying on the connector.
+              <span
+                role="img"
+                aria-label={t("tasks:gantt.blockedBy", {
+                  tasks: blockedBy.join(", "),
+                })}
+                title={t("tasks:gantt.blockedBy", {
+                  tasks: blockedBy.join(", "),
+                })}
+                className="flex shrink-0 items-center"
+              >
+                <Lock
+                  aria-hidden="true"
+                  className="h-3 w-3 text-destructive/70"
+                />
+              </span>
+            ) : null}
+          </span>
         </button>
         <button
           type="button"

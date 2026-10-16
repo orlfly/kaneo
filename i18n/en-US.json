@@ -1627,7 +1627,10 @@
 			"previousPeriod": "Previous period",
 			"nextPeriod": "Next period",
 			"periodStart": "Timeline start date",
-			"showTaskDates": "Show task dates"
+			"showTaskDates": "Show task dates",
+			"dependencyTitle": "{{source}} blocks {{target}}",
+			"dependencyConflictTitle": "{{source}} blocks {{target}}, but the blocked task is scheduled to start before the blocker is due",
+			"blockedBy": "Blocked by {{tasks}}"
 		},
 		"delete": {
 			"title": "Delete Task?",

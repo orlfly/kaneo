@@ -24,7 +24,10 @@ async function context() {
     .insert(schema.taskTable)
     .values({ projectId: project.id, title: "Private title", number: 1 })
     .returning();
-  return { ...member, task };
+  return { ...member, project, task };
+}
+function get(path: string) {
+  return createApp().app.request(`/api/project${path}`);
 }
 function request(path: string, method: string, body?: unknown) {
   return createApp().app.request(`/api/task-relation${path}`, {
@@ -144,5 +147,98 @@ describe("task relation tenant boundaries", () => {
         targetTaskId: target.id,
       }),
     );
+  });
+
+  it("lists a project's relations with both endpoints hydrated", async () => {
+    const own = await context();
+    const [second] = await db
+      .insert(schema.taskTable)
+      .values({ projectId: own.project.id, title: "Second", number: 2 })
+      .returning();
+    await seedRelation(own.task.id, second.id);
+
+    mockAuthenticatedSession(own.user);
+    const response = await get(`/${own.project.id}/task-relations`);
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject([
+      {
+        sourceTaskId: own.task.id,
+        targetTaskId: second.id,
+        relationType: "blocks",
+        sourceTask: { id: own.task.id, title: "Private title" },
+        targetTask: { id: second.id, title: "Second" },
+      },
+    ]);
+  });
+
+  it("lists a same-workspace relation that points at another project", async () => {
+    const own = await context();
+    const { project: sibling } = await createProjectFixture({
+      teamId: own.team.id,
+    });
+    const [siblingTask] = await db
+      .insert(schema.taskTable)
+      .values({ projectId: sibling.id, title: "Sibling task", number: 1 })
+      .returning();
+    await seedRelation(own.task.id, siblingTask.id);
+
+    mockAuthenticatedSession(own.user);
+    const response = await get(`/${own.project.id}/task-relations`);
+
+    // The Gantt decides whether it can draw a cross-project edge; the API does
+    // not hide it as long as both ends are in the workspace.
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject([
+      { targetTask: { id: siblingTask.id, projectId: sibling.id } },
+    ]);
+  });
+
+  it("hides a project relation whose other endpoint is in another workspace", async () => {
+    const own = await context();
+    const foreign = await context();
+    await seedRelation(own.task.id, foreign.task.id);
+
+    mockAuthenticatedSession(own.user);
+    const response = await get(`/${own.project.id}/task-relations`);
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual([]);
+  });
+
+  it("returns an empty list for a project without relations", async () => {
+    const own = await context();
+
+    mockAuthenticatedSession(own.user);
+    const response = await get(`/${own.project.id}/task-relations`);
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual([]);
+  });
+
+  it("refuses the project relation list to a non-member without leaking it", async () => {
+    const own = await context();
+    const [second] = await db
+      .insert(schema.taskTable)
+      .values({ projectId: own.project.id, title: "Secret", number: 2 })
+      .returning();
+    const relation = await seedRelation(own.task.id, second.id);
+
+    const foreign = await context();
+    mockAuthenticatedSession(foreign.user);
+    const response = await get(`/${own.project.id}/task-relations`);
+
+    // The project is not visible to this caller, so the middleware cannot
+    // resolve a team: no 200, and nothing about the relation in the body.
+    expect(response.status).not.toBe(200);
+    const body = await response.text();
+    expect(body).not.toContain(relation.id);
+    expect(body).not.toContain(second.id);
+
+    // The member still reads it.
+    mockAuthenticatedSession(own.user);
+    const memberResponse = await get(`/${own.project.id}/task-relations`);
+    expect(memberResponse.status).toBe(200);
+    expect(await memberResponse.json()).toMatchObject([{ id: relation.id }]);
   });
 });

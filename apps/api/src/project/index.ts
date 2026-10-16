@@ -6,6 +6,8 @@ import {
   jsonResponse,
   z,
 } from "../openapi";
+import getProjectTaskRelations from "../task-relation/controllers/get-project-task-relations";
+import { taskRelationWithTasksListSchema } from "../task-relation/response";
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import archiveProjectCtrl from "./controllers/archive-project";
@@ -217,6 +219,27 @@ const unarchiveProjectRoute = createRoute({
   },
 });
 
+const listProjectTaskRelationsRoute = createRoute({
+  method: "get",
+  operationId: "listProjectTaskRelations",
+  path: "/{id}/task-relations",
+  tags: ["Task Relations"],
+  summary: "List project task relations",
+  description:
+    "Every task relation with an endpoint in the project, with both tasks hydrated. The Gantt chart reads the whole project's edges in one request instead of one per task. Relations that reach into another project of the same workspace are included.",
+  middleware: [workspaceAccess.fromProject()] as const,
+  request: { params: projectParam },
+  responses: {
+    200: jsonResponse(
+      "Task relations with associated task data",
+      taskRelationWithTasksListSchema,
+    ),
+    400: errorResponse("Workspace ID could not be determined"),
+    403: errorResponse("No access to the workspace"),
+    404: errorResponse("Project not found"),
+  },
+});
+
 const project = apiRouter<BaseVariables & { teamId: string }>()
   .openapi(listProjectsRoute, async (c) => {
     const teamId = c.get("teamId");
@@ -235,6 +258,11 @@ const project = apiRouter<BaseVariables & { teamId: string }>()
     const teamId = c.get("teamId");
     const projectData = await getProjectCtrl(id, teamId);
     return c.json(projectData, 200);
+  })
+  .openapi(listProjectTaskRelationsRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const relations = await getProjectTaskRelations(id, c.get("teamId"));
+    return c.json(relations, 200);
   })
   .openapi(reorderProjectsRoute, async (c) => {
     const teamId = c.get("teamId");

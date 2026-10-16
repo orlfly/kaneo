@@ -209,5 +209,6 @@ logger.error({ err, userId }, "login failed");
    - **评审过程中决定放弃**：`POST /api/task/release/{taskId}`（释放评审锁，任务仍保持 `in-review`，其它评审可接手）
 3. 如果发现需要修复的问题，使用 `claim-task` skill 创建后续任务并设置 `requiredRole: coding`
 4. 如果发现测试不足，使用 `claim-task` skill 创建后续任务并设置 `requiredRole: testing`
+5. 创建后续任务时**必须**在同一次请求里声明关系（`relations`）：与当前任务存在先后关系用 `blocks`，仅相关用 `related`；不要先建任务再补
 
 > 不要直接修改代码（仅评审）。评审通过后任务进入 `done`；要求返工时任务回到 `in-progress`，由实现 agent 处理后再提交 `in-review`。

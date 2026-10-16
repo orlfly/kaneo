@@ -1,4 +1,5 @@
 import { nullableResponseTimestamp, responseTimestamp, z } from "../openapi";
+import { taskRelationSchema } from "../task-relation/response";
 
 const priorityDescription = "One of: no-priority, low, medium, high, urgent.";
 
@@ -38,6 +39,17 @@ export const taskSchema = z
       .optional(),
   })
   .openapi("Task");
+
+// Present only on POST /api/task/{projectId} responses when the request
+// declared relations, so a caller can report or undo what it linked.
+export const taskWithRelationsSchema = taskSchema
+  .extend({
+    relations: z.array(taskRelationSchema).optional().openapi({
+      description:
+        "Relations created with this task. Empty when the request declared none.",
+    }),
+  })
+  .openapi("TaskWithRelations");
 
 export const taskWithAssigneeSchema = taskSchema
   .extend({

@@ -146,4 +146,43 @@ describe("agent config download package", () => {
     expect(source).toContain("低保真结构原型");
     expect(source).toContain("高保真视觉原型");
   });
+
+  /** Extracts one file from a built package, so the assertion covers the bytes an agent installs. */
+  async function readZipEntry(zip: Uint8Array, entry: string) {
+    const os = await import("node:os");
+    const fs = await import("node:fs/promises");
+    const pathMod = await import("node:path");
+    const { execFileSync } = await import("node:child_process");
+    const tmp = await fs.mkdtemp(pathMod.join(os.tmpdir(), "kaneo-entry-"));
+    try {
+      const zipPath = pathMod.join(tmp, "pkg.zip");
+      await fs.writeFile(zipPath, zip);
+      execFileSync("unzip", ["-o", "-q", zipPath, entry, "-d", tmp]);
+      return await fs.readFile(pathMod.join(tmp, entry), "utf8");
+    } finally {
+      await fs.rm(tmp, { recursive: true, force: true });
+    }
+  }
+
+  it("packages the mandatory relation rule and the prerequisite recipe into every role persona", async () => {
+    const zip = await buildAgentConfigZip();
+    for (const role of AGENT_ROLES) {
+      const agents = await readZipEntry(zip, `roles/${role}/AGENTS.md`);
+      expect(agents).toContain("处理中发现前置任务");
+      expect(agents).toContain("relations");
+      expect(agents).toContain("同一次请求");
+    }
+  });
+
+  it("packages the one-call relation recipe into the claim-task skill", async () => {
+    const zip = await buildAgentConfigZip();
+    const skill = await readZipEntry(zip, "skills/claim-task/SKILL.md");
+
+    // Agents follow this file, so it has to carry the create-with-relations
+    // form and the pause-the-prerequisite flow rather than the two-step path.
+    expect(skill).toContain('"relations": [');
+    expect(skill).toContain("同一个事务");
+    expect(skill).toContain("/api/task/pause/");
+    expect(skill).toContain("处理中发现前置任务");
+  });
 });

@@ -257,7 +257,8 @@ export function registerTools(
         "Create a task in a project.\n\n" +
         "Title: plain-English and human-readable (>=8 chars); never a branch name, ticket id, or SHA. Put urgency in priority and the executing role in requiredRole, not in the title.\n" +
         "Description: inline the essential context with Markdown sections (## Context, ## Acceptance Criteria, ## Out of Scope). The description MUST contain an 'Acceptance Criteria' (or 验收标准) section.\n" +
-        'startDate/dueDate: ALWAYS schedule the task (ISO 8601, e.g. "2025-01-15"). Estimate dates from task size, priority, and dependencies; start from today when nothing else is known. Tasks without dates do not appear on the Gantt chart. A blocked or subordinate task must start on or after its blocker\'s dueDate. Effort over ~3 days should be split into a parent with subtasks.',
+        'startDate/dueDate: ALWAYS schedule the task (ISO 8601, e.g. "2025-01-15"). Estimate dates from task size, priority, and dependencies; start from today when nothing else is known. Tasks without dates do not appear on the Gantt chart. A blocked or subordinate task must start on or after its blocker\'s dueDate. Effort over ~3 days should be split into a parent with subtasks.\n' +
+        "relations: ALWAYS declare the relation when this task was spawned from another one (a prerequisite it unblocks, or a follow-up it produces). The API creates the task and its relations in one transaction, so a rejected relation creates no task.",
       inputSchema: z.object({
         projectId: nonEmptyString,
         title: nonEmptyString,
@@ -268,10 +269,18 @@ export function registerTools(
         dueDate: optionalIsoDateTimeSchema,
         userId: optionalNonEmptyString,
         requiredRole: agentRoleSchema.optional(),
+        relations: z
+          .array(
+            z.object({
+              targetTaskId: nonEmptyString,
+              relationType: z.enum(["subtask", "blocks", "related"]),
+            }),
+          )
+          .optional(),
       }),
     },
     async (args) => {
-      const body: Record<string, string | undefined> = {
+      const body: Record<string, unknown> = {
         title: args.title,
         description: args.description,
         priority: args.priority,
@@ -288,6 +297,9 @@ export function registerTools(
       }
       if (args.requiredRole !== undefined) {
         body.requiredRole = args.requiredRole;
+      }
+      if (args.relations !== undefined) {
+        body.relations = args.relations;
       }
       return run(() =>
         client.json(`/api/task/${encodeURIComponent(args.projectId)}`, {

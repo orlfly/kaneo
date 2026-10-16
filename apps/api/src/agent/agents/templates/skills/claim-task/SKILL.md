@@ -113,6 +113,7 @@ curl -X POST "${KANEO_API_URL}/api/task/release/${taskId}" \
 # 注意：projectId 在路径中（/api/task/:projectId），不在请求体
 # 未显式传 requiredRole 时，服务端会默认设为 agent 的设定角色
 # startDate/dueDate 必填排期（ISO 8601）：没有排期的任务不会出现在甘特图上
+# relations 必填：凡是从某个任务派生出来的任务，必须在这次请求里声明关系
 curl -X POST "${KANEO_API_URL}/api/task/${projectId}" \
   -H "Authorization: Bearer ${KANEO_API_KEY}" \
   -H "Content-Type: application/json" \
@@ -121,9 +122,22 @@ curl -X POST "${KANEO_API_URL}/api/task/${projectId}" \
     "description": "...",
     "priority": "high",
     "startDate": "2025-09-02",
-    "dueDate": "2025-09-05"
+    "dueDate": "2025-09-05",
+    "relations": [
+      { "targetTaskId": "<被依赖或相关的任务 id>", "relationType": "blocks" }
+    ]
   }'
 ```
+
+`relations` 的语义（新任务是 source，被引用的任务是 target）：
+
+- `blocks`：新任务阻塞 target。例如拆出来的前置任务阻塞当前任务
+- `subtask`：target 是新任务的子任务（source 是父任务）。拆分大任务时用
+- `related`：双向关联，仅“相关但无先后”时用
+
+任务与关系在**同一个事务**里创建：任何一条关系被拒（目标不存在 / 跨团队 / 同类型重复），整个请求失败、任务不会落库，不会留下“建了任务但没挂上关系”的断链。因此不要用“先建任务、再补关系”的两步法；`POST /api/task-relation` 只用于后续给已有任务补关系。
+
+创建完成后接口会返回 `relations` 数组，可以用其中的 `id` 撤销（`DELETE /api/task-relation/<relationId>`），也可以用 `GET ${KANEO_API_URL}/api/task-relation/<taskId>` 查任一任务的关系。
 
 排期规则：
 
@@ -135,27 +149,36 @@ curl -X POST "${KANEO_API_URL}/api/task/${projectId}" \
 - **大任务拆分**：预计超过 3 天、或验收标准超过 5 条不相关项的任务，应拆成父任务 + 子任务（`subtask` 关系），每个子任务单独排期并设置 `requiredRole`
 - **元数据进字段不进标题**：紧急度写 `priority`，执行角色写 `requiredRole`；标题保持简洁的工作内容描述，不要写 `[coding-P2]` 这类前缀
 
-创建后续任务后，若它与已有任务存在依赖关系，使用任务关系 API 声明依赖，使甘特图和依赖视图反映真实的任务先后关系：
+### 6. 处理中发现前置任务
+
+处理过程中如果发现“必须先完成别的工作（缺仓库、缺接口、缺配置、缺设计等）才能继续”，不要绕过去，按下面收尾：
 
 ```bash
-# 关系类型：
-#   subtask  → 新任务是 target 的子任务（source 是父任务，target 是子任务）
-#   blocks   → 新任务阻塞 target
-#   related  → 双向关联
-curl -X POST "${KANEO_API_URL}/api/task-relation" \
+# 1) 一次请求创建前置任务的同时声明关系：前置任务阻塞当前任务
+curl -X POST "${KANEO_API_URL}/api/task/${projectId}" \
   -H "Authorization: Bearer ${KANEO_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
-    "sourceTaskId": "<新任务 id>",
-    "targetTaskId": "<被依赖任务 id>",
-    "relationType": "blocks"
+    "title": "补齐 auth-center 仓库与部署配置",
+    "description": "当前任务需要该仓库才能继续，验收标准：...",
+    "requiredRole": "devops",
+    "startDate": "2025-09-02",
+    "dueDate": "2025-09-04",
+    "relations": [
+      { "targetTaskId": "<当前任务 id>", "relationType": "blocks" }
+    ]
   }'
+
+# 2) 挂起当前任务，写明等哪个前置任务
+curl -X POST "${KANEO_API_URL}/api/task/pause/${taskId}" \
+  -H "Authorization: Bearer ${KANEO_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "等待前置任务 KIA-42 完成后才能继续"}'
 ```
 
-- 新任务依赖某个前置任务时，用 `blocks`（新任务阻塞前置任务）或 `related`
-- 新任务是某个任务的子任务时，用 `subtask`（source = 父任务，target = 新任务）
-- 查询任务依赖：`GET ${KANEO_API_URL}/api/task-relation/<taskId>`
-- 删除依赖：`DELETE ${KANEO_API_URL}/api/task-relation/<relationId>`
+- 前置任务是当前任务的拆分项（同一件事拆开做）时，用 `subtask`（source = 当前任务，target = 前置任务）
+- 当前任务的 `startDate` 不早于前置任务的 `dueDate`；必要时用 `PUT /api/task/:id` 把当前任务排期往后挪
+- 不要自行接手前置任务，交给对应 `requiredRole` 的 agent，自己先 pause 等调度
 
 ## 关键约束
 

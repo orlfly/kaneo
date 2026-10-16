@@ -686,7 +686,7 @@ describe("API integration: pi-agent chat", () => {
     expect(body.result).toContain("[]");
   });
 
-  it("create_task with dependencies persists the task and its relations", async () => {
+  it("create_task with relations persists the task and its relations", async () => {
     const member = await createTeamMember();
     const { project } = await createProjectFixture({
       teamId: member.team.id,
@@ -711,7 +711,7 @@ describe("API integration: pi-agent chat", () => {
         tool: "create_task",
         args: {
           title: "New dependent task",
-          dependencies: [{ targetTaskId: existing.id, relationType: "blocks" }],
+          relations: [{ targetTaskId: existing.id, relationType: "blocks" }],
         },
       }),
     });
@@ -721,10 +721,10 @@ describe("API integration: pi-agent chat", () => {
     const parsed = JSON.parse(body.result) as {
       id: string;
       created: boolean;
-      dependencies: number;
+      relations: number;
     };
     expect(parsed.created).toBe(true);
-    expect(parsed.dependencies).toBe(1);
+    expect(parsed.relations).toBe(1);
 
     // The relation must be persisted in the task_relation table.
     const relations = await db
@@ -739,6 +739,39 @@ describe("API integration: pi-agent chat", () => {
     expect(relations).toHaveLength(1);
     expect(relations[0].targetTaskId).toBe(existing.id);
     expect(relations[0].relationType).toBe("blocks");
+  });
+
+  it("create_task with an unusable relation creates no task at all", async () => {
+    const member = await createTeamMember();
+    const { project } = await createProjectFixture({
+      teamId: member.team.id,
+    });
+
+    mockAuthenticatedSession(member.user);
+    const { app } = createApp();
+    const response = await app.request(`/api/chat/project/${project.id}/tool`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        tool: "create_task",
+        args: {
+          title: "Dependent task whose target is missing",
+          relations: [{ targetTaskId: "missing-task", relationType: "blocks" }],
+        },
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { result: string };
+    expect(JSON.parse(body.result).error).toContain("Target task not found");
+
+    // The task and its relation are one transaction: a rejected relation must
+    // not leave the task behind, unlinked.
+    const tasks = await db
+      .select({ id: schema.taskTable.id })
+      .from(schema.taskTable)
+      .where(eq(schema.taskTable.projectId, project.id));
+    expect(tasks).toHaveLength(0);
   });
 });
 

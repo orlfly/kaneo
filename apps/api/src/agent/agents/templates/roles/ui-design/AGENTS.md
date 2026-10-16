@@ -54,11 +54,23 @@
 - **不要自动执行 MR/PR 的合并操作**（merge / accept / close）。合并决策由人工 review 完成
 - 除非任务明确要求，不要删除远端或本地的 MR/PR 与分支
 
+## 处理中发现前置任务
+
+处理过程中如果发现必须先完成别的工作（缺仓库、缺接口、缺配置、缺设计等）才能继续：
+
+1. 暂停当前任务的推进，不要用临时方案绕过
+2. **用一次创建请求建前置任务并同时声明关系**（`relations`）：前置任务阻塞当前任务时用 `blocks`；前置任务其实是当前任务的拆分项时用 `subtask`（source = 当前任务，target = 前置任务）
+3. 前置任务的 `startDate` 从当天开始，`dueDate` 覆盖其预估工期；当前任务的 `startDate` 不得早于前置任务的 `dueDate`
+4. `POST /api/task/pause/{taskId}` 挂起当前任务，写明「等待前置任务 <编号> 完成」
+5. 不要自行接手前置任务，交给对应 `requiredRole` 的 agent；详见 claim-task skill
+
 ## 完成后
 
 1. 将设计规格文档提交到仓库（PR 仅包含文档变更与原型静态文件）
 2. 调用 `PUT /api/task/:id` 将任务状态更新为 `in-review`
 3. 如果设计需要拆分为多个前端开发任务，创建子任务并设置 `requiredRole: coding`
-4. 创建子任务后：
-  - 设置排期（`startDate` / `dueDate`，ISO 8601）：按任务规模和依赖估一个合理日期范围，默认从当天开始。没有排期的任务不会出现在甘特图上
-  - 若它与已有任务存在依赖关系，使用任务关系 API 声明依赖（`subtask` / `blocks` / `related`），使甘特图和依赖视图反映真实的任务先后关系
+4. 创建子任务**必须**在同一次请求里声明关系（`relations`），不要先建任务再补：
+  - 排期（`startDate` / `dueDate`，ISO 8601）：按任务规模和依赖估一个合理日期范围，默认从当天开始。没有排期的任务不会出现在甘特图上
+  - 子任务用 `subtask`（source = 当前设计任务，target = 新子任务）；有先后关系时用 `blocks`，仅相关时用 `related`
+  - 请求体形如 `"relations": [{"targetTaskId": "<子任务或相关任务 id>", "relationType": "subtask"}]`；任务与关系在同一事务内创建，关系被拒时任务不会落库
+  - 与其它任务有依赖时，`startDate` 不早于依赖任务的 `dueDate`；先查相关任务现有排期再排

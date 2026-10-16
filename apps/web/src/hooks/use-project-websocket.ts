@@ -76,25 +76,20 @@ export function useProjectWebSocket(projectId: string) {
             });
 
             if (message.type === "TASK_RELATION_UPDATED") {
+              // The per-task panels and the Gantt's project-wide edge list both
+              // live under this prefix, and a relation change moves either one:
+              // invalidate the whole prefix rather than the two endpoint keys.
+              queryClient.invalidateQueries({
+                queryKey: ["task-relations"],
+              });
               if (message.sourceTaskId) {
                 queryClient.invalidateQueries({
                   queryKey: ["task", message.sourceTaskId],
-                });
-                queryClient.invalidateQueries({
-                  queryKey: ["task-relations", message.sourceTaskId],
                 });
               }
               if (message.targetTaskId) {
                 queryClient.invalidateQueries({
                   queryKey: ["task", message.targetTaskId],
-                });
-                queryClient.invalidateQueries({
-                  queryKey: ["task-relations", message.targetTaskId],
-                });
-              }
-              if (!message.sourceTaskId && !message.targetTaskId) {
-                queryClient.invalidateQueries({
-                  queryKey: ["task-relations"],
                 });
               }
             } else {

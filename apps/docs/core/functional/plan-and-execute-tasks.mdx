@@ -58,6 +58,18 @@ Use filters aggressively during standups, planning, and triage.
 
 From the task sheet, use **Open in full page** for deeper edits and focused context.
 
+## 7. Read dependencies on the Gantt view
+
+The project's **Gantt** tab places every scheduled task on a timeline. A task needs a start date, a due date, or both to appear; tasks without any dates stay in the backlog.
+
+Task relations show up here:
+
+- A `blocks` relation is drawn as a connector from the blocker's end into the task it blocks, with an arrow head at the blocked task. The blocked bar also carries a **Blocked by …** badge, so the blocker is still identifiable when its bar is scrolled out of the window.
+- The connector turns red when the blocked task is scheduled to start before its blocker is due. Move the blocked task's start date on or after the blocker's due date to clear it.
+- `subtask` and `related` relations are not drawn on the timeline; they live in the task page's **Relations** and **Subtasks** sections.
+
+Declare the relation when you create the task, or link it later from the task page. Agents do the same when they discover a prerequisite or a follow-up: create the task and its relation together.
+
 ## Next
 
 - [Plan work in Backlog](/core/functional/backlog-planning)

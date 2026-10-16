@@ -66,6 +66,7 @@ import {
   taskImportResultSchema,
   taskSchema,
   taskWithAssigneeSchema,
+  taskWithRelationsSchema,
 } from "./response";
 import {
   bulkUpdateBody,
@@ -161,7 +162,7 @@ const createTaskRoute = createRoute({
     },
   },
   responses: {
-    200: jsonResponse("The created task", taskSchema),
+    200: jsonResponse("The created task", taskWithRelationsSchema),
     400: errorResponse("Invalid body, or unknown project"),
     403: errorResponse(
       "No workspace access, or missing task:create permission",
@@ -830,6 +831,7 @@ const task = apiRouter<BaseVariables & { teamId: string }>()
       userId,
       requiredRole,
       customFields,
+      relations,
     } = c.req.valid("json");
 
     const parsedStartDate =
@@ -867,6 +869,7 @@ const task = apiRouter<BaseVariables & { teamId: string }>()
       customFields,
       requiredRole: requiredRole ?? null,
       agentRole: apiKey?.agentRole,
+      relations,
     });
 
     return c.json(task, 200);

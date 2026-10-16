@@ -488,7 +488,8 @@ export function registerMcpTools(
         "Title: plain-English and human-readable (>=8 chars); never a branch name, ticket id, or SHA.\n" +
         "Description: inline the essential context with Markdown sections (## Context, ## Acceptance Criteria, ## Out of Scope). The description MUST contain an 'Acceptance Criteria' (or 验收标准) section. Do not rely on links to documents the executing agent may not be able to fetch.\n" +
         'requiredRole: ALWAYS set it to one of the seven agent roles or "human". If omitted, the API defaults it to the creating agent\'s own role so the work is routed to the right claimer.\n' +
-        'startDate/dueDate: ALWAYS schedule the task (ISO 8601, e.g. "2025-01-15"). Estimate dates from task size, priority, and dependencies; start from today when nothing else is known. Tasks without dates do not appear on the Gantt chart.',
+        'startDate/dueDate: ALWAYS schedule the task (ISO 8601, e.g. "2025-01-15"). Estimate dates from task size, priority, and dependencies; start from today when nothing else is known. Tasks without dates do not appear on the Gantt chart.\n' +
+        "relations: ALWAYS declare the relation when this task was spawned from another one (a prerequisite it unblocks, or a follow-up it produces). They are created with the task in one transaction.",
       inputSchema: z.object({
         projectId: nonEmptyString,
         title: nonEmptyString,
@@ -499,7 +500,7 @@ export function registerMcpTools(
         dueDate: optionalIsoDateTimeSchema,
         userId: optionalNonEmptyString,
         requiredRole: agentRoleSchema.optional(),
-        dependencies: z
+        relations: z
           .array(
             z.object({
               targetTaskId: nonEmptyString,
@@ -510,7 +511,7 @@ export function registerMcpTools(
       }),
     },
     async (args) => {
-      const body: Record<string, string | undefined> = {
+      const body: Record<string, unknown> = {
         title: args.title,
         description: args.description,
         priority: args.priority,
@@ -521,40 +522,15 @@ export function registerMcpTools(
       if (args.userId !== undefined) body.userId = args.userId;
       if (args.requiredRole !== undefined)
         body.requiredRole = args.requiredRole;
-      return run(async () => {
-        const created = (await client.json(
-          `/api/task/${encodeURIComponent(args.projectId)}`,
-          {
-            method: "POST",
-            body: JSON.stringify(body),
-          },
-        )) as { id: string };
-        const dependencies = args.dependencies ?? [];
-        const createdRelationIds: string[] = [];
-        try {
-          for (const dep of dependencies) {
-            const relation = (await client.json("/api/task-relation", {
-              method: "POST",
-              body: JSON.stringify({
-                sourceTaskId: created.id,
-                targetTaskId: dep.targetTaskId,
-                relationType: dep.relationType,
-              }),
-            })) as { id: string };
-            createdRelationIds.push(relation.id);
-          }
-        } catch (error) {
-          for (const relationId of createdRelationIds) {
-            await client
-              .json(`/api/task-relation/${encodeURIComponent(relationId)}`, {
-                method: "DELETE",
-              })
-              .catch(() => {});
-          }
-          throw error;
-        }
-        return { ...created, dependencies: createdRelationIds.length };
-      });
+      if (args.relations !== undefined) body.relations = args.relations;
+      // The API creates the task and its relations in one transaction, so a
+      // rejected relation cannot leave the task unlinked.
+      return run(() =>
+        client.json(`/api/task/${encodeURIComponent(args.projectId)}`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
+      );
     },
   );
 

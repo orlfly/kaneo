@@ -31,6 +31,11 @@ import updateTaskStatus from "../task/controllers/update-task-status";
 import createTaskRelation from "../task-relation/controllers/create-task-relation";
 import deleteTaskRelation from "../task-relation/controllers/delete-task-relation";
 import getTaskRelations from "../task-relation/controllers/get-task-relations";
+import {
+  TASK_RELATION_TYPES,
+  type TaskRelationInput,
+  type TaskRelationType,
+} from "../task-relation/controllers/insert-task-relations";
 import { vcsListPullRequests } from "../vcs";
 import { resolveVcsIntegration, type VcsType } from "../vcs/resolve";
 import { loadChatConfig } from "./config";
@@ -81,7 +86,7 @@ export const toolDefinitions: ChatCompletionTool[] = [
     function: {
       name: "create_task",
       description:
-        "Create a new task in the current project. Requires a title. Optionally set priority, status, description, requiredRole (agent role), schedule dates (startDate/dueDate), and dependencies (relations to existing tasks). Every task needs startDate and dueDate to appear on the Gantt chart.\n\nQuality bar: (1) description must carry the full context and a testable '验收标准/Acceptance Criteria' section — the executing agent cannot see this chat; (2) keep startDate of a blocked/subordinate task on or after the blocker's dueDate — check list_tasks first; (3) put urgency in priority (low/medium/high) and the executing role in requiredRole, not in the title; (4) split work estimated over ~3 days into a parent with subtasks, each scheduled and role-assigned.",
+        "Create a new task in the current project. Requires a title. Optionally set priority, status, description, requiredRole (agent role), schedule dates (startDate/dueDate), and relations to existing tasks (a prerequisite this task unblocks, or a follow-up it produces). Every task needs startDate and dueDate to appear on the Gantt chart.\n\nQuality bar: (1) description must carry the full context and a testable '验收标准/Acceptance Criteria' section — the executing agent cannot see this chat; (2) keep startDate of a blocked/subordinate task on or after the blocker's dueDate — check list_tasks first; (3) put urgency in priority (low/medium/high) and the executing role in requiredRole, not in the title; (4) split work estimated over ~3 days into a parent with subtasks, each scheduled and role-assigned.",
       parameters: {
         type: "object",
         properties: {
@@ -122,10 +127,10 @@ export const toolDefinitions: ChatCompletionTool[] = [
               "code-review",
             ],
           },
-          dependencies: {
+          relations: {
             type: "array",
             description:
-              "Optional relations to existing tasks. Each entry declares a relation from this new task (source) to an existing task (target).",
+              "Optional relations from this new task (source) to existing tasks (target), created in the same transaction as the task. Declare them instead of creating the task and linking it later.",
             items: {
               type: "object",
               properties: {
@@ -540,6 +545,26 @@ async function createTaskTool(
   }
 
   try {
+    const rawRelations = Array.isArray(args.relations) ? args.relations : [];
+    const relations: TaskRelationInput[] = [];
+    for (const raw of rawRelations as Array<Record<string, unknown>>) {
+      const targetTaskId = String(raw?.targetTaskId ?? "").trim();
+      const relationType = String(raw?.relationType ?? "").trim();
+      if (
+        !targetTaskId ||
+        !(TASK_RELATION_TYPES as readonly string[]).includes(relationType)
+      ) {
+        return JSON.stringify({
+          error:
+            "Each relation requires targetTaskId and relationType of 'subtask', 'blocks' or 'related'",
+        });
+      }
+      relations.push({
+        targetTaskId,
+        relationType: relationType as TaskRelationType,
+      });
+    }
+
     const task = await createTaskController({
       projectId,
       currentUserId: userId,
@@ -552,76 +577,31 @@ async function createTaskTool(
       dueDate,
       requiredRole:
         typeof args.requiredRole === "string" ? args.requiredRole : null,
+      // The controller creates the task and its relations in one transaction,
+      // so a rejected relation cannot leave the task unlinked.
+      relations,
     });
 
-    // Create declared dependencies (relations from the new task to existing
-    // tasks). If any relation fails, delete the ones already created and
-    // return an error so no partial dependencies remain.
-    const dependencies = Array.isArray(args.dependencies)
-      ? args.dependencies
-      : [];
-    const createdRelationIds: string[] = [];
-    try {
-      for (const dep of dependencies) {
-        const targetTaskId = String(
-          (dep as Record<string, unknown>)?.targetTaskId ?? "",
-        ).trim();
-        const relationType = String(
-          (dep as Record<string, unknown>)?.relationType ?? "",
-        ).trim();
-        if (!targetTaskId || !relationType) {
-          throw new Error(
-            "Each dependency requires targetTaskId and relationType",
-          );
-        }
-        const relation = await createTaskRelation({
-          sourceTaskId: task.id,
-          targetTaskId,
-          relationType,
-          userId,
-          teamId: await resolveTeamId(projectId),
-        });
-        createdRelationIds.push(relation.id);
-      }
-    } catch (error) {
-      const teamId = await resolveTeamId(projectId).catch(() => "");
-      for (const relationId of createdRelationIds) {
-        if (!teamId) break;
-        await deleteTaskRelation(relationId, userId, teamId).catch(() => {});
-      }
-      return JSON.stringify({
-        error:
-          error instanceof Error
-            ? `Failed to create task dependencies: ${error.message}`
-            : "Failed to create task dependencies",
-      });
-    }
+    const createdRelations = task.relations ?? [];
 
     // Soft schedule-conflict feedback: report blockers whose dueDate is after
     // this task's startDate so the model can self-correct on the next
     // planning round. Creation is not blocked — the relation stands.
     const warnings: string[] = [];
-    if (createdRelationIds.length > 0 && dependencies.length > 0) {
-      for (const dep of dependencies as Array<Record<string, unknown>>) {
-        const targetTaskId = String(dep?.targetTaskId ?? "").trim();
-        const relationType = String(dep?.relationType ?? "").trim();
-        if (relationType !== "blocks" || !targetTaskId) continue;
-        const [blocker] = await db
-          .select({
-            number: taskTable.number,
-            dueDate: taskTable.dueDate,
-          })
-          .from(taskTable)
-          .where(eq(taskTable.id, targetTaskId))
-          .limit(1);
-        if (
-          blocker?.dueDate &&
-          startDate.getTime() < blocker.dueDate.getTime()
-        ) {
-          warnings.push(
-            `Task starts ${startDate.toISOString().slice(0, 10)} but its blocker #${blocker.number} is scheduled until ${blocker.dueDate.toISOString().slice(0, 10)}; consider moving startDate on or after the blocker's dueDate.`,
-          );
-        }
+    for (const relation of createdRelations) {
+      if (relation.relationType !== "blocks") continue;
+      const [blocker] = await db
+        .select({
+          number: taskTable.number,
+          dueDate: taskTable.dueDate,
+        })
+        .from(taskTable)
+        .where(eq(taskTable.id, relation.targetTaskId))
+        .limit(1);
+      if (blocker?.dueDate && startDate.getTime() < blocker.dueDate.getTime()) {
+        warnings.push(
+          `Task starts ${startDate.toISOString().slice(0, 10)} but its blocker #${blocker.number} is scheduled until ${blocker.dueDate.toISOString().slice(0, 10)}; consider moving startDate on or after the blocker's dueDate.`,
+        );
       }
     }
 
@@ -629,7 +609,7 @@ async function createTaskTool(
       id: task.id,
       title: task.title,
       created: true,
-      dependencies: createdRelationIds.length,
+      relations: createdRelations.length,
       ...(warnings.length > 0 ? { warnings } : {}),
     });
   } catch (error) {

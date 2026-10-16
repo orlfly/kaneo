@@ -41,6 +41,11 @@ vi.mock("@/hooks/queries/task/use-get-tasks", () => ({
   useGetTasks: (projectId: string) => useGetTasks(projectId),
 }));
 
+const useGetProjectTaskRelations = vi.fn();
+vi.mock("@/hooks/queries/task-relation/use-get-project-task-relations", () => ({
+  default: (projectId: string) => useGetProjectTaskRelations(projectId),
+}));
+
 vi.mock("@/hooks/use-mobile", () => ({
   useIsMobile: () => false,
 }));
@@ -136,6 +141,9 @@ beforeEach(() => {
   // deterministic regardless of when the suite runs.
   vi.useFakeTimers();
   vi.setSystemTime(new Date(2026, 7, 31));
+  // Default: a project with no relations, so the connector overlay stays empty
+  // unless a test says otherwise.
+  useGetProjectTaskRelations.mockReturnValue({ data: [] });
 });
 
 afterEach(() => {

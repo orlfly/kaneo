@@ -11,6 +11,11 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import ProjectLayout from "@/components/common/project-layout";
+import type {
+  BlockingRelation,
+  DependencyBar,
+} from "@/components/gantt/dependency-links";
+import { GanttDependencyLinks } from "@/components/gantt/gantt-dependency-links";
 import { GanttTaskBar } from "@/components/gantt/gantt-task-bar";
 import {
   buildGanttTimeline,
@@ -22,6 +27,7 @@ import TaskDetailsSheet from "@/components/task/task-details-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGetTasks } from "@/hooks/queries/task/use-get-tasks";
+import useGetProjectTaskRelations from "@/hooks/queries/task-relation/use-get-project-task-relations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/cn";
 import { getStatusLabel } from "@/lib/i18n/domain";
@@ -30,6 +36,25 @@ import { useUserPreferencesStore } from "@/store/user-preferences";
 type GanttSearchParams = {
   taskId?: string;
 };
+
+/** True when two measurement passes agree, so the observer can bail out. */
+function sameBarBoxes(
+  previous: Record<string, DependencyBar>,
+  next: Record<string, DependencyBar>,
+) {
+  const previousIds = Object.keys(previous);
+  if (previousIds.length !== Object.keys(next).length) return false;
+  return previousIds.every((id) => {
+    const before = previous[id];
+    const after = next[id];
+    return (
+      after !== undefined &&
+      before.left === after.left &&
+      before.right === after.right &&
+      before.centerY === after.centerY
+    );
+  });
+}
 
 export const Route = createFileRoute(
   "/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/gantt",
@@ -46,6 +71,7 @@ function RouteComponent() {
   const { taskId } = Route.useSearch();
   const navigate = useNavigate();
   const { data: project } = useGetTasks(projectId);
+  const { data: relations = [] } = useGetProjectTaskRelations(projectId);
   const weekStartsOn = useUserPreferencesStore((state) => state.weekStartsOn);
   const [searchQuery, setSearchQuery] = useState("");
   const [windowStart, setWindowStart] = useState<{
@@ -152,6 +178,131 @@ function RouteComponent() {
       ),
     [parsedTasks, weekStartsOn, dayColumnWidthRem, requestedStart],
   );
+
+  // Blocking edges for the whole project. Only `blocks` is drawn: it is the one
+  // relation with a direction that reads on a timeline, while `subtask` and
+  // `related` already have their own places in the task detail panels.
+  const blockingRelationViews = useMemo(() => {
+    if (relations.length === 0) return [];
+
+    const tasksById = new Map(parsedTasks.map((task) => [task.id, task]));
+    const label = (
+      task:
+        | { number: number | null; title: string; projectId?: string }
+        | null
+        | undefined,
+      fallbackId: string,
+    ) => {
+      if (!task) return fallbackId;
+      // The viewing project's slug only prefixes its own tasks: a blocker in
+      // another project has no slug in this payload, and guessing one would
+      // print a ticket id that does not exist.
+      const prefix =
+        task.projectId && task.projectId !== projectId
+          ? "#"
+          : `${project?.slug ?? ""}-`;
+      return `${prefix}${task.number ?? "?"} ${task.title}`;
+    };
+
+    return relations
+      .filter((relation) => relation.relationType === "blocks")
+      .map((relation) => {
+        const blocker = tasksById.get(relation.sourceTaskId);
+        const blocked = tasksById.get(relation.targetTaskId);
+        // A blocked task scheduled to start before its blocker is due makes the
+        // chart contradict itself; flag the edge instead of hiding it.
+        const conflict = Boolean(
+          blocker &&
+            blocked &&
+            blocked.scheduleStart.getTime() < blocker.scheduleEnd.getTime(),
+        );
+        const source = label(relation.sourceTask, relation.sourceTaskId);
+        const target = label(relation.targetTask, relation.targetTaskId);
+
+        return {
+          id: relation.id,
+          sourceTaskId: relation.sourceTaskId,
+          targetTaskId: relation.targetTaskId,
+          conflict,
+          source,
+          target,
+          title: t(
+            conflict
+              ? "tasks:gantt.dependencyConflictTitle"
+              : "tasks:gantt.dependencyTitle",
+            { source, target },
+          ),
+        };
+      });
+  }, [relations, parsedTasks, project?.slug, projectId, t]);
+
+  const blockingRelations = useMemo<BlockingRelation[]>(
+    () =>
+      blockingRelationViews.map(
+        ({ id, sourceTaskId, targetTaskId, conflict, title }) => ({
+          id,
+          sourceTaskId,
+          targetTaskId,
+          conflict,
+          title,
+        }),
+      ),
+    [blockingRelationViews],
+  );
+
+  // Blocked task id -> labels of its blockers, for the badge on the bar. Kept
+  // separate from the connectors: the badge must still name the blocker when
+  // that bar is scrolled out of the visible window.
+  const blockedByLabels = useMemo(() => {
+    const labels: Record<string, string[]> = {};
+    for (const view of blockingRelationViews) {
+      labels[view.targetTaskId] = [
+        ...(labels[view.targetTaskId] ?? []),
+        view.source,
+      ];
+    }
+    return labels;
+  }, [blockingRelationViews]);
+
+  const rowsRef = useRef<HTMLDivElement>(null);
+  const dependencyOverlayRef = useRef<HTMLDivElement>(null);
+  const [barBoxes, setBarBoxes] = useState<Record<string, DependencyBar>>({});
+
+  // Connector geometry comes from the measured bars: bars live in a grid of day
+  // columns, so only the DOM knows where a column landed after zoom, a resize or
+  // the mobile breakpoint switch.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the body reads only refs, but these inputs change the bar geometry (zoom, breakpoint, row count) without changing any ref identity, so the measurement must re-run with them.
+  useLayoutEffect(() => {
+    const overlay = dependencyOverlayRef.current;
+    const rows = rowsRef.current;
+    if (!overlay || !rows) return;
+
+    const measure = () => {
+      const origin = overlay.getBoundingClientRect();
+      const next: Record<string, DependencyBar> = {};
+      for (const element of rows.querySelectorAll<HTMLElement>(
+        "[data-gantt-bar]",
+      )) {
+        const taskId = element.dataset.ganttBar;
+        if (!taskId) continue;
+        const rect = element.getBoundingClientRect();
+        next[taskId] = {
+          taskId,
+          left: rect.left - origin.left,
+          right: rect.right - origin.left,
+          centerY: rect.top - origin.top + rect.height / 2,
+        };
+      }
+      setBarBoxes((previous) =>
+        sameBarBoxes(previous, next) ? previous : next,
+      );
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(rows);
+    return () => observer.disconnect();
+  }, [scheduledTasks.length, timeline, pixelsPerDay, isMobile, showTaskRail]);
 
   // Whether "today" actually falls inside the computed date range. A project
   // made up entirely of past or far-future tasks has no "today" column to
@@ -428,7 +579,7 @@ function RouteComponent() {
                   ))}
                 </div>
 
-                <div className="relative z-10 flex flex-col">
+                <div ref={rowsRef} className="relative z-10 flex flex-col">
                   {scheduledTasks.map((task) => {
                     return (
                       <div
@@ -500,6 +651,7 @@ function RouteComponent() {
                             timeline={timeline}
                             pixelsPerDay={pixelsPerDay}
                             isMobile={isMobile}
+                            blockedBy={blockedByLabels[task.id]}
                             onOpenTask={() =>
                               navigate({
                                 to: ".",
@@ -512,6 +664,29 @@ function RouteComponent() {
                       </div>
                     );
                   })}
+                </div>
+
+                {/* Connectors paint above the day background but below the bars
+                    and the sticky rail (z-10), so a line never covers a task it
+                    is not attached to. */}
+                <div
+                  ref={dependencyOverlayRef}
+                  data-gantt-dependency-overlay=""
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-y-0 z-[5]"
+                  style={{
+                    left: showTaskRail
+                      ? isMobile
+                        ? `${taskColumnWidthRem}rem`
+                        : "20rem"
+                      : "0rem",
+                    width: `${timeline.timelineMinWidthRem}rem`,
+                  }}
+                >
+                  <GanttDependencyLinks
+                    bars={barBoxes}
+                    relations={blockingRelations}
+                  />
                 </div>
               </div>
             </div>
