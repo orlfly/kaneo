@@ -81,6 +81,36 @@ function hasLeafUnder(prefix: string): boolean {
   return Object.keys(node).length > 0;
 }
 
+// i18next leaves a placeholder it was not given alone, so copy interpolating
+// `{{count}}` reads as `{{count}} option(s)` when the call site never passes a
+// count. Reports the placeholders a call cannot fill.
+function unfilled(key: string, options: string | undefined): string[] | null {
+  const value = nodeAt(...splitKey(key));
+  if (typeof value !== "string") return null;
+  const placeholders = [...value.matchAll(/\{\{\s*([\w.]+)[^}]*\}\}/g)].map(
+    (match) => match[1],
+  );
+  if (placeholders.length === 0) return null;
+
+  const argument = options?.trim();
+  // Nothing is passed at all, or a plain default string: no variable can reach
+  // the copy. A template, identifier or other expression may spread variables
+  // the scanner cannot follow, so it stays unreported.
+  if (!argument) return placeholders;
+  // A quoted default carries no variables; a template literal might.
+  if (argument.startsWith('"') || argument.startsWith("'")) return placeholders;
+  if (argument.startsWith("`")) return null;
+  if (!argument.startsWith("{")) return null;
+  if (!argument.endsWith("}") || argument.includes("...")) return null;
+  // `{ name: value }` and the `{ name }` shorthand both provide `name`.
+  const provided = new Set(
+    [...argument.matchAll(/(?:^|[,{])\s*(\w+)\s*(?=[:,}])/g)].map(
+      (match) => match[1],
+    ),
+  );
+  return placeholders.filter((name) => !provided.has(name));
+}
+
 // Keys are matched textually: `t("ns:key")`, `t("key", options)` and the static
 // prefix of `t(`ns:key.${dynamic}`)`. Dynamic segments cannot be resolved, so a
 // prefix only has to lead somewhere. Matches inside comments are ignored.
@@ -92,24 +122,27 @@ const isComment = (line: string) => /^\s*(\/\/|\*|\/\*)/.test(line);
 function scan(): {
   missing: string[];
   emptyPrefixes: string[];
+  unfilledPlaceholders: string[];
 } {
   const missing: string[] = [];
   const emptyPrefixes: string[] = [];
+  const unfilledPlaceholders: string[] = [];
 
   for (const file of sourceFiles(sourceRoot)) {
     const source = readFileSync(file, "utf8");
     const where = relative(sourceRoot, file);
+    const located = (match: RegExpExecArray) =>
+      `${where}:${source.slice(0, match.index).split("\n").length}`;
 
     const check = (
       match: RegExpExecArray,
-      run: (line: string) => boolean,
+      run: () => boolean,
       collect: string[],
       label: string,
     ) => {
       const line = source.slice(0, match.index).split("\n").at(-1) ?? "";
-      if (isComment(line) || run(line)) return;
-      const lineNumber = source.slice(0, match.index).split("\n").length;
-      collect.push(`${label} (${where}:${lineNumber})`);
+      if (isComment(line) || run()) return;
+      collect.push(`${label} (${located(match)})`);
     };
 
     staticCall.lastIndex = 0;
@@ -121,6 +154,12 @@ function scan(): {
       const key = match[1] ?? match[2];
       if (!key.includes(".") && !key.includes(":")) continue;
       check(match, () => resolves(key, match[3] ?? ""), missing, key);
+      const holes = unfilled(key, match[3]);
+      if (holes && holes.length > 0) {
+        unfilledPlaceholders.push(
+          `${key} never receives ${holes.join(", ")} (${located(match)})`,
+        );
+      }
     }
 
     dynamicCall.lastIndex = 0;
@@ -135,11 +174,11 @@ function scan(): {
     }
   }
 
-  return { missing, emptyPrefixes };
+  return { missing, emptyPrefixes, unfilledPlaceholders };
 }
 
 describe("en-US translations", () => {
-  const { missing, emptyPrefixes } = scan();
+  const { missing, emptyPrefixes, unfilledPlaceholders } = scan();
 
   it("defines every key the web app references", () => {
     expect(missing).toEqual([]);
@@ -147,5 +186,9 @@ describe("en-US translations", () => {
 
   it("defines a key for every dynamic translation prefix", () => {
     expect(emptyPrefixes).toEqual([]);
+  });
+
+  it("never leaves a placeholder the call site cannot fill", () => {
+    expect(unfilledPlaceholders).toEqual([]);
   });
 });
