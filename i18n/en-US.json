@@ -16,7 +16,9 @@
 			"claim": "Claim",
 			"release": "Release",
 			"pause": "Pause",
-			"resume": "Resume"
+			"resume": "Resume",
+			"creating": "Creating...",
+			"saving": "Saving..."
 		},
 		"a11y": {
 			"toggleSidebar": "Toggle sidebar"
@@ -40,12 +42,19 @@
 			"label": "Breadcrumb",
 			"more": "More"
 		},
+		"boolean": {
+			"true": "True",
+			"false": "False",
+			"undefined": "Undefined",
+			"notSet": "Not Set"
+		},
 		"people": {
 			"someone": "Someone",
 			"unknown": "Unknown"
 		},
 		"error": {
 			"title": "Something went wrong",
+			"description": "The page crashed unexpectedly. Refreshing usually fixes it.",
 			"troubleshooting": "Troubleshooting steps:",
 			"tryAgain": "Try Again",
 			"viewDeploymentGuide": "View Deployment Guide",
@@ -105,6 +114,9 @@
 				"labelCreateError": "Failed to create label",
 				"createMore": "Create more",
 				"createButton": "Create Task",
+				"discardTitle": "Discard task?",
+				"discardDescription": "Your unsaved task details will be lost.",
+				"discardButton": "Discard task",
 				"untitledTask": "Untitled task",
 				"labelColors": {
 					"stone": "Stone",
@@ -118,7 +130,8 @@
 					"crimson": "Crimson"
 				},
 				"agentRole": "Required agent role",
-				"agentRoleGeneric": "Any agent"
+				"agentRoleGeneric": "Any agent",
+				"selectOptionPlaceholder": "Select an option"
 			},
 			"createTeam": {
 				"breadcrumbKaneo": "KANEO",
@@ -133,7 +146,12 @@
 		"states": {
 			"loading": "Loading…",
 			"paused": "Paused"
-		}
+		},
+		"counts": {
+			"users_one": "user",
+			"users_other": "users"
+		},
+		"loading": "Loading…"
 	},
 	"auth": {
 		"signIn": {
@@ -518,6 +536,8 @@
 			"subtitle": "Configure board columns and automation rules for this project.",
 			"columnsTitle": "Columns",
 			"columnsDescription": "Manage the columns that appear on your board. Drag to reorder. Turn on \"Done column\" for stages that represent completed work.",
+			"customFieldsTitle": "Custom Fields",
+			"customFieldsDescription": "Manage the custom fields for this project. Drag to reorder.",
 			"automationTitle": "Automation Rules",
 			"automationDescription": "Map integration events to columns. When an event occurs, the linked task moves to the specified column."
 		},
@@ -546,6 +566,34 @@
 			"off": "Off",
 			"newColumnPlaceholder": "New column name...",
 			"add": "Add"
+		},
+		"customFields": {
+			"addButton": "Add",
+			"availableOptions": "Available options",
+			"createError": "Failed to create custom field.",
+			"createSuccess": "Custom field created.",
+			"defaultLabel": "Default",
+			"defaultValuePlaceholder": "Default value",
+			"deleteButton": "Delete",
+			"deleteError": "Failed to delete custom field.",
+			"deleteSuccess": "Custom field deleted.",
+			"empty": "No custom fields configured yet.",
+			"loading": "Loading custom fields...",
+			"namePlaceholder": "Field name",
+			"noOptionsPlaceholder": "No options",
+			"options": "{{count}} option(s)",
+			"optionsPlaceholder": "Options separated by commas",
+			"reorderError": "Failed to reorder fields",
+			"required": "Required",
+			"typePlaceholder": "Select field type",
+			"types": {
+				"text": "Text",
+				"number": "Number",
+				"date": "Date",
+				"dropdown": "Dropdown",
+				"boolean": "Boolean",
+				"multiselect": "Multi-Select"
+			}
 		},
 		"githubIntegration": {
 			"validation": {
@@ -764,6 +812,43 @@
 			"saveChanges": "Save changes",
 			"disconnect": "Disconnect"
 		},
+		"mattermostIntegration": {
+			"channelHint": "Optional label for your reference. Mattermost controls the actual destination channel from the webhook setup.",
+			"channelLabel": "Channel name",
+			"channelPlaceholder": "#team-updates",
+			"connect": "Connect Mattermost",
+			"connected": "Connected",
+			"connectionHint": "Paste a Mattermost incoming webhook URL and choose which task events should be posted.",
+			"connectionTitle": "Mattermost webhook connection",
+			"disconnect": "Disconnect",
+			"events": {
+				"taskCreated": "New tasks",
+				"taskStatusChanged": "Status changes",
+				"taskPriorityChanged": "Priority changes",
+				"taskTitleChanged": "Title changes",
+				"taskDescriptionChanged": "Description changes",
+				"taskCommentCreated": "New comments"
+			},
+			"eventsHint": "Choose which project changes should post to Mattermost.",
+			"eventsTitle": "Event notifications",
+			"paused": "Paused",
+			"saveChanges": "Save changes",
+			"toast": {
+				"saved": "Mattermost integration saved successfully",
+				"saveError": "Failed to save Mattermost integration",
+				"enabled": "Mattermost notifications enabled",
+				"disabled": "Mattermost notifications paused",
+				"updateError": "Failed to update Mattermost integration",
+				"removed": "Mattermost integration removed successfully",
+				"removeError": "Failed to remove Mattermost integration"
+			},
+			"validation": {
+				"webhookInvalid": "Enter a valid Mattermost webhook URL"
+			},
+			"webhookHint": "Create an Incoming Webhook in Mattermost and paste the generated URL here.",
+			"webhookLabel": "Incoming webhook URL",
+			"webhookPlaceholder": "https://your-mattermost-server.com/hooks/..."
+		},
 		"genericWebhookIntegration": {
 			"validation": {
 				"webhookInvalid": "Enter a valid webhook URL"
@@ -942,7 +1027,9 @@
 			"createError": "Failed to create label",
 			"updateError": "Failed to update label",
 			"deleteError": "Failed to delete label",
-			"nameRequired": "Label name is required"
+			"nameRequired": "Label name is required",
+			"deletionPending": "Deletion in progress",
+			"resumeDeletion": "Resume deletion"
 		},
 		"gitlabIntegration": {
 			"validation": {
@@ -1123,6 +1210,7 @@
 				"boardView": "Switch to board view",
 				"listView": "Switch to list view",
 				"backlogView": "Switch to backlog view",
+				"calendarView": "Switch to calendar view",
 				"nextTask": "Next task",
 				"prevTask": "Previous task",
 				"openTask": "Open selected task",
@@ -1188,6 +1276,10 @@
 				"title": "Time tracking started",
 				"contentWithTask": "Time tracking started on task: {{taskTitle}}",
 				"contentWithoutTask": "Time tracking started on a task"
+			},
+			"team_created": {
+				"title": "New team created",
+				"content": "Team \"{{teamName}}\" was created"
 			}
 		}
 	},
@@ -1301,7 +1393,9 @@
 				"mermaid": {
 					"renderFailed": "Mermaid diagram couldn't be rendered"
 				}
-			}
+			},
+			"importedFrom": "Imported from {{source}}",
+			"importedBy": "Imported by {{name}}"
 		}
 	},
 	"tasks": {
@@ -1331,10 +1425,13 @@
 			"selectTask": "Select task",
 			"loadingTask": "Loading task...",
 			"taskNotFound": "Task not found",
-			"taskNotFoundDescription": "The task you are looking for does not exist or has been deleted."
+			"taskNotFoundDescription": "The task you are looking for does not exist or has been deleted.",
+			"customFields": "Custom Fields"
 		},
 		"detail": {
 			"subtaskOf": "Subtask of",
+			"customFieldUpdated": "Field updated",
+			"selectOption": "Select option",
 			"activity": "Activity",
 			"noActivity": "No activity found",
 			"openInFullPage": "Open in full page",
@@ -1434,7 +1531,8 @@
 					},
 					"onlyYoutubeInline": "Only YouTube URLs can be embedded. Use link mode instead."
 				}
-			}
+			},
+			"pickDate": "Pick a date"
 		},
 		"entity": {
 			"task": "Task"
@@ -1532,6 +1630,9 @@
 					"rose": "Rose",
 					"crimson": "Crimson"
 				}
+			},
+			"role": {
+				"updateError": "Failed to update agent role"
 			}
 		},
 		"backlog": {
@@ -1582,7 +1683,9 @@
 			"allAssignees": "All assignees",
 			"allDueDates": "All due dates",
 			"allLabels": "All labels",
+			"noValuesUsedYet": "No values used yet",
 			"selectedCount": "{{count}} selected",
+			"all": "All",
 			"subjects": {
 				"status": "Status",
 				"priority": "Priority",
@@ -1756,7 +1859,13 @@
 				"name": "Human-only",
 				"description": "Only a human team member can claim this task"
 			}
-		}
+		},
+		"customFields": {
+			"ariaLabel": "Custom fields"
+		},
+		"descriptionRetry": "Retry",
+		"descriptionLoading": "Loading description…",
+		"descriptionLoadError": "The description could not be loaded. Retry to load the current version."
 	},
 	"team": {
 		"roles": {
@@ -1887,7 +1996,8 @@
 			"user": "User",
 			"role": "Role",
 			"status": "Status",
-			"created": "Created"
+			"created": "Created",
+			"actions": "Actions"
 		},
 		"create": {
 			"title": "Create user",
