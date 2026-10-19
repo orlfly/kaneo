@@ -1,4 +1,4 @@
-import { loadLocale } from "@i18n/resources";
+import enUS from "@i18n/en-US.json";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   act,
@@ -7,12 +7,28 @@ import {
   render,
   screen,
 } from "@testing-library/react";
+import i18next from "i18next";
 import type { ReactNode } from "react";
+import { initReactI18next } from "react-i18next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { i18n } from "@/lib/i18n";
-
 import CreateTaskModal from "./create-task-modal";
+
+// A dedicated instance, never the app singleton: importing `@/lib/i18n` next to
+// a react-i18next mock deadlocks the vitest 4 worker. Inline resources keep the
+// copy synchronous too, so a key the reference locale lacks fails a test here
+// instead of rendering its own identifier to the user.
+const translations = i18next.use(initReactI18next).init({
+  lng: "en-US",
+  resources: { "en-US": enUS },
+  defaultNS: "common",
+  interpolation: { escapeValue: false },
+});
+
+vi.mock("react-i18next", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("react-i18next")>()),
+  useTranslation: () => ({ t: i18next.t.bind(i18next) }),
+}));
 
 function createTestQueryClient() {
   return new QueryClient({
@@ -44,10 +60,7 @@ let storedProject: { id: string; columns: unknown[] } | null = null;
 let ensureTaskId: (() => Promise<string | null>) | undefined;
 
 beforeEach(async () => {
-  // Real copy, so a key the reference locale is missing fails here instead of
-  // rendering its own identifier.
-  await i18n.changeLanguage("en-US");
-  await i18n.loadNamespaces(Object.keys(await loadLocale("en-US")));
+  await translations;
   workspaceId = "workspace-1";
   projects = [
     { id: "project-1", name: "Alpha", slug: "alp" },

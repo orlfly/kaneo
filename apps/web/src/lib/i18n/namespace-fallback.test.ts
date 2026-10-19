@@ -4,6 +4,10 @@ import { i18n } from "@/lib/i18n";
 
 // `agentConfig` is the one namespace only en-US defines. Other locales must
 // still get its copy through the en-US fallback instead of the raw key.
+//
+// This file drives the app singleton on purpose, because the fallback it checks
+// is the one the app configures. Keep it free of any `vi.mock("react-i18next")`:
+// importing the singleton beside that mock deadlocks the vitest worker.
 describe("locale namespace fallback", () => {
   it("reads a namespace the active locale lacks from en-US", async () => {
     await i18n.changeLanguage("zh-CN");
