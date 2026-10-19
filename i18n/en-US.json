@@ -2194,22 +2194,6 @@
 		"progressAriaLabel": "Agent working steps",
 		"progressItemAriaLabel": "Agent is {{label}}"
 	},
-	"settings:apiKey": {
-		"createDialog": {
-			"roleLabel": "Agent role",
-			"rolePlaceholder": "Choose an agent role",
-			"roleDescription": "Tasks with this role are the ones this key claims.",
-			"roleCoding": "Coding (default)",
-			"role": {
-				"product-design": "Product Design",
-				"architecture-design": "Architecture Design",
-				"devops": "Devops",
-				"ui-design": "Ui Design",
-				"testing": "Testing",
-				"code-review": "Code Review"
-			}
-		}
-	},
 	"agentConfig": {
 		"title": "Agent Configuration",
 		"description": "Download the agent configuration package, then run install.sh (macOS/Linux) or install.bat (Windows) in your target directory to set up agent roles and skills for external code agents.",
