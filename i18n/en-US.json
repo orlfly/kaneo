@@ -172,7 +172,9 @@
 		"counts": {
 			"users_one": "user",
 			"users_other": "users"
-		}
+		},
+		"reset": "Reset {{field}}",
+		"toggle": "Toggle {{field}}"
 	},
 	"auth": {
 		"signIn": {

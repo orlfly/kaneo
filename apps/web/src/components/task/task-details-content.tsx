@@ -386,7 +386,7 @@ export default function TaskDetailsContent({
                                 void handleSaveField(field.id, nextValue);
                               }}
                               disabled={!canEdit}
-                              aria-label={t("modify", {
+                              aria-label={t("toggle", {
                                 field: field.name ?? field.id,
                               })}
                             />

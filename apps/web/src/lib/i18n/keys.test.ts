@@ -161,7 +161,6 @@ function scan(): {
       match = staticCall.exec(source)
     ) {
       const key = match[1] ?? match[2];
-      if (!key.includes(".") && !key.includes(":")) continue;
       check(match, () => resolves(key, match[3] ?? ""), missing, key);
       const holes = unfilled(key, match[3]);
       if (holes && holes.length > 0) {
