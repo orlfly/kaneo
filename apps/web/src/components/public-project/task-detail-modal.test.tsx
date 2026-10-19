@@ -1,3 +1,4 @@
+import enUS from "@i18n/en-US.json";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   cleanup,
@@ -6,18 +7,29 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import i18next from "i18next";
 import type { ReactNode } from "react";
+import { initReactI18next } from "react-i18next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getPublicTaskDescription } from "@/fetchers/task/get-description-pages";
 import type Task from "@/types/task";
 import { PublicTaskDetailModal } from "./task-detail-modal";
+
+// A dedicated instance, never the app singleton: importing `@/lib/i18n` beside a
+// react-i18next mock deadlocks the vitest worker.
+const translations = i18next.use(initReactI18next).init({
+  lng: "en-US",
+  resources: { "en-US": enUS },
+  defaultNS: "common",
+  interpolation: { escapeValue: false },
+});
 
 vi.mock("@/fetchers/task/get-description-pages", () => ({
   getPublicTaskDescription: vi.fn(),
 }));
 vi.mock("react-i18next", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react-i18next")>()),
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({ t: i18next.t.bind(i18next) }),
 }));
 vi.mock("./markdown-renderer", () => ({
   MarkdownRenderer: ({ content }: { content: string }) => <div>{content}</div>,
@@ -48,19 +60,25 @@ const task: Task = {
   assigneeName: null,
 };
 let client: QueryClient;
-function modal(selected: Task | null, open = true) {
+function modal(
+  selected: Task | null,
+  open = true,
+  columns?: Array<{ slug: string; name?: string; isFinal: boolean }>,
+) {
   return (
     <QueryClientProvider client={client}>
       <PublicTaskDetailModal
         task={selected}
         projectSlug="PRJ"
+        columns={columns}
         open={open}
         onOpenChange={() => {}}
       />
     </QueryClientProvider>
   );
 }
-beforeEach(() => {
+beforeEach(async () => {
+  await translations;
   vi.clearAllMocks();
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 });
@@ -81,7 +99,7 @@ describe("public deferred task details", () => {
     expect(getPublicTaskDescription).not.toHaveBeenCalled();
     view.rerender(modal(task));
     expect(screen.getByRole("status").textContent).toContain(
-      "descriptionLoading",
+      "Loading description…",
     );
     resolve("Full deferred description");
     expect(await screen.findByText("Full deferred description")).toBeTruthy();
@@ -97,7 +115,7 @@ describe("public deferred task details", () => {
       .mockResolvedValueOnce("Current revision");
     render(modal(task));
     await screen.findByRole("alert");
-    fireEvent.click(screen.getByText("tasks:descriptionRetry"));
+    fireEvent.click(screen.getByText("Retry"));
     expect(await screen.findByText("Current revision")).toBeTruthy();
     await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
   });
@@ -107,5 +125,30 @@ describe("public deferred task details", () => {
     );
     expect(screen.getByText("Small text")).toBeTruthy();
     expect(getPublicTaskDescription).not.toHaveBeenCalled();
+  });
+
+  it("names a shipped column for the task status", () => {
+    render(
+      modal({ ...task, status: "to-do" }, true, [
+        { slug: "to-do", name: "To Do", isFinal: false },
+      ]),
+    );
+
+    expect(screen.getByText("To Do")).toBeTruthy();
+  });
+
+  it("names a custom column instead of the status key", () => {
+    render(
+      modal({ ...task, status: "blocked-by-review" }, true, [
+        {
+          slug: "blocked-by-review",
+          name: "Blocked by review",
+          isFinal: false,
+        },
+      ]),
+    );
+
+    expect(screen.getByText("Blocked by review")).toBeTruthy();
+    expect(screen.queryByText(/status\.blocked-by-review/)).toBeNull();
   });
 });
