@@ -119,6 +119,16 @@ const staticCall =
 const dynamicCall = /\bt\(\s*`([a-zA-Z0-9_:@.-]*)\$\{/g;
 const isComment = (line: string) => /^\s*(\/\/|\*|\/\*)/.test(line);
 
+// Some helpers return a key instead of copy (`error-handler` hands the caller a
+// `message` key that another component passes on to `t`). A key travelling as a
+// plain string never reaches `t("...")`, so match key-shaped literals against
+// the namespaces en-US actually declares and skip everything else.
+const keyLiteral =
+  /["'`]([a-zA-Z][a-zA-Z0-9]*:[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+)["'`]/g;
+const namespaces = new Set(Object.keys(locale));
+const isKeyLiteral = (key: string) =>
+  namespaces.has(key.slice(0, key.indexOf(":")));
+
 function scan(): {
   missing: string[];
   emptyPrefixes: string[];
@@ -127,7 +137,6 @@ function scan(): {
   const missing: string[] = [];
   const emptyPrefixes: string[] = [];
   const unfilledPlaceholders: string[] = [];
-
   for (const file of sourceFiles(sourceRoot)) {
     const source = readFileSync(file, "utf8");
     const where = relative(sourceRoot, file);
@@ -171,6 +180,24 @@ function scan(): {
       const prefix = match[1];
       if (!prefix) continue;
       check(match, () => hasLeafUnder(prefix), emptyPrefixes, prefix);
+    }
+
+    keyLiteral.lastIndex = 0;
+    for (
+      let match = keyLiteral.exec(source);
+      match;
+      match = keyLiteral.exec(source)
+    ) {
+      const key = match[1];
+      // The literal argument of a `t(...)` call is already handled above, where
+      // plural forms are resolved together with the count the call passes.
+      const before = source.slice(0, match.index);
+      if (/t\(\s*$/.test(before) || !isKeyLiteral(key) || resolves(key, "")) {
+        continue;
+      }
+      const line = before.split("\n").at(-1) ?? "";
+      if (isComment(line)) continue;
+      missing.push(`${key} (${located(match)})`);
     }
   }
 
