@@ -81,33 +81,41 @@ function hasLeafUnder(prefix: string): boolean {
   return Object.keys(node).length > 0;
 }
 
+// The variable names an options object provides, or null when the expression is
+// a spread, template or identifier the scanner cannot follow.
+function providedNames(argument: string | undefined): Set<string> | null {
+  const text = argument?.trim();
+  // Nothing passed, or a plain default string: no variable can reach the copy.
+  if (!text) return new Set();
+  if (text.startsWith('"') || text.startsWith("'")) return new Set();
+  if (text.startsWith("`")) return null;
+  if (!text.startsWith("{")) return null;
+  if (!text.endsWith("}") || text.includes("...")) return null;
+  // `{ name: value }` and the `{ name }` shorthand both provide `name`.
+  return new Set(
+    [...text.matchAll(/(?:^|[,{])\s*(\w+)\s*(?=[:,}])/g)].map(
+      (match) => match[1],
+    ),
+  );
+}
+
+function placeholdersIn(key: string): string[] | null {
+  const value = nodeAt(...splitKey(key));
+  if (typeof value !== "string") return null;
+  const found = [...value.matchAll(/\{\{\s*([\w.]+)[^}]*\}\}/g)].map(
+    (match) => match[1],
+  );
+  return found.length > 0 ? found : null;
+}
+
 // i18next leaves a placeholder it was not given alone, so copy interpolating
 // `{{count}}` reads as `{{count}} option(s)` when the call site never passes a
 // count. Reports the placeholders a call cannot fill.
 function unfilled(key: string, options: string | undefined): string[] | null {
-  const value = nodeAt(...splitKey(key));
-  if (typeof value !== "string") return null;
-  const placeholders = [...value.matchAll(/\{\{\s*([\w.]+)[^}]*\}\}/g)].map(
-    (match) => match[1],
-  );
-  if (placeholders.length === 0) return null;
-
-  const argument = options?.trim();
-  // Nothing is passed at all, or a plain default string: no variable can reach
-  // the copy. A template, identifier or other expression may spread variables
-  // the scanner cannot follow, so it stays unreported.
-  if (!argument) return placeholders;
-  // A quoted default carries no variables; a template literal might.
-  if (argument.startsWith('"') || argument.startsWith("'")) return placeholders;
-  if (argument.startsWith("`")) return null;
-  if (!argument.startsWith("{")) return null;
-  if (!argument.endsWith("}") || argument.includes("...")) return null;
-  // `{ name: value }` and the `{ name }` shorthand both provide `name`.
-  const provided = new Set(
-    [...argument.matchAll(/(?:^|[,{])\s*(\w+)\s*(?=[:,}])/g)].map(
-      (match) => match[1],
-    ),
-  );
+  const placeholders = placeholdersIn(key);
+  if (!placeholders) return null;
+  const provided = providedNames(options);
+  if (provided === null) return null;
   return placeholders.filter((name) => !provided.has(name));
 }
 
@@ -117,6 +125,10 @@ function unfilled(key: string, options: string | undefined): string[] | null {
 const staticCall =
   /\bt\(\s*(?:"([a-zA-Z0-9_:@.-]+)"|'([a-zA-Z0-9_:@.-]+)')\s*(?:,([\s\S]{0,400}?))?\)/g;
 const dynamicCall = /\bt\(\s*`([a-zA-Z0-9_:@.-]*)\$\{/g;
+// `<Trans i18nKey="ns:key">` renders its key when the key is missing, and the
+// `values` it interpolates come from a prop rather than a call.
+const transKey = /i18nKey=["']([a-zA-Z0-9_:@.-]+)["']/g;
+const transValues = /values=\{(\{[\s\S]{0,400}?\})\}/;
 const isComment = (line: string) => /^\s*(\/\/|\*|\/\*)/.test(line);
 
 // Some helpers return a key instead of copy (`error-handler` hands the caller a
@@ -188,15 +200,38 @@ function scan(): {
       match = keyLiteral.exec(source)
     ) {
       const key = match[1];
-      // The literal argument of a `t(...)` call is already handled above, where
-      // plural forms are resolved together with the count the call passes.
+      // Arguments of `t(...)` and `i18nKey` props are handled above, where plural
+      // forms and `values` are resolved with what the site passes.
       const before = source.slice(0, match.index);
-      if (/t\(\s*$/.test(before) || !isKeyLiteral(key) || resolves(key, "")) {
+      if (
+        /(?:t\(|i18nKey=)\s*$/.test(before) ||
+        !isKeyLiteral(key) ||
+        resolves(key, "")
+      ) {
         continue;
       }
       const line = before.split("\n").at(-1) ?? "";
       if (isComment(line)) continue;
       missing.push(`${key} (${located(match)})`);
+    }
+
+    transKey.lastIndex = 0;
+    for (
+      let match = transKey.exec(source);
+      match;
+      match = transKey.exec(source)
+    ) {
+      const key = match[1];
+      check(match, () => resolves(key, ""), missing, key);
+      const holes = unfilled(
+        key,
+        source.slice(match.index, match.index + 600).match(transValues)?.[1],
+      );
+      if (holes && holes.length > 0) {
+        unfilledPlaceholders.push(
+          `${key} never receives ${holes.join(", ")} (${located(match)})`,
+        );
+      }
     }
   }
 
