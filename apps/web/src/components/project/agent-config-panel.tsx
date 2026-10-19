@@ -30,7 +30,11 @@ export function AgentConfigPanel(_props: AgentConfigPanelProps) {
   const handleDownload = async () => {
     try {
       await downloadMutation.mutateAsync();
-      toast.success(t("agentConfig:downloadSuccess"));
+      toast.success(
+        t("agentConfig:downloadSuccess", {
+          defaultValue: "Agent configuration package downloaded",
+        }),
+      );
       setShowDownloadDialog(false);
     } catch (error) {
       const msg = error instanceof Error ? error.message : "Download failed";
@@ -46,7 +50,9 @@ export function AgentConfigPanel(_props: AgentConfigPanelProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Bot className="w-5 h-5 text-muted-foreground" />
-          <h3 className="text-sm font-semibold">{t("agentConfig:title")}</h3>
+          <h3 className="text-sm font-semibold">
+            {t("agentConfig:title", { defaultValue: "Agent Configuration" })}
+          </h3>
         </div>
         <Button
           size="sm"
@@ -55,17 +61,23 @@ export function AgentConfigPanel(_props: AgentConfigPanelProps) {
         >
           <Download className="w-3.5 h-3.5 mr-1.5" />
           {downloadMutation.isPending
-            ? t("agentConfig:downloading")
-            : t("agentConfig:download")}
+            ? t("agentConfig:downloading", { defaultValue: "Downloading..." })
+            : t("agentConfig:download", { defaultValue: "Download Config" })}
         </Button>
       </div>
 
       <p className="text-xs text-muted-foreground">
-        {t("agentConfig:description")}
+        {t("agentConfig:description", {
+          defaultValue:
+            "Download the agent configuration package, then run install.sh (macOS/Linux) or install.bat (Windows) in your target directory to set up agent roles and skills for external code agents.",
+        })}
       </p>
 
       <p className="text-xs text-muted-foreground">
-        {t("agentConfig:keyScopeHint")}
+        {t("agentConfig:keyScopeHint", {
+          defaultValue:
+            "Tip: bind each agent API key to a single project so one agent session stays on one project.",
+        })}
       </p>
 
       {/* Available roles and skills */}
@@ -74,7 +86,7 @@ export function AgentConfigPanel(_props: AgentConfigPanelProps) {
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="text-xs font-medium text-foreground/70">
-              {t("agentConfig:roles")}
+              {t("agentConfig:roles", { defaultValue: "Roles" })}
             </span>
             <span className="text-xs text-muted-foreground">{totalRoles}</span>
           </div>
@@ -92,7 +104,7 @@ export function AgentConfigPanel(_props: AgentConfigPanelProps) {
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="text-xs font-medium text-foreground/70">
-              {t("agentConfig:skills")}
+              {t("agentConfig:skills", { defaultValue: "Skills" })}
             </span>
             <span className="text-xs text-muted-foreground">{totalSkills}</span>
           </div>
@@ -111,9 +123,16 @@ export function AgentConfigPanel(_props: AgentConfigPanelProps) {
       <Dialog open={showDownloadDialog} onOpenChange={setShowDownloadDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("agentConfig:downloadTitle")}</DialogTitle>
+            <DialogTitle>
+              {t("agentConfig:downloadTitle", {
+                defaultValue: "Download Agent Configuration",
+              })}
+            </DialogTitle>
             <DialogDescription>
-              {t("agentConfig:downloadConfirm")}
+              {t("agentConfig:downloadConfirm", {
+                defaultValue:
+                  "Download a zip package containing role definitions, skills, opencode.jsonc, install.sh, and install.bat. Unzip it in your target directory and run ./install.sh (macOS/Linux) or install.bat (Windows) to set up the agent configuration.",
+              })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -131,8 +150,12 @@ export function AgentConfigPanel(_props: AgentConfigPanelProps) {
             >
               <FileDown className="w-3.5 h-3.5 mr-1.5" />
               {downloadMutation.isPending
-                ? t("agentConfig:downloading")
-                : t("agentConfig:confirmDownload")}
+                ? t("agentConfig:downloading", {
+                    defaultValue: "Downloading...",
+                  })
+                : t("agentConfig:confirmDownload", {
+                    defaultValue: "Download",
+                  })}
             </Button>
           </DialogFooter>
         </DialogContent>
