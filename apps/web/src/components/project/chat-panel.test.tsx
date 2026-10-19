@@ -1,3 +1,4 @@
+import enUS from "@i18n/en-US.json";
 import {
   cleanup,
   fireEvent,
@@ -5,12 +6,30 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import i18next from "i18next";
+import { initReactI18next } from "react-i18next";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ChatPanel from "./chat-panel";
 
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
+// A dedicated instance: the app singleton must not be imported beside a
+// react-i18next mock. Inline resources keep the copy available synchronously.
+const translations = i18next.use(initReactI18next).init({
+  lng: "en-US",
+  resources: { "en-US": enUS },
+  defaultNS: "common",
+  interpolation: { escapeValue: false },
+});
+
+beforeEach(async () => {
+  await translations;
+});
+
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>();
+  // Bind once: a fresh `t` on every render re-creates anything keyed on it.
+  const t = i18next.t.bind(i18next);
+  return { ...actual, useTranslation: () => ({ t, i18n: i18next }) };
+});
 
 vi.mock("@tanstack/react-query", () => ({
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
@@ -81,8 +100,10 @@ describe("ChatPanel", () => {
   it("renders the not-enabled notice instead of an input when AI is off", async () => {
     renderPanel(false);
     // Status resolves to disabled => full-page notice, no input.
-    expect(await screen.findByText("chat:notEnabledTitle")).toBeDefined();
-    expect(screen.queryByPlaceholderText("chat:placeholder")).toBeNull();
+    expect(await screen.findByText("AI assistant not enabled")).toBeDefined();
+    expect(
+      screen.queryByPlaceholderText("Send a message to pi-agent…"),
+    ).toBeNull();
   });
 
   it("keeps the input editable while the status is still loading", () => {
@@ -97,7 +118,9 @@ describe("ChatPanel", () => {
 
   it("enables the input when AI is enabled", async () => {
     renderPanel(true);
-    const input = await screen.findByPlaceholderText("chat:placeholder");
+    const input = await screen.findByPlaceholderText(
+      "Send a message to pi-agent…",
+    );
     await waitFor(() => expect(input).not.toBeDisabled());
   });
 
@@ -110,7 +133,9 @@ describe("ChatPanel", () => {
       },
     );
     renderPanel(true);
-    const input = await screen.findByPlaceholderText("chat:placeholder");
+    const input = await screen.findByPlaceholderText(
+      "Send a message to pi-agent…",
+    );
     fireEvent.change(input, { target: { value: "你好" } });
     fireEvent.keyDown(input, { key: "Enter" });
     // The streamed reply is shown in the streaming message while awaiting.
@@ -149,7 +174,9 @@ describe("ChatPanel", () => {
       },
     );
     renderPanel(true);
-    const input = await screen.findByPlaceholderText("chat:placeholder");
+    const input = await screen.findByPlaceholderText(
+      "Send a message to pi-agent…",
+    );
     fireEvent.change(input, { target: { value: "看看项目" } });
     fireEvent.keyDown(input, { key: "Enter" });
 
@@ -172,14 +199,16 @@ describe("ChatPanel", () => {
   it("clears history via the clear button and confirm dialog", async () => {
     mockClearChatHistory.mockResolvedValue(undefined);
     renderPanel(true);
-    const input = await screen.findByPlaceholderText("chat:placeholder");
+    const input = await screen.findByPlaceholderText(
+      "Send a message to pi-agent…",
+    );
     expect(input).not.toBeDisabled();
 
     // Click the clear-history (trash) button.
-    const clearBtn = screen.getByLabelText("chat:clearHistory");
+    const clearBtn = screen.getByLabelText("Clear history");
     fireEvent.click(clearBtn);
     // Confirm action is inside the alert dialog; click the confirm button.
-    const confirm = await screen.findByText("chat:clearHistoryConfirm");
+    const confirm = await screen.findByText("Clear history");
     fireEvent.click(confirm);
     await waitFor(() =>
       expect(mockClearChatHistory).toHaveBeenCalledWith("project-1"),

@@ -1,12 +1,14 @@
+import enUS from "@i18n/en-US.json";
 import { act, render, waitFor } from "@testing-library/react";
 import { Extension } from "@tiptap/core";
 import TaskItem from "@tiptap/extension-task-item";
 import type { Editor } from "@tiptap/react";
+import i18next from "i18next";
+import { initReactI18next } from "react-i18next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import TaskDescription from "./task-description";
 
 const mocks = vi.hoisted(() => ({
-  t: (key: string) => key,
   tasks: new Map<
     string,
     { id: string; projectId: string; description: string }
@@ -50,10 +52,21 @@ vi.mock("./extensions/task-item-with-checkbox", () => ({
   TaskItemWithCheckbox: TaskItem,
 }));
 
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: mocks.t }),
-  initReactI18next: { type: "3rdParty", init: () => {} },
-}));
+// A dedicated instance: the app singleton must not be imported beside a
+// react-i18next mock. Inline resources keep the copy available synchronously.
+const translations = i18next.use(initReactI18next).init({
+  lng: "en-US",
+  resources: { "en-US": enUS },
+  defaultNS: "common",
+  interpolation: { escapeValue: false },
+});
+
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>();
+  // Bind once: a fresh `t` on every render re-creates anything keyed on it.
+  const t = i18next.t.bind(i18next);
+  return { ...actual, useTranslation: () => ({ t, i18n: i18next }) };
+});
 vi.mock("@/hooks/queries/task/use-get-task", () => ({
   default: (taskId: string) => ({ data: mocks.tasks.get(taskId) }),
 }));
@@ -98,7 +111,8 @@ function savedTaskIds() {
   return mocks.mutateAsync.mock.calls.map((call) => call[0].id);
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+  await translations;
   mocks.mutateAsync.mockReset();
   mocks.mutateAsync.mockResolvedValue({});
   mocks.editors.length = 0;

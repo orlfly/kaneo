@@ -1,5 +1,8 @@
+import enUS from "@i18n/en-US.json";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import i18next from "i18next";
+import { initReactI18next } from "react-i18next";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CalendarTask } from "./calendar-task-bar";
 import DayOverflowPopover from "./day-overflow-popover";
 import MonthGrid from "./month-grid";
@@ -10,16 +13,33 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
+// A dedicated instance: the app singleton must not be imported beside a
+// react-i18next mock. Inline resources keep the copy available synchronously.
+const translations = i18next.use(initReactI18next).init({
+  lng: "en-US",
+  resources: { "en-US": enUS },
+  defaultNS: "common",
+  interpolation: { escapeValue: false },
+});
+
+beforeEach(async () => {
+  await translations;
+});
+
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>();
+  // Bind once: a fresh `t` on every render re-creates anything keyed on it.
+  const t = i18next.t.bind(i18next);
+  return { ...actual, useTranslation: () => ({ t, i18n: i18next }) };
+});
 
 vi.mock("@/lib/format", () => ({
   formatDate: () => "Monday, August 10",
   formatDateShort: (value: Date) => value.toISOString().slice(0, 10),
 }));
 
-const TRIGGER_NAME = "tasks:calendar.dayTasksAriaLabel";
+// formatDate is mocked above, so the interpolated day label is fixed.
+const TRIGGER_NAME = "Show all tasks for Monday, August 10";
 
 function task(
   id: string,

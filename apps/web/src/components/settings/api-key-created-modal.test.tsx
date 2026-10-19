@@ -1,3 +1,4 @@
+import enUS from "@i18n/en-US.json";
 import {
   cleanup,
   fireEvent,
@@ -5,6 +6,8 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import i18next from "i18next";
+import { initReactI18next } from "react-i18next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiKeyCreatedModal } from "./api-key-created-modal";
 
@@ -15,24 +18,35 @@ const m = vi.hoisted(() => ({
   error: vi.fn(),
 }));
 
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string, options?: { defaultValue?: string }) =>
-      options?.defaultValue ?? key,
-  }),
-}));
+// A dedicated instance: the app singleton must not be imported beside a
+// react-i18next mock. Inline resources keep the copy available synchronously.
+const translations = i18next.use(initReactI18next).init({
+  lng: "en-US",
+  resources: { "en-US": enUS },
+  defaultNS: "common",
+  interpolation: { escapeValue: false },
+});
+
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>();
+  // Bind once: a fresh `t` on every render re-creates anything keyed on it.
+  const t = i18next.t.bind(i18next);
+  return { ...actual, useTranslation: () => ({ t, i18n: i18next }) };
+});
 vi.mock("@/lib/copy-to-clipboard", () => ({
   copyToClipboard: m.copy,
   selectElementText: m.select,
 }));
-vi.mock("@/lib/i18n", () => ({ i18n: { t: (key: string) => key } }));
+// The UI primitives read the app singleton directly for aria-labels; point it
+// at the test instance so those strings are real copy too.
+vi.mock("@/lib/i18n", () => ({ i18n: i18next }));
 vi.mock("@/lib/toast", () => ({
   toast: { success: m.success, error: m.error },
 }));
 
-const COPY_BUTTON = "settings:apiKey.createdModal.copy";
-const COPIED_LABEL = "settings:apiKey.createdModal.copied";
-const CONTINUE_LABEL = "settings:apiKey.createdModal.copyToContinue";
+const COPY_BUTTON = "Copy";
+const COPIED_LABEL = "Copied";
+const CONTINUE_LABEL = "Copy key to continue";
 
 function renderModal() {
   return render(
@@ -46,7 +60,8 @@ function renderModal() {
 }
 
 describe("ApiKeyCreatedModal", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await translations;
     m.copy.mockReset();
     m.select.mockReset();
     m.success.mockReset();
@@ -68,9 +83,7 @@ describe("ApiKeyCreatedModal", () => {
     );
     // The dialog only unlocks "Done" once the copy reported success.
     await waitFor(() => expect(screen.getByText(COPIED_LABEL)).toBeDefined());
-    expect(m.success).toHaveBeenCalledWith(
-      "settings:apiKey.createdModal.toastCopied",
-    );
+    expect(m.success).toHaveBeenCalledWith("API key copied to clipboard");
     expect(m.error).not.toHaveBeenCalled();
     expect(m.select).not.toHaveBeenCalled();
   });
@@ -83,7 +96,7 @@ describe("ApiKeyCreatedModal", () => {
 
     await waitFor(() =>
       expect(m.error).toHaveBeenCalledWith(
-        "settings:apiKey.createdModal.toastCopyFailed",
+        "Couldn't copy the key. Select it and copy it manually.",
       ),
     );
     expect(screen.queryByText(COPIED_LABEL)).toBeNull();

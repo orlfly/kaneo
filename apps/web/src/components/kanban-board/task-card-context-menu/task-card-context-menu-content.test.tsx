@@ -1,5 +1,8 @@
+import enUS from "@i18n/en-US.json";
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import i18next from "i18next";
+import { initReactI18next } from "react-i18next";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type Task from "@/types/task";
 import TaskCardContextMenuContent from "./task-card-context-menu-content";
 
@@ -98,11 +101,25 @@ vi.mock("@/store/project", () => ({
   }),
 }));
 
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}));
+// A dedicated instance: the app singleton must not be imported beside a
+// react-i18next mock. Inline resources keep the copy available synchronously.
+const translations = i18next.use(initReactI18next).init({
+  lng: "en-US",
+  resources: { "en-US": enUS },
+  defaultNS: "common",
+  interpolation: { escapeValue: false },
+});
+
+beforeEach(async () => {
+  await translations;
+});
+
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>();
+  // Bind once: a fresh `t` on every render re-creates anything keyed on it.
+  const t = i18next.t.bind(i18next);
+  return { ...actual, useTranslation: () => ({ t, i18n: i18next }) };
+});
 
 const task = {
   id: "task-1",
@@ -143,14 +160,12 @@ describe("TaskCardContextMenuContent", () => {
       status: "planned",
     });
 
-    expect(
-      screen.queryByText("tasks:actions.markAsPlanned"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Mark as planned")).not.toBeInTheDocument();
   });
 
   it("shows Mark as planned for tasks that are not planned", () => {
     renderTask(task);
 
-    expect(screen.getByText("tasks:actions.markAsPlanned")).toBeInTheDocument();
+    expect(screen.getByText("Mark as planned")).toBeInTheDocument();
   });
 });

@@ -1,3 +1,4 @@
+import enUS from "@i18n/en-US.json";
 import {
   cleanup,
   fireEvent,
@@ -5,6 +6,8 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import i18next from "i18next";
+import { initReactI18next } from "react-i18next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NotificationPreferencesSettings } from "./notification-preferences-settings";
 
@@ -38,9 +41,21 @@ const preferences = {
   updatedAt: null,
 };
 
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
+// A dedicated instance: the app singleton must not be imported beside a
+// react-i18next mock. Inline resources keep the copy available synchronously.
+const translations = i18next.use(initReactI18next).init({
+  lng: "en-US",
+  resources: { "en-US": enUS },
+  defaultNS: "common",
+  interpolation: { escapeValue: false },
+});
+
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>();
+  // Bind once: a fresh `t` on every render re-creates anything keyed on it.
+  const t = i18next.t.bind(i18next);
+  return { ...actual, useTranslation: () => ({ t, i18n: i18next }) };
+});
 
 vi.mock(
   "@/hooks/queries/notification-preferences/use-get-notification-preferences",
@@ -71,7 +86,8 @@ vi.mock(
 describe("NotificationPreferencesSettings", () => {
   afterEach(cleanup);
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await translations;
     updatePreferences.mockReset();
     updatePreferences.mockResolvedValue(undefined);
   });
@@ -81,16 +97,15 @@ describe("NotificationPreferencesSettings", () => {
 
     fireEvent.click(
       screen.getByRole("switch", {
-        name: "settings:notificationsPage.eventTaskAssignments",
+        name: "Task assignments",
       }),
     );
-    fireEvent.change(
-      screen.getByLabelText("settings:notificationsPage.reminderLeadTimeLabel"),
-      { target: { value: "2" } },
-    );
+    fireEvent.change(screen.getByLabelText("Remind me before the due date"), {
+      target: { value: "2" },
+    });
     fireEvent.click(
       screen.getByRole("button", {
-        name: "settings:notificationsPage.saveEventPreferences",
+        name: "Save notification types",
       }),
     );
 
@@ -108,17 +123,16 @@ describe("NotificationPreferencesSettings", () => {
   it("blocks saving a cleared reminder lead time", () => {
     render(<NotificationPreferencesSettings />);
 
-    fireEvent.change(
-      screen.getByLabelText("settings:notificationsPage.reminderLeadTimeLabel"),
-      { target: { value: "" } },
-    );
+    fireEvent.change(screen.getByLabelText("Remind me before the due date"), {
+      target: { value: "" },
+    });
 
     expect(
-      screen.getByText("settings:notificationsPage.reminderLeadTimeInvalid"),
+      screen.getByText("Enter a whole number between 1 and 30."),
     ).toBeTruthy();
     expect(
       screen.getByRole("button", {
-        name: "settings:notificationsPage.saveEventPreferences",
+        name: "Save notification types",
       }),
     ).toHaveProperty("disabled", true);
   });
@@ -126,18 +140,17 @@ describe("NotificationPreferencesSettings", () => {
   it("saves disabled reminders without validating their retained lead time", async () => {
     render(<NotificationPreferencesSettings />);
 
-    fireEvent.change(
-      screen.getByLabelText("settings:notificationsPage.reminderLeadTimeLabel"),
-      { target: { value: "0" } },
-    );
+    fireEvent.change(screen.getByLabelText("Remind me before the due date"), {
+      target: { value: "0" },
+    });
     fireEvent.click(
       screen.getByRole("switch", {
-        name: "settings:notificationsPage.eventDueDateReminders",
+        name: "Due-date reminders",
       }),
     );
     fireEvent.click(
       screen.getByRole("button", {
-        name: "settings:notificationsPage.saveEventPreferences",
+        name: "Save notification types",
       }),
     );
 

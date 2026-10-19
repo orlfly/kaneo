@@ -1,3 +1,4 @@
+import enUS from "@i18n/en-US.json";
 import {
   cleanup,
   fireEvent,
@@ -5,6 +6,8 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import i18next from "i18next";
+import { initReactI18next } from "react-i18next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import TaskSubtasks from "./task-subtasks";
 
@@ -20,9 +23,21 @@ vi.mock("@tanstack/react-router", () => ({ useNavigate: () => vi.fn() }));
 vi.mock("framer-motion", () => ({
   AnimatePresence: ({ children }: { children: unknown }) => children,
 }));
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
+// A dedicated instance: the app singleton must not be imported beside a
+// react-i18next mock. Inline resources keep the copy available synchronously.
+const translations = i18next.use(initReactI18next).init({
+  lng: "en-US",
+  resources: { "en-US": enUS },
+  defaultNS: "common",
+  interpolation: { escapeValue: false },
+});
+
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>();
+  // Bind once: a fresh `t` on every render re-creates anything keyed on it.
+  const t = i18next.t.bind(i18next);
+  return { ...actual, useTranslation: () => ({ t, i18n: i18next }) };
+});
 vi.mock("@/hooks/mutations/task/use-create-task", () => ({
   default: () => ({ mutateAsync: mocks.createTask, isPending: false }),
 }));
@@ -55,7 +70,8 @@ vi.mock("@/hooks/use-workspace-permission", () => ({
 }));
 vi.mock("@/lib/toast", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 
-beforeEach(() => {
+beforeEach(async () => {
+  await translations;
   mocks.canCreateTasks.mockReturnValue(true);
   mocks.canUpdateTasks.mockReturnValue(true);
   mocks.getColumns.mockReturnValue({
@@ -88,16 +104,13 @@ describe("TaskSubtasks", () => {
 
     fireEvent.click(
       screen.getByRole("button", {
-        name: "tasks:subtasks.addAction tasks:subtasks.title",
+        name: "Add Sub-tasks",
       }),
     );
-    fireEvent.change(
-      screen.getByPlaceholderText("tasks:subtasks.inputPlaceholder"),
-      { target: { value: "Design login form" } },
-    );
-    fireEvent.click(
-      screen.getByRole("button", { name: "tasks:subtasks.addAction" }),
-    );
+    fireEvent.change(screen.getByPlaceholderText("Subtask title..."), {
+      target: { value: "Design login form" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add" }));
 
     await waitFor(() => expect(mocks.createTask).toHaveBeenCalledTimes(1));
     expect(mocks.createTask).toHaveBeenCalledWith(
@@ -120,16 +133,13 @@ describe("TaskSubtasks", () => {
 
     fireEvent.click(
       screen.getByRole("button", {
-        name: "tasks:subtasks.addAction tasks:subtasks.title",
+        name: "Add Sub-tasks",
       }),
     );
-    fireEvent.change(
-      screen.getByPlaceholderText("tasks:subtasks.inputPlaceholder"),
-      { target: { value: "Implement login form" } },
-    );
-    fireEvent.click(
-      screen.getByRole("button", { name: "tasks:subtasks.addAction" }),
-    );
+    fireEvent.change(screen.getByPlaceholderText("Subtask title..."), {
+      target: { value: "Implement login form" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add" }));
 
     await waitFor(() => expect(mocks.createTask).toHaveBeenCalledTimes(1));
     expect(mocks.createTask).toHaveBeenCalledWith(
@@ -151,7 +161,7 @@ describe("TaskSubtasks", () => {
 
     expect(
       screen.getByRole("button", {
-        name: "tasks:subtasks.addAction tasks:subtasks.title",
+        name: "Add Sub-tasks",
       }),
     ).toBeDisabled();
   });
@@ -170,7 +180,7 @@ describe("TaskSubtasks", () => {
 
     expect(
       screen.queryByRole("button", {
-        name: "tasks:subtasks.addAction tasks:subtasks.title",
+        name: "Add Sub-tasks",
       }),
     ).not.toBeInTheDocument();
   });

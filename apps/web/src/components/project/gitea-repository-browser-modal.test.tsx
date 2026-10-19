@@ -1,5 +1,8 @@
+import enUS from "@i18n/en-US.json";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import i18next from "i18next";
+import { initReactI18next } from "react-i18next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GiteaRepositoryBrowserModal } from "./gitea-repository-browser-modal";
 
@@ -10,17 +13,29 @@ vi.mock("@/fetchers/gitea-integration/list-gitea-repositories", () => ({
 vi.mock("@/lib/auth-client", () => ({
   authClient: { useSession: () => ({ data: { user: { id: m.userId } } }) },
 }));
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-  initReactI18next: { type: "3rdParty", init: vi.fn() },
-}));
+// A dedicated instance: the app singleton must not be imported beside a
+// react-i18next mock. Inline resources keep the copy available synchronously.
+const translations = i18next.use(initReactI18next).init({
+  lng: "en-US",
+  resources: { "en-US": enUS },
+  defaultNS: "common",
+  interpolation: { escapeValue: false },
+});
+
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>();
+  // Bind once: a fresh `t` on every render re-creates anything keyed on it.
+  const t = i18next.t.bind(i18next);
+  return { ...actual, useTranslation: () => ({ t, i18n: i18next }) };
+});
 const clients: QueryClient[] = [];
 afterEach(() => {
   cleanup();
   for (const client of clients) client.clear();
   clients.length = 0;
 });
-beforeEach(() => {
+beforeEach(async () => {
+  await translations;
   vi.resetAllMocks();
   m.userId = "user-1";
 });

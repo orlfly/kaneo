@@ -1,3 +1,4 @@
+import enUS from "@i18n/en-US.json";
 import {
   cleanup,
   fireEvent,
@@ -5,14 +6,28 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import i18next from "i18next";
+import { initReactI18next } from "react-i18next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GenericWebhookIntegrationSettings } from "./generic-webhook-integration-settings";
 
 const createIntegration = vi.fn();
 
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
+// A dedicated instance: the app singleton must not be imported beside a
+// react-i18next mock. Inline resources keep the copy available synchronously.
+const translations = i18next.use(initReactI18next).init({
+  lng: "en-US",
+  resources: { "en-US": enUS },
+  defaultNS: "common",
+  interpolation: { escapeValue: false },
+});
+
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>();
+  // Bind once: a fresh `t` on every render re-creates anything keyed on it.
+  const t = i18next.t.bind(i18next);
+  return { ...actual, useTranslation: () => ({ t, i18n: i18next }) };
+});
 
 vi.mock(
   "@/hooks/queries/generic-webhook-integration/use-get-generic-webhook-integration",
@@ -41,10 +56,19 @@ vi.mock("@/lib/toast", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
+const EVENT_LABELS: Record<string, string> = {
+  taskDeleted: "Task deleted",
+  taskMoved: "Task moved",
+  taskDueDateChanged: "Due date changed",
+  taskAssigneeChanged: "Assignee changed",
+  taskUnassigned: "Task unassigned",
+};
+
 describe("GenericWebhookIntegrationSettings", () => {
   afterEach(cleanup);
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await translations;
     createIntegration.mockReset();
     createIntegration.mockResolvedValue(undefined);
   });
@@ -52,24 +76,21 @@ describe("GenericWebhookIntegrationSettings", () => {
   it("creates an opt-in project reminder webhook with its lead time", async () => {
     render(<GenericWebhookIntegrationSettings projectId="project-1" />);
 
-    fireEvent.change(
-      screen.getByLabelText("settings:genericWebhookIntegration.webhookLabel"),
-      { target: { value: "https://example.com/hooks/kaneo" } },
-    );
+    fireEvent.change(screen.getByLabelText("Endpoint URL"), {
+      target: { value: "https://example.com/hooks/kaneo" },
+    });
     fireEvent.click(
       screen.getByRole("switch", {
-        name: "settings:genericWebhookIntegration.events.dueDateReminder",
+        name: "Due-date reminders",
       }),
     );
     fireEvent.change(
-      screen.getByLabelText(
-        "settings:genericWebhookIntegration.reminderLeadTimeLabel",
-      ),
+      screen.getByLabelText("Send the webhook this many hours before"),
       { target: { value: "48" } },
     );
     fireEvent.click(
       screen.getByRole("button", {
-        name: "settings:genericWebhookIntegration.connect",
+        name: "Connect webhook",
       }),
     );
 
@@ -95,10 +116,9 @@ describe("GenericWebhookIntegrationSettings", () => {
   it("creates a webhook with the opt-in task lifecycle events enabled", async () => {
     render(<GenericWebhookIntegrationSettings projectId="project-1" />);
 
-    fireEvent.change(
-      screen.getByLabelText("settings:genericWebhookIntegration.webhookLabel"),
-      { target: { value: "https://example.com/hooks/kaneo" } },
-    );
+    fireEvent.change(screen.getByLabelText("Endpoint URL"), {
+      target: { value: "https://example.com/hooks/kaneo" },
+    });
     for (const event of [
       "taskDeleted",
       "taskMoved",
@@ -108,13 +128,13 @@ describe("GenericWebhookIntegrationSettings", () => {
     ]) {
       fireEvent.click(
         screen.getByRole("switch", {
-          name: `settings:genericWebhookIntegration.events.${event}`,
+          name: EVENT_LABELS[event],
         }),
       );
     }
     fireEvent.click(
       screen.getByRole("button", {
-        name: "settings:genericWebhookIntegration.connect",
+        name: "Connect webhook",
       }),
     );
 
@@ -137,29 +157,26 @@ describe("GenericWebhookIntegrationSettings", () => {
   it("submits other webhook settings after an invalid reminder time is disabled", async () => {
     render(<GenericWebhookIntegrationSettings projectId="project-1" />);
 
-    fireEvent.change(
-      screen.getByLabelText("settings:genericWebhookIntegration.webhookLabel"),
-      { target: { value: "https://example.com/hooks/kaneo" } },
-    );
+    fireEvent.change(screen.getByLabelText("Endpoint URL"), {
+      target: { value: "https://example.com/hooks/kaneo" },
+    });
     fireEvent.click(
       screen.getByRole("switch", {
-        name: "settings:genericWebhookIntegration.events.dueDateReminder",
+        name: "Due-date reminders",
       }),
     );
     fireEvent.change(
-      screen.getByLabelText(
-        "settings:genericWebhookIntegration.reminderLeadTimeLabel",
-      ),
+      screen.getByLabelText("Send the webhook this many hours before"),
       { target: { value: "0" } },
     );
     fireEvent.click(
       screen.getByRole("switch", {
-        name: "settings:genericWebhookIntegration.events.dueDateReminder",
+        name: "Due-date reminders",
       }),
     );
     fireEvent.click(
       screen.getByRole("button", {
-        name: "settings:genericWebhookIntegration.connect",
+        name: "Connect webhook",
       }),
     );
 

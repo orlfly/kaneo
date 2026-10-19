@@ -1,3 +1,4 @@
+import enUS from "@i18n/en-US.json";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   cleanup,
@@ -6,6 +7,8 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import i18next from "i18next";
+import { initReactI18next } from "react-i18next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const m = vi.hoisted(() => ({
@@ -64,9 +67,21 @@ vi.mock(
 vi.mock("@/components/project/repository-browser-modal", () => ({
   RepositoryBrowserModal: () => null,
 }));
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-}));
+// A dedicated instance: the app singleton must not be imported beside a
+// react-i18next mock. Inline resources keep the copy available synchronously.
+const translations = i18next.use(initReactI18next).init({
+  lng: "en-US",
+  resources: { "en-US": enUS },
+  defaultNS: "common",
+  interpolation: { escapeValue: false },
+});
+
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>();
+  // Bind once: a fresh `t` on every render re-creates anything keyed on it.
+  const t = i18next.t.bind(i18next);
+  return { ...actual, useTranslation: () => ({ t, i18n: i18next }) };
+});
 vi.mock("@/lib/toast", () => ({
   toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
 }));
@@ -86,7 +101,8 @@ function show() {
   );
 }
 afterEach(() => cleanup());
-beforeEach(() => {
+beforeEach(async () => {
+  await translations;
   vi.clearAllMocks();
   m.integration.current = null;
   m.link.mockResolvedValue({ error: null });
@@ -99,7 +115,7 @@ describe("GitHub account verification flow", () => {
     });
     show();
     const button = await screen.findByRole("button", {
-      name: "settings:githubIntegration.connect GitHub",
+      name: "Connect GitHub",
     });
     fireEvent.click(button);
     await waitFor(() =>
@@ -108,9 +124,7 @@ describe("GitHub account verification flow", () => {
         callbackURL: window.location.href,
       }),
     );
-    expect(
-      screen.getByRole("button", { name: "settings:githubIntegration.browse" }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Browse" })).toBeDisabled();
   });
   it("explains the administrator prerequisite when GitHub sign-in is disabled", async () => {
     m.appInfo.mockResolvedValue({
@@ -120,12 +134,12 @@ describe("GitHub account verification flow", () => {
     show();
     expect(
       await screen.findByText(
-        "settings:githubIntegration.enableGithubSignInHint",
+        "Ask your instance administrator to enable GitHub sign-in.",
       ),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", {
-        name: "settings:githubIntegration.connect GitHub",
+        name: "Connect GitHub",
       }),
     ).not.toBeInTheDocument();
   });
@@ -142,16 +156,16 @@ describe("GitHub account verification flow", () => {
     };
     show();
     expect(
-      await screen.findByText("settings:githubIntegration.reverifyHint"),
+      await screen.findByText(
+        "Reconnect this repository to verify access and resume synchronization.",
+      ),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", {
-        name: "settings:githubIntegration.disconnect",
+        name: "Disconnect",
       }),
     ).toBeEnabled();
-    expect(
-      screen.getByText("settings:githubIntegration.badgeNotConnected"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Not Connected")).toBeInTheDocument();
   });
 });
 
@@ -184,10 +198,10 @@ describe("saved GitHub import progress", () => {
     );
     show();
     const resume = await screen.findByRole("button", {
-      name: "settings:githubIntegration.resumeImport",
+      name: "Resume import",
     });
     expect(screen.getByRole("status")).toHaveTextContent(
-      "settings:githubIntegration.importPaused",
+      "This import has saved progress. You can resume it.",
     );
     fireEvent.click(resume);
     await waitFor(() =>
@@ -206,8 +220,8 @@ describe("saved GitHub import progress", () => {
     });
     await waitFor(() =>
       expect(toast.success).toHaveBeenCalledWith(
-        "settings:githubIntegration.toast.issuesImported",
-        { description: "settings:githubIntegration.importSummary" },
+        "Issues imported successfully",
+        { description: "Created: 9 · Updated: 1 · Skipped: 2" },
       ),
     );
   });

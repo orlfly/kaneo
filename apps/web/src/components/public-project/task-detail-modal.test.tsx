@@ -27,10 +27,12 @@ const translations = i18next.use(initReactI18next).init({
 vi.mock("@/fetchers/task/get-description-pages", () => ({
   getPublicTaskDescription: vi.fn(),
 }));
-vi.mock("react-i18next", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("react-i18next")>()),
-  useTranslation: () => ({ t: i18next.t.bind(i18next) }),
-}));
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>();
+  // Bind once: a fresh `t` on every render re-creates anything keyed on it.
+  const t = i18next.t.bind(i18next);
+  return { ...actual, useTranslation: () => ({ t, i18n: i18next }) };
+});
 vi.mock("./markdown-renderer", () => ({
   MarkdownRenderer: ({ content }: { content: string }) => <div>{content}</div>,
 }));

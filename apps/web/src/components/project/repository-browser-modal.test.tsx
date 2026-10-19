@@ -1,3 +1,4 @@
+import enUS from "@i18n/en-US.json";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   cleanup,
@@ -6,6 +7,8 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import i18next from "i18next";
+import { initReactI18next } from "react-i18next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { RepositoryBrowserModal } from "./repository-browser-modal";
 
@@ -19,17 +22,29 @@ vi.mock("@/fetchers/github-integration/get-app-info", () => ({
 vi.mock("@/lib/auth-client", () => ({
   authClient: { useSession: () => ({ data: { user: { id: m.userId } } }) },
 }));
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-  initReactI18next: { type: "3rdParty", init: vi.fn() },
-}));
+// A dedicated instance: the app singleton must not be imported beside a
+// react-i18next mock. Inline resources keep the copy available synchronously.
+const translations = i18next.use(initReactI18next).init({
+  lng: "en-US",
+  resources: { "en-US": enUS },
+  defaultNS: "common",
+  interpolation: { escapeValue: false },
+});
+
+vi.mock("react-i18next", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-i18next")>();
+  // Bind once: a fresh `t` on every render re-creates anything keyed on it.
+  const t = i18next.t.bind(i18next);
+  return { ...actual, useTranslation: () => ({ t, i18n: i18next }) };
+});
 const clients: QueryClient[] = [];
 afterEach(() => {
   cleanup();
   for (const client of clients) client.clear();
   clients.length = 0;
 });
-beforeEach(() => {
+beforeEach(async () => {
+  await translations;
   vi.clearAllMocks();
   m.userId = "user-1";
 });
@@ -91,20 +106,18 @@ describe("bounded GitHub repository browser", () => {
     const { selected } = show();
     await screen.findByText("owner/first");
     expect(m.list).toHaveBeenCalledTimes(1);
-    fireEvent.click(screen.getByText("common:pagination.next"));
-    await screen.findByText("settings:repositoryBrowser.emptyTitle");
+    fireEvent.click(screen.getByText("Next"));
+    await screen.findByText("No repositories found");
     expect(m.list).toHaveBeenLastCalledWith("project", {
       installationPage: 2,
       repositoryPage: 1,
     });
-    fireEvent.click(screen.getByText("common:pagination.next"));
+    fireEvent.click(screen.getByText("Next"));
     await screen.findByText("owner/last");
-    expect(
-      screen.getByText("common:pagination.next").closest("button"),
-    ).toBeDisabled();
-    fireEvent.click(screen.getByText("common:pagination.previous"));
-    await screen.findByText("settings:repositoryBrowser.emptyTitle");
-    fireEvent.click(screen.getByText("common:pagination.previous"));
+    expect(screen.getByText("Next").closest("button")).toBeDisabled();
+    fireEvent.click(screen.getByText("Previous"));
+    await screen.findByText("No repositories found");
+    fireEvent.click(screen.getByText("Previous"));
     await screen.findByText("owner/first");
     expect(m.list).toHaveBeenCalledTimes(3);
     fireEvent.click(screen.getByText("owner/first"));
@@ -119,7 +132,7 @@ describe("bounded GitHub repository browser", () => {
     m.userId = "user-2";
     refresh();
     expect(screen.queryByText("owner/private-old-user")).toBeNull();
-    await screen.findByText("settings:repositoryBrowser.loadError");
+    await screen.findByText("Failed to load repositories");
     expect(screen.queryByText("owner/private-old-user")).toBeNull();
   });
   it("retries a failed continuation without silently showing the previous page", async () => {
@@ -131,10 +144,10 @@ describe("bounded GitHub repository browser", () => {
       .mockResolvedValueOnce(result("second", null));
     show();
     await screen.findByText("owner/first");
-    fireEvent.click(screen.getByText("common:pagination.next"));
-    await screen.findByText("settings:repositoryBrowser.loadError");
+    fireEvent.click(screen.getByText("Next"));
+    await screen.findByText("Failed to load repositories");
     expect(screen.queryByText("owner/first")).toBeNull();
-    fireEvent.click(screen.getByText("settings:repositoryBrowser.tryAgain"));
+    fireEvent.click(screen.getByText("Try Again"));
     await screen.findByText("owner/second");
     await waitFor(() =>
       expect(m.list).toHaveBeenLastCalledWith("project", {
