@@ -582,6 +582,8 @@
 			"namePlaceholder": "Field name",
 			"noOptionsPlaceholder": "No options",
 			"options": "{{count}} option(s)",
+			"options_one": "{{count}} option",
+			"options_other": "{{count}} options",
 			"optionsPlaceholder": "Options separated by commas",
 			"reorderError": "Failed to reorder fields",
 			"required": "Required",

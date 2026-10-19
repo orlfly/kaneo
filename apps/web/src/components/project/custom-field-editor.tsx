@@ -339,8 +339,10 @@ export default function CustomFieldEditor({
                       <HoverCard>
                         <HoverCardTrigger asChild>
                           <span className="inline-flex items-center gap-1 rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground cursor-pointer hover:bg-muted/80 transition-colors">
-                            {field.options.length}{" "}
-                            {t("settings:customFields.options", "options")}
+                            {t("settings:customFields.options", {
+                              count: field.options.length,
+                              defaultValue: "options",
+                            })}
                           </span>
                         </HoverCardTrigger>
                         <HoverCardContent
