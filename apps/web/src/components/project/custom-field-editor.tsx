@@ -500,10 +500,8 @@ export default function CustomFieldEditor({
               />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="true">{t("common:true", "True")}</SelectItem>
-              <SelectItem value="false">
-                {t("common:false", "False")}
-              </SelectItem>
+              <SelectItem value="true">{t("common:boolean.true")}</SelectItem>
+              <SelectItem value="false">{t("common:boolean.false")}</SelectItem>
             </SelectContent>
           </Select>
         ) : type === "dropdown" ? (
