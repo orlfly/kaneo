@@ -253,3 +253,93 @@ describe("en-US translations", () => {
     expect(unfilledPlaceholders).toEqual([]);
   });
 });
+
+// A translation that misses a key falls back to en-US, and only then to the key
+// itself. Users of a half-translated locale must never reach that last step, so
+// every locale has to resolve every key the app can ask for.
+function nodeIn(
+  tree: Record<string, unknown>,
+  namespace: string,
+  path: string,
+): unknown {
+  let current: unknown = tree[namespace];
+  for (const part of path.split(".")) {
+    if (current === null || typeof current !== "object" || !(part in current))
+      return undefined;
+    current = (current as Record<string, unknown>)[part];
+  }
+  return current;
+}
+
+function shows(tree: Record<string, unknown>, key: string): boolean {
+  const [namespace, path] = splitKey(key);
+  if (typeof nodeIn(tree, namespace, path) === "string") return true;
+  // A count-bearing key resolves through its plural category, so a bare key with
+  // only suffixed siblings is still covered.
+  const cut = path.lastIndexOf(".");
+  const leaf = path.slice(cut + 1);
+  const siblings = nodeIn(tree, namespace, cut > 0 ? path.slice(0, cut) : "");
+  if (siblings === null || typeof siblings !== "object") return false;
+  return ["_one", "_other", "_zero", "_few", "_many", "_two"].some(
+    (suffix) =>
+      typeof (siblings as Record<string, unknown>)[`${leaf}${suffix}`] ===
+      "string",
+  );
+}
+
+function everyKeyTheAppAsksFor(): string[] {
+  const keys = new Set<string>();
+  for (const file of sourceFiles(sourceRoot)) {
+    const source = readFileSync(file, "utf8");
+    const inComment = (index: number) =>
+      isComment(source.slice(0, index).split("\n").at(-1) ?? "");
+    for (const match of source.matchAll(staticCall)) {
+      if (inComment(match.index)) continue;
+      const key = match[1] ?? match[2];
+      if (key.includes(":")) keys.add(key);
+      else if (key.includes(".")) keys.add(key);
+    }
+    for (const match of source.matchAll(transKey)) {
+      if (inComment(match.index)) continue;
+      keys.add(match[1]);
+    }
+  }
+  return [...keys];
+}
+
+describe("installed translations", () => {
+  const localeDir = join(repoRoot, "i18n");
+  const translations = readdirSync(localeDir)
+    .filter(
+      (name) =>
+        name.endsWith(".json") && !["en-US.json", "schema.json"].includes(name),
+    )
+    .map(
+      (name) =>
+        [
+          name.replace(/\.json$/, ""),
+          JSON.parse(readFileSync(join(localeDir, name), "utf8")) as Record<
+            string,
+            unknown
+          >,
+        ] as const,
+    );
+  const keys = everyKeyTheAppAsksFor();
+
+  it("has keys to check", () => {
+    expect(keys.length).toBeGreaterThan(500);
+    expect(translations.length).toBeGreaterThan(10);
+  });
+
+  it("resolves every key the app asks for, so no locale shows a raw key", () => {
+    const unresolved: string[] = [];
+    for (const [name, tree] of translations) {
+      const holes = keys.filter(
+        (key) => !shows(tree, key) && !shows(locale, key),
+      );
+      if (holes.length > 0)
+        unresolved.push(`${name}: ${holes.slice(0, 5).join(", ")}`);
+    }
+    expect(unresolved).toEqual([]);
+  });
+});
