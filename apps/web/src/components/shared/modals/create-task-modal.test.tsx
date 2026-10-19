@@ -1,3 +1,4 @@
+import { loadLocale } from "@i18n/resources";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   act,
@@ -8,6 +9,8 @@ import {
 } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { i18n } from "@/lib/i18n";
 
 import CreateTaskModal from "./create-task-modal";
 
@@ -40,7 +43,11 @@ let projects: { id: string; name: string; slug: string }[] | undefined;
 let storedProject: { id: string; columns: unknown[] } | null = null;
 let ensureTaskId: (() => Promise<string | null>) | undefined;
 
-beforeEach(() => {
+beforeEach(async () => {
+  // Real copy, so a key the reference locale is missing fails here instead of
+  // rendering its own identifier.
+  await i18n.changeLanguage("en-US");
+  await i18n.loadNamespaces(Object.keys(await loadLocale("en-US")));
   workspaceId = "workspace-1";
   projects = [
     { id: "project-1", name: "Alpha", slug: "alp" },
@@ -132,11 +139,6 @@ vi.mock("@/lib/toast", () => ({
   toast: { error: vi.fn(), success: vi.fn() },
 }));
 
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
-  initReactI18next: { type: "3rdParty", init: vi.fn() },
-}));
-
 describe("CreateTaskModal", () => {
   it("keeps unsaved input while discard confirmation is open", async () => {
     useLocation.mockReturnValue({
@@ -149,7 +151,7 @@ describe("CreateTaskModal", () => {
     });
 
     const titleInput = screen.getByPlaceholderText(
-      "common:modals.createTask.titleHelper",
+      "Describe the task in plain English",
     );
     fireEvent.change(titleInput, { target: { value: "Unsaved task" } });
 
@@ -160,9 +162,7 @@ describe("CreateTaskModal", () => {
     fireEvent.click(backdrop as Element);
 
     expect(onClose).not.toHaveBeenCalled();
-    expect(
-      await screen.findByText("common:modals.createTask.discardTitle"),
-    ).toBeTruthy();
+    expect(await screen.findByText("Discard task?")).toBeTruthy();
     expect(titleInput).toHaveValue("Unsaved task");
 
     fireEvent.keyDown(document, { key: "Enter", ctrlKey: true });
@@ -182,7 +182,7 @@ describe("CreateTaskModal", () => {
     });
 
     fireEvent.change(
-      screen.getByPlaceholderText("common:modals.createTask.titleHelper"),
+      screen.getByPlaceholderText("Describe the task in plain English"),
       { target: { value: "Unsaved task" } },
     );
     const backdrop = document.querySelector('[data-slot="dialog-backdrop"]');
@@ -190,9 +190,9 @@ describe("CreateTaskModal", () => {
     fireEvent.pointerUp(backdrop as Element);
     fireEvent.click(backdrop as Element);
 
-    await screen.findByText("common:modals.createTask.discardTitle");
+    await screen.findByText("Discard task?");
 
-    fireEvent.click(screen.getByText("common:modals.createTask.discardButton"));
+    fireEvent.click(screen.getByText("Discard task"));
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -206,16 +206,14 @@ describe("CreateTaskModal", () => {
       wrapper: createWrapper(),
     });
 
-    fireEvent.click(screen.getByText("common:modals.createTask.selectProject"));
+    fireEvent.click(screen.getByText("Select project"));
     fireEvent.click(await screen.findByText("Beta"));
     const backdrop = document.querySelector('[data-slot="dialog-backdrop"]');
     fireEvent.pointerDown(backdrop as Element);
     fireEvent.pointerUp(backdrop as Element);
     fireEvent.click(backdrop as Element);
 
-    expect(
-      await screen.findByText("common:modals.createTask.discardTitle"),
-    ).toBeTruthy();
+    expect(await screen.findByText("Discard task?")).toBeTruthy();
   });
 
   it("shows a project picker and creates the task in the chosen project", async () => {
@@ -227,14 +225,12 @@ describe("CreateTaskModal", () => {
       wrapper: createWrapper(),
     });
 
-    const pickerTrigger = screen.getByText(
-      "common:modals.createTask.selectProject",
-    );
+    const pickerTrigger = screen.getByText("Select project");
     fireEvent.click(pickerTrigger);
     fireEvent.click(await screen.findByText("Beta"));
 
     fireEvent.change(
-      screen.getByPlaceholderText("common:modals.createTask.titleHelper"),
+      screen.getByPlaceholderText("Describe the task in plain English"),
       { target: { value: "Picked project task" } },
     );
     fireEvent.submit(document.querySelector("form") as HTMLFormElement);
@@ -258,15 +254,13 @@ describe("CreateTaskModal", () => {
       wrapper: createWrapper(),
     });
 
-    expect(
-      screen.queryByText("common:modals.createTask.selectProject"),
-    ).toBeNull();
+    expect(screen.queryByText("Select project")).toBeNull();
   });
 });
 
 function enterTitle(title = "Private task") {
   fireEvent.change(
-    screen.getByPlaceholderText("common:modals.createTask.titleHelper"),
+    screen.getByPlaceholderText("Describe the task in plain English"),
     {
       target: { value: title },
     },
@@ -274,7 +268,7 @@ function enterTitle(title = "Private task") {
 }
 
 async function chooseBeta() {
-  fireEvent.click(screen.getByText("common:modals.createTask.selectProject"));
+  fireEvent.click(screen.getByText("Select project"));
   fireEvent.click(await screen.findByText("Beta"));
 }
 
@@ -307,9 +301,7 @@ describe("CreateTaskModal context isolation", () => {
       wrapper: createWrapper(),
     });
     enterTitle();
-    expect(
-      screen.getByText("common:modals.createTask.createButton"),
-    ).toBeDisabled();
+    expect(screen.getByText("Create Task")).toBeDisabled();
     submit();
     expect(createTask).not.toHaveBeenCalled();
   });
@@ -324,7 +316,7 @@ describe("CreateTaskModal context isolation", () => {
     view.rerender(<CreateTaskModal {...props} open={false} />);
     view.rerender(<CreateTaskModal {...props} />);
     expect(
-      screen.getByPlaceholderText("common:modals.createTask.titleHelper"),
+      screen.getByPlaceholderText("Describe the task in plain English"),
     ).toHaveValue("");
     enterTitle("New task");
     submit();
@@ -346,9 +338,7 @@ describe("CreateTaskModal context isolation", () => {
     enterTitle("Team B secret");
     submit();
     expect(createTask).not.toHaveBeenCalled();
-    expect(
-      screen.getByText("common:modals.createTask.selectProject"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Select project")).toBeInTheDocument();
   });
 
   it("does not expose the previous team while the route's team is loading", async () => {
