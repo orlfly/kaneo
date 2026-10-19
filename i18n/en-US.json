@@ -150,8 +150,7 @@
 		"counts": {
 			"users_one": "user",
 			"users_other": "users"
-		},
-		"loading": "Loading…"
+		}
 	},
 	"auth": {
 		"signIn": {

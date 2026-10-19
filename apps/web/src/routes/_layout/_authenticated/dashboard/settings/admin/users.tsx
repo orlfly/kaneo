@@ -278,7 +278,7 @@ function RouteComponent() {
               <TableRow>
                 <TableCell colSpan={5} className="py-16 text-center">
                   <span className="text-sm text-muted-foreground">
-                    {t("common:loading", { defaultValue: "Loading…" })}
+                    {t("common:states.loading", { defaultValue: "Loading…" })}
                   </span>
                 </TableCell>
               </TableRow>
