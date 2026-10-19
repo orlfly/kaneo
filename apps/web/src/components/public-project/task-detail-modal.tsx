@@ -36,7 +36,7 @@ type PublicTaskDetailModalProps = {
   projectSlug: string;
   // The modal is opened from any column, so it resolves completion by slug
   // rather than being told; without these it falls back to the slug heuristic.
-  columns?: Array<{ slug: string; isFinal: boolean }>;
+  columns?: Array<{ slug: string; name?: string; isFinal: boolean }>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -95,7 +95,14 @@ export function PublicTaskDetailModal({
     (link) => link.resourceType === "branch",
   );
 
-  const statusLabel = task.status ? t(`tasks:status.${task.status}`) : "";
+  const statusLabel = task.status
+    ? t(`tasks:status.${task.status}`, {
+        // Columns are user-named, so copy only exists for the shipped ones.
+        defaultValue:
+          columns?.find((column) => column.slug === task.status)?.name ??
+          task.status,
+      })
+    : "";
   const priorityLabel =
     task.priority != null && task.priority !== ""
       ? t(`tasks:priority.${task.priority}`)

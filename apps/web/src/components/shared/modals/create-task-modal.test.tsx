@@ -455,3 +455,33 @@ describe("CreateTaskModal context isolation", () => {
     expect(setProject).not.toHaveBeenCalled();
   });
 });
+
+describe("CreateTaskModal status label", () => {
+  function openFromColumn(status: string, columns: unknown[]) {
+    storedProject = { id: "project-2", columns } as never;
+    useLocation.mockReturnValue({
+      pathname: "/dashboard/team/workspace-1/project/project-2/board",
+    });
+    render(<CreateTaskModal open onClose={vi.fn()} status={status} />, {
+      wrapper: createWrapper(),
+    });
+    return document.querySelector('[data-slot="dialog-popup"]');
+  }
+
+  it("names the shipped column it will create the task in", async () => {
+    const dialog = openFromColumn("to-do", [
+      { slug: "to-do", name: "To Do", tasks: [] },
+    ]);
+
+    expect(dialog?.textContent).toContain("To Do");
+  });
+
+  it("names a custom column instead of the status key", async () => {
+    const dialog = openFromColumn("blocked", [
+      { slug: "blocked", name: "Blocked by review", tasks: [] },
+    ]);
+
+    expect(dialog?.textContent).toContain("Blocked by review");
+    expect(dialog?.textContent).not.toContain("status.blocked");
+  });
+});

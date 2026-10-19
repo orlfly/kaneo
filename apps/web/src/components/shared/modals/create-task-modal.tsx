@@ -696,11 +696,14 @@ function CreateTaskModalContent({
   const selectedRole = roleOptions.find((r) => r.value === requiredRole);
 
   const statusLabel = useMemo(() => {
-    if (status) {
-      return t(`tasks:status.${status}`);
-    }
-    return t("tasks:status.in-progress");
-  }, [status, t]);
+    if (!status) return t("tasks:status.in-progress");
+    // Columns are user-named, so copy only exists for the shipped ones; fall back
+    // to the column's own name rather than the key.
+    const columnName = project?.columns?.find(
+      (column) => column.slug === status,
+    )?.name;
+    return t(`tasks:status.${status}`, { defaultValue: columnName ?? status });
+  }, [status, project?.columns, t]);
   const selectedUser = teamUsers?.find((u) => u.id === assigneeId);
 
   useEffect(() => {
