@@ -8,6 +8,11 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
+    // A few component suites wait on real timers and user-driven settling, and
+    // cross the 5s default when the machine is busy; that showed up as random
+    // failures in whichever file happened to be slowest.
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
     coverage: {
       enabled: false,
     },
