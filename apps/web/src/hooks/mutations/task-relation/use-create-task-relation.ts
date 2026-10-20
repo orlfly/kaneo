@@ -13,6 +13,11 @@ function useCreateTaskRelation() {
       queryClient.invalidateQueries({
         queryKey: ["task-relations", variables.targetTaskId],
       });
+      // The Gantt reads a project-wide edge list under this prefix, and realtime
+      // is otherwise the only path that refreshes it.
+      queryClient.invalidateQueries({
+        queryKey: ["task-relations"],
+      });
     },
   });
 }
