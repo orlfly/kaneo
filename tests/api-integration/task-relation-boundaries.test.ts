@@ -138,7 +138,15 @@ describe("task relation tenant boundaries", () => {
         },
       ]);
     }
-    expect((await request(`/${relation.id}`, "DELETE")).status).toBe(200);
+    // The client refreshes both endpoints' panels from this response, so it has
+    // to carry them.
+    const deleted = await request(`/${relation.id}`, "DELETE");
+    expect(deleted.status).toBe(200);
+    expect(await deleted.json()).toMatchObject({
+      id: relation.id,
+      sourceTaskId: own.task.id,
+      targetTaskId: target.id,
+    });
     expect(await db.query.taskRelationTable.findMany()).toHaveLength(0);
     expect(m.publish).toHaveBeenCalledWith(
       "task-relation.deleted",
