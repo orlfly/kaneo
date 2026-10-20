@@ -18,6 +18,7 @@ import {
   taskTable,
   teamMemberTable,
 } from "../../database/schema";
+import { hasOpenBlocker } from "../../task-relation/blockers";
 import { claimTask } from "./claim-task";
 
 /**
@@ -120,6 +121,15 @@ export async function claimNextTask({
     inArray(taskTable.status, [...freeStatuses]),
     freeCondition,
   ];
+  // A task whose `blocks` blocker is still open cannot start, so it must not be
+  // handed out at all: an agent that receives it can only pause it again. The
+  // filter is a predicate over the candidate row, so candidates are still
+  // selected in one statement. `resumed` rework is exempt: the caller already
+  // holds that task and needs it back to pause or resolve it.
+  baseFreeConditions.push(
+    sql<boolean>`NOT ${hasOpenBlocker(sql`${taskTable.id}`)}`,
+  );
+
   // Rule 2 (role match): only add when the caller's agent role is known,
   // otherwise every free task is implicitly eligible.
   // code-review agents still ignore requiredRole but never get a `human`-marked

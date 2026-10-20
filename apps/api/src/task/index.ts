@@ -584,7 +584,8 @@ const claimTaskRoute = createRoute({
   path: "/claim/{id}",
   tags: ["Tasks"],
   summary: "Claim a task",
-  description: "Atomically claim an unassigned to-do task for the current user",
+  description:
+    "Atomically claim an unassigned to-do task for the current user. A task whose `blocks` blocker has not finished is refused with 409, naming the blockers.",
   middleware: [
     workspaceAccess.fromTask(),
     requireWorkspacePermission({ task: ["update"] }),
@@ -603,7 +604,7 @@ const claimNextTaskRoute = createRoute({
   tags: ["Tasks"],
   summary: "Claim the next available task",
   description:
-    "Find and atomically claim the best available to-do task across the caller's team projects. The caller's own in-progress rework is resumed first (response `resumed: true`).",
+    "Find and atomically claim the best available to-do task across the caller's team projects. Tasks whose `blocks` blocker has not finished are skipped, so an agent is never handed work it cannot start. The caller's own in-progress rework is resumed first (response `resumed: true`).",
   request: {
     body: {
       required: true,

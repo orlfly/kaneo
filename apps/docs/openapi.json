@@ -660,6 +660,29 @@
             },
             "nullable": true
           },
+          "dependencies": {
+            "type": "object",
+            "properties": {
+              "blockedBy": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TaskDependencyRef"
+                }
+              },
+              "blocks": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TaskDependencyRef"
+                }
+              }
+            },
+            "required": [
+              "blockedBy",
+              "blocks"
+            ],
+            "description": "The task's dependencies, present when `taskId` is given: the tasks that must finish first (`blockedBy`) and the tasks this one currently holds up (`blocks`).",
+            "nullable": true
+          },
           "checkedAt": {
             "type": "string",
             "format": "date-time"
@@ -671,6 +694,30 @@
           "taskSummary",
           "vcs",
           "checkedAt"
+        ]
+      },
+      "TaskDependencyRef": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "number",
+            "nullable": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "title",
+          "status"
         ]
       },
       "ProjectListItem": {
@@ -6722,7 +6769,7 @@
           "Tasks"
         ],
         "summary": "Claim a task",
-        "description": "Atomically claim an unassigned to-do task for the current user",
+        "description": "Atomically claim an unassigned to-do task for the current user. A task whose `blocks` blocker has not finished is refused with 409, naming the blockers.",
         "parameters": [
           {
             "schema": {
@@ -6791,7 +6838,7 @@
           "Tasks"
         ],
         "summary": "Claim the next available task",
-        "description": "Find and atomically claim the best available to-do task across the caller's team projects. The caller's own in-progress rework is resumed first (response `resumed: true`).",
+        "description": "Find and atomically claim the best available to-do task across the caller's team projects. Tasks whose `blocks` blocker has not finished are skipped, so an agent is never handed work it cannot start. The caller's own in-progress rework is resumed first (response `resumed: true`).",
         "requestBody": {
           "required": true,
           "content": {

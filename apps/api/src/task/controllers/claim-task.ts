@@ -4,6 +4,7 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db, { schema } from "../../database";
 import { publishEvent } from "../../events";
+import { listOpenBlockers } from "../../task-relation/blockers";
 
 type ClaimResult = {
   taskId: string;
@@ -158,6 +159,22 @@ export async function claimTask({
       claimed: true,
       resumed: true,
     };
+  }
+
+  // An explicit claim must respect dependencies too: starting a task whose
+  // `blocks` blocker is open would only produce work that has to be paused
+  // again. The error names the blockers so the caller can wait or act on them.
+  const openBlockers = await listOpenBlockers(candidate.id);
+  if (!isCodeReview && openBlockers.length > 0) {
+    throw new HTTPException(409, {
+      message: `Task is blocked by ${openBlockers
+        .map((blocker) =>
+          blocker.number === null
+            ? blocker.title
+            : `#${blocker.number} ${blocker.title}`,
+        )
+        .join(", ")}`,
+    });
   }
 
   // Re-check under the row lock
