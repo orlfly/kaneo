@@ -38,6 +38,24 @@ export type ProjectContextBundle = {
   };
   vcs: { connected: boolean; type?: string; repository?: string };
   task?: Record<string, unknown>;
+  /**
+   * Present when a task is in scope: the work it waits on and the work it holds
+   * up, so an agent knows what to start with and what finishing unblocks.
+   */
+  dependencies?: {
+    blockedBy: Array<{
+      id: string;
+      number: number | null;
+      title: string;
+      status: string;
+    }>;
+    blocks: Array<{
+      id: string;
+      number: number | null;
+      title: string;
+      status: string;
+    }>;
+  };
   checkedAt: string;
 };
 
@@ -70,6 +88,41 @@ export function writeContextManifest(
   );
 }
 
+/**
+ * Dependencies of the task in scope. Rendered apart from the task summary
+ * because it is the part an agent acts on: what must finish first, and what
+ * finishing this task releases.
+ */
+function renderDependencies(
+  dependencies: ProjectContextBundle["dependencies"],
+): string {
+  if (!dependencies) return "";
+
+  const line = (task: {
+    number: number | null;
+    title: string;
+    status: string;
+  }) =>
+    `- ${task.number === null ? "" : `#${task.number} `}${task.title} (${task.status})`;
+
+  const blockedBy = dependencies.blockedBy.length
+    ? dependencies.blockedBy.map(line).join("\n")
+    : "- (nothing: this task can start)";
+  const blocks = dependencies.blocks.length
+    ? dependencies.blocks.map(line).join("\n")
+    : "- (nothing: finishing it releases no other task)";
+
+  return `
+## Dependencies
+
+Blocked by:
+${blockedBy}
+
+Blocks:
+${blocks}
+`;
+}
+
 export function renderContextDoc(bundle: ProjectContextBundle): string {
   const vcsLine = bundle.vcs.connected
     ? `- VCS: ${bundle.vcs.type} — ${bundle.vcs.repository}`
@@ -92,7 +145,7 @@ ${byStatus ? `- By status:\n${byStatus}\n` : ""}
 ## Columns
 
 ${bundle.statuses.map((s) => `- ${s}`).join("\n") || "- (none)"}
-
+${renderDependencies(bundle.dependencies)}
 Refresh this context by calling the \`agent_sync_project\` tool.
 `;
 }

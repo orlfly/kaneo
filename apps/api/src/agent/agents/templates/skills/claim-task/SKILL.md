@@ -180,6 +180,51 @@ curl -X POST "${KANEO_API_URL}/api/task/pause/${taskId}" \
 - 当前任务的 `startDate` 不早于前置任务的 `dueDate`；必要时用 `PUT /api/task/:id` 把当前任务排期往后挪
 - 不要自行接手前置任务，交给对应 `requiredRole` 的 agent，自己先 pause 等调度
 
+### 7. 处理任务依赖（blocks）
+
+依赖是**服务端强制执行**的，不是建议：`claim_next_task` 不会把被阻塞的任务派给你，`claim/{taskId}` 对这类任务返回 409 并列出阻塞它的是谁。
+
+**认领后先看自己的依赖**：`agent_sync_project` 返回的项目上下文里带 `dependencies`，或直接查：
+
+```bash
+curl "${KANEO_API_URL}/api/task-relation/${taskId}"   -H "Authorization: Bearer ${KANEO_API_KEY}"
+# 或 MCP 工具 get_task_relations
+```
+
+返回里看两个方向：
+
+- `blockedBy`：**必须先完成**的任务。非空说明你现在不能开工 —— 正常情况下调度器不会派给你，除非依赖是认领之后才加上的
+- `blocks`：**被你挡住**的任务。你完成它们才能开始，所以不要跳过收尾（提 PR + 转 `in-review`），也不要长期挂在 `in-progress`
+
+**认领后才发现被阻塞**：不要硬做，也不要去接前置任务：
+
+```bash
+# 1) 若前置任务还不存在，按第 6 节用一次请求建它并声明 blocks
+# 2) 挂起自己，写明等哪个前置任务
+curl -X POST "${KANEO_API_URL}/api/task/pause/${taskId}" \
+  -H "Authorization: Bearer ${KANEO_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "等待前置任务 KIA-42 完成后才能继续"}'
+```
+
+**前置任务完成后会怎样**：任务一旦进入最终列（`done`）或被归档，阻塞即解除，`claim_next_task` 会自动把你派回去，不需要手工 resume。反过来：**你完成一个任务就等于解锁它的下游**，所以状态流转要真实反映进展（做完才转 `done`）。
+
+**给任务加依赖**：
+
+```bash
+# 新任务：和创建请求一起提交，见第 5 节的 relations
+# 已有任务：单独建关系
+curl -X POST "${KANEO_API_URL}/api/task-relation" \
+  -H "Authorization: Bearer ${KANEO_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{"sourceTaskId":"<阻塞方>","targetTaskId":"<被阻塞方>","relationType":"blocks"}'
+# 解除依赖（关系 id 来自 get_task_relations）
+curl -X DELETE "${KANEO_API_URL}/api/task-relation/<relationId>" \
+  -H "Authorization: Bearer ${KANEO_API_KEY}"
+```
+
+关系类型的方向：`blocks` = source 挡住 target；`subtask` = source 是父、target 是子；`related` = 双向。**只有 `blocks` 会阻止开工**，`subtask` 和 `related` 不影响派单。
+
 ## 关键约束
 
 - **禁止直接操作数据库变更任务状态**：所有任务状态变更（认领、流转、暂停、释放）必须且只能通过 Kaneo API（`claim-next` / `PUT /api/task/status/{taskId}` / `pause` / `release`）或对应 MCP 工具完成，这是唯一的合法路径。不要尝试连接 PostgreSQL / 查询或 UPDATE 任务表，即使拥有数据库连接串或在数据库可访问的宿主上运行。API 返回 409（状态冲突 / 评审锁被占）等错误时，**不要绕过或重试绕开**，直接 `POST /api/task/pause/{taskId}` 挂起任务并说明冲突原因，等待人工处理

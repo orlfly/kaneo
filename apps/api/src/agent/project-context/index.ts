@@ -23,6 +23,15 @@ const projectContextQuery = z.object({
   }),
 });
 
+const relatedTaskRef = z
+  .object({
+    id: z.string(),
+    number: z.number().nullable(),
+    title: z.string(),
+    status: z.string(),
+  })
+  .openapi("TaskDependencyRef");
+
 const projectContextResponse = z
   .object({
     project: z.object({
@@ -44,6 +53,16 @@ const projectContextResponse = z
       repository: z.string().optional(),
     }),
     task: z.record(z.string(), z.unknown()).optional(),
+    dependencies: z
+      .object({
+        blockedBy: z.array(relatedTaskRef),
+        blocks: z.array(relatedTaskRef),
+      })
+      .optional()
+      .openapi({
+        description:
+          "The task's dependencies, present when `taskId` is given: the tasks that must finish first (`blockedBy`) and the tasks this one currently holds up (`blocks`).",
+      }),
     checkedAt: z.string().datetime(),
   })
   .openapi("ProjectContext");

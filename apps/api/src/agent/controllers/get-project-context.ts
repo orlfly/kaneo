@@ -8,6 +8,10 @@ import {
   taskTable,
   teamTable,
 } from "../../database/schema";
+import {
+  listOpenBlockers,
+  listTasksBlockedBy,
+} from "../../task-relation/blockers";
 import type { ProjectContextBundle } from "../context";
 
 /**
@@ -125,6 +129,18 @@ export async function getProjectContext({
     task = row as unknown as Record<string, unknown>;
   }
 
+  // Dependencies travel with the task so an agent does not have to ask: what it
+  // waits on decides whether it can start, and what it blocks decides whether
+  // finishing this task releases other work.
+  let dependencies: ProjectContextBundle["dependencies"];
+  if (taskId) {
+    const [blockedBy, blocks] = await Promise.all([
+      listOpenBlockers(taskId),
+      listTasksBlockedBy(taskId),
+    ]);
+    dependencies = { blockedBy, blocks };
+  }
+
   return {
     project: {
       id: project.id,
@@ -145,6 +161,7 @@ export async function getProjectContext({
       ...(repository ? { repository } : {}),
     },
     ...(task ? { task } : {}),
+    ...(dependencies ? { dependencies } : {}),
     checkedAt: new Date().toISOString(),
   };
 }

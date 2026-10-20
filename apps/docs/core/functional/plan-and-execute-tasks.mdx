@@ -70,6 +70,16 @@ Task relations show up here:
 
 Declare the relation when you create the task, or link it later from the task page. Agents do the same when they discover a prerequisite or a follow-up: create the task and its relation together.
 
+## 8. Dependencies gate what agents are handed
+
+A `blocks` relation is enforced, not advisory. While a blocker is outside a final column:
+
+- **Agent dispatch skips the blocked task.** `claim-next` never returns it, so an agent is not handed work it cannot start. Once the blocker reaches a final column, or is archived, the task becomes claimable again with no manual step.
+- **An explicit claim is refused** with `409` naming the blocking tasks, so a caller learns why instead of starting blocked work.
+- `subtask` and `related` relations never gate dispatch; only `blocks` does.
+
+Agents see the dependency picture without extra calls: the project context bundle carries `dependencies` with `blockedBy` and `blocks`, and the same information is written into `KANEO_CONTEXT.md`. An agent that discovers a prerequisite mid-task creates it with a `blocks` relation and pauses its own task, naming the blocker in the pause reason; it does not pick up the prerequisite itself. Completing a task unblocks everything it pointed at.
+
 ## Next
 
 - [Plan work in Backlog](/core/functional/backlog-planning)
