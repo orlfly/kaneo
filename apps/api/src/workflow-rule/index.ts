@@ -24,15 +24,14 @@ const getWorkflowRulesRoute = createRoute({
   summary: "Get workflow rules",
   description:
     "Get every workflow rule for a project. A rule moves a task to a column when an integration event fires.",
-  middleware: [
-    workspaceAccess.fromProject("projectId"),
-    requireWorkspacePermission({ project: ["read"] }),
-  ] as const,
+  middleware: [workspaceAccess.fromProject("projectId")] as const,
   request: { params: projectIdParam },
   responses: {
     200: jsonResponse("List of workflow rules", workflowRuleListSchema),
-    403: errorResponse("No access to the project, or missing read permission"),
-    404: errorResponse("Project not found"),
+    400: errorResponse(
+      "Unknown project, or its workspace could not be determined",
+    ),
+    403: errorResponse("No access to the project's workspace"),
   },
 });
 
@@ -57,11 +56,10 @@ const upsertWorkflowRuleRoute = createRoute({
   },
   responses: {
     200: jsonResponse("The created or updated rule", workflowRuleRowSchema),
-    400: errorResponse("Invalid body"),
+    400: errorResponse("Invalid body, or unknown project"),
     403: errorResponse(
-      "No access to the project, or missing project:update permission",
+      "No workspace access, or missing project:update permission",
     ),
-    404: errorResponse("Project not found"),
   },
 });
 
@@ -79,10 +77,12 @@ const deleteWorkflowRuleRoute = createRoute({
   request: { params: workflowRuleParam },
   responses: {
     200: jsonResponse("The deleted rule", workflowRuleRowSchema),
-    403: errorResponse(
-      "No access to the project, or missing project:update permission",
+    400: errorResponse(
+      "Unknown rule, or its workspace could not be determined",
     ),
-    404: errorResponse("Workflow rule not found"),
+    403: errorResponse(
+      "No workspace access, or missing project:update permission",
+    ),
   },
 });
 

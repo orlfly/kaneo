@@ -58,20 +58,17 @@ const getTelegramIntegrationRoute = createRoute({
   summary: "Get Telegram integration",
   description:
     "Get the Telegram integration for a project, or null when none is configured.",
-  middleware: [
-    workspaceAccess.fromProject("projectId"),
-    requireWorkspacePermission({ project: ["read"] }),
-  ] as const,
+  middleware: [workspaceAccess.fromProject("projectId")] as const,
   request: { params: projectIdParam },
   responses: {
     200: jsonResponse(
       "Telegram integration details, or null",
       telegramIntegrationSchema.nullable(),
     ),
-    403: errorResponse(
-      "No access to the project, or missing project:read permission",
+    400: errorResponse(
+      "Unknown project, or its workspace could not be determined",
     ),
-    404: errorResponse("Project not found"),
+    403: errorResponse("No access to the project's workspace"),
   },
 });
 
@@ -98,9 +95,8 @@ const createTelegramIntegrationRoute = createRoute({
     ),
     400: errorResponse("The bot token or chat failed validation"),
     403: errorResponse(
-      "No access to the project, or missing workspace:manage_settings",
+      "No workspace access, or missing workspace:manage_settings",
     ),
-    404: errorResponse("Project not found"),
   },
 });
 
@@ -127,9 +123,9 @@ const updateTelegramIntegrationRoute = createRoute({
     ),
     400: errorResponse("The resulting config failed validation"),
     403: errorResponse(
-      "No access to the project, or missing workspace:manage_settings",
+      "No workspace access, or missing workspace:manage_settings",
     ),
-    404: errorResponse("Project or Telegram integration not found"),
+    404: errorResponse("Telegram integration not found"),
   },
 });
 
@@ -144,10 +140,13 @@ const deleteTelegramIntegrationRoute = createRoute({
   request: { params: projectIdParam },
   responses: {
     200: jsonResponse("The integration was removed", deletedSchema),
-    403: errorResponse(
-      "No access to the project, or missing workspace:manage_settings",
+    400: errorResponse(
+      "Unknown project, or its workspace could not be determined",
     ),
-    404: errorResponse("Project or Telegram integration not found"),
+    403: errorResponse(
+      "No workspace access, or missing workspace:manage_settings",
+    ),
+    404: errorResponse("Telegram integration not found"),
   },
 });
 
@@ -166,7 +165,7 @@ const telegramIntegration = apiRouter<BaseVariables & { teamId: string }>()
       chatId: body.chatId,
       threadId: body.threadId,
       chatLabel: body.chatLabel,
-      events: { ...defaultTelegramEvents, ...body.events },
+      events: { ...defaultTelegramEvents, ...(body.events ?? {}) },
     });
 
     const validation = validateTelegramConfig(config);

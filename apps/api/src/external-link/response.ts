@@ -4,14 +4,13 @@ export const externalLinkSchema = z
   .object({
     id: z.string(),
     taskId: z.string(),
-    integrationId: z.string().nullable(),
+    integrationId: z.string(),
     resourceType: z.string().openapi({
       description:
-        "The resource kind: `url` for a manual link, or an integration resource such as `issue` or `pull_request`.",
+        "The kind of remote resource, e.g. `issue` or `pull_request`.",
     }),
     externalId: z.string().openapi({
-      description:
-        "The provider's resource identifier, or the URL for a manual link.",
+      description: "The provider's own identifier for the linked resource.",
     }),
     url: z.string(),
     title: z.string().nullable(),
@@ -25,19 +24,8 @@ export const externalLinkSchema = z
     // plaintext provider secrets and any workspace member can read this route.
     integration: z
       .object({ id: z.string(), type: z.string() })
-      .nullable()
       .openapi("ExternalLinkIntegration"),
   })
   .openapi("ExternalLink");
 
-export const createdExternalLinkSchema = externalLinkSchema
-  .omit({
-    integration: true,
-  })
-  .openapi("CreatedExternalLink");
-
 export const externalLinkListSchema = z.array(externalLinkSchema);
-
-export const deletedExternalLinkSchema = z
-  .object({ id: z.string() })
-  .openapi("DeletedExternalLink");

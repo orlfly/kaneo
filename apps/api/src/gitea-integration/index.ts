@@ -3,7 +3,6 @@ import type { Context } from "hono";
 import { HTTPException } from "hono/http-exception";
 import db from "../database";
 import { integrationTable } from "../database/schema";
-import { publishEvent } from "../events";
 import { scopeToProjectFromBody } from "../integrations/middleware";
 import { projectIdBody, projectIdParam } from "../integrations/schema";
 import {
@@ -26,7 +25,6 @@ import deleteGiteaIntegration from "./controllers/delete-gitea-integration";
 import getGiteaIntegration from "./controllers/get-gitea-integration";
 import { importGiteaIssues } from "./controllers/import-gitea-issues";
 import listGiteaRepositories from "./controllers/list-gitea-repositories";
-import { resolveVerificationToken } from "./controllers/resolve-verification-token";
 import verifyGiteaAccess from "./controllers/verify-gitea-access";
 import {
   giteaDeleteResultSchema,
@@ -34,6 +32,7 @@ import {
   giteaIntegrationSchema,
   giteaRepositoryListSchema,
   giteaVerificationResultSchema,
+  integrationNotFoundSchema,
 } from "./response";
 import {
   createGiteaBody,
@@ -64,11 +63,10 @@ const listRepositoriesRoute = createRoute({
   },
   responses: {
     200: jsonResponse("Accessible repositories", giteaRepositoryListSchema),
-    400: errorResponse("Invalid body, or invalid Gitea credentials"),
+    400: errorResponse("Invalid body, or unknown project"),
     403: errorResponse(
-      "No access to the project, or missing workspace:manage_settings",
+      "No workspace access, or missing workspace:manage_settings",
     ),
-    404: errorResponse("Project not found"),
   },
 });
 
@@ -79,7 +77,7 @@ const verifyRoute = createRoute({
   tags: ["Gitea"],
   summary: "Verify Gitea access",
   description:
-    "Check that the base URL is a Gitea instance and that the token can reach the repository with the permissions Kaneo needs. Repository permission failures are reported in the body; invalid credentials and upstream errors return an error status. Omit accessToken to use the saved token for the unchanged base URL.",
+    "Check that the base URL is a Gitea instance and that the token can reach the repository with the permissions Kaneo needs. Always 200 -- problems are reported in the body.",
   middleware: manageAccess,
   request: {
     body: {
@@ -89,13 +87,10 @@ const verifyRoute = createRoute({
   },
   responses: {
     200: jsonResponse("Verification result", giteaVerificationResultSchema),
-    401: errorResponse("Kaneo authentication required"),
-    500: errorResponse("Gitea verification failed"),
-    400: errorResponse("Invalid body, or invalid Gitea credentials"),
+    400: errorResponse("Invalid body, or unknown project"),
     403: errorResponse(
-      "No access to the project, or missing workspace:manage_settings",
+      "No workspace access, or missing workspace:manage_settings",
     ),
-    404: errorResponse("Project not found"),
   },
 });
 
@@ -107,20 +102,17 @@ const getIntegrationRoute = createRoute({
   summary: "Get Gitea integration",
   description:
     "Get the Gitea integration for a project, or null when none is configured. The webhook secret is included only for callers with workspace:manage_settings.",
-  middleware: [
-    workspaceAccess.fromProject("projectId"),
-    requireWorkspacePermission({ project: ["read"] }),
-  ] as const,
+  middleware: [workspaceAccess.fromProject("projectId")] as const,
   request: { params: projectIdParam },
   responses: {
     200: jsonResponse(
       "Gitea integration details, or null",
       giteaIntegrationSchema.nullable(),
     ),
-    403: errorResponse(
-      "No access to the project, or missing project:read permission",
+    400: errorResponse(
+      "Unknown project, or its workspace could not be determined",
     ),
-    404: errorResponse("Project not found"),
+    403: errorResponse("No access to the project's workspace"),
   },
 });
 
@@ -142,11 +134,10 @@ const createIntegrationRoute = createRoute({
   },
   responses: {
     200: jsonResponse("The stored integration", giteaIntegrationSchema),
-    400: errorResponse("Invalid body"),
+    400: errorResponse("Invalid body, or unknown project"),
     403: errorResponse(
-      "No access to the project, or missing workspace:manage_settings",
+      "No workspace access, or missing workspace:manage_settings",
     ),
-    404: errorResponse("Project not found"),
   },
 });
 
@@ -170,10 +161,9 @@ const updateIntegrationRoute = createRoute({
     200: jsonResponse("The updated integration", giteaIntegrationSchema),
     400: errorResponse("The resulting config failed validation"),
     403: errorResponse(
-      "No access to the project, or missing workspace:manage_settings",
+      "No workspace access, or missing workspace:manage_settings",
     ),
-    404: errorResponse("Project or integration not found"),
-    409: errorResponse("Integration changed; refresh before updating settings"),
+    404: jsonResponse("Integration not found", integrationNotFoundSchema),
   },
 });
 
@@ -188,10 +178,13 @@ const deleteIntegrationRoute = createRoute({
   request: { params: projectIdParam },
   responses: {
     200: jsonResponse("The integration was removed", giteaDeleteResultSchema),
-    403: errorResponse(
-      "No access to the project, or missing workspace:manage_settings",
+    400: errorResponse(
+      "Unknown project, or its workspace could not be determined",
     ),
-    404: errorResponse("Project or Gitea integration not found"),
+    403: errorResponse(
+      "No workspace access, or missing workspace:manage_settings",
+    ),
+    404: errorResponse("Gitea integration not found"),
   },
 });
 
@@ -205,7 +198,7 @@ const importIssuesRoute = createRoute({
     "Import the linked repository's issues as tasks. Issues that already have a task are refreshed rather than duplicated.",
   middleware: [
     scopeToProjectFromBody,
-    requireWorkspacePermission({ task: ["create", "update"] }),
+    requireWorkspacePermission({ task: ["create"] }),
   ] as const,
   request: {
     body: {
@@ -217,7 +210,7 @@ const importIssuesRoute = createRoute({
     200: jsonResponse("Import summary", giteaImportResultSchema),
     400: errorResponse("projectId is required"),
     403: errorResponse(
-      "No access to the project, or missing task:create or task:update permission",
+      "No workspace access, or missing task:create permission",
     ),
     404: errorResponse("Project not found"),
   },
@@ -231,8 +224,7 @@ const giteaIntegration = apiRouter<BaseVariables & { teamId: string }>()
   })
   .openapi(verifyRoute, async (c) => {
     const body = c.req.valid("json");
-    const accessToken = await resolveVerificationToken(body);
-    const result = await verifyGiteaAccess({ ...body, accessToken });
+    const result = await verifyGiteaAccess(body);
     return c.json(result, 200);
   })
   .openapi(getIntegrationRoute, async (c) => {
@@ -263,11 +255,6 @@ const giteaIntegration = apiRouter<BaseVariables & { teamId: string }>()
     if (!integration) {
       throw new HTTPException(500, { message: "Failed to load integration" });
     }
-    if (integration)
-      await publishEvent("integration.sync_rules_changed", {
-        projectId,
-        integrationId: integration.id,
-      });
     return c.json(integration, 200);
   })
   .openapi(updateIntegrationRoute, async (c) => {
@@ -282,7 +269,7 @@ const giteaIntegration = apiRouter<BaseVariables & { teamId: string }>()
     });
 
     if (!row) {
-      throw new HTTPException(404, { message: "Integration not found" });
+      return c.json({ error: "Integration not found" }, 404);
     }
 
     let config: GiteaConfig;
@@ -306,7 +293,7 @@ const giteaIntegration = apiRouter<BaseVariables & { teamId: string }>()
       });
     }
 
-    const [saved] = await db
+    await db
       .update(integrationTable)
       .set({
         config: JSON.stringify(config),
@@ -316,26 +303,15 @@ const giteaIntegration = apiRouter<BaseVariables & { teamId: string }>()
       })
       .where(
         and(
-          eq(integrationTable.id, row.id),
-          eq(integrationTable.config, row.config),
+          eq(integrationTable.projectId, projectId),
+          eq(integrationTable.type, "gitea"),
         ),
-      )
-      .returning({ id: integrationTable.id });
-    if (!saved)
-      throw new HTTPException(409, {
-        message: "Integration changed; refresh before updating settings",
-      });
+      );
 
     const updated = await getGiteaIntegration(projectId, true);
     if (!updated) {
       throw new HTTPException(500, { message: "Failed to load integration" });
     }
-    if (body.isActive === true && !row.isActive)
-      await publishEvent("integration.sync_rules_changed", {
-        projectId,
-        integrationId: row.id,
-      });
-    await publishEvent("project.updated", { projectId, linksChanged: true });
     return c.json(updated, 200);
   })
   .openapi(deleteIntegrationRoute, async (c) => {

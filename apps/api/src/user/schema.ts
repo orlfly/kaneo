@@ -11,7 +11,3 @@ export const uploadAvatarBody = z.object({
     .max(MAX_AVATAR_INPUT_CHARS)
     .openapi({ description: "Base64 encoded image bytes." }),
 });
-
-export const userSessionParam = z.object({
-  sessionId: z.string().min(1).max(200),
-});

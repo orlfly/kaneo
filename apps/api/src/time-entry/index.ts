@@ -25,15 +25,14 @@ const getTaskTimeEntriesRoute = createRoute({
   tags: ["Time Entries"],
   summary: "Get task time entries",
   description: "Get every time entry logged against a task.",
-  middleware: [
-    workspaceAccess.fromTaskId(),
-    requireWorkspacePermission({ task: ["read"] }),
-  ] as const,
+  middleware: [workspaceAccess.fromTaskId()] as const,
   request: { params: taskIdParam },
   responses: {
     200: jsonResponse("List of time entries for the task", timeEntryListSchema),
-    403: errorResponse("No access to the project, or missing read permission"),
-    404: errorResponse("Task not found"),
+    400: errorResponse(
+      "Unknown task, or its workspace could not be determined",
+    ),
+    403: errorResponse("No access to the task's workspace"),
   },
 });
 
@@ -44,15 +43,14 @@ const getTimeEntryRoute = createRoute({
   tags: ["Time Entries"],
   summary: "Get time entry",
   description: "Get a single time entry by ID.",
-  middleware: [
-    workspaceAccess.fromTimeEntry(),
-    requireWorkspacePermission({ task: ["read"] }),
-  ] as const,
+  middleware: [workspaceAccess.fromTimeEntry()] as const,
   request: { params: timeEntryParam },
   responses: {
     200: jsonResponse("Time entry details", timeEntrySchema),
-    403: errorResponse("No access to the project, or missing read permission"),
-    404: errorResponse("Time entry not found"),
+    400: errorResponse(
+      "Unknown entry, or its workspace could not be determined",
+    ),
+    403: errorResponse("No access to the entry's workspace"),
   },
 });
 
@@ -76,11 +74,10 @@ const createTimeEntryRoute = createRoute({
   },
   responses: {
     200: jsonResponse("The created time entry", timeEntrySchema),
-    400: errorResponse("Invalid body or timestamps"),
+    400: errorResponse("Invalid timestamps, or unknown task"),
     403: errorResponse(
-      "No access to the project, or missing task:update permission",
+      "No workspace access, or missing task:update permission",
     ),
-    404: errorResponse("Task not found"),
   },
 });
 
@@ -105,11 +102,10 @@ const updateTimeEntryRoute = createRoute({
   },
   responses: {
     200: jsonResponse("The updated time entry", timeEntrySchema),
-    400: errorResponse("Invalid timestamps"),
+    400: errorResponse("Invalid timestamps, or unknown entry"),
     403: errorResponse(
-      "No access to the project, or missing task:update permission",
+      "No workspace access, or missing task:update permission",
     ),
-    404: errorResponse("Time entry not found"),
   },
 });
 

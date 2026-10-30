@@ -31,15 +31,14 @@ const getTaskCommentsRoute = createRoute({
   summary: "Get task comments",
   description:
     "Get every comment on a task, oldest first, each with its author's name and avatar.",
-  middleware: [
-    workspaceAccess.fromTaskId(),
-    requireWorkspacePermission({ task: ["read"] }),
-  ] as const,
+  middleware: [workspaceAccess.fromTaskId()] as const,
   request: { params: taskIdParam },
   responses: {
     200: jsonResponse("List of comments for the task", commentListSchema),
-    403: errorResponse("No access to the project, or missing read permission"),
-    404: errorResponse("Task not found"),
+    400: errorResponse(
+      "Unknown task, or its workspace could not be determined",
+    ),
+    403: errorResponse("No access to the task's workspace"),
   },
 });
 
@@ -64,11 +63,10 @@ const createTaskCommentRoute = createRoute({
   },
   responses: {
     200: jsonResponse("The created comment", activitySchema),
-    400: errorResponse("Invalid body"),
+    400: errorResponse("Invalid body, or unknown task"),
     403: errorResponse(
-      "No access to the project, missing task:update permission, or external attribution without workspace:manage_settings",
+      "No workspace access, missing task:update permission, or external attribution without workspace:manage_settings",
     ),
-    404: errorResponse("Task not found"),
   },
 });
 
@@ -92,7 +90,7 @@ const updateTaskCommentRoute = createRoute({
   },
   responses: {
     200: jsonResponse("The updated comment", activitySchema),
-    400: errorResponse("Invalid body"),
+    400: errorResponse("Invalid body, or unknown comment"),
     403: errorResponse("Not the author, or missing task:update permission"),
     404: errorResponse("Comment not found"),
   },
@@ -112,6 +110,9 @@ const deleteTaskCommentRoute = createRoute({
   request: { params: commentParam },
   responses: {
     200: jsonResponse("The deleted comment", activitySchema),
+    400: errorResponse(
+      "Unknown comment, or its workspace could not be determined",
+    ),
     403: errorResponse("Not the author, or missing task:update permission"),
     404: errorResponse("Comment not found"),
   },

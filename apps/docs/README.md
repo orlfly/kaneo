@@ -1,26 +1,33 @@
-# Kaneo documentation
+# Kaneo Mintlify Docs
 
-The docs are authored in MDX and rendered by Mintlify. `docs.json` owns navigation; `openapi.json` supplies the generated API reference.
+This directory contains Kaneo documentation powered by Mintlify.
 
-## Preview and validate
+## Monorepo setup
 
-From `apps/docs`:
+- Repository: `kaneo`
+- Docs root for Mintlify: `/apps/docs`
+- Main config: `apps/docs/docs.json`
+- OpenAPI source file: `apps/docs/openapi.json`
+
+## Local preview
+
+1. Install Mintlify CLI:
 
 ```bash
-pnpm dlx mint dev
-pnpm dlx mint validate
-pnpm dlx mint broken-links
+npm i -g mint
 ```
 
-The preview runs at `http://localhost:3000`. Use `--port 3107` if that port is busy. Search in the local preview may require a Mintlify login.
+2. Run from this directory:
 
-## Organization
+```bash
+mint dev
+```
 
-- **Using Kaneo:** first project, task views, team management, account settings.
-- **Self-hosting:** installation, configuration, sign-in, backups, upgrades, troubleshooting.
-- **Integrations:** repositories, team channels, webhooks, and MCP.
-- **Developers:** first API request, authentication, protocol details, endpoint reference.
+3. Open `http://localhost:3000`.
 
-Existing `core/` page paths are retained so external links keep working. Put a page in the navigation where readers expect to find it rather than moving its URL for cosmetic consistency.
+## Content structure
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for writing and image guidelines. Product captures and regeneration instructions live in [images/product/README.md](images/product/README.md).
+- `index.mdx`: docs landing page
+- `core/**`: product and deployment guides
+- `api-reference/**`: overview/auth pages
+- API endpoints are generated from the local OpenAPI file in `docs.json`
