@@ -1,10 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # Dependencies
 node_modules
 .pnp
 .pnp.js
-
 # Local env files
 .env
 .env.local
@@ -12,50 +10,43 @@ node_modules
 .env.test
 .env.test.local
 .env.production.local
-
 # Testing
 coverage
-
 # Turbo
 .turbo
-
 # Vercel
 .vercel
-
 # Build Outputs
 .next/
 out/
 build
 dist
 .source
-
 # Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
 # Misc
 .DS_Store
 *.pem
-
 # DB
 *.db
-
 # Cache
 .cache/
-
 # Local worktrees
 .worktrees/
-
 # Overrides
 compose.override.yml
-
 # IntelliJ IDE
 .idea
-
 # TanStack Router generated cache
 apps/web/.tanstack/
 .pi/
-
 # Agent working directories (pi-agent file workspace)
 apps/api/data/
+logs/
+browserstack-artifacts/
+.superpowers/
+# TypeScript incremental build state
+*.tsbuildinfo
+.vitest/

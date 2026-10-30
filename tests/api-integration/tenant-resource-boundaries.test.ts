@@ -5,6 +5,7 @@ import { createApp } from "../../apps/api/src/index";
 import deleteLabel from "../../apps/api/src/label/controllers/delete-label";
 import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
+import { readErrorBody } from "./helpers/error-body";
 import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 const { syncGithub, syncGitea, removeGithub, removeGitea, publish } =
@@ -85,7 +86,10 @@ describe("tenant resource boundaries", () => {
         taskId,
       });
       expect(response.status).toBe(404);
-      expect(await response.text()).toBe("Task not found");
+      expect(await readErrorBody(response)).toMatchObject({
+        message: "Task not found",
+        code: "NOT_FOUND",
+      });
     }
     expect(await db.select().from(schema.labelTable)).toHaveLength(0);
     expect(syncGithub).not.toHaveBeenCalled();
@@ -117,9 +121,13 @@ describe("tenant resource boundaries", () => {
       ["/task", "DELETE", undefined],
       ["/task", "PUT", { taskId: own.task.id }],
     ] as const) {
-      expect(
-        (await request(`/label/${forged.id}${suffix}`, method, body)).status,
-      ).toBe(400);
+      const response = await request(
+        `/label/${forged.id}${suffix}`,
+        method,
+        body,
+      );
+      expect(response.status).toBe(404);
+      expect(await response.text()).toContain("Label not found");
     }
     await expect(deleteLabel(forged.id, own.user.id)).rejects.toMatchObject({
       status: 404,
@@ -164,12 +172,16 @@ describe("tenant resource boundaries", () => {
       const response = await request(`/task/move/${own.task.id}`, "PUT", {
         destinationProjectId,
       });
-      responses.push({ status: response.status, body: await response.text() });
+      responses.push({
+        status: response.status,
+        body: await readErrorBody(response),
+      });
     }
-    expect(responses).toEqual([
-      { status: 404, body: "Project not found" },
-      { status: 404, body: "Project not found" },
-    ]);
+    const notFound = {
+      status: 404,
+      body: { message: "Project not found", code: "NOT_FOUND" },
+    };
+    expect(responses).toEqual([notFound, notFound]);
     expect(
       await db.query.taskTable.findFirst({
         where: eq(schema.taskTable.id, own.task.id),

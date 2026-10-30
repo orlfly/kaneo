@@ -16,6 +16,7 @@ export type TaskCreatedEvent = {
 };
 
 export type TaskStatusChangedEvent = {
+  sourceIntegrationId?: string;
   taskId: string;
   projectId: string;
   userId: string | null;
@@ -34,6 +35,7 @@ export type TaskPriorityChangedEvent = {
 };
 
 export type TaskTitleChangedEvent = {
+  sourceIntegrationId?: string;
   taskId: string;
   projectId: string;
   userId: string | null;
@@ -42,6 +44,7 @@ export type TaskTitleChangedEvent = {
 };
 
 export type TaskDescriptionChangedEvent = {
+  sourceIntegrationId?: string;
   taskId: string;
   projectId: string;
   userId: string | null;

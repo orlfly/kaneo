@@ -20,19 +20,19 @@ jobs:
       github.repository == 'usekaneo/kaneo' &&
       github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
       (github.event_name == 'workflow_dispatch' || github.event.sender.login == 'peekareq[bot]')
-    runs-on: ubuntu-24.04
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 5
     outputs:
       allowed: ${{ steps.request.outputs.allowed }}
       pr: ${{ steps.request.outputs.pr }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1
         with:
           ref: ${{ github.workflow_sha }}
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
-          node-version: 24.19.0
+          node-version: 24.22.1
           package-manager-cache: false
       - id: request
         env:
@@ -43,20 +43,20 @@ jobs:
   review:
     needs: authorize
     if: needs.authorize.outputs.allowed == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 20
     concurrency:
       group: peekareview-${{ needs.authorize.outputs.pr }}
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1
         with:
           ref: ${{ github.workflow_sha }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
-          node-version: 24.19.0
+          node-version: 24.22.1
           package-manager-cache: false
       - run: npm --prefix scripts/ui-review-bot ci --ignore-scripts
       - name: Read PR source and review changed behavior
@@ -68,7 +68,7 @@ jobs:
         run: node scripts/ui-review-bot/code-review/cli.mjs "$PEEKAREVIEW_PR" --output peekareview-report
       - name: Authenticate as Peekareq
         id: bot-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510
         with:
           client-id: ${{ vars.APP_CLIENT_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}

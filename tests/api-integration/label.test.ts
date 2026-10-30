@@ -4,6 +4,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
+import { readErrorBody } from "./helpers/error-body";
 import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 describe("API integration: labels", () => {
@@ -28,7 +29,10 @@ describe("API integration: labels", () => {
     });
 
     expect(response.status).toBe(401);
-    await expect(response.text()).resolves.toBe("Unauthorized");
+    expect(await readErrorBody(response)).toMatchObject({
+      message: "Unauthorized",
+      code: "UNAUTHORIZED",
+    });
   });
 
   it("creates a label in a workspace for a member", async () => {

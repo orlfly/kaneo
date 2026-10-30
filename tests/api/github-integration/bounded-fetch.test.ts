@@ -164,7 +164,9 @@ describe("bounded GitHub import transport", () => {
     );
     await expect(
       octokit.graphql("query { viewer { login } }"),
-    ).rejects.toMatchObject({ status: 403 });
+    ).rejects.toMatchObject({
+      status: 403,
+    });
     expect(request).toHaveBeenCalledTimes(3);
     for (const [, init] of request.mock.calls)
       expect(init).toMatchObject({

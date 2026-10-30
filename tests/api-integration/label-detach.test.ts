@@ -361,7 +361,9 @@ describe("API integration: label detach/attach", () => {
 
     const detachResponse = await app.request(
       `/api/label/${attachPayload.id}/task`,
-      { method: "DELETE" },
+      {
+        method: "DELETE",
+      },
     );
     expect(detachResponse.status).toBe(200);
 

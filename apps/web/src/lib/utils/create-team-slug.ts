@@ -2,12 +2,41 @@ import { createSlug } from "./create-slug";
 
 const RANDOM_SUFFIX_LENGTH = 12;
 
+const RESERVED_WORKSPACE_SLUGS = new Set([
+  ".",
+  "..",
+  ".well-known",
+  "api",
+  "assets",
+  "auth",
+  "dashboard",
+  "device",
+  "images",
+  "invitation",
+  "invitations",
+  "mcp",
+  "onboarding",
+  "profile-setup",
+  "public-project",
+  "test-error",
+]);
+
+export function isReservedWorkspaceSlug(slug: string): boolean {
+  return RESERVED_WORKSPACE_SLUGS.has(slug.toLowerCase());
+}
+
 export function createTeamBaseSlug(value: string): string {
   return createSlug(value) || "team";
 }
 
+// getRandomValues, unlike randomUUID, also works on plain-HTTP origins.
 function createRandomSuffix(): string {
-  return crypto.randomUUID().replace(/-/g, "").slice(0, RANDOM_SUFFIX_LENGTH);
+  const bytes = crypto.getRandomValues(
+    new Uint8Array(RANDOM_SUFFIX_LENGTH / 2),
+  );
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join(
+    "",
+  );
 }
 
 export function createUniqueTeamSlug(
@@ -19,7 +48,10 @@ export function createUniqueTeamSlug(
     Array.from(existingSlugs, (slug) => slug?.toLowerCase()).filter(Boolean),
   );
 
-  if (!usedSlugs.has(baseSlug.toLowerCase())) {
+  if (
+    !usedSlugs.has(baseSlug.toLowerCase()) &&
+    !isReservedWorkspaceSlug(baseSlug)
+  ) {
     return baseSlug;
   }
 

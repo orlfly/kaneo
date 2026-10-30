@@ -1,11 +1,19 @@
 export type ExternalLinkMetadata = {
+  syncFilterPaused?: boolean;
   state?: string;
   merged?: boolean;
   mergedAt?: string;
   draft?: boolean;
   branch?: string;
   author?: string;
-  createdFrom?: "github" | "kaneo" | "gitea" | "gitea-import" | "github-import";
+  createdFrom?:
+    | "github"
+    | "kaneo"
+    | "gitea"
+    | "gitea-import"
+    | "github-import"
+    | "gitlab"
+    | "gitlab-import";
   lastCommit?: {
     sha: string;
     message: string;
@@ -17,7 +25,7 @@ export type ExternalLinkMetadata = {
 export type ExternalLink = {
   id: string;
   taskId: string;
-  integrationId: string;
+  integrationId: string | null;
   resourceType: string;
   externalId: string;
   url: string;
@@ -28,5 +36,5 @@ export type ExternalLink = {
   integration?: {
     id: string;
     type: string;
-  };
+  } | null;
 };

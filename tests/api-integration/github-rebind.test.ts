@@ -12,7 +12,9 @@ import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 const { verify } = vi.hoisted(() => ({ verify: vi.fn() }));
 vi.mock(
   "../../apps/api/src/github-integration/controllers/verify-repository-owner",
-  () => ({ verifyRepositoryOwner: verify }),
+  () => ({
+    verifyRepositoryOwner: verify,
+  }),
 );
 beforeEach(async () => {
   await resetTestDatabase();

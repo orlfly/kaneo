@@ -1,8 +1,9 @@
 import { Readable } from "node:stream";
 import {
+  CopyObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
-  HeadObjectCommand,
+  HeadBucketCommand,
   type HeadObjectCommandOutput,
   PutObjectCommand,
   S3Client,
@@ -11,6 +12,11 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { createId } from "@paralleldrive/cuid2";
 import { config } from "dotenv-mono";
+import { describeStorageError } from "./describe-storage-error";
+import {
+  headUploadedObject,
+  isMissingObjectError,
+} from "./head-uploaded-object";
 
 config();
 
@@ -60,6 +66,20 @@ type TaskImageUploadContext = {
 type TaskImageUploadUrl = {
   key: string;
   uploadUrl: string;
+  headers: Record<string, string>;
+};
+
+type ProjectBackgroundUploadContext = {
+  workspaceId: string;
+  projectId: string;
+  contentType: string;
+  size: number;
+};
+
+type ProjectBackgroundUploadUrl = {
+  key: string;
+  uploadUrl: string;
+  version: string;
   headers: Record<string, string>;
 };
 
@@ -261,6 +281,32 @@ export function buildObjectKey(context: TaskImageUploadContext) {
   return `${objectKeyPrefix}/${fileName}`;
 }
 
+export function buildProjectBackgroundObjectKey(
+  context: Pick<ProjectBackgroundUploadContext, "workspaceId" | "projectId">,
+) {
+  const objectKeyPrefix = buildProjectBackgroundObjectKeyPrefix(context);
+  const version = createId();
+
+  const fileName = `background-${version}`;
+
+  return {
+    rawKey: `${objectKeyPrefix}/${fileName}`,
+    version,
+  };
+}
+
+export function buildProjectBackgroundObjectKeyPrefix(
+  context: Pick<ProjectBackgroundUploadContext, "workspaceId" | "projectId">,
+) {
+  return [
+    "workspace",
+    sanitizePathSegment(context.workspaceId),
+    "project",
+    sanitizePathSegment(context.projectId),
+    "backgrounds",
+  ].join("/");
+}
+
 export function applyKeyPrefix(prefix: string, key: string) {
   if (!prefix) return key;
   const trimmed = prefix.replace(/\/+$/, "");
@@ -279,6 +325,33 @@ export function validateTaskAssetUploadInput(
 
   if (!Number.isSafeInteger(size) || size <= 0) {
     throw new Error("Upload size must be a positive safe integer.");
+  }
+
+  if (size > maxImageUploadBytes) {
+    throw new Error(
+      `Upload exceeds the maximum upload size of ${Math.floor(maxImageUploadBytes / (1024 * 1024))}MB.`,
+    );
+  }
+}
+
+export function validateProjectBackgroundUploadInput(
+  contentType: string,
+  size: number,
+) {
+  const maxImageUploadBytes = getMaxImageUploadBytes();
+
+  if (!contentType.trim()) {
+    throw new Error("A valid content type is required.");
+  }
+
+  if (!isImageContentType(contentType)) {
+    throw new Error(
+      `Unsupported content type "${contentType}". Upload a supported image.`,
+    );
+  }
+
+  if (size <= 0) {
+    throw new Error("Upload size must be greater than zero.");
   }
 
   if (size > maxImageUploadBytes) {
@@ -320,6 +393,37 @@ export async function createTaskImageUploadUrl(
   };
 }
 
+export async function createProjectBackgroundUploadUrl(
+  context: ProjectBackgroundUploadContext,
+): Promise<ProjectBackgroundUploadUrl> {
+  validateProjectBackgroundUploadInput(context.contentType, context.size);
+  const config = getStorageConfig();
+  const client = getClient(config);
+  const { rawKey, version } = buildProjectBackgroundObjectKey(context);
+  const key = applyKeyPrefix(config.keyPrefix, rawKey);
+
+  const command = new PutObjectCommand({
+    Bucket: config.bucket,
+    Key: key,
+    ContentType: context.contentType,
+    ContentLength: context.size,
+  });
+
+  const uploadUrl = await getSignedUrl(client, command, {
+    expiresIn: config.presignTtlSeconds,
+    signableHeaders: new Set(["content-length", "content-type"]),
+  });
+
+  return {
+    key,
+    uploadUrl,
+    version,
+    headers: {
+      "Content-Type": context.contentType,
+    },
+  };
+}
+
 export class InvalidUploadedAssetError extends Error {}
 
 /** Call only after checking the object's task/workspace key prefix. */
@@ -332,22 +436,16 @@ export async function verifyTaskAssetUpload(
   const abortSignal = AbortSignal.timeout(10_000);
   let object: HeadObjectCommandOutput;
   try {
-    object = await client.send(
-      new HeadObjectCommand({ Bucket: config.bucket, Key: key }),
-      { abortSignal },
-    );
+    object = await headUploadedObject(client, config.bucket, key, abortSignal);
   } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.name === "NotFound" ||
-        error.name === "NoSuchKey" ||
-        ("$metadata" in error &&
-          (error.$metadata as { httpStatusCode?: number }).httpStatusCode ===
-            404))
-    ) {
+    if (isMissingObjectError(error)) {
       throw new InvalidUploadedAssetError("Uploaded object was not found.");
     }
     // Provider errors may include endpoints, signed URLs or other secrets.
+    console.error(
+      "Unable to verify uploaded object:",
+      describeStorageError(error),
+    );
     throw new Error("Unable to verify uploaded object.");
   }
 
@@ -360,7 +458,11 @@ export async function verifyTaskAssetUpload(
         new DeleteObjectCommand({ Bucket: config.bucket, Key: key }),
         { abortSignal },
       );
-    } catch {
+    } catch (error) {
+      console.error(
+        "Unable to remove oversized uploaded object:",
+        describeStorageError(error),
+      );
       throw new Error("Unable to remove oversized uploaded object.");
     }
     throw new InvalidUploadedAssetError(
@@ -385,6 +487,26 @@ export function assertStorageConfigured() {
   return getStorageConfig();
 }
 
+export function isStorageConfigured() {
+  try {
+    getStorageConfig();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Check that the bucket answers with the configured credentials. */
+export async function headStorageBucket(abortSignal: AbortSignal) {
+  const config = getStorageConfig();
+  await getClient(config).send(
+    new HeadBucketCommand({ Bucket: config.bucket }),
+    {
+      abortSignal,
+    },
+  );
+}
+
 export function assertTaskImageKeyMatchesContext(
   key: string,
   context: Omit<TaskImageUploadContext, "filename" | "contentType">,
@@ -401,6 +523,29 @@ export function assertTaskImageKeyMatchesContext(
   // a traversal suffix walk back out into another workspace's objects.
   const suffix = key.slice(fullPrefix.length);
   return /^[A-Za-z0-9._-]+$/.test(suffix) && !suffix.startsWith(".");
+}
+
+export function assertProjectBackgroundKeyMatchesContext(
+  key: string,
+  context: Pick<ProjectBackgroundUploadContext, "workspaceId" | "projectId"> & {
+    version: string;
+  },
+) {
+  const config = getStorageConfig();
+  const objectPrefix = buildProjectBackgroundObjectKeyPrefix(context);
+  const fullPrefix = `${applyKeyPrefix(config.keyPrefix, objectPrefix)}/`;
+
+  if (!key.startsWith(fullPrefix)) {
+    return false;
+  }
+
+  // The prefix alone is not enough: gateways that normalize paths would let
+  // a traversal suffix walk back out into another workspace's objects.
+  if (!/^[A-Za-z0-9_-]+$/.test(context.version)) {
+    return false;
+  }
+  const suffix = key.slice(fullPrefix.length);
+  return suffix === `background-${context.version}`;
 }
 
 export async function getPrivateObject(key: string): Promise<AssetObject> {
@@ -429,6 +574,30 @@ export async function getPrivateObject(key: string): Promise<AssetObject> {
     etag: response.ETag,
     lastModified: response.LastModified,
   };
+}
+
+export async function copyTaskAssetObject({
+  sourceKey,
+  destination,
+}: {
+  sourceKey: string;
+  destination: TaskImageUploadContext;
+}): Promise<string> {
+  const config = getStorageConfig();
+  const client = getClient(config);
+  const key = applyKeyPrefix(config.keyPrefix, buildObjectKey(destination));
+
+  await client.send(
+    new CopyObjectCommand({
+      Bucket: config.bucket,
+      CopySource: [config.bucket, ...sourceKey.split("/")]
+        .map(encodeURIComponent)
+        .join("/"),
+      Key: key,
+    }),
+  );
+
+  return key;
 }
 
 export async function deleteS3Object(key: string): Promise<void> {

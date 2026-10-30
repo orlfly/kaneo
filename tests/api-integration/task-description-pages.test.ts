@@ -60,7 +60,10 @@ describe("large task descriptions", () => {
       );
       expect(
         tasks.find((entry: { id: string }) => entry.id === task.id),
-      ).toMatchObject({ description: null, descriptionDeferred: true });
+      ).toMatchObject({
+        description: null,
+        descriptionDeferred: true,
+      });
       expect(
         tasks.find((entry: { id: string }) => entry.id === small.id),
       ).toMatchObject({
@@ -176,7 +179,7 @@ describe("large task descriptions", () => {
       .where(eq(schema.projectTable.id, otherProject.id));
     mockAuthenticatedSession(other.user);
     expect((await app.request(`/api/task/${task.id}/description`)).status).toBe(
-      403,
+      404,
     );
     expect(
       (
@@ -184,7 +187,7 @@ describe("large task descriptions", () => {
           `/api/task/description-matches/${project.id}?query=secret`,
         )
       ).status,
-    ).toBe(403);
+    ).toBe(404);
     mockAnonymousSession();
     expect((await app.request(`/api/task/${task.id}/description`)).status).toBe(
       401,

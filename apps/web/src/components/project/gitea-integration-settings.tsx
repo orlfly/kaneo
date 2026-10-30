@@ -14,7 +14,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { z } from "zod/v4";
-import { GiteaRepositoryBrowserModal } from "@/components/project/gitea-repository-browser-modal";
+import { GiteaRepositoryPicker } from "@/components/project/gitea-integration/gitea-repository-picker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -881,7 +881,7 @@ export function GiteaIntegrationSettings({ projectId }: { projectId: string }) {
         </div>
       )}
 
-      <GiteaRepositoryBrowserModal
+      <GiteaRepositoryPicker
         open={showRepositoryBrowser}
         projectId={projectId}
         onOpenChange={setShowRepositoryBrowser}

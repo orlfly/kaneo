@@ -5,6 +5,7 @@ import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
 import { mockAnonymousSession, mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
+import { readErrorBody } from "./helpers/error-body";
 import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
 describe("API integration: task image upload finalize", () => {
@@ -350,8 +351,10 @@ describe("API integration: task image upload finalize", () => {
     );
 
     expect(response.status).toBe(400);
-    const text = await response.text();
-    expect(text).toBe("Image upload key does not match the task context.");
+    expect(await readErrorBody(response)).toMatchObject({
+      message: "Image upload key does not match the task context.",
+      code: "BAD_REQUEST",
+    });
   });
 
   it("rejects unauthenticated requests", async () => {

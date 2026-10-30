@@ -1,4 +1,6 @@
+import { useLocation } from "@tanstack/react-router";
 import type * as React from "react";
+import { useEffect } from "react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
@@ -12,33 +14,28 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { VersionDisplay } from "@/components/version-display";
-import { shortcuts } from "@/constants/shortcuts";
-import { useRegisterShortcuts } from "@/hooks/use-keyboard-shortcuts";
-import Search from "./search";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { toggleSidebar } = useSidebar();
+  const { setOpenMobile } = useSidebar();
+  const pathname = useLocation({ select: (location) => location.pathname });
 
-  useRegisterShortcuts({
-    modifierShortcuts: {
-      [shortcuts.sidebar.prefix]: {
-        [shortcuts.sidebar.toggle]: toggleSidebar,
-      },
-    },
-  });
+  // Navigation that doesn't start from a sidebar link (creating a project,
+  // the command palette) must still dismiss the mobile drawer.
+  useEffect(() => {
+    if (pathname) setOpenMobile(false);
+  }, [pathname, setOpenMobile]);
 
   return (
     <Sidebar
       collapsible="offcanvas"
       variant="inset"
-      className="border-none pt-1.5"
+      className="border-none"
       {...props}
     >
       <SidebarHeader className="pt-1 pb-1.5">
         <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent className="overflow-hidden gap-1 py-1">
-        <Search />
         <NavMain />
         <NavProjects />
       </SidebarContent>

@@ -110,18 +110,175 @@ describe("extractTaskNumberFromBranch", () => {
 });
 
 describe("extractTaskNumberFromPRTitle", () => {
-  it("recognizes supported title formats", () => {
-    expect(extractTaskNumberFromPRTitle("[12] Ship notifications")).toBe(12);
-    expect(extractTaskNumberFromPRTitle("Fix sidebar (#34)")).toBe(34);
-    expect(extractTaskNumberFromPRTitle("55: tidy auth flow")).toBe(55);
+  it.each(["task 21", "task: 21", "task-21", "task#21"])(
+    "recognizes the delimited marker %s in titles and bodies",
+    (reference) => {
+      const projectSlug = "KAN";
+
+      const titleTaskNumber = extractTaskNumberFromPRTitle(
+        reference,
+        projectSlug,
+      );
+      const bodyTaskNumber = extractTaskNumberFromPRBody(
+        reference,
+        projectSlug,
+      );
+
+      expect(titleTaskNumber).toBe(21);
+      expect(bodyTaskNumber).toBe(21);
+    },
+  );
+
+  it("recognizes explicit task references", () => {
+    const projectSlug = "KAN";
+    const conventionalTitle = "feat(KAN-42): copy text";
+    const bracketedTitle = "[kan-42] Copy text";
+    const taskMarkerTitle = "Task: 55 tidy auth flow";
+
+    const conventionalTaskNumber = extractTaskNumberFromPRTitle(
+      conventionalTitle,
+      projectSlug,
+    );
+    const bracketedTaskNumber = extractTaskNumberFromPRTitle(
+      bracketedTitle,
+      projectSlug,
+    );
+    const markerTaskNumber = extractTaskNumberFromPRTitle(
+      taskMarkerTitle,
+      projectSlug,
+    );
+
+    expect(conventionalTaskNumber).toBe(42);
+    expect(bracketedTaskNumber).toBe(42);
+    expect(markerTaskNumber).toBe(55);
+  });
+
+  it.each([
+    "[12] Ship notifications",
+    "Fix sidebar (#34)",
+    "55: tidy auth flow",
+    "Release (61)",
+    "feat(OTHER-42): copy text",
+    "feat(XKAN-42): copy text",
+    "feat(KAN-42extra): copy text",
+    "task42",
+    "Refactor task61 renderer",
+  ])("does not treat %s as a local task", (title) => {
+    const projectSlug = "KAN";
+
+    const taskNumber = extractTaskNumberFromPRTitle(title, projectSlug);
+
+    expect(taskNumber).toBeNull();
   });
 });
 
 describe("extractTaskNumberFromPRBody", () => {
   it("recognizes task references in the body", () => {
-    expect(extractTaskNumberFromPRBody("Closes #21")).toBe(21);
-    expect(extractTaskNumberFromPRBody("task: 77")).toBe(77);
-    expect(extractTaskNumberFromPRBody("No linked task")).toBeNull();
+    const projectSlug = "KAN";
+    const issueReference = "Closes #21";
+    const taskMarker = "task: 77";
+    const projectReference = "Implements KAN-42";
+    const unlinkedBody = "No linked task";
+
+    const issueTaskNumber = extractTaskNumberFromPRBody(issueReference);
+    const markerTaskNumber = extractTaskNumberFromPRBody(taskMarker);
+    const projectTaskNumber = extractTaskNumberFromPRBody(
+      projectReference,
+      projectSlug,
+    );
+    const unlinkedTaskNumber = extractTaskNumberFromPRBody(unlinkedBody);
+
+    expect(issueTaskNumber).toBeNull();
+    expect(markerTaskNumber).toBe(77);
+    expect(projectTaskNumber).toBe(42);
+    expect(unlinkedTaskNumber).toBeNull();
+  });
+
+  it.each([
+    "https://kaneo.example.com/acme/task/KAN-42",
+    "https://kaneo.example.com/acme/task/KAN-42/fix-kan-7-login",
+    "[Task](https://kaneo.example.com/acme/task/kan-42/fix-login)",
+  ])("recognizes the short task link %s", (body) => {
+    expect(extractTaskNumberFromPRBody(body, "KAN")).toBe(42);
+  });
+
+  it("ignores a workspace slug that looks like a ticket ID", () => {
+    expect(
+      extractTaskNumberFromPRBody(
+        "See https://kaneo.example.com/kan-42/task/OPS-5/fix-login",
+        "KAN",
+      ),
+    ).toBeNull();
+    expect(
+      extractTaskNumberFromPRBody(
+        "See https://kaneo.example.com/KAN-42/task/OPS-5.",
+        "KAN",
+      ),
+    ).toBeNull();
+  });
+
+  it("reads a short link that ends a sentence", () => {
+    expect(
+      extractTaskNumberFromPRBody(
+        "Fixes https://kaneo.example.com/acme/task/KAN-42.",
+        "KAN",
+      ),
+    ).toBe(42);
+  });
+
+  it("ignores the project key in another project's link title", () => {
+    expect(
+      extractTaskNumberFromPRBody(
+        "See https://kaneo.example.com/acme/task/OPS-5/kan-7-follow-up",
+        "KAN",
+      ),
+    ).toBeNull();
+  });
+
+  it("does not join text around a link into a task marker", () => {
+    expect(
+      extractTaskNumberFromPRBody("Task https://example.com 123", "KAN"),
+    ).toBeNull();
+  });
+
+  it("ignores task markers inside another project's link", () => {
+    expect(
+      extractTaskNumberFromPRBody(
+        "See https://kaneo.example.com/acme/task/OPS-5/fix-task-3-sorting",
+        "KAN",
+      ),
+    ).toBeNull();
+    expect(
+      extractTaskNumberFromPRBody(
+        "task: 7, see https://kaneo.example.com/acme/task/OPS-5/fix-task-3",
+        "KAN",
+      ),
+    ).toBe(7);
+  });
+
+  it("recognizes a short task link with a non-Latin project key", () => {
+    expect(
+      extractTaskNumberFromPRBody(
+        "https://kaneo.example.com/acme/task/ПРО-42/fix-login",
+        "ПРО",
+      ),
+    ).toBe(42);
+  });
+
+  it.each([
+    "Closes #61",
+    "Fixes #61",
+    "Resolves #61",
+    "Closes 61",
+    "Fixes acme/repo#61",
+    "task42",
+    "Refactor task61 renderer",
+  ])("does not interpret %s as a local task", (body) => {
+    const projectSlug = "KAN";
+
+    const taskNumber = extractTaskNumberFromPRBody(body, projectSlug);
+
+    expect(taskNumber).toBeNull();
   });
 });
 
@@ -130,7 +287,7 @@ describe("extractTaskNumber", () => {
     expect(
       extractTaskNumber(
         "kan-88-polish-editor",
-        "[12] Ship notifications",
+        "[KAN-12] Ship notifications",
         "Closes #21",
         baseConfig,
         "KAN",
@@ -142,7 +299,7 @@ describe("extractTaskNumber", () => {
     expect(
       extractTaskNumber(
         "misc-branch",
-        "[12] Ship notifications",
+        "[KAN-12] Ship notifications",
         "Closes #21",
         baseConfig,
         "KAN",
@@ -170,5 +327,29 @@ describe("extractTaskNumber", () => {
         "KAN",
       ),
     ).toBe(0);
+  });
+
+  it("does not confuse the remote closing issue with a project key", () => {
+    expect(
+      extractTaskNumber(
+        "codex/kan-42-copy-message-text",
+        "feat(KAN-42): copy message text",
+        "Closes #61",
+        baseConfig,
+        "KAN",
+      ),
+    ).toBe(42);
+  });
+
+  it("leaves issue-only references for remote issue resolution", () => {
+    expect(
+      extractTaskNumber(
+        "misc-branch",
+        "Fix #61",
+        "Closes #61",
+        baseConfig,
+        "KAN",
+      ),
+    ).toBeNull();
   });
 });

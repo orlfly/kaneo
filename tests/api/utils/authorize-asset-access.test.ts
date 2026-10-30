@@ -96,7 +96,7 @@ describe("authorizeAssetAccess", () => {
     expect(status).toBe(403);
   });
 
-  it("allows a workspace member to read a private asset", async () => {
+  it("allows a team member to read a private asset", async () => {
     state.caller = "member";
 
     const status = await statusOf(

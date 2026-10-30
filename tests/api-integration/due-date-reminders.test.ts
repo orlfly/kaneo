@@ -31,6 +31,9 @@ const { checkDueDateReminders } = await import(
 const { checkProjectWebhookReminders } = await import(
   "../../apps/api/src/scheduler/project-webhook-reminders"
 );
+const { DUE_DATE_DURATION_MS } = await import(
+  "../../apps/api/src/scheduler/reminder-timing"
+);
 const { resetTestDatabase } = await import("./helpers/database");
 const { createProjectFixture, createTeamMember } = await import(
   "./helpers/fixtures"
@@ -39,11 +42,15 @@ const { createProjectFixture, createTeamMember } = await import(
 const MINUTE_MS = 60 * 1000;
 const DEFAULT_LEAD_TIME_MINUTES = 1440;
 
-// Both schedulers fire when `dueDate - leadTime` lands in the trailing
+// Both schedulers fire when `dueDate + duration - leadTime` lands in the trailing
 // REMINDER_WINDOW_MINUTES. Sitting five minutes inside keeps the fixture off
 // both edges of that window regardless of how long the suite takes to run.
 function dueDateInsideReminderWindow() {
-  return new Date(Date.now() + (DEFAULT_LEAD_TIME_MINUTES - 5) * MINUTE_MS);
+  return new Date(
+    Date.now() +
+      (DEFAULT_LEAD_TIME_MINUTES - 5) * MINUTE_MS -
+      DUE_DATE_DURATION_MS,
+  );
 }
 
 type Scene = Awaited<ReturnType<typeof seedScene>>;
@@ -102,6 +109,13 @@ function remindersSentFor(taskId: string) {
     .select()
     .from(schema.taskReminderSentTable)
     .where(eq(schema.taskReminderSentTable.taskId, taskId));
+}
+
+function archive(teamId: string) {
+  return db
+    .update(schema.teamTable)
+    .set({ archivedAt: new Date() })
+    .where(eq(schema.teamTable.id, teamId));
 }
 
 describe("due date reminders", () => {
@@ -167,6 +181,18 @@ describe("due date reminders", () => {
 
     expect(await notificationsFor(task.id)).toHaveLength(0);
   });
+
+  it("stays silent while the team is archived", async () => {
+    const scene = await seedScene();
+    const task = await seedTask(scene, { status: "to-do" });
+    await archive(scene.workspace.id);
+
+    await checkDueDateReminders();
+
+    expect(await notificationsFor(task.id)).toHaveLength(0);
+    // Not claimed either, so nothing is marked as sent while archived.
+    expect(await remindersSentFor(task.id)).toHaveLength(0);
+  });
 });
 
 describe("project webhook due date reminders", () => {
@@ -222,5 +248,16 @@ describe("project webhook due date reminders", () => {
         reminderType: `generic_webhook:${integration.id}`,
       }),
     ]);
+  });
+
+  it("stays silent while the team is archived", async () => {
+    const scene = await seedScene();
+    await seedWebhookIntegration(scene.project.id);
+    await seedTask(scene, { status: "to-do" });
+    await archive(scene.workspace.id);
+
+    await checkProjectWebhookReminders();
+
+    expect(remindedTaskIds()).toEqual([]);
   });
 });

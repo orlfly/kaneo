@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { SquarePlusIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -91,7 +92,9 @@ function CreateProjectModal({ open, onClose }: CreateProjectModalProps) {
 
     try {
       const { id } = await mutateAsync();
-      toast.success(t("common:modals.createProject.successToast"));
+      toast.success(t("common:modals.createProject.successToast"), {
+        icon: SquarePlusIcon,
+      });
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
 
       navigate({

@@ -14,9 +14,10 @@ import { mockAuthenticatedSession } from "./helpers/auth";
 import { resetTestDatabase } from "./helpers/database";
 import { createProjectFixture, createTeamMember } from "./helpers/fixtures";
 
-const { github, gitea } = vi.hoisted(() => ({
+const { github, gitea, gitlab } = vi.hoisted(() => ({
   github: vi.fn(async (_id: string, _name: string) => {}),
   gitea: vi.fn(async (_id: string, _name: string) => {}),
+  gitlab: vi.fn(async (_id: string, _name: string) => {}),
 }));
 vi.mock("../../apps/api/src/plugins/github/utils/sync-label-to-github", () => ({
   removeLabelFromGitHub: github,
@@ -25,6 +26,11 @@ vi.mock("../../apps/api/src/plugins/github/utils/sync-label-to-github", () => ({
 vi.mock("../../apps/api/src/plugins/gitea/utils/sync-label-to-gitea", () => ({
   removeLabelFromGitea: gitea,
   syncLabelToGitea: vi.fn(),
+}));
+
+vi.mock("../../apps/api/src/plugins/gitlab/utils/sync-label-to-gitlab", () => ({
+  removeLabelFromGitlab: gitlab,
+  syncLabelToGitlab: vi.fn(),
 }));
 
 let eventGate: Promise<void> | undefined;
@@ -47,6 +53,7 @@ beforeEach(async () => {
   await resetTestDatabase();
   github.mockReset().mockResolvedValue();
   gitea.mockReset().mockResolvedValue();
+  gitlab.mockReset().mockResolvedValue();
   eventGate = undefined;
   eventCalls = [];
 });
@@ -107,6 +114,7 @@ describe("bounded, resumable label deletion", () => {
     });
     expect(github).toHaveBeenCalledTimes(LABEL_DELETE_BATCH_SIZE);
     expect(gitea).toHaveBeenCalledTimes(LABEL_DELETE_BATCH_SIZE);
+    expect(gitlab).toHaveBeenCalledTimes(LABEL_DELETE_BATCH_SIZE);
     expect(eventCalls).toHaveLength(LABEL_DELETE_BATCH_SIZE);
     const remaining = await labelsFor(member.team.id);
     expect(remaining).toHaveLength(LABEL_DELETE_BATCH_SIZE + 4);
@@ -138,6 +146,7 @@ describe("bounded, resumable label deletion", () => {
     try {
       await vi.waitFor(() => expect(github).toHaveBeenCalledTimes(1));
       expect(gitea).not.toHaveBeenCalled();
+      expect(gitlab).not.toHaveBeenCalled();
       expect(eventCalls).toHaveLength(0);
       await expect(deleteLabel(root.id, member.user.id)).rejects.toMatchObject({
         status: 429,
@@ -148,6 +157,7 @@ describe("bounded, resumable label deletion", () => {
     await pending;
     expect(github).toHaveBeenCalledTimes(3);
     expect(gitea).toHaveBeenCalledTimes(3);
+    expect(gitlab).toHaveBeenCalledTimes(3);
   });
   it("awaits real asynchronous event subscribers before deleting another copy", async () => {
     const { member, root } = await fixture(3);
@@ -225,9 +235,10 @@ describe("bounded, resumable label deletion", () => {
     expect(await labelsFor(member.team.id)).toHaveLength(0);
     expect(github).not.toHaveBeenCalled();
     expect(gitea).not.toHaveBeenCalled();
+    expect(gitlab).not.toHaveBeenCalled();
     expect(eventCalls).toHaveLength(0);
   });
-  it("removes individual task labels with both providers and an awaited event", async () => {
+  it("removes individual task labels with all providers and an awaited event", async () => {
     const { member, root, tasks } = await fixture(1);
     const [copy] = await db
       .select()
@@ -244,6 +255,7 @@ describe("bounded, resumable label deletion", () => {
     ]);
     expect(github).toHaveBeenCalledWith(tasks[0].id, "bug");
     expect(gitea).toHaveBeenCalledWith(tasks[0].id, "bug");
+    expect(gitlab).toHaveBeenCalledWith(tasks[0].id, "bug");
     expect(eventCalls).toEqual([tasks[0].id]);
   });
   it("releases process and database capacity after an operation fails", async () => {
@@ -307,6 +319,7 @@ describe("bounded, resumable label deletion", () => {
       expect(await labelsFor(member.team.id)).toHaveLength(0);
       expect(github).toHaveBeenCalledTimes(3);
       expect(gitea).toHaveBeenCalledTimes(3);
+      expect(gitlab).toHaveBeenCalledTimes(3);
       expect(eventCalls).toHaveLength(3);
       expect(log).toHaveBeenCalledWith(
         "Failed to synchronize a label removal with an external provider",

@@ -1,5 +1,4 @@
 import { client } from "@kaneo/libs";
-
 import { HttpError } from "@/lib/http-error";
 
 /**
@@ -13,7 +12,7 @@ async function getProjectTaskRelations(projectId: string) {
   });
 
   if (!response.ok) {
-    throw new HttpError(response.status, await response.text());
+    throw await HttpError.fromResponse(response);
   }
 
   return response.json();

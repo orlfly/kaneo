@@ -6,13 +6,15 @@ export type GetProjectsRequest = InferRequestType<
   (typeof client)["project"]["$get"]
 >["query"];
 
-async function getProjects({ teamId }: GetProjectsRequest) {
+async function getProjects({ teamId, includeArchived }: GetProjectsRequest) {
   if (!teamId) return;
 
-  const response = await client.project.$get({ query: { teamId } });
+  const response = await client.project.$get({
+    query: includeArchived ? { teamId, includeArchived } : { teamId },
+  });
 
   if (!response.ok) {
-    throw new HttpError(response.status, await response.text());
+    throw await HttpError.fromResponse(response);
   }
 
   const data = await response.json();

@@ -40,7 +40,7 @@ export function createBranchRegex(
 
 export function extractTaskNumberFromBranch(
   branchName: string,
-  config: GitHubConfig,
+  config: Pick<GitHubConfig, "branchPattern" | "customBranchRegex">,
   projectSlug: string,
 ): number | null {
   if (config.customBranchRegex) {
@@ -69,50 +69,54 @@ export function extractTaskNumberFromBranch(
   return null;
 }
 
-export function extractTaskNumberFromPRTitle(title: string): number | null {
-  const patterns = [
-    /\[(\d+)\]/,
-    /#(\d+)/,
-    /\((\d+)\)/,
-    /^(\d+)[:\-\s]/,
-    /task[:\-\s]*(\d+)/i,
-  ];
+const URL_PATTERN = /\bhttps?:\/\/\S+/gi;
 
-  for (const pattern of patterns) {
-    const match = title.match(pattern);
-    if (match?.[1]) {
-      const num = Number.parseInt(match[1], 10);
-      if (!Number.isNaN(num)) return num;
-    }
-  }
-
-  return null;
+function withShortLinksAsTickets(text: string) {
+  return text.replace(URL_PATTERN, (url) => {
+    const ticket = url.match(
+      /\/task\/([^/?#\s]+-\d+)(?![\p{L}\p{N}\p{M}_~-])/u,
+    )?.[1];
+    return ticket ? ` ${ticket} ` : url;
+  });
 }
 
-export function extractTaskNumberFromPRBody(body: string): number | null {
-  const patterns = [
-    /task[:\-\s#]*(\d+)/i,
-    /closes[:\-\s#]*(\d+)/i,
-    /fixes[:\-\s#]*(\d+)/i,
-    /resolves[:\-\s#]*(\d+)/i,
-  ];
-
-  for (const pattern of patterns) {
-    const match = body.match(pattern);
-    if (match?.[1]) {
-      const num = Number.parseInt(match[1], 10);
-      if (!Number.isNaN(num)) return num;
-    }
+function extractExplicitTaskNumber(
+  text: string,
+  projectSlug?: string,
+): number | null {
+  if (projectSlug) {
+    const slug = projectSlug.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const key = withShortLinksAsTickets(text).match(
+      new RegExp(`(?:^|[^\\w-])${slug}-(\\d+)(?=$|[^\\w])`, "i"),
+    );
+    if (key?.[1]) return Number.parseInt(key[1], 10);
   }
 
-  return null;
+  const task = text
+    .replace(URL_PATTERN, "<link>")
+    .match(/\btask[:\-\s#]+(\d+)\b/i);
+  return task?.[1] ? Number.parseInt(task[1], 10) : null;
+}
+
+export function extractTaskNumberFromPRTitle(
+  title: string,
+  projectSlug?: string,
+): number | null {
+  return extractExplicitTaskNumber(title, projectSlug);
+}
+
+export function extractTaskNumberFromPRBody(
+  body: string,
+  projectSlug?: string,
+): number | null {
+  return extractExplicitTaskNumber(body, projectSlug);
 }
 
 export function extractTaskNumber(
   branchName: string,
   prTitle: string | undefined,
   prBody: string | undefined,
-  config: GitHubConfig,
+  config: Pick<GitHubConfig, "branchPattern" | "customBranchRegex">,
   projectSlug: string,
 ): number | null {
   const fromBranch = extractTaskNumberFromBranch(
@@ -123,12 +127,12 @@ export function extractTaskNumber(
   if (fromBranch !== null) return fromBranch;
 
   if (prTitle) {
-    const fromTitle = extractTaskNumberFromPRTitle(prTitle);
+    const fromTitle = extractTaskNumberFromPRTitle(prTitle, projectSlug);
     if (fromTitle !== null) return fromTitle;
   }
 
   if (prBody) {
-    const fromBody = extractTaskNumberFromPRBody(prBody);
+    const fromBody = extractTaskNumberFromPRBody(prBody, projectSlug);
     if (fromBody !== null) return fromBody;
   }
 

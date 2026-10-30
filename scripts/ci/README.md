@@ -1,0 +1,165 @@
+# CI checks
+
+`ci.yml` runs on PRs and main, supports manual runs, and is reused by Nightly.
+It checks formatting, translations, OpenAPI, types, unit/integration tests, site links, workflow syntax, real S3 uploads, and all three Dockerfiles.
+The bundled image runs against disposable PostgreSQL and MinIO services for browser, realtime, and upgrade tests.
+Runtime failures retain container logs, a browser screenshot, and a Playwright trace for seven days.
+PRs also run the independent **Chromium smoke tests** job unless change detection confirms an allowlisted docs/site-only change.
+BrowserStack runs separately for main pushes, manual runs on main, and daily at 05:43 UTC.
+`browserstack-change-classification.mjs` skips Docker/cloud work only for proven runtime-neutral changes since a successful full validation less than 24 hours old.
+Skipped runs do not refresh that clock.
+Manual runs, scheduled runs, and uncertain evidence run both engines in full.
+
+The disposable S3 fixture pins Bitnami's archived MinIO 2025.7.23 image by its
+multi-platform digest because the upstream public registries no longer serve
+the previous image. It runs the MinIO binary directly with temporary test data.
+
+- `browser.mjs`: real sign-in, project/task creation, status changes, another
+  tab's realtime cache update, reload persistence and cross-workspace denial.
+- `realtime.mjs`: authenticated clients receive the same mutation with no Redis,
+  and when connected to separate API instances sharing Redis.
+- `upgrade.sh` / `upgrade.mjs`: resolve the latest stable GitHub release to an
+  image digest, seed it through public APIs, then replace it with the candidate
+  image on the same database. Verify account credentials, owner membership,
+  project/task fields, comments, private image bytes and subsequent writes.
+- `require-ci.mjs`: release publication requires the latest CI run for the exact
+  main SHA to succeed. It accepts push and manual CI runs, waits up to 30 minutes,
+  and rejects failed, cancelled and skipped runs. If no push run exists (for
+  example a release commit containing `[skip ci]`), dispatch **CI** on main before
+  dispatching **Release**. Dry runs don't wait or publish.
+
+PR change detection uses the paginated GitHub PR-files list and verifies base/head revisions and the declared file count.
+Only clearly allowlisted docs/site-only PRs may skip integration, storage, Docker image, and Chromium smoke jobs.
+Uncertainty runs all PR suites.
+The PR-only smoke job skips for recognized non-PR events; other application validation still runs in full.
+`ci-result` rejects failures, cancellations, missing results, and unexpected skips.
+Require `ci-result` in branch rules to gate PRs; it replaces the retired `browser-result` check.
+Workflow changes do not configure GitHub branch rules.
+
+The four quality checks share one job setup and dependency installation.
+Each check has its own step and runs after ordinary check failures, provided installation succeeded and the job was not cancelled.
+Any failed check fails `quality`, and `ci-result` remains the final CI gate.
+The former `lint`, `i18n`, `openapi`, and `typecheck` check names are replaced by `quality`; update external consumers that require those individual job names.
+
+The separate PR title check uses the base branch's commitlint policy and reruns
+when the title changes. Helm validation also executes the existing secret and
+upgrade-rendering regression checks. Configure the new job checks as required in
+GitHub if they should block merging; editing workflows alone does not change
+branch protection.
+
+## Dependency updates
+
+The hosted Mend Renovate GitHub App handles npm and GitHub Actions updates from `renovate.json`.
+Routine PR creation is allowed Monday 00:00–06:00 UTC, subject to hosted App availability.
+Routine npm updates wait seven days and group related package families, with patches and minors on separate branches.
+Unrelated npm updates stay separate; at most three routine dependency PRs remain open at once.
+Majors and replacements require Dependency Dashboard approval before PR creation.
+Actions non-major updates remain grouped, including digest pinning, and retain full SHA pins.
+All updates require manual merge.
+PRs generated from GitHub vulnerability alerts bypass the routine schedule, release-age delay, dashboard approval, and routine PR limit; detection and immediate creation of every security fix are not guaranteed.
+Root npm updates include the pnpm workspace/catalog and root lockfile; `tests/e2e`, `scripts/slop-labeler`, and `scripts/ui-review-bot` keep independent locks.
+CI frozen-lockfile checks catch inconsistencies.
+See the owner cutover steps in [the contribution guide](../../CONTRIBUTING.md#contribution-eligibility).
+
+**Contribution eligibility** is a separate workflow. It posts a status on the
+head commit of every open PR. Maintainers, vouched accounts, and approved bots
+pass without an issue; everyone else has to link an open
+`ready-for-contribution` issue from this repo. The workflow always takes its
+code and policy from `main`, never from the PR. Voucher management and the
+branch-rule setup are covered in
+[the contribution guide](../../CONTRIBUTING.md#contribution-eligibility). Run
+its tests with `node --test scripts/contribution-eligibility/*.test.mjs`.
+
+## Releasing dependency security fixes
+
+Integrate dependency fixes together with their lockfiles. The application and
+the BrowserStack runner have separate pnpm workspaces; validate frozen installs
+in both. Keep Vite+ and the aliased Vite core on the same release, and commit
+dependency patches with the lockfile that references them. Keep the root Vite
+alias explicit so automatically installed test-tool peers also use the patched
+core. Docker dependency stages must copy those patches before installing.
+
+Use one reviewed security-fix PR, with a conventional `fix(deps):` title so the
+automatic release plan includes it. Land that consolidated change before
+rebasing remaining dependency PRs; close superseded bot updates and review
+unrelated upgrades separately against the new main lockfile.
+
+Before merging, run the dependency regression tests, lint, typechecks, unit
+tests, and builds. CI also checks the bundled image against disposable services,
+including an upgrade from the previous release. A patched dependency can still
+appear in advisory scanners because its upstream version has not changed;
+record the advisory, patch, and regression evidence instead of changing package
+versions to hide the finding.
+
+The root backports cover Node-forge's nested DigestAlgorithm validation
+([GHSA-86w9-cpqp-85rv](https://github.com/advisories/GHSA-86w9-cpqp-85rv),
+[upstream fix](https://github.com/digitalbazaar/forge/pull/1152)) and bounded
+collection validation in Zod 3, including its embedded Zod 4 exports
+([GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5),
+[upstream fix](https://github.com/colinhacks/zod/pull/6652),
+[Zod 3 tracking](https://github.com/colinhacks/zod/issues/6653)). Run
+`pnpm test:security:dependencies` against the installed dependency graph.
+Remove a backport only when its replacement passes the same regression cases.
+The BrowserStack cache-policy patch and its removal conditions are documented
+in [the test workspace](../../tests/e2e/patches/README.md); run its checks with
+`pnpm --dir tests/e2e test:security`.
+
+Publication is a separate step:
+
+1. Merge the reviewed security fixes and wait for successful CI on that exact
+   main commit. Preview the manual **Release** workflow with `dry_run` enabled,
+   reviewing all changes since the previous app release before choosing a bump.
+   Run **Release** on the same reviewed source when ready. It builds versioned
+   images before publishing and then promotes their tags and publishes Helm.
+2. Publish an MCP update through a separate reviewed version bump in
+   `packages/mcp/package.json` and `packages/mcp/server.json`. The MCP workflow
+   runs on those main-branch changes; editing its dependency ranges alone does
+   not republish an already published version. Verify a packed package in a
+   fresh consumer installation, where repository overrides and patches do not
+   apply. Check the CLI bundle too if its embedded MCP code changes; CLI version
+   bumps have their own publishing workflow.
+3. Rebuild and distribute the mobile app to deliver mobile Markdown fixes.
+   The **Android APK** workflow produces an artifact, not a store release.
+   Apply the normal version/build-number and signing process for each mobile
+   distribution target; an updated server image does not update installed apps.
+
+Do not run release dispatches or change package versions just to validate a fix.
+
+## Local runtime checks
+
+Use disposable services only. The HTTP helpers refuse non-loopback origins.
+No root `.env`, production credentials or cloud storage are needed. You need
+Docker, Node, pnpm, the API workspace dependencies and the existing browser
+runner's dependencies (`npm ci --ignore-scripts --prefix scripts/ui-review-bot`).
+
+After building a candidate image tagged `kaneo:ci`:
+
+```sh
+docker compose --env-file /dev/null -p kaneo-ci -f scripts/ci/compose.yml up -d --wait postgres minio app
+node scripts/ci/browser.mjs http://127.0.0.1:55173
+node scripts/ci/realtime.mjs http://127.0.0.1:55173
+KANEO_CI_REDIS_URL=redis://redis:6379 docker compose --env-file /dev/null -p kaneo-ci -f scripts/ci/compose.yml --profile realtime up -d --wait app second redis
+node scripts/ci/realtime.mjs http://127.0.0.1:55173 http://127.0.0.1:55174
+GITHUB_REPOSITORY=usekaneo/kaneo GITHUB_REPOSITORY_OWNER=usekaneo bash scripts/ci/upgrade.sh
+```
+
+Install Chromium once using
+`scripts/ui-review-bot/node_modules/.bin/playwright install chromium`.
+Stop only this stack and remove its disposable data afterwards:
+
+```sh
+docker compose --env-file /dev/null -p kaneo-ci -f scripts/ci/compose.yml --profile realtime --profile upgrade down -v
+```
+
+The stack reserves loopback ports 55173–55175, 59040, 59379 and 59432. It uses
+fixed synthetic credentials and test databases; do not expose it to the network.
+
+For a local worktree on a copy-on-write filesystem, reuse the pnpm store without
+copying dependency data:
+
+```sh
+pnpm install --offline --frozen-lockfile --ignore-scripts --package-import-method=clone
+```
+
+This preserves independent workspace links. The logical `node_modules` size
+still includes shared blocks; it is not the additional physical disk cost.

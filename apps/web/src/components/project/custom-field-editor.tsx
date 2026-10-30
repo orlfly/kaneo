@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { MonthGrid } from "@/components/common/date-picker/month-grid";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
@@ -475,17 +475,15 @@ export default function CustomFieldEditor({
               </Button>
             </PopoverTrigger>
             <PopoverContent side="bottom" align="start" className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={
+              <MonthGrid
+                value={
                   defaultValue && isValid(parseISO(defaultValue))
                     ? parseISO(defaultValue)
-                    : undefined
+                    : null
                 }
                 onSelect={(date) => {
                   setDefaultValue(date ? format(date, "yyyy-MM-dd") : "");
                 }}
-                captionLayout="dropdown"
               />
             </PopoverContent>
           </Popover>

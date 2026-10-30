@@ -52,16 +52,17 @@ vi.mock("@/store/user-preferences", () => ({
 }));
 vi.mock("@/lib/i18n/domain", () => ({
   getStatusLabel: (status: string) => status,
+  getPriorityLabel: (priority: string) => priority,
 }));
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: m.t }),
   initReactI18next: { type: "3rdParty", init: vi.fn() },
 }));
 vi.mock("@/lib/toast", () => ({ toast: { error: vi.fn() } }));
-
 await import(
   "@/routes/_layout/_authenticated/dashboard/team/$teamId/project/$projectId/gantt"
 );
+
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
@@ -123,7 +124,9 @@ describe("Gantt window UI", () => {
     ).toBeDisabled();
     fireEvent.pointerDown(
       screen.getByRole("button", { name: "tasks:gantt.taskAriaLabel" }),
-      { button: 0 },
+      {
+        button: 0,
+      },
     );
     expect(m.navigate).toHaveBeenCalledWith(
       expect.objectContaining({ search: { taskId: "Long-lived" } }),

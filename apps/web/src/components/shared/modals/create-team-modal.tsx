@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { SquarePlusIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -55,7 +56,9 @@ function CreateTeamModal({ open, onClose }: CreateTeamModalProps) {
 
     try {
       const createdTeam = await mutateAsync({ name });
-      toast.success(t("common:modals.createTeam.successToast"));
+      toast.success(t("common:modals.createTeam.successToast"), {
+        icon: SquarePlusIcon,
+      });
       await queryClient.invalidateQueries({ queryKey: ["teams"] });
 
       await setActiveTeam({ teamId: createdTeam.id });

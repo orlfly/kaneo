@@ -17,6 +17,10 @@ export class KaneoClient {
     this.auth = options.auth;
   }
 
+  get usingApiKey() {
+    return this.auth.usingApiKey;
+  }
+
   private async authorizedFetch(
     path: string,
     init?: RequestInit,
@@ -71,7 +75,14 @@ export class KaneoClient {
       } else {
         detail = `HTTP ${res.status}`;
       }
-      throw new Error(`${path}: ${detail}`);
+      const code =
+        typeof body === "object" &&
+        body !== null &&
+        "code" in body &&
+        typeof (body as { code: unknown }).code === "string"
+          ? ` (${(body as { code: string }).code})`
+          : "";
+      throw new Error(`${path}: ${detail}${code}`);
     }
     return body as T;
   }

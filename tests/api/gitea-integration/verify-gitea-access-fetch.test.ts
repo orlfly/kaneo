@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("../../../apps/api/src/import/destination-fetch", () => ({
+  destinationFetch: (input: string, init?: RequestInit) => fetch(input, init),
+}));
+
 const { default: verifyGiteaAccess } = await import(
   "../../../apps/api/src/gitea-integration/controllers/verify-gitea-access"
 );

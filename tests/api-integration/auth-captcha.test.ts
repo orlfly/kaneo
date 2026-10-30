@@ -1,3 +1,4 @@
+import * as email from "@kaneo/email";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import db, { schema } from "../../apps/api/src/database";
 import { createApp } from "../../apps/api/src/index";
@@ -5,6 +6,10 @@ import { resetTestDatabase } from "./helpers/database";
 import { createTeamMember } from "./helpers/fixtures";
 
 const endpoints = [
+  [
+    "/sign-in/email",
+    { email: "captcha@example.com", password: "long-test-password" },
+  ],
   [
     "/sign-up/email",
     {
@@ -16,6 +21,23 @@ const endpoints = [
   [
     "/sign-in/social",
     { provider: "github", callbackURL: "http://localhost:5173/dashboard" },
+  ],
+  [
+    "/sign-in/oauth2",
+    { providerId: "custom", callbackURL: "http://localhost:5173/dashboard" },
+  ],
+  ["/sign-in/anonymous", {}],
+  ["/request-password-reset", { email: "captcha@example.com" }],
+  [
+    "/sign-in/magic-link",
+    {
+      email: "captcha@example.com",
+      callbackURL: "http://localhost:5173/dashboard",
+    },
+  ],
+  [
+    "/email-otp/send-verification-otp",
+    { email: "captcha@example.com", type: "sign-in" },
   ],
 ] as const;
 
@@ -34,6 +56,7 @@ function post(path: string, body: unknown, token?: string) {
 describe("server-side auth CAPTCHA enforcement", () => {
   beforeEach(async () => {
     await resetTestDatabase();
+    vi.spyOn(email, "isSmtpConfigured").mockReturnValue(true);
     await createTeamMember();
     vi.stubEnv("TURNSTILE_SECRET_KEY", "test-only-secret");
   });

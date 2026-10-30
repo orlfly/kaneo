@@ -9,7 +9,8 @@ env:
 jobs:
   validate:
     name: ${{ matrix.name }}
-    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     permissions:
       contents: read
     strategy:
@@ -46,10 +47,22 @@ jobs:
             args: >-
               --set postgresql.auth.existingSecret=kaneo-secrets
               --set kaneo.env.authSecret=secure-auth-secret-at-least-32-characters
+          - name: openshift-read-only
+            args: >-
+              --set postgresql.enabled=false
+              --set kaneo.env.database.external.enabled=true
+              --set kaneo.env.database.external.host=db.example.com
+              --set kaneo.env.database.external.password=secure-db-password
+              --set kaneo.env.authSecret=secure-auth-secret-at-least-32-characters
+              --set podSecurityContext.runAsNonRoot=true
+              --set podSecurityContext.seccompProfile.type=RuntimeDefault
+              --set kaneo.securityContext.readOnlyRootFilesystem=true
+              --set kaneo.securityContext.allowPrivilegeEscalation=false
+              --set kaneo.securityContext.capabilities.drop[0]=ALL
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1
         with:
           persist-credentials: false
 
@@ -61,3 +74,7 @@ jobs:
 
       - name: Render chart (${{ matrix.name }})
         run: helm template kaneo "$CHART_PATH" --set kaneo.env.clientUrl=https://kaneo.example.com ${{ matrix.args }}
+
+      - name: Check secret preservation and security settings
+        if: matrix.name == 'default'
+        run: ruby scripts/security/check-helm-secrets.rb

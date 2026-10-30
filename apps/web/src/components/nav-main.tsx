@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -20,6 +20,9 @@ export function NavMain() {
   const { t } = useTranslation();
   const { data: team } = useActiveTeam();
   const navigate = useNavigate();
+  const pathname = useLocation({
+    select: (location) => location.pathname.replace(/\/+$/, ""),
+  });
 
   if (!team) return null;
 
@@ -27,14 +30,13 @@ export function NavMain() {
     {
       title: t("navigation:sidebar.projects"),
       url: `/dashboard/team/${team.id}`,
-      isActive: window.location.pathname === `/dashboard/team/${team.id}`,
+      isActive: pathname === `/dashboard/team/${team.id}`,
       badge: null,
     },
     {
       title: t("navigation:sidebar.members"),
       url: `/dashboard/team/${team.id}/members`,
-      isActive:
-        window.location.pathname === `/dashboard/team/${team.id}/members`,
+      isActive: pathname === `/dashboard/team/${team.id}/members`,
       badge: null,
     },
   ];

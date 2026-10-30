@@ -1,5 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import updateTaskTitle from "@/fetchers/task/update-task-title";
+import {
+  getBoardCacheVersion,
+  markBoardCacheChanged,
+} from "@/lib/board-cache-version";
+import { invalidateMyWork } from "@/lib/invalidate-my-work";
+import { updateBoardTaskCache } from "@/lib/update-board-task-cache";
 import type Task from "@/types/task";
 
 export function useUpdateTaskTitle() {
@@ -7,13 +13,26 @@ export function useUpdateTaskTitle() {
 
   return useMutation({
     mutationFn: (task: Task) => updateTaskTitle(task.id, task),
-    onSuccess: (_, variables) => {
+    onMutate: (task: Task) => {
+      markBoardCacheChanged(queryClient, task.projectId, task.id);
+      return {
+        version: getBoardCacheVersion(queryClient, task.projectId, task.id),
+      };
+    },
+    onSuccess: (updated, variables, context) => {
+      invalidateMyWork(queryClient);
       queryClient.invalidateQueries({
         queryKey: ["task", variables.id],
       });
-      queryClient.invalidateQueries({
-        queryKey: ["tasks", variables.projectId],
-      });
+      updateBoardTaskCache(
+        queryClient,
+        variables.projectId,
+        variables.id,
+        {
+          title: updated.title,
+        },
+        context?.version,
+      );
       queryClient.invalidateQueries({
         queryKey: ["notifications"],
       });

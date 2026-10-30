@@ -1,6 +1,8 @@
 name: PR Size Labeler
 
 on:
+  # zizmor: ignore[dangerous-triggers] Labels pull requests via the API;
+  # checks out only the trusted base-branch size configuration.
   pull_request_target:
     types: [opened, synchronize, reopened]
 
@@ -14,12 +16,12 @@ concurrency:
 
 jobs:
   label:
-    runs-on: ubuntu-24.04
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 5
     steps:
       # Only read trusted base-branch configuration, including for fork PRs.
       - name: Checkout size configuration
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a # v1
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
@@ -27,7 +29,7 @@ jobs:
           sparse-checkout-cone-mode: false
 
       - name: Label PR based on size
-        uses: cbrgm/pr-size-labeler-action@6b70abfe1f75f6f35ca24731f6d25fb7251b6127 # v1.3.13
+        uses: cbrgm/pr-size-labeler-action@503e76dd1fa75f044f303a7d1460f5e2f396df01 # v1.4.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           github_repository: ${{ github.repository }}
