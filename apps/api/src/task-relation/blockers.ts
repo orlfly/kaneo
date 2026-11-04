@@ -4,20 +4,23 @@ import db from "../database";
 import { taskRelationTable, taskTable } from "../database/schema";
 
 /**
- * A `blocks` relation keeps its target out of the scheduler until the blocker
- * finishes. "Finished" means the blocker sits in a final column, or was
- * archived: an abandoned blocker must not strand the task behind it forever.
+ * A task is finished when it sits in a final column or was archived. An
+ * abandoned dependency must not strand the work behind it forever.
  */
-function openBlockerSql(blocker: ReturnType<typeof sql>) {
-  return sql`NOT (
-    ${blocker}.status = 'archived'
+export function isFinalTaskSql(task: ReturnType<typeof sql>) {
+  return sql`(
+    ${task}.status = 'archived'
     OR EXISTS (
       SELECT 1 FROM "column" blocked_by_column
-      WHERE blocked_by_column.project_id = ${blocker}.project_id
-        AND blocked_by_column.slug = ${blocker}.status
+      WHERE blocked_by_column.project_id = ${task}.project_id
+        AND blocked_by_column.slug = ${task}.status
         AND blocked_by_column.is_final = true
     )
   )`;
+}
+
+function openBlockerSql(blocker: ReturnType<typeof sql>) {
+  return sql`NOT ${isFinalTaskSql(blocker)}`;
 }
 
 /**

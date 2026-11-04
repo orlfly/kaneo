@@ -446,17 +446,27 @@ export function registerTools(
   registerTool(
     "update_task_status",
     {
-      description: "Update only the status (column) of a task.",
+      description:
+        "Update only the status (column) of a task. Setting 'paused' requires pausedReason so the paused column stays actionable; prefer pause_task when you also want the task recorded as claimed by you.",
       inputSchema: z.object({
         taskId: nonEmptyString,
         status: nonEmptyString,
+        pausedReason: z
+          .string()
+          .optional()
+          .describe("Required when status is 'paused'."),
       }),
     },
     async (args) =>
       run(() =>
         client.json(`/api/task/status/${encodeURIComponent(args.taskId)}`, {
           method: "PUT",
-          body: JSON.stringify({ status: args.status }),
+          body: JSON.stringify({
+            status: args.status,
+            ...(args.pausedReason !== undefined
+              ? { pausedReason: args.pausedReason }
+              : {}),
+          }),
         }),
       ),
   );

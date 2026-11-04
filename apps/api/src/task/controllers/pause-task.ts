@@ -23,11 +23,20 @@ export async function pauseTask({
     });
   }
 
+  const existingTask = await db.query.taskTable.findFirst({
+    where: eq(taskTable.id, taskId),
+  });
+
   const [pausedTask] = await db
     .update(taskTable)
     .set({
       status: "paused",
       pausedReason: reasonTrimmed,
+      // The review lock only means something while the task is in review.
+      // Pausing without clearing it left the task unclaimable by the next
+      // reviewer after it resumed.
+      reviewClaimedBy: null,
+      reviewClaimedAt: null,
     })
     .where(eq(taskTable.id, taskId))
     .returning();
@@ -44,7 +53,24 @@ export async function pauseTask({
     userId: currentUserId,
     title: pausedTask.title,
     reason: reasonTrimmed,
+    oldStatus: existingTask?.status ?? "in-progress",
     type: "paused",
+  });
+
+  // `task.paused` drives integrations; `task.status_changed` drives the
+  // activity timeline, WebSocket cache updates, and notifications. Emit both
+  // so pausing through this endpoint is as visible as pausing through the
+  // generic status endpoint.
+  await publishEvent("task.status_changed", {
+    taskId: pausedTask.id,
+    projectId: pausedTask.projectId,
+    userId: currentUserId,
+    oldStatus: existingTask?.status ?? "in-progress",
+    newStatus: "paused",
+    title: pausedTask.title,
+    assigneeId: pausedTask.userId,
+    reason: reasonTrimmed,
+    type: "status_changed",
   });
 
   return pausedTask;

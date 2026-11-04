@@ -4,7 +4,7 @@ import { activityTable } from "../../database/schema";
 async function createActivity(
   taskId: string,
   type: string,
-  userId: string,
+  userId: string | null,
   content: string | null,
   eventData?: Record<string, unknown> | null,
   agentKeyId?: string | null,

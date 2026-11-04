@@ -261,11 +261,12 @@ subscribeToEvent<{
 
 subscribeToEvent<{
   taskId: string;
-  userId: string;
+  userId: string | null;
   oldStatus: string;
   newStatus: string;
   title: string;
   assigneeId?: string;
+  reason?: string;
   type: string;
   agentKeyId?: string;
 }>("task.status_changed", async (data) => {
@@ -277,6 +278,7 @@ subscribeToEvent<{
     {
       oldStatus: data.oldStatus,
       newStatus: data.newStatus,
+      ...(data.reason ? { reason: data.reason } : {}),
     },
     data.agentKeyId,
   );

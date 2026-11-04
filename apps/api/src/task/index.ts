@@ -771,10 +771,12 @@ const task = apiRouter<BaseVariables & { teamId: string }>()
   .openapi(resumeTaskRoute, async (c) => {
     const { id } = c.req.valid("param");
     const currentUserId = c.get("userId");
+    const apiKey = c.get("apiKey");
 
     const task = await resumeTask({
       taskId: id,
       currentUserId,
+      agentRole: apiKey?.agentRole,
     });
 
     return c.json(task, 200);
@@ -967,13 +969,14 @@ const task = apiRouter<BaseVariables & { teamId: string }>()
   })
   .openapi(updateTaskStatusRoute, async (c) => {
     const { id } = c.req.valid("param");
-    const { status } = c.req.valid("json");
+    const { status, pausedReason } = c.req.valid("json");
     const currentUserId = c.get("userId");
     const apiKey = c.get("apiKey");
 
     const task = await updateTaskStatus({
       id,
       status,
+      pausedReason,
       currentUserId,
       agentRole: apiKey?.agentRole,
       agentKeyId: apiKey?.id,

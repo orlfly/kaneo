@@ -3,6 +3,7 @@ import { Cron } from "croner";
 import { checkDueDateReminders } from "./due-date-reminders";
 import { checkPausedTaskSuggestions } from "./paused-task-suggestions";
 import { checkProjectWebhookReminders } from "./project-webhook-reminders";
+import { resumeDependencyReadyTasks } from "./resume-dependency-ready-tasks";
 
 const jobs: Cron[] = [];
 
@@ -59,6 +60,14 @@ export function initializeScheduler(): void {
   jobs.push(
     new Cron(
       "*/5 * * * *",
+      withCheckIn("resume-dependency-ready-tasks", resumeDependencyReadyTasks),
+    ),
+  );
+  jobs.push(
+    new Cron(
+      "*/5 * * * *",
+      // Runs after dependency recovery so a task that is about to be resumed
+      // does not also get an LLM resolution suggestion.
       withCheckIn("paused-task-suggestions", checkPausedTaskSuggestions),
     ),
   );

@@ -221,7 +221,7 @@ export const toolDefinitions: ChatCompletionTool[] = [
     function: {
       name: "update_task_status",
       description:
-        "Update the status of an existing task in the current project. Use this to complete a task (set status to 'done') or close/archive a task (set status to 'archived'), or move a task to another valid project status. The task status must be one of the project's valid statuses (e.g. to-do, in-progress, done, archived, planned, paused).",
+        "Update the status of an existing task in the current project. Use this to complete a task (set status to 'done') or close/archive a task (set status to 'archived'), or move a task to another valid project status. The task status must be one of the project's valid statuses (e.g. to-do, in-progress, done, archived, planned, paused). Setting 'paused' requires pausedReason; prefer the dedicated pause_task tool when the reason is the important part.",
       parameters: {
         type: "object",
         properties: {
@@ -233,6 +233,11 @@ export const toolDefinitions: ChatCompletionTool[] = [
             type: "string",
             description:
               "The target status. Use 'done' to complete a task or 'archived' to close it. Other valid project statuses are also accepted.",
+          },
+          pausedReason: {
+            type: "string",
+            description:
+              "Required when status is 'paused'. State what the task waits for.",
           },
         },
         required: ["taskId", "status"],
@@ -467,6 +472,7 @@ async function listTasks(
       id: taskTable.id,
       title: taskTable.title,
       status: taskTable.status,
+      pausedReason: taskTable.pausedReason,
       priority: taskTable.priority,
       startDate: taskTable.startDate,
       dueDate: taskTable.dueDate,
@@ -716,6 +722,8 @@ async function updateTaskStatusTool(
 ): Promise<string> {
   const taskId = String(args.taskId ?? "").trim();
   const status = String(args.status ?? "").trim();
+  const pausedReason =
+    typeof args.pausedReason === "string" ? args.pausedReason : undefined;
   if (!taskId || !status) {
     return JSON.stringify({ error: "Both taskId and status are required" });
   }
@@ -734,6 +742,7 @@ async function updateTaskStatusTool(
     const updated = await updateTaskStatus({
       id: taskId,
       status,
+      pausedReason,
       currentUserId: userId,
     });
     return JSON.stringify(

@@ -114,6 +114,20 @@ export async function claimTask({
     });
   }
 
+  // Re-claiming a review this key already holds is a resume, not a new claim.
+  // `claim-next` returns the caller's own in-review task first, so an agent
+  // loop that keeps asking for work would otherwise write a `review-claimed`
+  // activity row (and broadcast it to the project) on every iteration.
+  if (isCodeReview && agentKeyId && candidate.reviewClaimedBy === agentKeyId) {
+    return {
+      taskId: candidate.id,
+      title: candidate.title ?? "",
+      status: "in-review",
+      claimed: true,
+      resumed: true,
+    };
+  }
+
   const assignedToMe = candidate.userId === userId;
   const claimedByAnotherPersona =
     hasAgentKey &&

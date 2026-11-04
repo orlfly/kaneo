@@ -129,6 +129,11 @@
           "status": {
             "type": "string"
           },
+          "pausedReason": {
+            "type": "string",
+            "nullable": true,
+            "description": "Why the task was paused. Null when the task is not paused."
+          },
           "priority": {
             "type": "string",
             "description": "One of: no-priority, low, medium, high, urgent."
@@ -380,6 +385,59 @@
           "columns",
           "archivedTasks",
           "plannedTasks"
+        ]
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Human-readable description of the error.",
+            "example": "Task not found"
+          },
+          "code": {
+            "type": "string",
+            "description": "Stable UPPER_SNAKE_CASE code. Derived from the status unless a more specific code applies, such as VALIDATION_ERROR or MISSING_PERMISSION.",
+            "example": "NOT_FOUND"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "description": "Dotted path to the invalid input, prefixed with the request part (body, query, params, header).",
+                  "example": "body.title"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Required"
+                }
+              },
+              "required": [
+                "path",
+                "message"
+              ]
+            },
+            "description": "Every validation issue, for VALIDATION_ERROR.",
+            "nullable": true
+          },
+          "missingPermissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Permissions the caller lacks for this route, as resource:action, for MISSING_PERMISSION and API_KEY_SCOPE.",
+            "example": [
+              "task:update"
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "message",
+          "code"
         ]
       },
       "TaskDescriptionPage": {
@@ -1014,6 +1072,11 @@
           "status": {
             "type": "string",
             "description": "The slug of the column the task sits in."
+          },
+          "pausedReason": {
+            "type": "string",
+            "nullable": true,
+            "description": "Why the task was paused. Null when the task is not paused. Use it to decide whether the task can be resumed or needs an external prerequisite."
           },
           "priority": {
             "type": "string",
@@ -3171,9 +3234,9 @@
           "400": {
             "description": "Invalid pagination or filters",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -3181,9 +3244,9 @@
           "403": {
             "description": "Project is not public",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -3191,9 +3254,9 @@
           "404": {
             "description": "Project not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -3201,9 +3264,9 @@
           "503": {
             "description": "Task list request timed out",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -3262,9 +3325,9 @@
           "400": {
             "description": "Invalid description cursor",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -3272,9 +3335,9 @@
           "404": {
             "description": "Public project not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -3282,9 +3345,9 @@
           "409": {
             "description": "Description changed or no longer public",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -3292,9 +3355,9 @@
           "503": {
             "description": "Description request timed out",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -3361,9 +3424,9 @@
           "400": {
             "description": "Invalid description cursor",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -3371,9 +3434,9 @@
           "404": {
             "description": "Public task not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -3381,9 +3444,9 @@
           "409": {
             "description": "Description changed or no longer public",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -3391,9 +3454,9 @@
           "503": {
             "description": "Description request timed out",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -4155,6 +4218,21 @@
                     },
                     "inviterEmail": {
                       "type": "string"
+                    },
+                    "projectAccess": {
+                      "type": "string",
+                      "enum": [
+                        "all",
+                        "selected"
+                      ],
+                      "description": "\"all\" gives access to every project once accepted; \"selected\" limits the member to projectIds."
+                    },
+                    "projectIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Projects the invitation grants when projectAccess is \"selected\". Only projects the viewer can access are listed."
                     }
                   },
                   "required": [
@@ -4167,7 +4245,9 @@
                     "expiresAt",
                     "organizationName",
                     "organizationSlug",
-                    "inviterEmail"
+                    "inviterEmail",
+                    "projectAccess",
+                    "projectIds"
                   ]
                 }
               }
@@ -4260,7 +4340,7 @@
         ],
         "operationId": "inviteOrganizationMember",
         "summary": "Invite Organization Member",
-        "description": "Create an invitation to an organization",
+        "description": "Create or resend an invitation. Email delivery failures return 502; the invitation remains pending and can be resent after correcting SMTP settings.",
         "requestBody": {
           "required": true,
           "content": {
@@ -4306,6 +4386,21 @@
                         }
                       }
                     ]
+                  },
+                  "projectAccess": {
+                    "type": "string",
+                    "enum": [
+                      "all",
+                      "selected"
+                    ],
+                    "description": "\"all\" (the default) gives access to every project. \"selected\" limits the new member to projectIds once they accept."
+                  },
+                  "projectIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Projects the new member can access when projectAccess is \"selected\". They must belong to the workspace, and an inviter whose own access is limited can only choose projects they can access."
                   }
                 },
                 "required": [
@@ -4347,6 +4442,21 @@
                     },
                     "createdAt": {
                       "type": "string"
+                    },
+                    "projectAccess": {
+                      "type": "string",
+                      "enum": [
+                        "all",
+                        "selected"
+                      ],
+                      "description": "\"all\" gives access to every project once accepted; \"selected\" limits the member to projectIds."
+                    },
+                    "projectIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Projects the invitation grants when projectAccess is \"selected\". Only projects the viewer can access are listed."
                     }
                   },
                   "required": [
@@ -4357,7 +4467,34 @@
                     "inviterId",
                     "status",
                     "expiresAt",
-                    "createdAt"
+                    "createdAt",
+                    "projectAccess",
+                    "projectIds"
+                  ]
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Invitation saved, but email delivery failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "INVITATION_EMAIL_FAILED"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
                   ]
                 }
               }
@@ -4433,9 +4570,82 @@
         "operationId": "listOrganizationInvitations",
         "summary": "List Organization Invitations",
         "description": "List Organization Invitations",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "organizationId",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "role": {
+                        "type": "string"
+                      },
+                      "organizationId": {
+                        "type": "string"
+                      },
+                      "inviterId": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "expiresAt": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      },
+                      "projectAccess": {
+                        "type": "string",
+                        "enum": [
+                          "all",
+                          "selected"
+                        ],
+                        "description": "\"all\" gives access to every project once accepted; \"selected\" limits the member to projectIds."
+                      },
+                      "projectIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Projects the invitation grants when projectAccess is \"selected\". Only projects the viewer can access are listed."
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "email",
+                      "role",
+                      "organizationId",
+                      "inviterId",
+                      "status",
+                      "expiresAt",
+                      "createdAt",
+                      "projectAccess",
+                      "projectIds"
+                    ]
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -5763,9 +5973,9 @@
           "400": {
             "description": "Missing project id",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -5773,9 +5983,9 @@
           "401": {
             "description": "Unauthorized",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -5783,9 +5993,9 @@
           "403": {
             "description": "Not a member of this team or key bound elsewhere",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -5793,9 +6003,9 @@
           "404": {
             "description": "Project or task not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -5848,9 +6058,9 @@
           "400": {
             "description": "Workspace ID could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -5858,9 +6068,9 @@
           "403": {
             "description": "No access to the workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -5918,9 +6128,9 @@
           "400": {
             "description": "Invalid body, or workspace ID could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -5928,9 +6138,9 @@
           "403": {
             "description": "No workspace access, or missing project:create permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -5970,9 +6180,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -5980,9 +6190,9 @@
           "403": {
             "description": "No access to the project's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6054,9 +6264,9 @@
           "400": {
             "description": "Invalid body, or unknown project",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6064,9 +6274,9 @@
           "403": {
             "description": "No workspace access, missing project:update, or missing project:share when visibility changes",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6104,9 +6314,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6114,9 +6324,9 @@
           "403": {
             "description": "No workspace access, or missing project:delete permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6159,9 +6369,9 @@
           "400": {
             "description": "Workspace ID could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6169,9 +6379,9 @@
           "403": {
             "description": "No access to the workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6179,9 +6389,9 @@
           "404": {
             "description": "Project not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6259,9 +6469,9 @@
           "400": {
             "description": "Invalid body, or workspace ID could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6269,9 +6479,9 @@
           "403": {
             "description": "No workspace access, or missing project:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6311,9 +6521,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6321,9 +6531,9 @@
           "403": {
             "description": "No workspace access, or missing project:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6363,9 +6573,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6373,9 +6583,9 @@
           "403": {
             "description": "No workspace access, or missing project:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6433,9 +6643,9 @@
           "400": {
             "description": "Invalid offset or version",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6443,9 +6653,9 @@
           "403": {
             "description": "No workspace access",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6453,9 +6663,9 @@
           "404": {
             "description": "Task not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6463,9 +6673,9 @@
           "409": {
             "description": "Description changed; reload from offset zero",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6473,9 +6683,9 @@
           "503": {
             "description": "Description request timed out",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6534,9 +6744,9 @@
           "400": {
             "description": "Invalid search query or cursor",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6544,9 +6754,9 @@
           "403": {
             "description": "No workspace access",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6554,9 +6764,9 @@
           "503": {
             "description": "Description search timed out",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6732,9 +6942,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6742,9 +6952,9 @@
           "403": {
             "description": "No access to the project's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6752,9 +6962,9 @@
           "503": {
             "description": "Task list request timed out",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6821,9 +7031,9 @@
           "409": {
             "description": "Task is not available for claiming",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6927,9 +7137,9 @@
           "404": {
             "description": "No unclaimed tasks available",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -6987,9 +7197,9 @@
           "403": {
             "description": "Task not claimed by you",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7123,9 +7333,9 @@
           "400": {
             "description": "Invalid body, or the tasks span more than one team",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7133,9 +7343,9 @@
           "403": {
             "description": "No team access, or missing the permission the operation needs",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7143,9 +7353,9 @@
           "404": {
             "description": "No tasks found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7302,9 +7512,9 @@
           "400": {
             "description": "Invalid body, or unknown project",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7312,9 +7522,9 @@
           "403": {
             "description": "No workspace access, or missing task:create permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7354,9 +7564,9 @@
           "400": {
             "description": "Unknown task, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7364,9 +7574,9 @@
           "403": {
             "description": "No access to the task's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7486,9 +7696,9 @@
           "400": {
             "description": "Invalid body, or unknown task",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7496,9 +7706,9 @@
           "403": {
             "description": "No workspace access, or missing task:update or task:assign permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7536,9 +7746,9 @@
           "400": {
             "description": "Unknown task, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7546,9 +7756,9 @@
           "403": {
             "description": "No workspace access, or missing task:delete permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7610,9 +7820,9 @@
           "400": {
             "description": "Invalid body, or unknown task",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7620,9 +7830,9 @@
           "403": {
             "description": "No workspace access, or missing task:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7630,9 +7840,9 @@
           "404": {
             "description": "Task or destination project not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7672,9 +7882,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7682,9 +7892,9 @@
           "403": {
             "description": "No access to the project's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7775,9 +7985,9 @@
           "400": {
             "description": "Invalid body, or unknown project",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7785,9 +7995,9 @@
           "403": {
             "description": "No workspace access, or missing task:create permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7822,6 +8032,10 @@
                 "properties": {
                   "status": {
                     "type": "string"
+                  },
+                  "pausedReason": {
+                    "type": "string",
+                    "description": "Required when status is 'paused'. Explains what the task is waiting for so the paused column stays actionable."
                   }
                 },
                 "required": [
@@ -7845,9 +8059,9 @@
           "400": {
             "description": "Invalid body, or unknown task",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7855,9 +8069,9 @@
           "403": {
             "description": "No workspace access, or missing task:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7922,9 +8136,9 @@
           "400": {
             "description": "Invalid priority, or unknown task",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7932,9 +8146,9 @@
           "403": {
             "description": "No workspace access, or missing task:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -7994,9 +8208,9 @@
           "400": {
             "description": "Invalid body, or unknown task",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8004,9 +8218,9 @@
           "403": {
             "description": "No workspace access, or missing task:assign permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8014,9 +8228,9 @@
           "404": {
             "description": "Assignee is not a member of the workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8071,9 +8285,9 @@
           "400": {
             "description": "Invalid date, or unknown task",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8081,9 +8295,9 @@
           "403": {
             "description": "No workspace access, or missing task:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8141,9 +8355,9 @@
           "400": {
             "description": "Invalid body, or unknown task",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8151,9 +8365,9 @@
           "403": {
             "description": "No workspace access, or missing task:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8228,9 +8442,9 @@
           "400": {
             "description": "Unsupported content type, or the file is too large",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8238,9 +8452,9 @@
           "403": {
             "description": "No workspace access, or missing task:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8248,9 +8462,9 @@
           "404": {
             "description": "Task not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8258,9 +8472,9 @@
           "503": {
             "description": "Image uploads are not configured on this instance",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8340,9 +8554,9 @@
           "400": {
             "description": "Invalid upload, or the key does not belong to this task",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8350,9 +8564,9 @@
           "403": {
             "description": "No workspace access, or missing task:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8360,9 +8574,9 @@
           "404": {
             "description": "Task not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8420,9 +8634,9 @@
           "400": {
             "description": "Invalid body, or unknown task",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8430,9 +8644,9 @@
           "403": {
             "description": "No workspace access, or missing task:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8475,9 +8689,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8485,9 +8699,9 @@
           "403": {
             "description": "No access to the project's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8552,9 +8766,9 @@
           "400": {
             "description": "Invalid body, or unknown project",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8562,9 +8776,9 @@
           "403": {
             "description": "No workspace access, or missing project:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8572,9 +8786,9 @@
           "409": {
             "description": "The slug is reserved, or already used in this project",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8651,9 +8865,9 @@
           "400": {
             "description": "A column does not belong to this project",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8661,9 +8875,9 @@
           "403": {
             "description": "No workspace access, or missing project:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8729,9 +8943,9 @@
           "400": {
             "description": "Invalid body, or unknown column",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8739,9 +8953,9 @@
           "403": {
             "description": "No workspace access, or missing project:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8779,9 +8993,9 @@
           "400": {
             "description": "Unknown column, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8789,9 +9003,9 @@
           "403": {
             "description": "No workspace access, or missing project:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8799,9 +9013,9 @@
           "409": {
             "description": "The column still contains tasks",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8844,9 +9058,9 @@
           "400": {
             "description": "Unknown task, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8854,9 +9068,9 @@
           "403": {
             "description": "No access to the task's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -8946,9 +9160,9 @@
           "403": {
             "description": "No workspace access, or missing task:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9001,9 +9215,9 @@
           "400": {
             "description": "Invalid body, or unknown task",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9011,9 +9225,9 @@
           "403": {
             "description": "No workspace access, or missing task:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9064,9 +9278,9 @@
           "400": {
             "description": "Invalid body, or unknown activity",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9074,9 +9288,9 @@
           "403": {
             "description": "Not the author, or no access to the workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9084,9 +9298,9 @@
           "404": {
             "description": "Comment not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9132,9 +9346,9 @@
           "400": {
             "description": "Invalid body, or unknown activity",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9142,9 +9356,9 @@
           "403": {
             "description": "Not the author, or no access to the workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9152,9 +9366,9 @@
           "404": {
             "description": "Comment not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9197,9 +9411,9 @@
           "400": {
             "description": "Unknown task, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9207,9 +9421,9 @@
           "403": {
             "description": "No access to the task's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9280,9 +9494,9 @@
           "400": {
             "description": "Invalid body, or unknown task",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9290,9 +9504,9 @@
           "403": {
             "description": "No workspace access, missing task:update permission, or external attribution without workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9351,9 +9565,9 @@
           "400": {
             "description": "Invalid body, or unknown comment",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9361,9 +9575,9 @@
           "403": {
             "description": "Not the author, or missing task:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9371,9 +9585,9 @@
           "404": {
             "description": "Comment not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9411,9 +9625,9 @@
           "400": {
             "description": "Unknown comment, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9421,9 +9635,9 @@
           "403": {
             "description": "Not the author, or missing task:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9431,9 +9645,9 @@
           "404": {
             "description": "Comment not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9476,9 +9690,9 @@
           "400": {
             "description": "Unknown task, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9486,9 +9700,9 @@
           "403": {
             "description": "No access to the task's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9528,9 +9742,9 @@
           "400": {
             "description": "Unknown entry, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9538,9 +9752,9 @@
           "403": {
             "description": "No access to the entry's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9606,9 +9820,9 @@
           "400": {
             "description": "Invalid timestamps, or unknown entry",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9616,9 +9830,9 @@
           "403": {
             "description": "No workspace access, or missing task:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9681,9 +9895,9 @@
           "400": {
             "description": "Invalid timestamps, or unknown task",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9691,9 +9905,9 @@
           "403": {
             "description": "No workspace access, or missing task:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9795,9 +10009,9 @@
           "400": {
             "description": "Invalid request",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9837,9 +10051,9 @@
           "404": {
             "description": "Notification not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9965,9 +10179,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -9975,9 +10189,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10038,9 +10252,9 @@
           "400": {
             "description": "Invalid body, or unknown project",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10048,9 +10262,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10090,9 +10304,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10100,9 +10314,9 @@
           "403": {
             "description": "No access to the project's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10166,9 +10380,9 @@
           "400": {
             "description": "Invalid body, or unknown project",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10176,9 +10390,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10186,9 +10400,9 @@
           "409": {
             "description": "Integration changed or another repository is already linked",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10244,9 +10458,9 @@
           "400": {
             "description": "The resulting config failed validation",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10254,9 +10468,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10274,9 +10488,9 @@
           "409": {
             "description": "Integration changed or another repository is already linked",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10314,9 +10528,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10324,9 +10538,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10334,9 +10548,9 @@
           "404": {
             "description": "GitHub integration not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10401,9 +10615,9 @@
           "400": {
             "description": "projectId is required",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10411,9 +10625,9 @@
           "403": {
             "description": "No workspace access, or missing task:create permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10421,9 +10635,9 @@
           "404": {
             "description": "Project not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10431,9 +10645,9 @@
           "409": {
             "description": "Integration or import changed; refresh before resuming",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10441,9 +10655,9 @@
           "429": {
             "description": "Import busy; retry after one second",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10451,9 +10665,9 @@
           "502": {
             "description": "Provider unavailable or invalid page; progress is saved",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10512,9 +10726,9 @@
           "400": {
             "description": "Invalid body, or unknown project",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10522,9 +10736,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10593,9 +10807,9 @@
           "400": {
             "description": "Invalid body, or unknown project",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10603,9 +10817,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10645,9 +10859,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10655,9 +10869,9 @@
           "403": {
             "description": "No access to the project's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10728,9 +10942,9 @@
           "400": {
             "description": "Invalid body, or unknown project",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10738,9 +10952,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10796,9 +11010,9 @@
           "400": {
             "description": "The resulting config failed validation",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10806,9 +11020,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10856,9 +11070,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10866,9 +11080,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10876,9 +11090,9 @@
           "404": {
             "description": "Gitea integration not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10926,9 +11140,9 @@
           "400": {
             "description": "projectId is required",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10936,9 +11150,9 @@
           "403": {
             "description": "No workspace access, or missing task:create permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10946,9 +11160,9 @@
           "404": {
             "description": "Project not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10988,9 +11202,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -10998,9 +11212,9 @@
           "403": {
             "description": "No access to the project's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11108,9 +11322,9 @@
           "400": {
             "description": "The webhook URL failed validation",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11118,9 +11332,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11228,9 +11442,9 @@
           "400": {
             "description": "The resulting config failed validation",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11238,9 +11452,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11248,9 +11462,9 @@
           "404": {
             "description": "Webhook integration not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11296,9 +11510,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11306,9 +11520,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11316,9 +11530,9 @@
           "404": {
             "description": "Webhook integration not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11358,9 +11572,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11368,9 +11582,9 @@
           "403": {
             "description": "No access to the project's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11453,9 +11667,9 @@
           "400": {
             "description": "The webhook URL failed validation",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11463,9 +11677,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11548,9 +11762,9 @@
           "400": {
             "description": "The resulting config failed validation",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11558,9 +11772,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11568,9 +11782,9 @@
           "404": {
             "description": "Discord integration not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11616,9 +11830,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11626,9 +11840,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11636,9 +11850,9 @@
           "404": {
             "description": "Discord integration not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11678,9 +11892,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11688,9 +11902,9 @@
           "403": {
             "description": "No access to the project's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11773,9 +11987,9 @@
           "400": {
             "description": "The webhook URL failed validation",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11783,9 +11997,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11868,9 +12082,9 @@
           "400": {
             "description": "The resulting config failed validation",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11878,9 +12092,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11888,9 +12102,9 @@
           "404": {
             "description": "Mattermost integration not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11936,9 +12150,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11946,9 +12160,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11956,9 +12170,9 @@
           "404": {
             "description": "Mattermost integration not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -11998,9 +12212,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12008,9 +12222,9 @@
           "403": {
             "description": "No access to the project's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12093,9 +12307,9 @@
           "400": {
             "description": "The webhook URL failed validation",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12103,9 +12317,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12188,9 +12402,9 @@
           "400": {
             "description": "The resulting config failed validation",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12198,9 +12412,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12208,9 +12422,9 @@
           "404": {
             "description": "Slack integration not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12256,9 +12470,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12266,9 +12480,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12276,9 +12490,9 @@
           "404": {
             "description": "Slack integration not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12318,9 +12532,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12328,9 +12542,9 @@
           "403": {
             "description": "No access to the project's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12422,9 +12636,9 @@
           "400": {
             "description": "The bot token or chat failed validation",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12432,9 +12646,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12524,9 +12738,9 @@
           "400": {
             "description": "The resulting config failed validation",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12534,9 +12748,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12544,9 +12758,9 @@
           "404": {
             "description": "Telegram integration not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12592,9 +12806,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12602,9 +12816,9 @@
           "403": {
             "description": "No workspace access, or missing workspace:manage_settings",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12612,9 +12826,9 @@
           "404": {
             "description": "Telegram integration not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12657,9 +12871,9 @@
           "400": {
             "description": "Unknown task, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12667,9 +12881,9 @@
           "403": {
             "description": "No access to the task's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12712,9 +12926,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12722,9 +12936,9 @@
           "403": {
             "description": "No access to the project's workspace",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12788,9 +13002,9 @@
           "400": {
             "description": "Invalid body, or unknown project",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12798,9 +13012,9 @@
           "403": {
             "description": "No workspace access, or missing project:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12840,9 +13054,9 @@
           "400": {
             "description": "Unknown rule, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12850,9 +13064,9 @@
           "403": {
             "description": "No workspace access, or missing project:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12895,9 +13109,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12905,9 +13119,9 @@
           "403": {
             "description": "No workspace access or missing read permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12950,9 +13164,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -12960,9 +13174,9 @@
           "403": {
             "description": "No workspace access or missing read permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -13005,9 +13219,9 @@
           "400": {
             "description": "Unknown task, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -13015,9 +13229,9 @@
           "403": {
             "description": "No workspace access or missing task:read permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -13060,9 +13274,9 @@
           "400": {
             "description": "Unknown project, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -13070,9 +13284,9 @@
           "403": {
             "description": "No workspace access or missing read permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -13148,9 +13362,9 @@
           "400": {
             "description": "Invalid body, or unknown project",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -13158,9 +13372,9 @@
           "403": {
             "description": "No workspace access, or missing project:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -13233,9 +13447,9 @@
           "400": {
             "description": "A custom field does not belong to this project",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -13243,9 +13457,9 @@
           "403": {
             "description": "No workspace access, or missing project:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -13301,9 +13515,9 @@
           "400": {
             "description": "Invalid body, unknown task, or unknown custom field",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -13311,9 +13525,9 @@
           "403": {
             "description": "No workspace access, or missing task:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -13353,9 +13567,9 @@
           "400": {
             "description": "Unknown custom field, or its workspace could not be determined",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -13363,9 +13577,9 @@
           "403": {
             "description": "No workspace access, or missing project:update permission",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -13422,9 +13636,9 @@
           "400": {
             "description": "Unsupported content type, malformed base64, or too large",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -13432,9 +13646,9 @@
           "408": {
             "description": "Request body timed out",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -13442,9 +13656,9 @@
           "413": {
             "description": "Request body exceeds the upload limit",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -14217,7 +14431,8 @@
                     "taskId",
                     "teamId",
                     "pendingDeletion"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -14273,7 +14488,8 @@
                   },
                   "required": [
                     "message"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -15008,7 +15224,6 @@
           }
         },
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -16107,6 +16322,9 @@
         ],
         "description": "List repositories accessible to the gitea integration",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -16162,6 +16380,9 @@
         ],
         "description": "List issues in the configured gitea repository",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -16227,6 +16448,9 @@
         ],
         "description": "Create an issue in the configured gitea repository",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -16307,6 +16531,9 @@
         ],
         "description": "Get a single gitea issue by number",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -16368,6 +16595,9 @@
         ],
         "description": "Update a gitea issue by number",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -16421,7 +16651,6 @@
           }
         ],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -16457,6 +16686,9 @@
         ],
         "description": "List comments on a gitea issue",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -16518,6 +16750,9 @@
         ],
         "description": "Comment on a gitea issue",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -16599,6 +16834,9 @@
         ],
         "description": "List open pull requests in the configured gitea repository",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -16654,6 +16892,9 @@
         ],
         "description": "List labels in the configured gitea repository",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -16707,6 +16948,9 @@
         ],
         "description": "Create a label in the configured gitea repository",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -16784,6 +17028,9 @@
         ],
         "description": "Add labels to a gitea issue",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -16866,6 +17113,9 @@
         ],
         "description": "Replace all labels on a gitea issue",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -16948,6 +17198,9 @@
         ],
         "description": "Remove a label from a gitea issue",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -17713,7 +17966,6 @@
           }
         ],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -17911,6 +18163,9 @@
         ],
         "description": "List repositories accessible to the gitlab integration",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -17966,6 +18221,9 @@
         ],
         "description": "List issues in the configured gitlab repository",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -18031,6 +18289,9 @@
         ],
         "description": "Create an issue in the configured gitlab repository",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -18111,6 +18372,9 @@
         ],
         "description": "Get a single gitlab issue by number",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -18172,6 +18436,9 @@
         ],
         "description": "Update a gitlab issue by number",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -18225,7 +18492,6 @@
           }
         ],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -18261,6 +18527,9 @@
         ],
         "description": "List comments on a gitlab issue",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -18322,6 +18591,9 @@
         ],
         "description": "Comment on a gitlab issue",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -18403,6 +18675,9 @@
         ],
         "description": "List open pull requests in the configured gitlab repository",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -18458,6 +18733,9 @@
         ],
         "description": "List labels in the configured gitlab repository",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -18511,6 +18789,9 @@
         ],
         "description": "Create a label in the configured gitlab repository",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -18588,6 +18869,9 @@
         ],
         "description": "Add labels to a gitlab issue",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -18670,6 +18954,9 @@
         ],
         "description": "Replace all labels on a gitlab issue",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -18752,6 +19039,9 @@
         ],
         "description": "Remove a label from a gitlab issue",
         "responses": {
+          "200": {
+            "description": "Successful response"
+          },
           "400": {
             "description": "Validation Error",
             "content": {
@@ -19666,7 +19956,6 @@
           }
         ],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -20890,7 +21179,7 @@
         },
         "responses": {
           "200": {
-            "type": "object"
+            "description": "Successful response"
           },
           "400": {
             "description": "Validation Error",
@@ -20943,7 +21232,6 @@
           }
         ],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -20976,7 +21264,7 @@
         },
         "responses": {
           "200": {
-            "type": "object"
+            "description": "Successful response"
           },
           "400": {
             "description": "Validation Error",
@@ -21028,7 +21316,7 @@
         ],
         "responses": {
           "200": {
-            "type": "object"
+            "description": "Successful response"
           },
           "400": {
             "description": "Validation Error",
@@ -21101,7 +21389,7 @@
         },
         "responses": {
           "200": {
-            "type": "object"
+            "description": "Successful response"
           },
           "400": {
             "description": "Validation Error",
@@ -21155,7 +21443,7 @@
         ],
         "responses": {
           "200": {
-            "type": "object"
+            "description": "Successful response"
           },
           "400": {
             "description": "Validation Error",
@@ -21216,7 +21504,6 @@
           }
         ],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -21237,7 +21524,7 @@
         },
         "responses": {
           "200": {
-            "type": "object"
+            "description": "Successful response"
           },
           "400": {
             "description": "Validation Error",
@@ -21297,7 +21584,7 @@
         ],
         "responses": {
           "200": {
-            "type": "object"
+            "description": "Successful response"
           },
           "400": {
             "description": "Validation Error",
@@ -21351,7 +21638,7 @@
         ],
         "responses": {
           "200": {
-            "type": "object"
+            "description": "Successful response"
           },
           "400": {
             "description": "Validation Error",
@@ -21435,7 +21722,7 @@
         },
         "responses": {
           "200": {
-            "type": "object"
+            "description": "Successful response"
           },
           "400": {
             "description": "Validation Error",

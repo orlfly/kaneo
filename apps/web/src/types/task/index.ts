@@ -27,6 +27,7 @@ type Task = {
   description: string | null;
   descriptionDeferred?: boolean;
   status: string;
+  pausedReason?: string | null;
   priority: string | null;
   startDate: string | null;
   dueDate: string | null;

@@ -100,8 +100,10 @@ export async function releaseTask({
     type: "released",
   });
 
-  // Also emit status_changed so integrations/realtime update.
-  const oldStatus = "paused"; // Most likely paused or in-progress
+  // Also emit status_changed so integrations/realtime update. Use the status
+  // the task actually had: release is also used for in-progress work, and the
+  // old hardcoded "paused" made the activity feed lie.
+  const oldStatus = target.status;
   await publishEvent("task.status_changed", {
     taskId: releasedTask.id,
     projectId: releasedTask.projectId,

@@ -161,6 +161,7 @@ async function getTasksPage(
     description: boardDescription,
     descriptionDeferred,
     status: taskTable.status,
+    pausedReason: taskTable.pausedReason,
     priority: taskTable.priority,
     startDate: taskTable.startDate,
     dueDate: taskTable.dueDate,

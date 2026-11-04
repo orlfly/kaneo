@@ -171,7 +171,13 @@ export const importTasksBody = z.object({
   ),
 });
 
-export const updateStatusBody = z.object({ status: z.string() });
+export const updateStatusBody = z.object({
+  status: z.string(),
+  pausedReason: z.string().optional().openapi({
+    description:
+      "Required when status is 'paused'. Explains what the task is waiting for so the paused column stays actionable.",
+  }),
+});
 export const updatePriorityBody = z.object({ priority });
 export const updateAssigneeBody = z.object({
   userId: z.string().nullable().openapi({ description: "Null unassigns." }),

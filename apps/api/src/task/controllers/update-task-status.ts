@@ -9,12 +9,14 @@ import { assertValidTaskStatus } from "../validate-task-fields";
 async function updateTaskStatus({
   id,
   status,
+  pausedReason,
   currentUserId,
   agentRole,
   agentKeyId,
 }: {
   id: string;
   status: string;
+  pausedReason?: string;
   currentUserId: string;
   agentRole?: AgentRole;
   agentKeyId?: string;
@@ -30,6 +32,17 @@ async function updateTaskStatus({
   }
 
   await assertValidTaskStatus(status, existingTask.projectId);
+
+  // A paused task without a reason is indistinguishable from an abandoned
+  // task, so the generic status endpoint enforces the same rule as
+  // `POST /task/pause/:id`. Agents that only know the status tool therefore
+  // cannot strand work silently.
+  const pauseReason = status === "paused" ? (pausedReason ?? "").trim() : "";
+  if (status === "paused" && !pauseReason) {
+    throw new HTTPException(400, {
+      message: "A pause reason is required when pausing a task",
+    });
+  }
 
   const column = await db.query.columnTable.findFirst({
     where: and(
@@ -75,21 +88,23 @@ async function updateTaskStatus({
     });
   }
 
-  // When an agent changes status, keep the task's requiredRole aligned with
-  // the stage it is entering:
+  // Keep the task's requiredRole aligned with the stage it is entering:
   //   in-progress -> the agent's own role (except reviewer rework: null, so
   //     the original implementer can pick it back up)
   //   in-review   -> code-review (the reviewer)
-  //   done        -> null (completed, no longer needs a role)
+  //   done        -> null for every caller (completed, no longer needs a role)
   // Other statuses leave requiredRole untouched.
   let nextRequiredRole = existingTask.requiredRole;
-  if (agentRole !== undefined) {
+  if (status === "done") {
+    // Completion is final regardless of who moved the task: a done task must
+    // not keep advertising a claim role. Web/human transitions used to skip
+    // this branch and left 61/412 done tasks role-tagged.
+    nextRequiredRole = null;
+  } else if (agentRole !== undefined) {
     if (status === "in-progress") {
       nextRequiredRole = isReviewer ? null : agentRole;
     } else if (status === "in-review") {
       nextRequiredRole = "code-review";
-    } else if (status === "done") {
-      nextRequiredRole = null;
     }
   }
 
@@ -103,6 +118,9 @@ async function updateTaskStatus({
       status,
       columnId: column?.id ?? null,
       requiredRole: nextRequiredRole,
+      // Leaving `paused` for any other status clears the stale reason, the
+      // same way `resumeTask` does.
+      pausedReason: status === "paused" ? pauseReason : null,
       reviewClaimedBy: releaseReviewLock ? null : existingTask.reviewClaimedBy,
       reviewClaimedAt: releaseReviewLock ? null : existingTask.reviewClaimedAt,
     })
@@ -124,6 +142,7 @@ async function updateTaskStatus({
     title: updatedTask.title,
     assigneeId: updatedTask.userId,
     type: "status_changed",
+    ...(status === "paused" ? { reason: pauseReason } : {}),
     // Persona attribution for the activity feed: several agent keys may share
     // one human `userId` (the persona is `metadata.agentRole`).
     agentKeyId,

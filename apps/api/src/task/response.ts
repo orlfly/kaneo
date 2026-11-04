@@ -26,6 +26,10 @@ export const taskSchema = z
     status: z.string().openapi({
       description: "The slug of the column the task sits in.",
     }),
+    pausedReason: z.string().nullable().optional().openapi({
+      description:
+        "Why the task was paused. Null when the task is not paused. Use it to decide whether the task can be resumed or needs an external prerequisite.",
+    }),
     priority: z.string().openapi({ description: priorityDescription }),
     startDate: nullableResponseTimestamp,
     dueDate: nullableResponseTimestamp,
@@ -91,6 +95,9 @@ export const boardTaskSchema = z
         "True when the list omits a large description; load the task detail or description pages to read it. Do not replace stored text with this null summary.",
     }),
     status: z.string(),
+    pausedReason: z.string().nullable().optional().openapi({
+      description: "Why the task was paused. Null when the task is not paused.",
+    }),
     priority: z.string().openapi({ description: priorityDescription }),
     startDate: nullableResponseTimestamp,
     dueDate: nullableResponseTimestamp,
