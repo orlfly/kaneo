@@ -161,51 +161,6 @@ function SettingsLayout() {
               </TabsList>
             </Tabs>
 
-            {activeTab === "account" ? (
-              <div className="flex flex-wrap gap-2 pt-2">
-                <Link
-                  to="/dashboard/settings/account/information"
-                  className="rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent"
-                  activeProps={{
-                    className:
-                      "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
-                  }}
-                >
-                  {t("settings:information")}
-                </Link>
-                <Link
-                  to="/dashboard/settings/account/notifications"
-                  className="rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent"
-                  activeProps={{
-                    className:
-                      "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
-                  }}
-                >
-                  {t("settings:notifications")}
-                </Link>
-                <Link
-                  to="/dashboard/settings/account/preferences"
-                  className="rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent"
-                  activeProps={{
-                    className:
-                      "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
-                  }}
-                >
-                  {t("settings:preferences")}
-                </Link>
-                <Link
-                  to="/dashboard/settings/account/developer"
-                  className="rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-sidebar-accent"
-                  activeProps={{
-                    className:
-                      "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
-                  }}
-                >
-                  {t("settings:apiKeys")}
-                </Link>
-              </div>
-            ) : null}
-
             {activeTab === "admin" && isAdmin ? (
               <div className="flex gap-2 pt-2">
                 <Link
