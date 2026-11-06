@@ -54,13 +54,18 @@ const taskRelation = new Hono<{
     describeRoute({
       operationId: "createTaskRelation",
       tags: ["Task Relations"],
-      description: "Create a relation between two tasks",
+      description:
+        "Create a relation between two tasks. Rejects a relation that would create a circular dependency.",
       responses: {
         200: {
           description: "Task relation created successfully",
           content: {
             "application/json": { schema: resolver(taskRelationSchema) },
           },
+        },
+        409: {
+          description:
+            "The relation already exists or would create a circular dependency",
         },
       },
     }),

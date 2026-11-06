@@ -19186,7 +19186,7 @@
         "tags": [
           "Task Relations"
         ],
-        "description": "Create a relation between two tasks",
+        "description": "Create a relation between two tasks. Rejects a relation that would create a circular dependency.",
         "responses": {
           "200": {
             "description": "Task relation created successfully",
@@ -19255,6 +19255,9 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "The relation already exists or would create a circular dependency"
           }
         },
         "requestBody": {

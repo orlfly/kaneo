@@ -6,6 +6,7 @@ import {
   taskRelationTable,
   taskTable,
 } from "../../database/schema";
+import { assertNoDependencyCycle, lockTaskRelationGraph } from "../cycle";
 
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -88,6 +89,8 @@ export async function insertTaskRelations(
     }
   }
 
+  await lockTaskRelationGraph(tx, teamId);
+
   // Relation types are unique per task pair in either direction, matching the
   // single-relation route. A pair is keyed by the task on the other side.
   const existing = await tx
@@ -123,14 +126,32 @@ export async function insertTaskRelations(
     }
   }
 
-  return tx
-    .insert(taskRelationTable)
-    .values(
-      relations.map((relation) => ({
+  // Insert one at a time so a later relation in the batch sees the edges added
+  // by earlier ones. The whole batch is still one transaction.
+  const createdRelations: Array<typeof taskRelationTable.$inferSelect> = [];
+  for (const relation of relations) {
+    const targetTaskId = relation.targetTaskId.trim();
+
+    await assertNoDependencyCycle(tx, {
+      teamId,
+      sourceTaskId,
+      targetTaskId,
+      relationType: relation.relationType,
+    });
+
+    const [created] = await tx
+      .insert(taskRelationTable)
+      .values({
         sourceTaskId,
-        targetTaskId: relation.targetTaskId.trim(),
+        targetTaskId,
         relationType: relation.relationType,
-      })),
-    )
-    .returning();
+      })
+      .returning();
+
+    if (created) {
+      createdRelations.push(created);
+    }
+  }
+
+  return createdRelations;
 }
